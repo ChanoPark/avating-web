@@ -1,0 +1,1 @@
+export { MonoLabel } from './Label';
