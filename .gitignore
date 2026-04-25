@@ -1,0 +1,160 @@
+# ──────────────────────────────────────────────────────────────────────
+# .gitignore — avating-web (Public Repo)
+#
+# 보안 원칙:
+#   - 실제 값이 들어가는 .env* 는 절대 커밋 금지 (.env.example 만 예외).
+#   - 키/인증서/자격증명 류는 패턴 단위로 차단.
+#   - AI 가 본 파일을 수정할 때 보안 항목 변경은 사용자 승인 필수.
+#
+# 상세 정책: .claude/skills/git-flow-public-repo/SKILL.md#6
+# ──────────────────────────────────────────────────────────────────────
+
+# ── 의존성 / 빌드 산출물
+node_modules
+bower_components
+dist
+dist-ssr
+.vite
+*.tsbuildinfo
+
+# ── 환경 변수 (Public Repo: .env.example 외 전부 차단)
+.env
+.env.*
+!.env.example
+
+# ── 비밀 파일 (키 / 인증서)
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa
+id_ed25519
+known_hosts
+.ssh/
+
+# ── 클라우드 자격증명
+.aws/
+.gcloud/
+gcp-*.json
+*-sa-*.json
+service-account*.json
+credentials.json
+secrets.json
+secret.json
+
+# ── 관측성 도구 토큰
+.sentryclirc
+.amplitude/
+
+# ── 로그
+*.log
+logs
+npm-debug.log*
+pnpm-debug.log*
+yarn-error.log
+
+# ── 테스트 / 커버리지
+coverage
+playwright-report
+test-results
+blob-report
+.nyc_output
+
+# ── Storybook
+storybook-static
+.storybook-static
+
+# ── 에디터 / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/*.code-snippets
+.idea
+.history/
+.history
+.ionide
+*.vsix
+.DS_Store
+.DS_*
+Thumbs.db
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.sublime*
+**/*.backup.*
+**/*.back.*
+
+# ── 도구 캐시
+.eslintcache
+.turbo
+.cache
+.parcel-cache
+
+# ── Terraform (추후 IaC 도입 시)
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+
+# ── Claude / AI 로컬 설정 (개인 환경 — 공유 금지)
+.claude/settings.local.json
+
+# ── 기타 로컬 전용
+*.local
+tmp/
+.tmp/
+psd
+thumb
+sketch
+
+.DS_STORE
+node_modules
+scripts/flow/*/.flowconfig
+.flowconfig
+*~
+*.pyc
+.grunt
+_SpecRunner.html
+__benchmarks__
+build/
+remote-repo/
+coverage/
+.module-cache
+fixtures/dom/public/react-dom.js
+fixtures/dom/public/react.js
+test/the-files-to-test.generated.js
+*.log*
+chrome-user-data
+*.sublime-project
+*.sublime-workspace
+.idea
+*.iml
+.vscode
+.zed
+*.swp
+*.swo
+/tmp
+/.worktrees
+.claude/*.local.*
+
+packages/react-devtools-core/dist
+packages/react-devtools-extensions/chrome/build
+packages/react-devtools-extensions/chrome/*.crx
+packages/react-devtools-extensions/chrome/*.pem
+packages/react-devtools-extensions/firefox/build
+packages/react-devtools-extensions/firefox/*.xpi
+packages/react-devtools-extensions/firefox/*.pem
+packages/react-devtools-extensions/shared/build
+packages/react-devtools-extensions/.tempUserDataDir
+packages/react-devtools-fusebox/dist
+packages/react-devtools-inline/dist
+packages/react-devtools-shell/dist
+packages/react-devtools-timeline/dist
