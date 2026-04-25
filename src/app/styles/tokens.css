@@ -1,0 +1,67 @@
+/* Avating design tokens — single source of truth.
+   Extracted from design handoff: 02-color, 03-typography, 04-spacing-radius-shadow. */
+
+:root {
+  color-scheme: dark;
+
+  /* ── Background (elevation) ─────────────────────────────── */
+  --bg: #0a0e1a;
+  --bg-elev-1: #0f1420;
+  --bg-elev-2: #161c2c;
+  --bg-elev-3: #1e2538;
+
+  /* ── Border ─────────────────────────────────────────────── */
+  --border: #1f2638;
+  --border-hi: #2a3349;
+  --border-focus: #3b5bdb;
+
+  /* ── Text (4 steps) ─────────────────────────────────────── */
+  --text: #e4e7ef;
+  --text-2: #a1a8bc;
+  --text-3: #6b7490;
+  --text-4: #434d67;
+
+  /* ── Brand (single accent) ──────────────────────────────── */
+  --brand: #5170ff;
+  --brand-hover: #6781ff;
+  --brand-soft: rgba(81, 112, 255, 0.12);
+  --brand-border: rgba(81, 112, 255, 0.25);
+
+  /* ── Functional ─────────────────────────────────────────── */
+  --success: #3fb950;
+  --warning: #d29922;
+  --danger: #f85149;
+
+  /* ── Fonts ──────────────────────────────────────────────── */
+  --font-ui: 'Inter Tight', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-text: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  /* ── Radius (max 12px) ──────────────────────────────────── */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+
+  /* ── Shadow (3 + focus) ─────────────────────────────────── */
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 3px rgba(81, 112, 255, 0.12);
+
+  /* ── Motion ─────────────────────────────────────────────── */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 400ms;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Z-index scale ──────────────────────────────────────── */
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-bg: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+}
