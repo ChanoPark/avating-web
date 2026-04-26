@@ -1,5 +1,6 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Link } from 'react-router';
 import { Button } from '@shared/ui/Button';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -155,9 +156,9 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           {isLoading ? '가입 중...' : '회원가입'}
         </Button>
 
-        <a href="/login" className="text-body-sm text-text-2 hover:text-text text-center">
+        <Link to="/login" className="text-body-sm text-text-2 hover:text-text text-center">
           이미 계정이 있으신가요? 로그인
-        </a>
+        </Link>
       </div>
     </form>
   );
