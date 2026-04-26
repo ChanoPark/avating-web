@@ -175,4 +175,67 @@ describe('SignupForm', () => {
       expect(screen.getByLabelText(/^비밀번호$/i)).toBeInTheDocument();
     });
   });
+
+  describe('에러 상태 스타일', () => {
+    it('이메일 형식 에러일 때 input 에 border-danger 클래스가 적용된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      const emailInput = screen.getByLabelText(/이메일/i);
+      await user.type(emailInput, 'notanemail');
+      await user.tab();
+
+      await waitFor(() => {
+        expect(emailInput).toHaveClass('border-danger');
+        expect(emailInput).toHaveAttribute('aria-invalid', 'true');
+      });
+    });
+
+    it('정상 상태에서는 border-danger 가 적용되지 않는다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByLabelText(/이메일/i)).not.toHaveClass('border-danger');
+    });
+  });
+
+  describe('onTouched 타이밍', () => {
+    it('blur 전에는 잘못된 값이라도 에러가 표시되지 않는다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'invalid');
+
+      expect(screen.queryByText('올바른 이메일 형식이 아닙니다')).not.toBeInTheDocument();
+    });
+
+    it('blur 직후에 에러가 표시된다 (onTouched)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'invalid');
+      await user.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+      });
+    });
+
+    it('blur 로 에러가 표시된 후 다시 입력하면 즉시 에러가 사라진다 (reValidateMode: onChange)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      const emailInput = screen.getByLabelText(/이메일/i);
+      await user.type(emailInput, 'invalid');
+      await user.tab();
+
+      await waitFor(() => {
+        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+      });
+
+      await user.type(emailInput, '@avating.com');
+
+      await waitFor(() => {
+        expect(screen.queryByText('올바른 이메일 형식이 아닙니다')).not.toBeInTheDocument();
+      });
+    });
+  });
 });
