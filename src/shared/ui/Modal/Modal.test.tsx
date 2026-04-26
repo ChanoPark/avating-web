@@ -39,4 +39,30 @@ describe('Modal', () => {
     await user.click(screen.getByRole('button', { name: '모달 닫기' }));
     expect(onClose).toHaveBeenCalledOnce();
   });
+
+  it('Escape 키를 누르면 onClose가 호출된다', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(
+      <Modal open onClose={onClose} title="키보드 닫기 확인">
+        body
+      </Modal>
+    );
+    await user.keyboard('{Escape}');
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it('footer prop이 있으면 footer 영역이 렌더된다', () => {
+    render(
+      <Modal
+        open
+        onClose={() => undefined}
+        title="확인"
+        footer={<button type="button">취소</button>}
+      >
+        body
+      </Modal>
+    );
+    expect(screen.getByRole('button', { name: '취소' })).toBeInTheDocument();
+  });
 });
