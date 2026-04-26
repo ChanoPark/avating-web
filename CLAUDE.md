@@ -88,6 +88,10 @@
 ## 개발 규칙
 
 - **TDD**: Zod 스키마 → 테스트(RED) → 구현(GREEN) → 리팩터 → 커버리지 확인.
+  - 테스트는 렌더 확인 수준에 그치지 않고 **실제 사용자 플로우** 전체를 검증해야 한다: 입력 → 제출 → 성공/에러 결과 확인.
+  - **유효성 검사 테스트**: 에러 메시지 텍스트뿐 아니라 에러 상태 스타일(예: `border-danger` 클래스 적용 여부), 트리거 타이밍(blur/change 시점)까지 포함.
+  - **API 연동 테스트**: MSW 핸들러가 실제로 요청을 가로채는지 `waitFor` + 상태 변화로 검증. 성공·실패 케이스 모두 포함.
+  - **폼 UX 테스트**: `mode`, `reValidateMode` 등 RHF 설정이 의도대로 동작하는지(초기 blur, 재입력 시 즉시 업데이트) 검증.
 - **서버/클라 상태 분리**: 서버 데이터는 TanStack Query, UI/인증 토글만 Zustand.
 - **API 파싱**: Axios 응답은 반드시 Zod로 파싱 후 앱 내부로 전달 (경계 검증).
 - **에러 처리**: 경계(라우트/피처)마다 ErrorBoundary + Suspense. 에러 침묵 금지.
@@ -95,6 +99,9 @@
 - **접근성**: 모든 `shared/ui/*`는 Storybook a11y addon 통과, 키보드 내비 가능.
 - **민감정보**: PII(닉네임/메시지 본문)는 Sentry scrubbing. localStorage에 비밀값/결제정보 저장 금지.
 - **MSW**: 개발/테스트 독립성 확보 위해 유지. 백엔드 부재·장애 시 핸들러로 즉시 대응.
+  - 핸들러 BASE_URL은 반드시 `import.meta.env.VITE_API_BASE_URL` 사용 — 절대 URL 하드코딩 금지. 하드코딩하면 `.env.*` 변경 시 핸들러가 요청을 가로채지 못해 실제 서버로 passthrough됨.
+  - `vitest.config.ts`의 `test.env.VITE_API_BASE_URL` 값은 `.env.development`의 `VITE_API_BASE_URL`과 반드시 동기화. 새 env 변수 추가 시 두 파일 함께 수정.
+  - MSW server는 `request:unhandled` 이벤트에서 에러를 throw해야 함 — 핸들러 누락·URL 불일치가 테스트 즉시 실패로 이어지도록.
 - **주석**: 기본은 **주석을 쓰지 않음**. "왜"가 자명하지 않을 때만 한 줄. 코드가 하는 일을 설명하는 주석 금지.
 
 ## AI 작업물 파일 위치 규칙
