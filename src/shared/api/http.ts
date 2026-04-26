@@ -2,7 +2,6 @@ import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { env } from '@shared/config/env';
 import { parseApiError } from '@shared/lib/errors';
-import { useAuthStore } from '@entities/auth/store';
 
 const AUTH_ALLOWLIST = [
   '/api/auth/login',
@@ -16,6 +15,37 @@ function isAllowlisted(url: string | undefined): boolean {
   return AUTH_ALLOWLIST.some((path) => url.includes(path));
 }
 
+export type RefreshedTokenPayload = {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+};
+
+export type HttpAuthAdapter = {
+  getAccessToken: () => string | null;
+  getRefreshToken: () => string | null;
+  onTokenRefreshed: (payload: RefreshedTokenPayload) => void;
+  onUnauthorized: () => void;
+};
+
+const noopAdapter: HttpAuthAdapter = {
+  getAccessToken: () => null,
+  getRefreshToken: () => null,
+  onTokenRefreshed: () => undefined,
+  onUnauthorized: () => undefined,
+};
+
+let authAdapter: HttpAuthAdapter = noopAdapter;
+
+export function configureHttpAuth(adapter: HttpAuthAdapter): void {
+  authAdapter = adapter;
+}
+
+export function resetHttpAuth(): void {
+  authAdapter = noopAdapter;
+}
+
 export const http: AxiosInstance = axios.create({
   baseURL: env.VITE_API_BASE_URL,
   timeout: 10_000,
@@ -25,7 +55,7 @@ export const http: AxiosInstance = axios.create({
 let refreshInflight: Promise<string> | null = null;
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = useAuthStore.getState().accessToken;
+  const token = authAdapter.getAccessToken();
 
   if (token && !isAllowlisted(config.url)) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -50,23 +80,18 @@ http.interceptors.response.use(
 
       try {
         if (!refreshInflight) {
-          const refreshToken = useAuthStore.getState().refreshToken;
+          const refreshToken = authAdapter.getRefreshToken();
 
           if (!refreshToken) {
             throw new Error('No refresh token');
           }
 
           refreshInflight = axios
-            .post<{
-              data: {
-                accessToken: string;
-                refreshToken: string;
-                tokenType: string;
-                expiresIn: number;
-              };
-            }>(`${env.VITE_API_BASE_URL}/api/auth/refresh`, { refreshToken })
+            .post<{ data: RefreshedTokenPayload }>(`${env.VITE_API_BASE_URL}/api/auth/refresh`, {
+              refreshToken,
+            })
             .then((res) => {
-              useAuthStore.getState().setToken(res.data.data);
+              authAdapter.onTokenRefreshed(res.data.data);
               return res.data.data.accessToken;
             })
             .finally(() => {
@@ -77,10 +102,10 @@ http.interceptors.response.use(
         const newToken = await refreshInflight;
         originalConfig.headers.Authorization = `Bearer ${newToken}`;
         return await http(originalConfig);
-      } catch {
-        useAuthStore.getState().clear();
+      } catch (refreshError) {
+        authAdapter.onUnauthorized();
         refreshInflight = null;
-        return Promise.reject(parseApiError(error));
+        return Promise.reject(parseApiError(refreshError));
       }
     }
 

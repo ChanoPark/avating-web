@@ -1,23 +1,56 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { server } from '@shared/mocks/server';
 import { http as mswHttp, HttpResponse } from 'msw';
-import { useAuthStore } from '@entities/auth/store';
+import { configureHttpAuth, resetHttpAuth, type RefreshedTokenPayload } from '../http';
 
 const BASE_URL = 'http://localhost:8080';
 
-const mockToken = {
-  accessToken: 'access-token-value',
-  refreshToken: 'refresh-token-value',
-  tokenType: 'Bearer',
-  expiresIn: 3600,
+type AuthState = {
+  accessToken: string | null;
+  refreshToken: string | null;
 };
+
+function makeAdapter(initial: Partial<AuthState> = {}) {
+  const state: AuthState = {
+    accessToken: initial.accessToken ?? null,
+    refreshToken: initial.refreshToken ?? null,
+  };
+  const onUnauthorized = vi.fn(() => {
+    state.accessToken = null;
+    state.refreshToken = null;
+  });
+  const onTokenRefreshed = vi.fn((payload: RefreshedTokenPayload) => {
+    state.accessToken = payload.accessToken;
+    state.refreshToken = payload.refreshToken;
+  });
+  return {
+    state,
+    onUnauthorized,
+    onTokenRefreshed,
+    install: () => {
+      configureHttpAuth({
+        getAccessToken: () => state.accessToken,
+        getRefreshToken: () => state.refreshToken,
+        onTokenRefreshed,
+        onUnauthorized,
+      });
+    },
+  };
+}
 
 describe('http 인터셉터 — 요청', () => {
   beforeEach(() => {
-    useAuthStore.getState().clear();
+    resetHttpAuth();
+  });
+
+  afterEach(() => {
+    resetHttpAuth();
   });
 
   it('accessToken이 없으면 Authorization 헤더를 추가하지 않는다', async () => {
+    const adapter = makeAdapter();
+    adapter.install();
+
     let receivedAuthHeader: string | null = null;
 
     server.use(
@@ -34,7 +67,8 @@ describe('http 인터셉터 — 요청', () => {
   });
 
   it('accessToken이 있으면 Authorization: Bearer 헤더를 추가한다', async () => {
-    useAuthStore.getState().setToken(mockToken);
+    const adapter = makeAdapter({ accessToken: 'access-token-value' });
+    adapter.install();
 
     let receivedAuthHeader: string | null = null;
 
@@ -52,7 +86,8 @@ describe('http 인터셉터 — 요청', () => {
   });
 
   it('allowlist 경로(/api/auth/login)는 토큰이 있어도 Authorization 헤더를 추가하지 않는다', async () => {
-    useAuthStore.getState().setToken(mockToken);
+    const adapter = makeAdapter({ accessToken: 'access-token-value' });
+    adapter.install();
 
     let receivedAuthHeader: string | null = null;
 
@@ -72,7 +107,8 @@ describe('http 인터셉터 — 요청', () => {
   });
 
   it('allowlist 경로(/api/auth/signup)는 토큰이 있어도 Authorization 헤더를 추가하지 않는다', async () => {
-    useAuthStore.getState().setToken(mockToken);
+    const adapter = makeAdapter({ accessToken: 'access-token-value' });
+    adapter.install();
 
     let receivedAuthHeader: string | null = null;
 
@@ -92,7 +128,8 @@ describe('http 인터셉터 — 요청', () => {
   });
 
   it('allowlist 경로(/api/crypto/public-key)는 Authorization 헤더를 추가하지 않는다', async () => {
-    useAuthStore.getState().setToken(mockToken);
+    const adapter = makeAdapter({ accessToken: 'access-token-value' });
+    adapter.install();
 
     let receivedAuthHeader: string | null = null;
 
@@ -112,22 +149,23 @@ describe('http 인터셉터 — 요청', () => {
 
 describe('http 인터셉터 — 응답 에러', () => {
   beforeEach(() => {
-    useAuthStore.getState().clear();
+    resetHttpAuth();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    resetHttpAuth();
   });
 
-  it('401 응답이 오고 refreshToken이 없으면 store를 clear하고 ApiError를 reject한다', async () => {
+  it('401 응답이 오고 refreshToken이 없으면 onUnauthorized가 호출되고 ApiError를 reject한다', async () => {
+    const adapter = makeAdapter({ accessToken: 'expired-token' });
+    adapter.install();
+
     server.use(
       mswHttp.get(`${BASE_URL}/api/protected`, () => {
         return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
       })
     );
-
-    useAuthStore.getState().setToken({ ...mockToken, accessToken: 'expired-token' });
-    useAuthStore.setState({ refreshToken: null });
 
     const { http } = await import('../http');
 
@@ -135,10 +173,17 @@ describe('http 인터셉터 — 응답 에러', () => {
       statusCode: expect.any(Number),
     });
 
-    expect(useAuthStore.getState().accessToken).toBeNull();
+    expect(adapter.onUnauthorized).toHaveBeenCalled();
+    expect(adapter.state.accessToken).toBeNull();
   });
 
   it('401 응답이 오고 refreshToken이 있으면 토큰을 갱신하고 요청을 재시도한다', async () => {
+    const adapter = makeAdapter({
+      accessToken: 'old-access-token',
+      refreshToken: 'refresh-token-value',
+    });
+    adapter.install();
+
     let callCount = 0;
 
     server.use(
@@ -161,16 +206,18 @@ describe('http 인터셉터 — 응답 에러', () => {
       })
     );
 
-    useAuthStore.getState().setToken(mockToken);
-
     const { http } = await import('../http');
     const response = await http.get('/api/protected');
 
     expect(response.data).toEqual({ data: 'ok' });
-    expect(useAuthStore.getState().accessToken).toBe('new-access-token');
+    expect(adapter.onTokenRefreshed).toHaveBeenCalledOnce();
+    expect(adapter.state.accessToken).toBe('new-access-token');
   });
 
   it('401 응답이지만 allowlist 경로(/api/auth/refresh)면 재시도하지 않고 ApiError를 reject한다', async () => {
+    const adapter = makeAdapter();
+    adapter.install();
+
     server.use(
       mswHttp.post(`${BASE_URL}/api/auth/refresh`, () => {
         return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -183,6 +230,9 @@ describe('http 인터셉터 — 응답 에러', () => {
   });
 
   it('401이 아닌 에러(403)는 ApiError로 변환하여 reject한다', async () => {
+    const adapter = makeAdapter();
+    adapter.install();
+
     server.use(
       mswHttp.get(`${BASE_URL}/api/protected`, () => {
         return HttpResponse.json({ message: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
@@ -199,6 +249,9 @@ describe('http 인터셉터 — 응답 에러', () => {
   });
 
   it('500 에러는 ApiError로 변환된다', async () => {
+    const adapter = makeAdapter();
+    adapter.install();
+
     server.use(
       mswHttp.get(`${BASE_URL}/api/protected`, () => {
         return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
