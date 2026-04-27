@@ -48,6 +48,37 @@ secret.json
 .sentryclirc
 .amplitude/
 
+# ── direnv (env 값 외부 파일 노출 차단)
+.envrc
+.direnv/
+
+# ── 배포 플랫폼 캐시 (토큰/Project ID 노출 가능)
+.vercel/
+.netlify/
+.firebase/
+.serverless/
+
+# ── 성능 측정 도구 산출물 (내부 path/score 노출)
+.lighthouseci/
+size-limit-cache/
+
+# ── AI 도구 로컬 캐시 (인증/세션)
+.cursor/
+.openai/
+.anthropic/
+
+# ── MCP 로컬 오버라이드 (.mcp.json 자체는 팀 공유)
+.mcp.local.json
+*.local.json
+
+# ── 백업 / 머지 잔재 (시크릿 동봉 사고 방지)
+*.orig
+*.bak
+*.rej
+
+# ── 추가 OS 잡파일
+__MACOSX/
+
 # ── 로그
 *.log
 logs
@@ -104,8 +135,13 @@ Thumbs.db
 !*.tfvars.example
 .terraform/
 
-# ── Claude / AI 로컬 설정 (개인 환경 — 공유 금지)
-.claude/settings.local.json
+# ── Claude / AI 산출물 — Public Repo 전체 차단
+# 디자인 시스템 노트·프롬프트·스킬·플랜 등 IP 보호 목적.
+.claude/
+
+# ── Husky 훅 — Public Repo 전체 차단
+# 새 클론 시 pre-commit 훅 재설정 필요(별도 setup 가이드로 보완).
+.husky/
 
 # ── 기타 로컬 전용
 *.local
