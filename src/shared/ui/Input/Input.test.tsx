@@ -37,4 +37,9 @@ describe('Input', () => {
     await user.type(input, 'avating');
     expect(input).toHaveValue('avating');
   });
+
+  it('trailingSlot이 있으면 슬롯 콘텐츠가 렌더된다', () => {
+    render(<Input label="비밀번호" trailingSlot={<span>show</span>} />);
+    expect(screen.getByText('show')).toBeInTheDocument();
+  });
 });

@@ -1,8 +1,9 @@
 import { ErrorBoundary } from 'react-error-boundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Suspense, useState } from 'react';
-import { ServiceIntroPage } from '@pages/service-intro';
+import { RouterProvider } from 'react-router';
+import { useState } from 'react';
 import { ToastProvider } from '@shared/ui/Toast';
+import { router } from './router';
 
 function AppFallback({ error }: { error: Error }) {
   return (
@@ -34,9 +35,7 @@ export function App() {
     <ErrorBoundary FallbackComponent={AppFallback}>
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
-          <Suspense fallback={null}>
-            <ServiceIntroPage />
-          </Suspense>
+          <RouterProvider router={router} />
         </ToastProvider>
       </QueryClientProvider>
     </ErrorBoundary>
