@@ -11,7 +11,7 @@ type ButtonProps = {
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>;
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-sm font-ui ' +
+  'inline-flex items-center justify-center gap-2 rounded-sm font-ui cursor-pointer ' +
   'transition-colors duration-[var(--duration-fast)] ease-[var(--ease)] ' +
   'disabled:cursor-not-allowed disabled:opacity-50';
 

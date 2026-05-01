@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router';
 import { Button } from '@shared/ui/Button';
 import { Card } from '@shared/ui/Card';
 import { MonoLabel } from '@shared/ui/Label';
@@ -28,12 +29,20 @@ const METRICS = [
 ] as const;
 
 export function ServiceIntroPage() {
+  const navigate = useNavigate();
+
   return (
     <main className="bg-bg text-text min-h-screen">
       <header className="border-border bg-bg-elev-1 border-b">
         <div className="mx-auto flex h-14 max-w-[1152px] items-center justify-between px-8">
           <span className="font-ui text-heading text-text tracking-tight">Avating</span>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              void navigate('/login');
+            }}
+          >
             로그인
           </Button>
         </div>
@@ -44,18 +53,18 @@ export function ServiceIntroPage() {
           <Tag variant="brand">BETA · 인터랙티브 소셜 게임</Tag>
         </div>
 
-        <h1 className="text-display text-text">
+        <h1 className="text-display text-text select-none">
           귀찮은 밀당은 아바타가,
           <br />
           결정은 당신이.
         </h1>
-        <p className="text-body text-text-2 mt-6 max-w-[640px]">
+        <p className="text-body text-text-2 mt-6 max-w-[640px] select-none">
           AI 아바타를 소개팅에 파견하고, 관전하고,
           <br />
           결정적인 순간에만 개입하세요.
         </p>
 
-        <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
+        <div className="mt-12 grid grid-cols-1 gap-4 select-none md:grid-cols-3">
           {FEATURES.map((feature) => (
             <Card key={feature.title} className="p-6">
               <div className="text-title text-brand font-mono">{feature.glyph}</div>
@@ -65,7 +74,7 @@ export function ServiceIntroPage() {
           ))}
         </div>
 
-        <div className="mt-10 grid grid-cols-3 gap-4">
+        <div className="mt-10 grid grid-cols-3 gap-4 select-none">
           {METRICS.map((metric) => (
             <Card key={metric.label} elevation={2} className="p-5">
               <MonoLabel>{metric.label}</MonoLabel>
@@ -75,11 +84,23 @@ export function ServiceIntroPage() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center gap-3">
-          <Button size="md">가입하기 →</Button>
-          <Button variant="secondary" size="md">
+          <Button
+            size="md"
+            onClick={() => {
+              void navigate('/signup');
+            }}
+          >
+            가입하기 →
+          </Button>
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => {
+              void navigate('/login');
+            }}
+          >
             로그인
           </Button>
-          <span className="text-mono-meta text-text-3 font-mono">로그인 없이 둘러보기</span>
         </div>
       </section>
     </main>
