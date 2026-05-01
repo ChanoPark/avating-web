@@ -14,7 +14,7 @@ export function toggleFilter(
   return { ...filter, [key]: !filter[key] };
 }
 
-export function selectAll(_filter?: RecommendedAvatarFilter): RecommendedAvatarFilter {
+export function resetFilter(): RecommendedAvatarFilter {
   return { online: false, introvert: false, extrovert: false, verified: false };
 }
 

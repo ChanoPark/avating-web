@@ -30,7 +30,7 @@ describe('useDashboardStats', () => {
     const { result } = renderHook(() => useDashboardStats(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current).not.toBeNull();
     });
 
     expect(result.current.totalDispatched).toBe(47);

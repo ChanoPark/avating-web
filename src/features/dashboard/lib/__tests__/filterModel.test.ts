@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   initialFilter,
   toggleFilter,
-  selectAll,
+  resetFilter,
   isAllActive,
   serializeFilter,
 } from '../filterModel';
@@ -57,7 +57,7 @@ describe('toggleFilter', () => {
   });
 });
 
-describe('selectAll', () => {
+describe('resetFilter', () => {
   it('모든 필드를 false 로 만든다 (전체 선택)', () => {
     const filter: RecommendedAvatarFilter = {
       online: true,
@@ -65,7 +65,7 @@ describe('selectAll', () => {
       extrovert: false,
       verified: true,
     };
-    const result = selectAll(filter);
+    const result = resetFilter(filter);
     expect(result).toEqual({
       online: false,
       introvert: false,
@@ -75,7 +75,7 @@ describe('selectAll', () => {
   });
 
   it('이미 전체인 상태에서 호출해도 전체 상태로 유지된다', () => {
-    const result = selectAll(initialFilter);
+    const result = resetFilter(initialFilter);
     expect(result).toEqual(initialFilter);
   });
 });

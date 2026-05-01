@@ -52,18 +52,14 @@ describe('SidebarItem', () => {
       expect(link).not.toHaveAttribute('aria-current', 'page');
     });
 
-    it('active=true 시 brand 색상 클래스가 적용된다', () => {
+    it('active=true 시 활성 배경 클래스가 링크에 적용된다', () => {
       render(
         <MemoryRouter>
           <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" active />
         </MemoryRouter>
       );
       const link = screen.getByRole('link', { name: /대시보드/ });
-      const hasActiveClass =
-        link.className.includes('text-brand') ||
-        link.className.includes('bg-brand') ||
-        link.className.includes('active');
-      expect(hasActiveClass).toBe(true);
+      expect(link.className.includes('bg-bg-elev-2')).toBe(true);
     });
   });
 

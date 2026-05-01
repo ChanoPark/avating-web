@@ -74,9 +74,7 @@ describe('AppShellLayout', () => {
 
   it('미구현 사이드바 항목은 aria-disabled="true" 이다', () => {
     renderWithProviders('/dashboard');
-    const disabledItems = screen
-      .getAllByRole('listitem')
-      .filter((item) => item.querySelector('[aria-disabled="true"]'));
+    const disabledItems = document.querySelectorAll('[aria-disabled="true"]');
     expect(disabledItems.length).toBeGreaterThan(0);
   });
 

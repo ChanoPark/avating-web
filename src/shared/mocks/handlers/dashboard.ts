@@ -23,6 +23,7 @@ export const mockDashboardStats = {
   },
 };
 
+// avgAffinity: 101 — schema max(100) 의도적 위반, Zod parse 실패 시나리오용
 export const mockDashboardStatsPartialFail = {
   data: {
     totalDispatched: 47,

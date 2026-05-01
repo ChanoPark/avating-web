@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { createElement } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse, delay } from 'msw';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { server } from '@shared/mocks/server';
 import { sessionHandlers } from '@shared/mocks/handlers/dashboard';
@@ -98,14 +99,25 @@ describe('DispatchModal', () => {
 
   describe('로딩 상태', () => {
     it('mutation 진행 중 confirm 버튼이 disabled 상태이다', async () => {
-      server.use(sessionHandlers.success);
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      server.use(
+        http.post(`${BASE_URL}/api/sessions`, async () => {
+          await delay(300);
+          return HttpResponse.json(
+            { data: { sessionId: 's-1', avatarId: 'avatar-1', startedAt: '2026-01-01T00:00:00Z' } },
+            { status: 201 }
+          );
+        })
+      );
       const user = userEvent.setup();
       renderWithProviders(createElement(DispatchModal, { ...defaultProps }));
 
       const confirmBtn = screen.getByRole('button', { name: /매칭하기/ });
-      await user.click(confirmBtn);
+      void user.click(confirmBtn);
 
-      expect(confirmBtn).toBeDisabled();
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /요청 중…/ })).toBeDisabled();
+      });
     });
   });
 
@@ -118,7 +130,7 @@ describe('DispatchModal', () => {
       await user.click(screen.getByRole('button', { name: /매칭하기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/다이아/)).toBeInTheDocument();
+        expect(screen.getByText('다이아가 부족해요.')).toBeInTheDocument();
       });
     });
 
@@ -130,7 +142,7 @@ describe('DispatchModal', () => {
       await user.click(screen.getByRole('button', { name: /매칭하기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/다이아가 부족해요/)).toBeInTheDocument();
+        expect(screen.getByText('다이아가 부족해요. 충전 페이지로 이동')).toBeInTheDocument();
       });
     });
 

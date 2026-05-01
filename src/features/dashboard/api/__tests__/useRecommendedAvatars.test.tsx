@@ -48,7 +48,7 @@ describe('useRecommendedAvatars', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current).not.toBeNull();
     });
 
     expect(result.current.items).toHaveLength(2);
@@ -72,7 +72,7 @@ describe('useRecommendedAvatars', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current).not.toBeNull();
     });
 
     expect(capturedUrl).toContain('online');
@@ -95,7 +95,7 @@ describe('useRecommendedAvatars', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current).not.toBeNull();
     });
 
     const url = new URL(capturedUrl);
@@ -110,7 +110,7 @@ describe('useRecommendedAvatars', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toBeDefined();
+      expect(result.current).not.toBeNull();
     });
 
     expect(result.current.items).toHaveLength(0);

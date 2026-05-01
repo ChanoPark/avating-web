@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { StatsGrid } from '@features/dashboard/ui/StatsGrid';
 import { AvatarList } from '@features/dashboard/ui/AvatarList';
 import { FilterChips } from '@features/dashboard/ui/FilterChips';
 import type { RecommendedAvatarFilter } from '@entities/dashboard';
-import { initialFilter, selectAll } from '@features/dashboard/lib/filterModel';
+import { dashboardKeys } from '@entities/dashboard';
+import { initialFilter, resetFilter } from '@features/dashboard/lib/filterModel';
 
 export function DashboardPage() {
   const [filter, setFilter] = useState<RecommendedAvatarFilter>(initialFilter);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   function handleAvatarClick(id: string) {
     void navigate(`/avatars/${id}`);
   }
 
   function handleResetFilter() {
-    setFilter(selectAll());
+    const newFilter = resetFilter();
+    setFilter(newFilter);
+    void queryClient.invalidateQueries({ queryKey: dashboardKeys.recommended(newFilter) });
   }
 
   return (

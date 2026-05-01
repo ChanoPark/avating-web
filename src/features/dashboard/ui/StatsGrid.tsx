@@ -1,20 +1,27 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import type { FallbackProps } from 'react-error-boundary';
 import { Send, Heart, Sparkles, Zap } from 'lucide-react';
 import { StatsCard } from '@shared/ui/StatsCard';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
-function StatsFallback() {
+function StatsSkeleton() {
+  return (
+    <div className="border-border bg-bg-elev-2 animate-pulse rounded-md border p-5">
+      <div className="bg-bg-elev-3 h-3 w-16 rounded" />
+    </div>
+  );
+}
+
+function StatsFallback({ resetErrorBoundary }: FallbackProps) {
   return (
     <div className="border-border bg-bg-elev-2 rounded-md border p-5">
       <div className="text-text-3 text-mono-meta font-mono">—</div>
       <button
         type="button"
         className="text-body-sm text-brand mt-2 underline"
-        onClick={() => {
-          window.location.reload();
-        }}
+        onClick={resetErrorBoundary}
       >
         재시도
       </button>
@@ -97,8 +104,8 @@ export function StatsGrid() {
   return (
     <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
       {CARD_CONFIGS.map((config) => (
-        <ErrorBoundary key={config.label} fallback={<StatsFallback />}>
-          <Suspense fallback={<StatsFallback />}>
+        <ErrorBoundary key={config.label} fallbackRender={(props) => <StatsFallback {...props} />}>
+          <Suspense fallback={<StatsSkeleton />}>
             <SingleStatCard config={config} />
           </Suspense>
         </ErrorBoundary>

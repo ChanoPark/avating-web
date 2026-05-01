@@ -70,38 +70,15 @@ describe('StatsGrid', () => {
     expect(callCount).toBe(1);
   });
 
-  it('avgAffinity 필드 오류 시 해당 카드만 fallback("—") 표시, 나머지 3개는 정상', async () => {
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-    server.use(
-      http.get(`${BASE_URL}/api/dashboard/stats`, () => {
-        return HttpResponse.json({
-          data: {
-            totalDispatched: 47,
-            totalDispatchedDelta: 8,
-            avgAffinity: 101,
-            avgAffinityDelta: 3.2,
-            matches: 3,
-            matchRate: 6.4,
-            interventionsThisWeek: 21,
-            gemsUsed: 153,
-            gemsBalance: 1240,
-          },
-        });
-      })
-    );
+  it('API 응답 Zod 검증 실패 시 4개 카드 모두 fallback("—") 표시', async () => {
+    server.use(statsHandlers.partialFail);
 
     renderWithProviders(createElement(StatsGrid, null));
 
     await waitFor(() => {
-      expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
+      const fallbacks = screen.queryAllByText('—');
+      expect(fallbacks.length).toBe(4);
     });
-
-    const fallbacks = screen.queryAllByText('—');
-    expect(fallbacks.length).toBeGreaterThanOrEqual(1);
-
-    expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
-    expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-    expect(screen.getByText('이번 주 훈수')).toBeInTheDocument();
   });
 
   it('a11y — axe 위반 0 (jest-axe 미설치 — 도입 후 활성화)', () => {

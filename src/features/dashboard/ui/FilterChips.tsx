@@ -1,6 +1,6 @@
 import { FilterChip } from '@shared/ui/FilterChip';
 import type { RecommendedAvatarFilter } from '@entities/dashboard';
-import { toggleFilter, selectAll, isAllActive } from '../lib/filterModel';
+import { toggleFilter, resetFilter, isAllActive } from '../lib/filterModel';
 
 type FilterChipsProps = {
   filter: RecommendedAvatarFilter;
@@ -20,12 +20,12 @@ export function FilterChips({ filter, onFilterChange }: FilterChipsProps) {
 
   function handleToggle(key: keyof RecommendedAvatarFilter | 'all') {
     if (key === 'all') {
-      onFilterChange(selectAll());
+      onFilterChange(resetFilter());
       return;
     }
     const next = toggleFilter(filter, key);
     if (isAllActive(next)) {
-      onFilterChange(selectAll());
+      onFilterChange(resetFilter());
     } else {
       onFilterChange(next);
     }
