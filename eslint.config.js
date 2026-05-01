@@ -26,8 +26,10 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
 
   // Type-checked TS rules — src/** only (needs TS project service).
+  // Test files are excluded here because they're excluded from tsconfig.app.json.
   {
     files: ['src/**/*.{ts,tsx}'],
+    ignores: ['src/**/*.test.{ts,tsx}', 'src/**/__tests__/**/*.{ts,tsx}', 'src/**/*.test.tsx'],
     extends: [...tseslint.configs.strictTypeChecked, ...tseslint.configs.stylisticTypeChecked],
     languageOptions: {
       ecmaVersion: 2022,
@@ -78,6 +80,7 @@ export default tseslint.config(
         },
       ],
 
+      '@typescript-eslint/restrict-template-expressions': ['error', { allowNumber: true }],
       '@typescript-eslint/consistent-type-definitions': ['warn', 'type'],
       '@typescript-eslint/no-unused-vars': [
         'error',
@@ -88,12 +91,16 @@ export default tseslint.config(
 
   // Tests — relax unsafe-any rules for jsdom + testing-library ergonomics.
   {
-    files: ['src/**/*.test.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    files: ['src/**/*.test.{ts,tsx}', 'src/**/__tests__/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
     rules: {
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
     },
   },
 

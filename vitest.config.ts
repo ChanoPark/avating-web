@@ -1,13 +1,23 @@
 import { defineConfig } from 'vitest/config';
 import { loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
 
   return {
-    plugins: [react(), tsconfigPaths()],
+    plugins: [react()],
+    resolve: {
+      alias: {
+        '@': resolve(__dirname, 'src'),
+        '@app': resolve(__dirname, 'src/app'),
+        '@pages': resolve(__dirname, 'src/pages'),
+        '@features': resolve(__dirname, 'src/features'),
+        '@entities': resolve(__dirname, 'src/entities'),
+        '@shared': resolve(__dirname, 'src/shared'),
+      },
+    },
     test: {
       globals: true,
       environment: 'jsdom',
