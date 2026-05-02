@@ -1,8 +1,9 @@
 import { setupServer } from 'msw/node';
 import { authHandlers } from './handlers/auth';
 import { dashboardHandlers } from './handlers/dashboard';
+import { onboardingHandlers } from './handlers/onboarding';
 
-export const server = setupServer(...authHandlers, ...dashboardHandlers);
+export const server = setupServer(...authHandlers, ...dashboardHandlers, ...onboardingHandlers);
 
 server.events.on('request:unhandled', ({ request }) => {
   throw new Error(
