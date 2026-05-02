@@ -99,6 +99,8 @@ export function ErrorPage({
   const hasHistory = canGoBack ?? detectHasHistory();
   const showBack = hasHistory;
 
+  // offline 자동 재시도 — 디자인 스펙 §3 준수. TODO: 네트워크 감지(navigator/online 이벤트) 통합 후 onRetry 연결.
+  // 본 PR 시점에서는 호출 경로가 없으나 후속 작업에서 변경 없이 활성화되도록 설계되어 있음.
   const [autoRetryCount, setAutoRetryCount] = useState(0);
   const isOfflineAutoRetry = variant === 'offline' && typeof onRetry === 'function';
   const offlineRetriesExhausted = isOfflineAutoRetry && autoRetryCount >= OFFLINE_MAX_RETRIES;

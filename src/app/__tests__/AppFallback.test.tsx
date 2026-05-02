@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ErrorBoundary } from 'react-error-boundary';
+import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { AppFallback } from '../App';
 import { handleAppCrash } from '../handleAppCrash';
 
@@ -79,7 +80,7 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
 
     await user.click(screen.getByRole('button', { name: '문의하기' }));
 
-    expect(hrefSetter).toHaveBeenCalledWith('mailto:support@avating.com');
+    expect(hrefSetter).toHaveBeenCalledWith(SUPPORT_EMAIL_HREF);
   });
 
   describe('handleAppCrash (ErrorBoundary onError 핸들러)', () => {

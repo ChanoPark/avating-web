@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
+import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { ErrorPage } from '../ErrorPage';
 import type { ErrorVariant } from '../ErrorPage';
 
@@ -167,7 +168,7 @@ describe('ErrorPage', () => {
         renderErrorPage('server-error');
 
         await user.click(screen.getByRole('button', { name: '문의하기' }));
-        expect(hrefSetter).toHaveBeenCalledWith('mailto:support@avating.com');
+        expect(hrefSetter).toHaveBeenCalledWith(SUPPORT_EMAIL_HREF);
       } finally {
         Object.defineProperty(window, 'location', {
           configurable: true,
@@ -402,7 +403,7 @@ describe('ErrorPage', () => {
       );
       expect(screen.getByRole('link', { name: '상태 페이지' })).toHaveAttribute(
         'href',
-        'https://status.avating.com'
+        STATUS_PAGE_URL
       );
     });
   });
