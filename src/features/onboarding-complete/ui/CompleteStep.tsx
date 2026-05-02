@@ -5,7 +5,7 @@ import { Activity, Heart, Sparkles, Star } from 'lucide-react';
 import { StatBar } from '@shared/ui/StatBar/StatBar';
 import { Button } from '@shared/ui/Button/Button';
 import { useToast } from '@shared/ui/Toast/useToast';
-import { getOnboardingProgress } from '@entities/onboarding';
+import { clearOnboardingProgress, getOnboardingProgress } from '@entities/onboarding';
 import { isApiError } from '@shared/lib/errors';
 import { useGeneratedAvatar } from '../api/useGeneratedAvatar';
 import { useCompleteOnboarding } from '../api/useCompleteOnboarding';
@@ -19,6 +19,7 @@ function AvatarContent() {
   const handleStart = () => {
     complete(undefined, {
       onSuccess: () => {
+        clearOnboardingProgress();
         void navigate('/dashboard');
       },
       onError: (err) => {

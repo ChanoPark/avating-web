@@ -3,19 +3,19 @@ import { cn } from '@shared/lib/cn';
 type ProgressBarProps = {
   current: number;
   total: number;
+  labels?: readonly string[];
   className?: string;
 };
 
-const STEP_LABELS = ['환영합니다', '페르소나 설문', '연결 코드', '완료'];
-
-export function ProgressBar({ current, total, className }: ProgressBarProps) {
+export function ProgressBar({ current, total, labels, className }: ProgressBarProps) {
+  const currentLabel = labels?.[current - 1];
   return (
     <div
       role="progressbar"
       aria-valuenow={current}
       aria-valuemin={1}
       aria-valuemax={total}
-      aria-valuetext={`${current} / ${total} 단계${STEP_LABELS[current - 1] ? `: ${STEP_LABELS[current - 1]}` : ''}`}
+      aria-valuetext={`${current} / ${total} 단계${currentLabel ? `: ${currentLabel}` : ''}`}
       className={cn('flex gap-1', className)}
     >
       {Array.from({ length: total }, (_, i) => {

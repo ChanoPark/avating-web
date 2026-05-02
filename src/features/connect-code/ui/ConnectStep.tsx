@@ -31,6 +31,7 @@ export function ConnectStep() {
 
   const navigatedRef = useRef(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const issuedRef = useRef(false);
 
   useEffect(() => {
     if (guardFailed) {
@@ -40,6 +41,8 @@ export function ConnectStep() {
 
   useEffect(() => {
     if (guardFailed) return;
+    if (issuedRef.current) return;
+    issuedRef.current = true;
     issueCode();
   }, [guardFailed, issueCode]);
 
@@ -92,6 +95,7 @@ export function ConnectStep() {
   const handleReissue = () => {
     setLocalExpired(false);
     navigatedRef.current = false;
+    issuedRef.current = true;
     queryClient.removeQueries({ queryKey: onboardingKeys.connectStatus('current') });
     issueCode();
   };

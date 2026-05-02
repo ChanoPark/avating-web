@@ -1,14 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import {
   generatedAvatarHandlers,
   completeOnboardingHandlers,
+  mockCompleteOnboardingResponse,
   mockGeneratedAvatar,
 } from '@shared/mocks/handlers/onboarding';
 import { CompleteStep } from '@features/onboarding-complete/ui/CompleteStep';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const mockNavigate = vi.fn();
 
@@ -83,23 +87,32 @@ describe('CompleteStep', () => {
   });
 
   describe('reduced-motion', () => {
-    it('useReducedMotion 이 true 이면 StatBar 에 transition 0s 가 적용된다', async () => {
+    it('useReducedMotion=true 이면 StatBar fill 의 transitionDuration 이 0s 로 설정된다', async () => {
       const { useReducedMotion } = await import('motion/react');
       vi.mocked(useReducedMotion).mockReturnValue(true);
 
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const statBars = screen.getAllByRole('progressbar');
-        expect(statBars.length).toBe(4);
-        for (const bar of statBars) {
-          const style = window.getComputedStyle(bar);
-          const transitionDuration = style.transitionDuration;
-          expect(
-            transitionDuration === '0s' ||
-              transitionDuration === '' ||
-              transitionDuration === undefined
-          ).toBeTruthy();
+        const fills = screen.getAllByTestId('stat-bar-fill');
+        expect(fills.length).toBe(4);
+        for (const fill of fills) {
+          expect((fill as HTMLElement).style.transitionDuration).toBe('0s');
+        }
+      });
+    });
+
+    it('useReducedMotion=false 이면 StatBar fill 의 transitionDuration 이 400ms 로 설정된다', async () => {
+      const { useReducedMotion } = await import('motion/react');
+      vi.mocked(useReducedMotion).mockReturnValue(false);
+
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        const fills = screen.getAllByTestId('stat-bar-fill');
+        expect(fills.length).toBe(4);
+        for (const fill of fills) {
+          expect((fill as HTMLElement).style.transitionDuration).toBe('400ms');
         }
       });
     });
@@ -110,14 +123,13 @@ describe('CompleteStep', () => {
       const user = userEvent.setup();
       let completeCallCount = 0;
 
-      const origFetch = globalThis.fetch;
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        if (url.includes('/api/onboarding/complete') && init?.method === 'POST') {
+      server.use(
+        generatedAvatarHandlers.success,
+        http.post(`${BASE_URL}/api/onboarding/complete`, () => {
           completeCallCount++;
-        }
-        return origFetch(input, init);
-      });
+          return HttpResponse.json(mockCompleteOnboardingResponse);
+        })
+      );
 
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
@@ -128,10 +140,8 @@ describe('CompleteStep', () => {
       await user.click(screen.getByRole('button', { name: /탐색 시작|대시보드/i }));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+        expect(completeCallCount).toBe(1);
       });
-
-      fetchSpy.mockRestore();
     });
 
     it('"탐색 시작" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {

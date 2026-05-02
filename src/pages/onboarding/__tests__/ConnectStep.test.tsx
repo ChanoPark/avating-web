@@ -26,10 +26,10 @@ describe('ConnectStep', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     localStorage.setItem('avating:onboarding:progress', 'connect');
 
-    Object.assign(navigator, {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      writable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
     });
 
     server.use(connectCodeHandlers.success, connectStatusHandlers.active);
@@ -41,7 +41,6 @@ describe('ConnectStep', () => {
 
   describe('마운트 — 코드 발급', () => {
     it('마운트 시 POST /api/onboarding/connect-code 가 1회 호출되고 코드가 렌더된다', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
@@ -92,7 +91,16 @@ describe('ConnectStep', () => {
 
   describe('복사 버튼', () => {
     it('"복사" 버튼 클릭 시 navigator.clipboard.writeText 가 1회 호출된다', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
+      const writeText = vi.fn().mockResolvedValue(undefined);
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        writable: true,
+        value: { writeText },
+      });
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
@@ -101,12 +109,15 @@ describe('ConnectStep', () => {
 
       await user.click(screen.getByRole('button', { name: /복사/i }));
 
-      expect(navigator.clipboard.writeText).toHaveBeenCalledOnce();
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(mockConnectCodeResponse.data.code);
+      expect(writeText).toHaveBeenCalledOnce();
+      expect(writeText).toHaveBeenCalledWith(mockConnectCodeResponse.data.code);
     });
 
     it('"복사" 버튼 클릭 후 토스트 "복사되었습니다" 가 노출된다', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
@@ -151,18 +162,14 @@ describe('ConnectStep', () => {
     });
 
     it('connected 응답 도달 시 /onboarding/complete 로 이동하고 이후 status 호출이 없다', async () => {
-      server.use(connectCodeHandlers.success, connectStatusHandlers.connected);
-
-      let statusCallAfterNav = 0;
-      const origFetch = globalThis.fetch;
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        const result = await origFetch(input, init);
-        if (url.includes('/api/onboarding/connect-status')) {
-          statusCallAfterNav++;
-        }
-        return result;
-      });
+      let statusCallCount = 0;
+      server.use(
+        connectCodeHandlers.success,
+        http.get(`${BASE_URL}/api/onboarding/connect-status`, () => {
+          statusCallCount++;
+          return HttpResponse.json({ data: { status: 'connected' } });
+        })
+      );
 
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
@@ -170,15 +177,13 @@ describe('ConnectStep', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
       });
 
-      const callCountAtNav = statusCallAfterNav;
+      const callCountAtNav = statusCallCount;
 
       vi.advanceTimersByTime(15_000);
 
       await waitFor(() => {
-        expect(statusCallAfterNav).toBe(callCountAtNav);
+        expect(statusCallCount).toBe(callCountAtNav);
       });
-
-      fetchSpy.mockRestore();
     });
   });
 
@@ -267,17 +272,14 @@ describe('ConnectStep', () => {
 
   describe('서버 expired 응답', () => {
     it('서버 expired 응답 시 폴링이 정지되고 재발급 CTA 가 노출된다', async () => {
-      server.use(connectCodeHandlers.success, connectStatusHandlers.expired);
-
       let statusCallCount = 0;
-      const origFetch = globalThis.fetch;
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        if (url.includes('/api/onboarding/connect-status')) {
+      server.use(
+        connectCodeHandlers.success,
+        http.get(`${BASE_URL}/api/onboarding/connect-status`, () => {
           statusCallCount++;
-        }
-        return origFetch(input, init);
-      });
+          return HttpResponse.json({ data: { status: 'expired' } });
+        })
+      );
 
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
@@ -292,14 +294,15 @@ describe('ConnectStep', () => {
       await waitFor(() => {
         expect(statusCallCount).toBe(countAtExpiry);
       });
-
-      fetchSpy.mockRestore();
     });
   });
 
   describe('재발급', () => {
     it('"재발급" 버튼 클릭 시 POST /api/onboarding/connect-code 가 재호출되고 새 코드가 표시된다', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
       server.use(connectCodeHandlers.success, connectStatusHandlers.expired);
 
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
@@ -321,17 +324,14 @@ describe('ConnectStep', () => {
 
   describe('언마운트', () => {
     it('언마운트 후 30초 경과해도 status 호출이 없다', async () => {
-      server.use(connectCodeHandlers.success, connectStatusHandlers.active);
-
       let statusCallCount = 0;
-      const origFetch = globalThis.fetch;
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        if (url.includes('/api/onboarding/connect-status')) {
+      server.use(
+        connectCodeHandlers.success,
+        http.get(`${BASE_URL}/api/onboarding/connect-status`, () => {
           statusCallCount++;
-        }
-        return origFetch(input, init);
-      });
+          return HttpResponse.json({ data: { status: 'active' } });
+        })
+      );
 
       const { unmount } = renderWithProviders(<ConnectStep />, {
         initialRoute: '/onboarding/connect',
@@ -348,8 +348,6 @@ describe('ConnectStep', () => {
       vi.advanceTimersByTime(30_000);
 
       expect(statusCallCount).toBe(countAtUnmount);
-
-      fetchSpy.mockRestore();
     });
   });
 });

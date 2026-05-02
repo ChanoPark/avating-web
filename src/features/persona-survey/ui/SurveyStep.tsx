@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type Path, type PathValue } from 'react-hook-form';
 import { useNavigate } from 'react-router';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { surveyResponseSchema } from '@entities/onboarding/model';
@@ -80,7 +80,7 @@ export function SurveyStep() {
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { mutateAsync: submitSurvey } = useSurveySubmit();
+  const { mutateAsync: submitSurvey, isPending: isSubmitting } = useSurveySubmit();
   const { mutateAsync: saveDraftApi } = useSurveyDraft();
 
   const {
@@ -151,7 +151,7 @@ export function SurveyStep() {
               options={fieldOptions}
               value={allValues[field]}
               onChange={(val) => {
-                setValue(field, val as SurveyResponse[typeof field]);
+                setValue(field, val as PathValue<SurveyResponse, Path<SurveyResponse>>);
               }}
               {...(fieldError !== undefined ? { error: fieldError } : {})}
             />
@@ -177,13 +177,13 @@ export function SurveyStep() {
         {isLastPage ? (
           <Button
             type="button"
-            disabled={!allCurrentAnswered}
+            disabled={!allCurrentAnswered || isSubmitting}
             onClick={() => {
               void handleSubmit(onSubmit)();
             }}
             className="flex-1"
           >
-            완료
+            {isSubmitting ? '제출 중...' : '완료'}
           </Button>
         ) : (
           <Button

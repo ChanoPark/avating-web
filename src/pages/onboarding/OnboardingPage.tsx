@@ -9,6 +9,8 @@ const STEP_MAP: Record<string, number> = {
   '/onboarding/complete': 4,
 };
 
+const ONBOARDING_STEP_LABELS = ['환영합니다', '페르소나 설문', '연결 코드', '완료'] as const;
+
 export function OnboardingPage() {
   const location = useLocation();
   const currentStep = STEP_MAP[location.pathname] ?? 1;
@@ -16,7 +18,7 @@ export function OnboardingPage() {
   return (
     <div className="bg-bg flex min-h-screen flex-col">
       <header className="px-6 pt-8 pb-4">
-        <ProgressBar current={currentStep} total={4} />
+        <ProgressBar current={currentStep} total={4} labels={ONBOARDING_STEP_LABELS} />
       </header>
 
       <main className="flex flex-1 items-start justify-center px-4 pb-8">

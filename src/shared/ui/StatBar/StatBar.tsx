@@ -32,6 +32,7 @@ export function StatBar({ value, icon: Icon, label, animate = true, className }:
         className="bg-bg-elev-3 h-1.5 w-full overflow-hidden rounded-full"
       >
         <div
+          data-testid="stat-bar-fill"
           className="bg-brand h-full rounded-full"
           style={{
             width: `${value}%`,
