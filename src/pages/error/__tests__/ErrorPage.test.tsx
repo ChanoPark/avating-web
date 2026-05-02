@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { ErrorPage } from '../ErrorPage';
+import type { ErrorVariant } from '../ErrorPage';
 
 function LocationDisplay() {
   const loc = useLocation();
@@ -10,10 +11,10 @@ function LocationDisplay() {
 }
 
 function renderErrorPage(
-  variant: 'not-found' | 'server-error' | 'forbidden' | 'offline',
-  options: { initialEntries?: string[] } = {}
+  variant: ErrorVariant,
+  options: { initialEntries?: string[]; onRetry?: () => void; onContact?: () => void } = {}
 ) {
-  const { initialEntries = ['/garbage'] } = options;
+  const { initialEntries = ['/garbage'], onRetry, onContact } = options;
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
@@ -23,7 +24,7 @@ function renderErrorPage(
           path="*"
           element={
             <>
-              <ErrorPage variant={variant} />
+              <ErrorPage variant={variant} onRetry={onRetry} onContact={onContact} />
               <LocationDisplay />
             </>
           }
@@ -74,8 +75,9 @@ describe('ErrorPage', () => {
       expect(screen.queryByRole('button', { name: /이전/ })).not.toBeInTheDocument();
     });
 
-    it('role="alert" 컨테이너가 존재한다 (스크린리더 알림)', () => {
+    it('main 랜드마크와 분리된 alert 컨테이너가 존재한다', () => {
       renderErrorPage('not-found');
+      expect(screen.getByRole('main')).toBeInTheDocument();
       expect(screen.getByRole('alert')).toBeInTheDocument();
     });
   });
@@ -90,17 +92,27 @@ describe('ErrorPage', () => {
       expect(screen.getByText('ERROR_CODE: 500')).toBeInTheDocument();
     });
 
-    it('"다시 시도" 버튼이 노출되며 onRetry 핸들러를 실행한다', async () => {
+    it('onRetry 가 주어지면 "다시 시도" 버튼이 핸들러를 실행한다', async () => {
       const user = userEvent.setup();
       const onRetry = vi.fn();
-      render(
-        <MemoryRouter>
-          <ErrorPage variant="server-error" onRetry={onRetry} />
-        </MemoryRouter>
-      );
+      renderErrorPage('server-error', { onRetry });
 
       await user.click(screen.getByRole('button', { name: '다시 시도' }));
       expect(onRetry).toHaveBeenCalledTimes(1);
+    });
+
+    it('onRetry 미제공 시에도 "다시 시도" 버튼은 항상 노출된다 (디자인 스펙)', () => {
+      renderErrorPage('server-error');
+      expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    });
+
+    it('onContact 가 주어지면 "문의하기" 버튼이 핸들러를 실행한다', async () => {
+      const user = userEvent.setup();
+      const onContact = vi.fn();
+      renderErrorPage('server-error', { onContact });
+
+      await user.click(screen.getByRole('button', { name: '문의하기' }));
+      expect(onContact).toHaveBeenCalledTimes(1);
     });
 
     it('requestId 가 주어지면 ERROR_CODE 라인에 함께 표시한다', () => {
@@ -132,14 +144,27 @@ describe('ErrorPage', () => {
 
       expect(screen.getByText('LOGIN_PAGE')).toBeInTheDocument();
     });
+
+    it('히스토리가 있으면 "이전 페이지" 버튼이 노출된다', () => {
+      renderErrorPage('forbidden', { initialEntries: ['/', '/blocked'] });
+      expect(screen.getByRole('button', { name: '이전 페이지' })).toBeInTheDocument();
+    });
+
+    it('히스토리가 없으면 "이전 페이지" 버튼은 노출되지 않는다', () => {
+      renderErrorPage('forbidden', { initialEntries: ['/blocked'] });
+      expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+    });
   });
 
   describe('variant="offline" (네트워크 없음)', () => {
+    const originalOnLine = navigator.onLine;
+
     beforeEach(() => {
-      Object.defineProperty(navigator, 'onLine', {
-        configurable: true,
-        value: false,
-      });
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
     });
 
     it('제목과 설명을 표시한다', () => {
@@ -152,17 +177,68 @@ describe('ErrorPage', () => {
       expect(screen.getByText(/연결 상태를 확인하고 다시 시도해주세요/)).toBeInTheDocument();
     });
 
-    it('"다시 시도" 버튼이 노출되며 onRetry 핸들러를 실행한다', async () => {
-      const user = userEvent.setup();
-      const onRetry = vi.fn();
+    it('onRetry 미제공 시 자동 재시도 없이 정적 화면만 노출된다', () => {
       render(
         <MemoryRouter>
-          <ErrorPage variant="offline" onRetry={onRetry} />
+          <ErrorPage variant="offline" />
         </MemoryRouter>
       );
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+      expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
+    });
 
-      await user.click(screen.getByRole('button', { name: '다시 시도' }));
-      expect(onRetry).toHaveBeenCalledTimes(1);
+    it('onRetry 제공 시 3초 간격으로 자동 호출되며 진행 상황을 표시한다', () => {
+      vi.useFakeTimers();
+      try {
+        const onRetry = vi.fn();
+        render(
+          <MemoryRouter>
+            <ErrorPage variant="offline" onRetry={onRetry} />
+          </MemoryRouter>
+        );
+
+        expect(onRetry).not.toHaveBeenCalled();
+        expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(3000);
+        });
+        expect(onRetry).toHaveBeenCalledTimes(1);
+        expect(screen.getByText('재연결 시도 중... (1/5)')).toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(3000 * 4);
+        });
+        expect(onRetry).toHaveBeenCalledTimes(5);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('5회 재시도 소진 시 "연결 실패" 메시지로 전환된다', () => {
+      vi.useFakeTimers();
+      try {
+        const onRetry = vi.fn();
+        render(
+          <MemoryRouter>
+            <ErrorPage variant="offline" onRetry={onRetry} />
+          </MemoryRouter>
+        );
+
+        act(() => {
+          vi.advanceTimersByTime(3000 * 5);
+        });
+
+        expect(screen.getByText(/연결 실패/)).toBeInTheDocument();
+        expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
+
+        act(() => {
+          vi.advanceTimersByTime(3000 * 3);
+        });
+        expect(onRetry).toHaveBeenCalledTimes(5);
+      } finally {
+        vi.useRealTimers();
+      }
     });
   });
 });

@@ -1,13 +1,15 @@
-import { useLocation, useNavigate } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { NavigationType, useLocation, useNavigate, useNavigationType } from 'react-router';
 import { AlertTriangle, Lock, WifiOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Button } from '@shared/ui/Button';
+import { Button } from '@shared/ui';
 
 export type ErrorVariant = 'not-found' | 'server-error' | 'forbidden' | 'offline';
 
 type ErrorPageProps = {
   variant: ErrorVariant;
   onRetry?: () => void;
+  onContact?: () => void;
   requestId?: string;
 };
 
@@ -45,13 +47,49 @@ const VARIANTS: Record<ErrorVariant, VariantSpec> = {
   },
 };
 
-export function ErrorPage({ variant, onRetry, requestId }: ErrorPageProps) {
+const OFFLINE_MAX_RETRIES = 5;
+const OFFLINE_RETRY_INTERVAL_MS = 3000;
+const DEFAULT_CONTACT_HREF = 'mailto:support@avating.com';
+
+export function ErrorPage({ variant, onRetry, onContact, requestId }: ErrorPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const spec = VARIANTS[variant];
   const Icon = spec.icon;
-  const hasHistory = location.key !== 'default';
-  const showBack = variant === 'not-found' && hasHistory;
+
+  // 직접 URL 진입 ⇒ navigationType=POP & location.key='default'. 그 외(SPA 내부 링크 클릭)는 history 가 있다.
+  const isInitialEntry = navigationType === NavigationType.Pop && location.key === 'default';
+  const hasHistory = !isInitialEntry;
+  const showBack = hasHistory;
+
+  const [autoRetryCount, setAutoRetryCount] = useState(0);
+  const isOfflineAutoRetry = variant === 'offline' && typeof onRetry === 'function';
+  const offlineRetriesExhausted = isOfflineAutoRetry && autoRetryCount >= OFFLINE_MAX_RETRIES;
+  const offlineRetrying =
+    isOfflineAutoRetry && autoRetryCount > 0 && autoRetryCount < OFFLINE_MAX_RETRIES;
+
+  // onRetry 를 ref 로 안정화 — 의존성에 넣으면 호출 측의 새 함수 인스턴스 마다 인터벌 재시작 됨.
+  const onRetryRef = useRef(onRetry);
+  useEffect(() => {
+    onRetryRef.current = onRetry;
+  }, [onRetry]);
+
+  useEffect(() => {
+    if (!isOfflineAutoRetry) return;
+    let count = 0;
+    const interval = setInterval(() => {
+      count += 1;
+      setAutoRetryCount(count);
+      onRetryRef.current?.();
+      if (count >= OFFLINE_MAX_RETRIES) {
+        clearInterval(interval);
+      }
+    }, OFFLINE_RETRY_INTERVAL_MS);
+    return () => {
+      clearInterval(interval);
+    };
+  }, [isOfflineAutoRetry]);
 
   function handleHome() {
     void navigate('/');
@@ -65,13 +103,29 @@ export function ErrorPage({ variant, onRetry, requestId }: ErrorPageProps) {
     void navigate('/login');
   }
 
+  function handleReload() {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+    }
+  }
+
+  function handleContact() {
+    if (onContact) {
+      onContact();
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      window.location.href = DEFAULT_CONTACT_HREF;
+    }
+  }
+
   return (
-    <main
-      role="alert"
-      aria-live="polite"
-      className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12"
-    >
-      <div className="flex max-w-md flex-col items-center text-center">
+    <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
+      <div
+        role="alert"
+        aria-live="polite"
+        className="flex max-w-md flex-col items-center text-center"
+      >
         <Icon size={24} className="text-text-3" aria-hidden="true" />
 
         <h1 className="text-heading text-text mt-6">{spec.title}</h1>
@@ -94,9 +148,9 @@ export function ErrorPage({ variant, onRetry, requestId }: ErrorPageProps) {
 
           {variant === 'server-error' && (
             <>
-              {onRetry && <Button onClick={onRetry}>다시 시도</Button>}
-              <Button variant="secondary" onClick={handleHome}>
-                홈으로
+              <Button onClick={onRetry ?? handleReload}>다시 시도</Button>
+              <Button variant="secondary" onClick={handleContact}>
+                문의하기
               </Button>
             </>
           )}
@@ -104,13 +158,29 @@ export function ErrorPage({ variant, onRetry, requestId }: ErrorPageProps) {
           {variant === 'forbidden' && (
             <>
               <Button onClick={handleLogin}>로그인</Button>
-              <Button variant="secondary" onClick={handleHome}>
-                홈으로
-              </Button>
+              {showBack && (
+                <Button variant="secondary" onClick={handleBack}>
+                  이전 페이지
+                </Button>
+              )}
             </>
           )}
 
-          {variant === 'offline' && onRetry && <Button onClick={onRetry}>다시 시도</Button>}
+          {variant === 'offline' && (
+            <>
+              {offlineRetrying ? (
+                <span className="text-mono-meta text-text-3 font-mono">
+                  재연결 시도 중... ({autoRetryCount}/{OFFLINE_MAX_RETRIES})
+                </span>
+              ) : offlineRetriesExhausted ? (
+                <span className="text-body-sm text-danger">
+                  연결 실패. 네트워크 상태를 확인하고 새로고침 해주세요.
+                </span>
+              ) : (
+                onRetry && <Button onClick={onRetry}>다시 시도</Button>
+              )}
+            </>
+          )}
         </div>
 
         {spec.code !== null && (
