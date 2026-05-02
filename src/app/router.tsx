@@ -1,5 +1,5 @@
 import { lazy } from 'react';
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, Navigate } from 'react-router';
 import { AuthGuard } from './providers/AuthGuard';
 import { SuspenseRoute } from './providers/SuspenseRoute';
 import { PageTransition } from './providers/PageTransition';
@@ -15,6 +15,21 @@ const DashboardPage = lazy(() =>
 );
 const AvatarDetailPage = lazy(() =>
   import('@pages/avatar-detail').then((m) => ({ default: m.AvatarDetailPage }))
+);
+const OnboardingPage = lazy(() =>
+  import('@pages/onboarding').then((m) => ({ default: m.OnboardingPage }))
+);
+const WelcomeStep = lazy(() =>
+  import('@pages/onboarding/steps/WelcomeStep').then((m) => ({ default: m.WelcomeStep }))
+);
+const SurveyStep = lazy(() =>
+  import('@pages/onboarding/steps/SurveyStep').then((m) => ({ default: m.SurveyStep }))
+);
+const ConnectStep = lazy(() =>
+  import('@pages/onboarding/steps/ConnectStep').then((m) => ({ default: m.ConnectStep }))
+);
+const CompleteStep = lazy(() =>
+  import('@pages/onboarding/steps/CompleteStep').then((m) => ({ default: m.CompleteStep }))
 );
 
 export const router = createBrowserRouter([
@@ -47,6 +62,23 @@ export const router = createBrowserRouter([
         </PageTransition>
       </SuspenseRoute>
     ),
+  },
+  {
+    path: '/onboarding',
+    element: (
+      <SuspenseRoute>
+        <AuthGuard>
+          <OnboardingPage />
+        </AuthGuard>
+      </SuspenseRoute>
+    ),
+    children: [
+      { index: true, element: <Navigate to="/onboarding/welcome" replace /> },
+      { path: 'welcome', element: <WelcomeStep /> },
+      { path: 'survey', element: <SurveyStep /> },
+      { path: 'connect', element: <ConnectStep /> },
+      { path: 'complete', element: <CompleteStep /> },
+    ],
   },
   {
     element: (
