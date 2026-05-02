@@ -15,7 +15,13 @@ export function ConnectStep() {
 
   const guardFailed = getOnboardingProgress() === 'welcome';
 
-  const { mutate: issueCode, data: connectCode, isPending: isIssuing } = useIssueConnectCode();
+  const {
+    mutate: issueCode,
+    data: connectCode,
+    isPending: isIssuing,
+    error: issueError,
+    reset: resetIssue,
+  } = useIssueConnectCode();
   const [localExpired, setLocalExpired] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -96,6 +102,7 @@ export function ConnectStep() {
     setLocalExpired(false);
     navigatedRef.current = false;
     issuedRef.current = true;
+    resetIssue();
     queryClient.removeQueries({ queryKey: onboardingKeys.connectStatus('current') });
     issueCode();
   };
@@ -112,6 +119,23 @@ export function ConnectStep() {
     return (
       <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-6 px-4 py-8">
         <p className="text-body text-text-2">연결 코드를 발급하는 중...</p>
+      </div>
+    );
+  }
+
+  if (issueError !== null) {
+    const message = issueError.message === '' ? '연결 코드 발급에 실패했어요.' : issueError.message;
+    return (
+      <div className="mx-auto flex w-full max-w-[640px] flex-col items-center gap-4 px-4 py-8">
+        <p
+          role="alert"
+          className="text-body-sm text-danger border-danger rounded-sm border px-3 py-2"
+        >
+          {message}
+        </p>
+        <Button type="button" variant="primary" onClick={handleReissue}>
+          다시 시도
+        </Button>
       </div>
     );
   }

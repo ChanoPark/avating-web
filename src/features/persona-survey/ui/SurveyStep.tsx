@@ -153,7 +153,9 @@ export function SurveyStep() {
               options={fieldOptions}
               value={allValues[field]}
               onChange={(val) => {
-                setValue(field, val as PathValue<SurveyResponse, Path<SurveyResponse>>);
+                setValue(field, val as PathValue<SurveyResponse, Path<SurveyResponse>>, {
+                  shouldValidate: true,
+                });
               }}
               {...(fieldError !== undefined ? { error: fieldError } : {})}
             />
