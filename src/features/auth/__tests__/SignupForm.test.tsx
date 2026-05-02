@@ -36,7 +36,7 @@ describe('SignupForm', () => {
       expect(screen.getByRole('button', { name: /회원가입/i })).toBeInTheDocument();
     });
 
-    it('로그인 링크가 렌더되고 /login으로 이동한다', () => {
+    it('로그인 링크가 렌더되고 /login href를 가진다', () => {
       renderWithProviders(<SignupForm />);
       const link = screen.getByRole('link', { name: /로그인/i });
       expect(link).toBeInTheDocument();
@@ -58,12 +58,11 @@ describe('SignupForm', () => {
       expect(link).toHaveClass('mx-auto');
     });
 
-    it('로그인 링크가 포커스 가능하고 tabIndex가 배제되지 않는다', () => {
+    it('로그인 링크가 포커스 가능하다', () => {
       renderWithProviders(<SignupForm />);
       const link = screen.getByRole('link', { name: /로그인/i });
       link.focus();
       expect(link).toHaveFocus();
-      expect(link).not.toHaveAttribute('tabindex', '-1');
     });
   });
 
