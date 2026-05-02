@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { AlertTriangle, Lock, Settings, WifiOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { Button } from '@shared/ui';
+import { Button } from '@shared/ui/Button';
 import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 
 export type ErrorVariant = 'not-found' | 'server-error' | 'forbidden' | 'offline' | 'maintenance';
@@ -200,7 +200,14 @@ export function ErrorPage({
           {variant === 'forbidden' && (
             <>
               {isAuthenticated === true ? (
-                showBack && <Button onClick={handleBack}>이전 페이지</Button>
+                showBack ? (
+                  <Button onClick={handleBack}>이전 페이지</Button>
+                ) : (
+                  // 인증된 사용자가 히스토리 없이 403 진입한 엣지 케이스 — 사용자가 갇히지 않도록 홈 fallback 노출.
+                  <Button variant="secondary" onClick={handleHome}>
+                    홈으로
+                  </Button>
+                )
               ) : isAuthenticated === false ? (
                 <Button onClick={handleLogin}>로그인</Button>
               ) : (

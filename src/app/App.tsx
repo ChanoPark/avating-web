@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
 import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { Button, ToastProvider } from '@shared/ui';
+import { Button } from '@shared/ui/Button';
+import { ToastProvider } from '@shared/ui/Toast';
 import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { router } from './router';
 import { handleAppCrash } from './handleAppCrash';
@@ -41,6 +42,7 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
             문의하기
           </Button>
         </div>
+        {/* HTTP 코드는 아니나, 글로벌 ErrorBoundary 가 내부 런타임 오류를 일관 표기하기 위해 500 으로 고정 (디자인 스펙 §3 500 화면 재사용). */}
         <div className="text-mono-meta text-text-3 mt-8 font-mono">ERROR_CODE: 500</div>
       </div>
     </main>

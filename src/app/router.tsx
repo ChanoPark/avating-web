@@ -70,6 +70,10 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <ErrorPage variant="not-found" />,
+    element: (
+      <SuspenseRoute>
+        <ErrorPage variant="not-found" />
+      </SuspenseRoute>
+    ),
   },
 ]);

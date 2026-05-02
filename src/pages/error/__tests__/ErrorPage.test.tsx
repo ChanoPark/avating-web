@@ -196,10 +196,11 @@ describe('ErrorPage', () => {
       expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
     });
 
-    it('isAuthenticated=true & canGoBack=false 일 때 CTA 가 노출되지 않는다 (edge case)', () => {
+    it('isAuthenticated=true & canGoBack=false 일 때 "홈으로" fallback 이 노출된다 (사용자 갇힘 방지)', () => {
       renderErrorPage('forbidden', { isAuthenticated: true, canGoBack: false });
       expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '홈으로' })).toBeInTheDocument();
     });
   });
 
