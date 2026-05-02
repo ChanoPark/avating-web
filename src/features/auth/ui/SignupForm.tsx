@@ -66,7 +66,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             id="signup-email"
             type="email"
             autoComplete="email"
-            placeholder="example@email.com"
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'signup-email-error' : undefined}
             className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.email ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
@@ -91,7 +90,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             id="signup-nickname"
             type="text"
             autoComplete="nickname"
-            placeholder="닉네임 (2~30자)"
             aria-invalid={errors.nickname ? true : undefined}
             aria-describedby={errors.nickname ? 'signup-nickname-error' : undefined}
             className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.nickname ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}

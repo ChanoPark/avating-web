@@ -68,11 +68,11 @@ describe('signupFormSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('비밀번호가 7자이면 실패한다', () => {
+  it('비밀번호가 9자이면 실패한다', () => {
     const result = signupFormSchema.safeParse({
       ...validBase,
-      password: 'Pas1!aB',
-      passwordConfirm: 'Pas1!aB',
+      password: 'Pass123!',
+      passwordConfirm: 'Pass123!',
     });
     expect(result.success).toBe(false);
   });

@@ -62,7 +62,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             id="login-email"
             type="email"
             autoComplete="email"
-            placeholder="example@email.com"
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
             className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.email ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
@@ -87,7 +86,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             id="login-password"
             type="password"
             autoComplete="current-password"
-            placeholder="비밀번호"
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'login-password-error' : undefined}
             className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
