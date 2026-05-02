@@ -124,6 +124,58 @@ describe('ErrorPage', () => {
       expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     });
 
+    it('onRetry 미제공 시 "다시 시도" 클릭 → window.location.reload 폴백 호출', async () => {
+      const originalLocation = window.location;
+      const reloadSpy = vi.fn();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, reload: reloadSpy },
+      });
+
+      try {
+        const user = userEvent.setup();
+        renderErrorPage('server-error');
+
+        await user.click(screen.getByRole('button', { name: '다시 시도' }));
+        expect(reloadSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          value: originalLocation,
+        });
+      }
+    });
+
+    it('onContact 미제공 시 "문의하기" 클릭 → window.location.href = mailto 폴백', async () => {
+      const originalLocation = window.location;
+      const hrefSetter = vi.fn();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          get href() {
+            return originalLocation.href;
+          },
+          set href(value: string) {
+            hrefSetter(value);
+          },
+        },
+      });
+
+      try {
+        const user = userEvent.setup();
+        renderErrorPage('server-error');
+
+        await user.click(screen.getByRole('button', { name: '문의하기' }));
+        expect(hrefSetter).toHaveBeenCalledWith('mailto:support@avating.com');
+      } finally {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          value: originalLocation,
+        });
+      }
+    });
+
     it('onContact 가 주어지면 "문의하기" 버튼이 핸들러를 실행한다', async () => {
       const user = userEvent.setup();
       const onContact = vi.fn();
@@ -222,6 +274,32 @@ describe('ErrorPage', () => {
         </MemoryRouter>
       );
       expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    });
+
+    it('onRetry 미제공 시 "다시 시도" 클릭 → window.location.reload 폴백 호출', async () => {
+      const originalLocation = window.location;
+      const reloadSpy = vi.fn();
+      Object.defineProperty(window, 'location', {
+        configurable: true,
+        value: { ...originalLocation, reload: reloadSpy },
+      });
+
+      try {
+        const user = userEvent.setup();
+        render(
+          <MemoryRouter>
+            <ErrorPage variant="offline" />
+          </MemoryRouter>
+        );
+
+        await user.click(screen.getByRole('button', { name: '다시 시도' }));
+        expect(reloadSpy).toHaveBeenCalledTimes(1);
+      } finally {
+        Object.defineProperty(window, 'location', {
+          configurable: true,
+          value: originalLocation,
+        });
+      }
     });
 
     it('onRetry 제공 시 3초 간격으로 자동 호출되며 진행 상황을 표시한다', () => {
