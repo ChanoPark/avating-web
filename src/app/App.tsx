@@ -2,11 +2,11 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
 import { useState } from 'react';
-import type { ErrorInfo } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button, ToastProvider } from '@shared/ui';
 import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { router } from './router';
+import { handleAppCrash } from './handleAppCrash';
 
 // error prop 은 ErrorBoundary 의 onError(handleAppCrash) 경로에서 로깅된다.
 // 사용자 노출용 화면에서는 PII/스택 누출 방지를 위해 error 객체를 직접 표시하지 않는다.
@@ -45,11 +45,6 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
       </div>
     </main>
   );
-}
-
-function handleAppCrash(error: Error, info: ErrorInfo) {
-  // Sentry 미통합 상태의 임시 통로. 통합 후 Sentry.captureException(error, { contexts: { react: info } }) 로 교체.
-  console.error('[AppBoundary]', error, info);
 }
 
 export function App() {

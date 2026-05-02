@@ -17,9 +17,10 @@ function renderErrorPage(
     onRetry?: () => void;
     onContact?: () => void;
     canGoBack?: boolean;
+    isAuthenticated?: boolean;
   } = {}
 ) {
-  const { initialEntries = ['/garbage'], onRetry, onContact, canGoBack } = options;
+  const { initialEntries = ['/garbage'], onRetry, onContact, canGoBack, isAuthenticated } = options;
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
@@ -34,6 +35,7 @@ function renderErrorPage(
                 onRetry={onRetry}
                 onContact={onContact}
                 canGoBack={canGoBack}
+                isAuthenticated={isAuthenticated}
               />
               <LocationDisplay />
             </>
@@ -176,8 +178,27 @@ describe('ErrorPage', () => {
       expect(screen.getByRole('button', { name: '이전 페이지' })).toBeInTheDocument();
     });
 
-    it('canGoBack=false 일 때 "이전 페이지" 버튼은 노출되지 않는다', () => {
+    it('canGoBack=false 일 때 "이전 페이지" 버튼은 노출되지 않으나 "로그인" 단독 노출은 유지된다', () => {
       renderErrorPage('forbidden', { canGoBack: false });
+      expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '로그인' })).toBeInTheDocument();
+    });
+
+    it('isAuthenticated=false 일 때 "로그인" 단독 노출 (디자인 스펙: "or" 분기)', () => {
+      renderErrorPage('forbidden', { isAuthenticated: false, canGoBack: true });
+      expect(screen.getByRole('button', { name: '로그인' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+    });
+
+    it('isAuthenticated=true & canGoBack=true 일 때 "이전 페이지" 단독 노출', () => {
+      renderErrorPage('forbidden', { isAuthenticated: true, canGoBack: true });
+      expect(screen.getByRole('button', { name: '이전 페이지' })).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
+    });
+
+    it('isAuthenticated=true & canGoBack=false 일 때 CTA 가 노출되지 않는다 (edge case)', () => {
+      renderErrorPage('forbidden', { isAuthenticated: true, canGoBack: false });
+      expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
     });
   });

@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ErrorBoundary } from 'react-error-boundary';
 import { AppFallback } from '../App';
+import { handleAppCrash } from '../handleAppCrash';
 
 describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => {
   let originalLocation: Location;
@@ -78,5 +80,50 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
     await user.click(screen.getByRole('button', { name: '문의하기' }));
 
     expect(hrefSetter).toHaveBeenCalledWith('mailto:support@avating.com');
+  });
+
+  describe('handleAppCrash (ErrorBoundary onError 핸들러)', () => {
+    it('console.error 로 [AppBoundary] 태그와 함께 에러를 기록한다', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const error = new Error('boom');
+      const info = { componentStack: '\n  at TestComponent' };
+
+      try {
+        handleAppCrash(error, info);
+        expect(consoleSpy).toHaveBeenCalledWith('[AppBoundary]', error, info);
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
+
+    it('ErrorBoundary 와 통합 시 자식 throw → handleAppCrash 호출 + AppFallback 렌더', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      function Throwing(): never {
+        throw new Error('integration boom');
+      }
+
+      try {
+        render(
+          <ErrorBoundary FallbackComponent={AppFallback} onError={handleAppCrash}>
+            <Throwing />
+          </ErrorBoundary>
+        );
+
+        expect(
+          screen.getByRole('heading', { name: '일시적인 오류가 발생했습니다' })
+        ).toBeInTheDocument();
+        expect(
+          consoleSpy.mock.calls.some(
+            (call) =>
+              call[0] === '[AppBoundary]' &&
+              call[1] instanceof Error &&
+              call[1].message === 'integration boom'
+          )
+        ).toBe(true);
+      } finally {
+        consoleSpy.mockRestore();
+      }
+    });
   });
 });

@@ -18,10 +18,20 @@ type ErrorPageProps = {
    * 추정값은 SPA 진입 전 외부 히스토리(다른 사이트 → 직접 진입)도 포함하므로, 정확성이 필요한 화면에서는 명시 권장.
    */
   canGoBack?: boolean;
-  /** maintenance variant 전용. */
+  /**
+   * maintenance variant 전용. caller-trusted (라우터/상위에서 직접 주입).
+   * TODO: 서버에서 점검창을 받아오게 되면 z.object 스키마로 추출해 경계 검증.
+   */
   maintenanceWindow?: { startsAt: string; endsAt: string; durationMin: number; brief: string };
   /** maintenance variant 의 상태 페이지 링크. 미지정 시 기본 STATUS_PAGE_URL 사용. */
   maintenanceStatusUrl?: string;
+  /**
+   * forbidden variant 의 CTA 분기 (디자인 스펙 §3: "[로그인] or [이전 페이지]").
+   * - true(인증됨): 권한 부족 → "이전 페이지" 단독
+   * - false(비인증): 로그인 필요 → "로그인" 단독
+   * - undefined(상태 모름): 둘 다 노출 (기존 동작 유지)
+   */
+  isAuthenticated?: boolean;
 };
 
 type VariantSpec = {
@@ -80,6 +90,7 @@ export function ErrorPage({
   canGoBack,
   maintenanceWindow,
   maintenanceStatusUrl,
+  isAuthenticated,
 }: ErrorPageProps) {
   const navigate = useNavigate();
   const spec = VARIANTS[variant];
@@ -188,11 +199,19 @@ export function ErrorPage({
 
           {variant === 'forbidden' && (
             <>
-              <Button onClick={handleLogin}>로그인</Button>
-              {showBack && (
-                <Button variant="secondary" onClick={handleBack}>
-                  이전 페이지
-                </Button>
+              {isAuthenticated === true ? (
+                showBack && <Button onClick={handleBack}>이전 페이지</Button>
+              ) : isAuthenticated === false ? (
+                <Button onClick={handleLogin}>로그인</Button>
+              ) : (
+                <>
+                  <Button onClick={handleLogin}>로그인</Button>
+                  {showBack && (
+                    <Button variant="secondary" onClick={handleBack}>
+                      이전 페이지
+                    </Button>
+                  )}
+                </>
               )}
             </>
           )}
