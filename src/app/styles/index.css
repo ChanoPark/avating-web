@@ -42,6 +42,8 @@
   --shadow-3: var(--shadow-3);
   --shadow-focus: var(--focus-ring);
 
+  --animate-shimmer: shimmer 1.5s ease-in-out infinite;
+
   --text-display: 2rem;
   --text-display--line-height: 1.15;
   --text-display--letter-spacing: -0.0625em;
@@ -79,6 +81,75 @@
   --text-mono-micro: 0.625rem;
   --text-mono-micro--line-height: 1.4;
   --text-mono-micro--letter-spacing: 0.05em;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes scrim-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes progress-shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @keyframes modal-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 }
 
 @layer base {

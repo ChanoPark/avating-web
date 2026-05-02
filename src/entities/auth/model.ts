@@ -18,11 +18,16 @@ export const emailSchema = z
 export const rawPasswordSchema = z
   .string()
   .min(1, '비밀번호를 입력해주세요')
-  .min(10, '10자 이상 입력해주세요')
+  .min(8, '8자 이상 입력해주세요')
   .max(64)
   .refine(hasThreeOfFour, '대/소/숫자/기호 중 3종 이상 포함해주세요');
 
-export const nicknameSchema = z.string().trim().min(2, '2자 이상').max(30, '30자 이하');
+export const nicknameSchema = z
+  .string()
+  .trim()
+  .min(1, '닉네임을 입력해주세요')
+  .min(2, '2자 이상 입력해주세요')
+  .max(30, '30자 이하로 입력해주세요');
 
 export const loginFormSchema = z.object({
   email: emailSchema,

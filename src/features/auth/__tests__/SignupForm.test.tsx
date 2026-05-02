@@ -38,7 +38,21 @@ describe('SignupForm', () => {
   });
 
   describe('닉네임 유효성 검증', () => {
-    it('닉네임 1자 입력 시 "2자 이상" 에러가 표시된다', async () => {
+    it('닉네임 미입력 시 "닉네임을 입력해주세요" 에러가 표시된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
+      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
+      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText('닉네임을 입력해주세요')).toBeInTheDocument();
+      });
+    });
+
+    it('닉네임 1자 입력 시 "2자 이상 입력해주세요" 에러가 표시된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
@@ -49,11 +63,11 @@ describe('SignupForm', () => {
       await user.click(screen.getByRole('button', { name: /회원가입/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/2자 이상/)).toBeInTheDocument();
+        expect(screen.getByText('2자 이상 입력해주세요')).toBeInTheDocument();
       });
     });
 
-    it('닉네임 31자 입력 시 "30자 이하" 에러가 표시된다', async () => {
+    it('닉네임 31자 입력 시 "30자 이하로 입력해주세요" 에러가 표시된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
@@ -64,7 +78,7 @@ describe('SignupForm', () => {
       await user.click(screen.getByRole('button', { name: /회원가입/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/30자 이하/)).toBeInTheDocument();
+        expect(screen.getByText('30자 이하로 입력해주세요')).toBeInTheDocument();
       });
     });
   });
