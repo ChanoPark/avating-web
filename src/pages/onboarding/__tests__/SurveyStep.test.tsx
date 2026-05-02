@@ -1,10 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { surveyHandlers, surveyDraftHandlers } from '@shared/mocks/handlers/onboarding';
 import { SurveyStep } from '@features/persona-survey/ui/SurveyStep';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const DRAFT_KEY = 'avating:onboarding:survey-draft';
 
@@ -138,16 +141,13 @@ describe('SurveyStep', () => {
     it('3 페이지에서 완료 클릭 시 POST /api/onboarding/survey 가 호출되고 /onboarding/connect 로 이동한다', async () => {
       const user = userEvent.setup();
       let surveyCallCount = 0;
-      server.use(surveyHandlers.success, surveyDraftHandlers.success);
-
-      const origFetch = globalThis.fetch;
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
-        const url = typeof input === 'string' ? input : (input as Request).url;
-        if (url.includes('/api/onboarding/survey') && !url.includes('draft')) {
+      server.use(
+        http.post(`${BASE_URL}/api/onboarding/survey`, () => {
           surveyCallCount++;
-        }
-        return origFetch(input, init);
-      });
+          return HttpResponse.json({ data: { avatarId: 'avatar-001' } }, { status: 201 });
+        }),
+        surveyDraftHandlers.success
+      );
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
@@ -186,10 +186,9 @@ describe('SurveyStep', () => {
       await user.click(screen.getByRole('button', { name: /완료/i }));
 
       await waitFor(() => {
+        expect(surveyCallCount).toBe(1);
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
       });
-
-      fetchSpy.mockRestore();
     });
 
     it('서버 422 응답 시 에러 메시지가 노출되고 navigate 는 호출되지 않는다', async () => {

@@ -75,6 +75,8 @@ const QUESTION_INDEX: Record<keyof SurveyResponse, number> = {
   q6: 5,
 };
 
+// 진입 가드 부재는 의도적 — 사용자가 답변을 다시 수정하거나 draft 를 이어서
+// 작성하기 위해 어떤 진행률에서도 재진입할 수 있어야 한다.
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);

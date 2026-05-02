@@ -15,5 +15,6 @@ export function useGeneratedAvatar() {
     queryFn: fetchGeneratedAvatar,
     staleTime: Infinity,
     gcTime: 5 * 60 * 1000,
+    retry: false,
   });
 }

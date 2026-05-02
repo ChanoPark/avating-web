@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { server } from '@shared/mocks/server';
 import {
   surveyHandlers,
@@ -9,7 +9,6 @@ import {
   completeOnboardingHandlers,
   mockSurveySubmitResponse,
   mockConnectCodeResponse,
-  mockConnectStatusActive,
   mockConnectStatusConnected,
   mockGeneratedAvatar,
   mockCompleteOnboardingResponse,

@@ -11,6 +11,8 @@ const STEP_MAP: Record<string, number> = {
 
 const ONBOARDING_STEP_LABELS = ['환영합니다', '페르소나 설문', '연결 코드', '완료'] as const;
 
+// 라우트 단위 PageTransition 대신 자체 AnimatePresence 사용 — 4단계 사이의
+// 트랜지션은 ProgressBar 와 함께 헤더를 유지한 채 본문만 fade/slide 해야 하므로.
 export function OnboardingPage() {
   const location = useLocation();
   const currentStep = STEP_MAP[location.pathname] ?? 1;

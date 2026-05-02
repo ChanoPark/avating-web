@@ -33,7 +33,7 @@ export function ProgressBar({ current, total, labels, className }: ProgressBarPr
             )}
           >
             {isCurrent && (
-              <div className="animate-shimmer absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+              <div className="animate-shimmer absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
             )}
           </div>
         );
