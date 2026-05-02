@@ -96,6 +96,22 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
       }
     });
 
+    it('production 모드에서는 componentStack(info) 없이 error.message 만 콘솔에 기록한다', () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      vi.stubEnv('MODE', 'production');
+      const error = new Error('prod boom');
+      const info = { componentStack: '\n  at Sensitive/Path/File.tsx' };
+
+      try {
+        handleAppCrash(error, info);
+        expect(consoleSpy).toHaveBeenCalledWith('[AppBoundary]', 'prod boom');
+        expect(consoleSpy).not.toHaveBeenCalledWith('[AppBoundary]', error, info);
+      } finally {
+        vi.unstubAllEnvs();
+        consoleSpy.mockRestore();
+      }
+    });
+
     it('ErrorBoundary 와 통합 시 자식 throw → handleAppCrash 호출 + AppFallback 렌더', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 

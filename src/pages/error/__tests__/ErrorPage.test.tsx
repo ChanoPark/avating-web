@@ -393,5 +393,17 @@ describe('ErrorPage', () => {
         'https://status.example.com'
       );
     });
+
+    it('maintenanceStatusUrl 미제공 시 기본 STATUS_PAGE_URL 로 fallback', () => {
+      render(
+        <MemoryRouter>
+          <ErrorPage variant="maintenance" />
+        </MemoryRouter>
+      );
+      expect(screen.getByRole('link', { name: '상태 페이지' })).toHaveAttribute(
+        'href',
+        'https://status.avating.com'
+      );
+    });
   });
 });
