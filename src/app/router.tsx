@@ -16,6 +16,7 @@ const DashboardPage = lazy(() =>
 const AvatarDetailPage = lazy(() =>
   import('@pages/avatar-detail').then((m) => ({ default: m.AvatarDetailPage }))
 );
+const ErrorPage = lazy(() => import('@pages/error').then((m) => ({ default: m.ErrorPage })));
 const OnboardingPage = lazy(() =>
   import('@pages/onboarding').then((m) => ({ default: m.OnboardingPage }))
 );
@@ -101,6 +102,10 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <div>Not Found</div>,
+    element: (
+      <SuspenseRoute>
+        <ErrorPage variant="not-found" />
+      </SuspenseRoute>
+    ),
   },
 ]);
