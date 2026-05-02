@@ -1,16 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { NavigationType, useLocation, useNavigate, useNavigationType } from 'react-router';
-import { AlertTriangle, Lock, WifiOff } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { AlertTriangle, Lock, Settings, WifiOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui';
+import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 
-export type ErrorVariant = 'not-found' | 'server-error' | 'forbidden' | 'offline';
+export type ErrorVariant = 'not-found' | 'server-error' | 'forbidden' | 'offline' | 'maintenance';
 
 type ErrorPageProps = {
   variant: ErrorVariant;
   onRetry?: () => void;
   onContact?: () => void;
   requestId?: string;
+  /** 호출 측에서 명시할 수 있는 "이전 페이지로 돌아가기 가능" 플래그. 미지정 시 window.history.length 로 추정. */
+  canGoBack?: boolean;
+  /** maintenance variant 전용. */
+  maintenanceWindow?: { startsAt: string; endsAt: string; durationMin: number; brief: string };
 };
 
 type VariantSpec = {
@@ -45,22 +50,35 @@ const VARIANTS: Record<ErrorVariant, VariantSpec> = {
     description: '연결 상태를 확인하고 다시 시도해주세요.',
     code: null,
   },
+  maintenance: {
+    icon: Settings,
+    title: '서비스 점검 중입니다',
+    description: '점검 종료 후 다시 이용해주세요.',
+    code: null,
+  },
 };
 
 const OFFLINE_MAX_RETRIES = 5;
 const OFFLINE_RETRY_INTERVAL_MS = 3000;
-const DEFAULT_CONTACT_HREF = 'mailto:support@avating.com';
 
-export function ErrorPage({ variant, onRetry, onContact, requestId }: ErrorPageProps) {
+function detectHasHistory(): boolean {
+  if (typeof window === 'undefined') return false;
+  return window.history.length > 1;
+}
+
+export function ErrorPage({
+  variant,
+  onRetry,
+  onContact,
+  requestId,
+  canGoBack,
+  maintenanceWindow,
+}: ErrorPageProps) {
   const navigate = useNavigate();
-  const location = useLocation();
-  const navigationType = useNavigationType();
   const spec = VARIANTS[variant];
   const Icon = spec.icon;
 
-  // 직접 URL 진입 ⇒ navigationType=POP & location.key='default'. 그 외(SPA 내부 링크 클릭)는 history 가 있다.
-  const isInitialEntry = navigationType === NavigationType.Pop && location.key === 'default';
-  const hasHistory = !isInitialEntry;
+  const hasHistory = canGoBack ?? detectHasHistory();
   const showBack = hasHistory;
 
   const [autoRetryCount, setAutoRetryCount] = useState(0);
@@ -115,22 +133,26 @@ export function ErrorPage({ variant, onRetry, onContact, requestId }: ErrorPageP
       return;
     }
     if (typeof window !== 'undefined') {
-      window.location.href = DEFAULT_CONTACT_HREF;
+      window.location.href = SUPPORT_EMAIL_HREF;
     }
   }
 
   return (
     <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
-      <div
-        role="alert"
-        aria-live="polite"
-        className="flex max-w-md flex-col items-center text-center"
-      >
+      <div role="alert" className="flex max-w-md flex-col items-center text-center">
         <Icon size={24} className="text-text-3" aria-hidden="true" />
 
         <h1 className="text-heading text-text mt-6">{spec.title}</h1>
 
-        <p className="text-body-sm text-text-3 mt-3 whitespace-pre-line">{spec.description}</p>
+        <p className="text-body-sm text-text-3 mt-3">{spec.description}</p>
+
+        {variant === 'maintenance' && maintenanceWindow && (
+          <div className="text-mono-meta text-text-3 mt-4 font-mono">
+            {maintenanceWindow.startsAt} - {maintenanceWindow.endsAt} (약{' '}
+            {maintenanceWindow.durationMin}분)
+            <div className="text-text-2 mt-2">점검 내용: {maintenanceWindow.brief}</div>
+          </div>
+        )}
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
           {variant === 'not-found' && (
@@ -177,7 +199,7 @@ export function ErrorPage({ variant, onRetry, onContact, requestId }: ErrorPageP
                   연결 실패. 네트워크 상태를 확인하고 새로고침 해주세요.
                 </span>
               ) : (
-                onRetry && <Button onClick={onRetry}>다시 시도</Button>
+                <Button onClick={onRetry ?? handleReload}>다시 시도</Button>
               )}
             </>
           )}

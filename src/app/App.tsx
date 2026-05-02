@@ -5,26 +5,21 @@ import { useState } from 'react';
 import type { ErrorInfo } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button, ToastProvider } from '@shared/ui';
+import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { router } from './router';
 
-const SUPPORT_HREF = 'mailto:support@avating.com';
-
-function AppFallback() {
+export function AppFallback() {
   function handleRetry() {
     window.location.reload();
   }
 
   function handleContact() {
-    window.location.href = SUPPORT_HREF;
+    window.location.href = SUPPORT_EMAIL_HREF;
   }
 
   return (
     <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
-      <div
-        role="alert"
-        aria-live="polite"
-        className="flex max-w-md flex-col items-center text-center"
-      >
+      <div role="alert" className="flex max-w-md flex-col items-center text-center">
         <AlertTriangle size={24} className="text-text-3" aria-hidden="true" />
         <h1 className="text-heading text-text mt-6">일시적인 오류가 발생했습니다</h1>
         <p className="text-body-sm text-text-3 mt-3">

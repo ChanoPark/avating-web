@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
@@ -12,9 +12,14 @@ function LocationDisplay() {
 
 function renderErrorPage(
   variant: ErrorVariant,
-  options: { initialEntries?: string[]; onRetry?: () => void; onContact?: () => void } = {}
+  options: {
+    initialEntries?: string[];
+    onRetry?: () => void;
+    onContact?: () => void;
+    canGoBack?: boolean;
+  } = {}
 ) {
-  const { initialEntries = ['/garbage'], onRetry, onContact } = options;
+  const { initialEntries = ['/garbage'], onRetry, onContact, canGoBack } = options;
   return render(
     <MemoryRouter initialEntries={initialEntries}>
       <Routes>
@@ -24,7 +29,12 @@ function renderErrorPage(
           path="*"
           element={
             <>
-              <ErrorPage variant={variant} onRetry={onRetry} onContact={onContact} />
+              <ErrorPage
+                variant={variant}
+                onRetry={onRetry}
+                onContact={onContact}
+                canGoBack={canGoBack}
+              />
               <LocationDisplay />
             </>
           }
@@ -56,29 +66,35 @@ describe('ErrorPage', () => {
       expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
     });
 
-    it('히스토리가 있으면 "이전" 버튼이 노출된다', () => {
-      renderErrorPage('not-found', { initialEntries: ['/', '/garbage'] });
+    it('canGoBack=true 일 때 "이전" 버튼이 노출된다', () => {
+      renderErrorPage('not-found', { canGoBack: true });
       expect(screen.getByRole('button', { name: /이전/ })).toBeInTheDocument();
     });
 
     it('"이전" 버튼 클릭 시 직전 경로로 돌아간다', async () => {
       const user = userEvent.setup();
-      renderErrorPage('not-found', { initialEntries: ['/', '/garbage'] });
+      renderErrorPage('not-found', {
+        initialEntries: ['/', '/garbage'],
+        canGoBack: true,
+      });
 
       await user.click(screen.getByRole('button', { name: /이전/ }));
 
       expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
     });
 
-    it('히스토리가 없으면 "이전" 버튼은 노출되지 않는다', () => {
-      renderErrorPage('not-found', { initialEntries: ['/garbage'] });
+    it('canGoBack=false 일 때 "이전" 버튼은 노출되지 않는다', () => {
+      renderErrorPage('not-found', { canGoBack: false });
       expect(screen.queryByRole('button', { name: /이전/ })).not.toBeInTheDocument();
     });
 
-    it('main 랜드마크와 분리된 alert 컨테이너가 존재한다', () => {
+    it('main 랜드마크와 분리된 alert 컨테이너가 존재하며 alert 에 aria-live 가 중복 지정되지 않는다', () => {
       renderErrorPage('not-found');
       expect(screen.getByRole('main')).toBeInTheDocument();
-      expect(screen.getByRole('alert')).toBeInTheDocument();
+      const alert = screen.getByRole('alert');
+      expect(alert).toBeInTheDocument();
+      // role="alert" 는 암묵적 aria-live="assertive". 명시적 polite 와 충돌 방지.
+      expect(alert).not.toHaveAttribute('aria-live');
     });
   });
 
@@ -145,28 +161,18 @@ describe('ErrorPage', () => {
       expect(screen.getByText('LOGIN_PAGE')).toBeInTheDocument();
     });
 
-    it('히스토리가 있으면 "이전 페이지" 버튼이 노출된다', () => {
-      renderErrorPage('forbidden', { initialEntries: ['/', '/blocked'] });
+    it('canGoBack=true 일 때 "이전 페이지" 버튼이 노출된다', () => {
+      renderErrorPage('forbidden', { canGoBack: true });
       expect(screen.getByRole('button', { name: '이전 페이지' })).toBeInTheDocument();
     });
 
-    it('히스토리가 없으면 "이전 페이지" 버튼은 노출되지 않는다', () => {
-      renderErrorPage('forbidden', { initialEntries: ['/blocked'] });
+    it('canGoBack=false 일 때 "이전 페이지" 버튼은 노출되지 않는다', () => {
+      renderErrorPage('forbidden', { canGoBack: false });
       expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
     });
   });
 
   describe('variant="offline" (네트워크 없음)', () => {
-    const originalOnLine = navigator.onLine;
-
-    beforeEach(() => {
-      Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
-    });
-
-    afterEach(() => {
-      Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
-    });
-
     it('제목과 설명을 표시한다', () => {
       render(
         <MemoryRouter>
@@ -177,14 +183,13 @@ describe('ErrorPage', () => {
       expect(screen.getByText(/연결 상태를 확인하고 다시 시도해주세요/)).toBeInTheDocument();
     });
 
-    it('onRetry 미제공 시 자동 재시도 없이 정적 화면만 노출된다', () => {
+    it('onRetry 미제공 시에도 "다시 시도" 버튼은 fallback(reload) 으로 노출된다', () => {
       render(
         <MemoryRouter>
           <ErrorPage variant="offline" />
         </MemoryRouter>
       );
-      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
-      expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     });
 
     it('onRetry 제공 시 3초 간격으로 자동 호출되며 진행 상황을 표시한다', () => {
@@ -239,6 +244,27 @@ describe('ErrorPage', () => {
       } finally {
         vi.useRealTimers();
       }
+    });
+  });
+
+  describe('variant="maintenance" (점검)', () => {
+    it('제목과 설명, 점검창 정보를 표시한다', () => {
+      render(
+        <MemoryRouter>
+          <ErrorPage
+            variant="maintenance"
+            maintenanceWindow={{
+              startsAt: '2026-05-02 02:00',
+              endsAt: '2026-05-02 04:00',
+              durationMin: 120,
+              brief: '데이터베이스 마이그레이션',
+            }}
+          />
+        </MemoryRouter>
+      );
+      expect(screen.getByRole('heading', { name: '서비스 점검 중입니다' })).toBeInTheDocument();
+      expect(screen.getByText(/2026-05-02 02:00/)).toBeInTheDocument();
+      expect(screen.getByText(/데이터베이스 마이그레이션/)).toBeInTheDocument();
     });
   });
 });
