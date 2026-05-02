@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { AlertTriangle, Lock, Settings, WifiOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui';
-import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
+import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 
 export type ErrorVariant = 'not-found' | 'server-error' | 'forbidden' | 'offline' | 'maintenance';
 
@@ -12,10 +12,15 @@ type ErrorPageProps = {
   onRetry?: () => void;
   onContact?: () => void;
   requestId?: string;
-  /** 호출 측에서 명시할 수 있는 "이전 페이지로 돌아가기 가능" 플래그. 미지정 시 window.history.length 로 추정. */
+  /**
+   * 호출 측에서 명시할 수 있는 "이전 페이지로 돌아가기 가능" 플래그. 미지정 시 `window.history.length > 1` 로 추정.
+   * 추정값은 SPA 진입 전 외부 히스토리(다른 사이트 → 직접 진입)도 포함하므로, 정확성이 필요한 화면에서는 명시 권장.
+   */
   canGoBack?: boolean;
   /** maintenance variant 전용. */
   maintenanceWindow?: { startsAt: string; endsAt: string; durationMin: number; brief: string };
+  /** maintenance variant 의 상태 페이지 링크. 미지정 시 기본 STATUS_PAGE_URL 사용. */
+  maintenanceStatusUrl?: string;
 };
 
 type VariantSpec = {
@@ -73,6 +78,7 @@ export function ErrorPage({
   requestId,
   canGoBack,
   maintenanceWindow,
+  maintenanceStatusUrl,
 }: ErrorPageProps) {
   const navigate = useNavigate();
   const spec = VARIANTS[variant];
@@ -148,8 +154,10 @@ export function ErrorPage({
 
         {variant === 'maintenance' && maintenanceWindow && (
           <div className="text-mono-meta text-text-3 mt-4 font-mono">
-            {maintenanceWindow.startsAt} - {maintenanceWindow.endsAt} (약{' '}
-            {maintenanceWindow.durationMin}분)
+            <div>
+              {maintenanceWindow.startsAt} - {maintenanceWindow.endsAt}
+            </div>
+            <div className="mt-1">약 {maintenanceWindow.durationMin}분 소요 예정</div>
             <div className="text-text-2 mt-2">점검 내용: {maintenanceWindow.brief}</div>
           </div>
         )}
@@ -195,13 +203,27 @@ export function ErrorPage({
                   재연결 시도 중... ({autoRetryCount}/{OFFLINE_MAX_RETRIES})
                 </span>
               ) : offlineRetriesExhausted ? (
-                <span className="text-body-sm text-danger">
-                  연결 실패. 네트워크 상태를 확인하고 새로고침 해주세요.
-                </span>
+                <div className="flex flex-col items-center gap-3">
+                  <span className="text-body-sm text-danger">
+                    연결 실패. 네트워크 상태를 확인해주세요.
+                  </span>
+                  <Button onClick={handleReload}>새로고침</Button>
+                </div>
               ) : (
                 <Button onClick={onRetry ?? handleReload}>다시 시도</Button>
               )}
             </>
+          )}
+
+          {variant === 'maintenance' && (
+            <a
+              href={maintenanceStatusUrl ?? STATUS_PAGE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ui text-brand hover:text-brand-hover font-ui underline-offset-2 hover:underline"
+            >
+              상태 페이지 →
+            </a>
           )}
         </div>
 

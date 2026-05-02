@@ -8,8 +8,16 @@ import { Button, ToastProvider } from '@shared/ui';
 import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { router } from './router';
 
-export function AppFallback() {
+type AppFallbackProps = {
+  resetErrorBoundary?: () => void;
+};
+
+export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
   function handleRetry() {
+    if (resetErrorBoundary) {
+      resetErrorBoundary();
+      return;
+    }
     window.location.reload();
   }
 

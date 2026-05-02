@@ -51,13 +51,24 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
     expect(alert).not.toHaveAttribute('aria-live');
   });
 
-  it('"다시 시도" 클릭 시 window.location.reload 호출', async () => {
+  it('"다시 시도" 클릭 시 resetErrorBoundary 미제공이면 window.location.reload 호출', async () => {
     const user = userEvent.setup();
     render(<AppFallback />);
 
     await user.click(screen.getByRole('button', { name: '다시 시도' }));
 
     expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('"다시 시도" 클릭 시 resetErrorBoundary 가 제공되면 그 핸들러를 우선 호출 (reload 호출 안 함)', async () => {
+    const user = userEvent.setup();
+    const resetErrorBoundary = vi.fn();
+    render(<AppFallback resetErrorBoundary={resetErrorBoundary} />);
+
+    await user.click(screen.getByRole('button', { name: '다시 시도' }));
+
+    expect(resetErrorBoundary).toHaveBeenCalledTimes(1);
+    expect(reloadSpy).not.toHaveBeenCalled();
   });
 
   it('"문의하기" 클릭 시 window.location.href 가 mailto 로 이동한다', async () => {

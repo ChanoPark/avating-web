@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
+import { ErrorPage } from '@pages/error';
 import { AuthGuard } from './providers/AuthGuard';
 import { SuspenseRoute } from './providers/SuspenseRoute';
 import { PageTransition } from './providers/PageTransition';
@@ -16,7 +17,6 @@ const DashboardPage = lazy(() =>
 const AvatarDetailPage = lazy(() =>
   import('@pages/avatar-detail').then((m) => ({ default: m.AvatarDetailPage }))
 );
-const ErrorPage = lazy(() => import('@pages/error').then((m) => ({ default: m.ErrorPage })));
 
 export const router = createBrowserRouter([
   {
@@ -70,10 +70,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: (
-      <SuspenseRoute>
-        <ErrorPage variant="not-found" />
-      </SuspenseRoute>
-    ),
+    element: <ErrorPage variant="not-found" />,
   },
 ]);

@@ -220,7 +220,7 @@ describe('ErrorPage', () => {
       }
     });
 
-    it('5회 재시도 소진 시 "연결 실패" 메시지로 전환된다', () => {
+    it('5회 재시도 소진 시 "연결 실패" 메시지 + "새로고침" 버튼으로 전환된다', () => {
       vi.useFakeTimers();
       try {
         const onRetry = vi.fn();
@@ -235,6 +235,7 @@ describe('ErrorPage', () => {
         });
 
         expect(screen.getByText(/연결 실패/)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '새로고침' })).toBeInTheDocument();
         expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
 
         act(() => {
@@ -248,7 +249,7 @@ describe('ErrorPage', () => {
   });
 
   describe('variant="maintenance" (점검)', () => {
-    it('제목과 설명, 점검창 정보를 표시한다', () => {
+    it('제목, 설명, 점검창 정보, 상태 페이지 링크를 표시한다', () => {
       render(
         <MemoryRouter>
           <ErrorPage
@@ -264,7 +265,23 @@ describe('ErrorPage', () => {
       );
       expect(screen.getByRole('heading', { name: '서비스 점검 중입니다' })).toBeInTheDocument();
       expect(screen.getByText(/2026-05-02 02:00/)).toBeInTheDocument();
+      expect(screen.getByText(/약 120분 소요 예정/)).toBeInTheDocument();
       expect(screen.getByText(/데이터베이스 마이그레이션/)).toBeInTheDocument();
+      const statusLink = screen.getByRole('link', { name: /상태 페이지/ });
+      expect(statusLink).toHaveAttribute('target', '_blank');
+      expect(statusLink).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('maintenanceStatusUrl prop 으로 상태 페이지 링크를 override 할 수 있다', () => {
+      render(
+        <MemoryRouter>
+          <ErrorPage variant="maintenance" maintenanceStatusUrl="https://status.example.com" />
+        </MemoryRouter>
+      );
+      expect(screen.getByRole('link', { name: /상태 페이지/ })).toHaveAttribute(
+        'href',
+        'https://status.example.com'
+      );
     });
   });
 });
