@@ -34,17 +34,13 @@ export function AppShellLayout() {
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar>
-        <div className="border-border flex h-14 items-center justify-center border-b px-2 lg:justify-start lg:px-4">
-          <span className="font-ui text-heading text-text sr-only font-semibold lg:not-sr-only">
-            Avating
-          </span>
+        <div className="border-border flex h-14 items-center border-b px-4">
+          <span className="font-ui text-heading text-text font-semibold">Avating</span>
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
           <div className="mb-1">
-            <span className="text-mono-micro text-text-4 hidden px-3 font-mono uppercase lg:block">
-              HOME
-            </span>
+            <span className="text-mono-micro text-text-4 px-3 font-mono uppercase">HOME</span>
           </div>
           <SidebarItem
             icon={LayoutGrid}
@@ -58,9 +54,7 @@ export function AppShellLayout() {
           <SidebarItem icon={MessageCircle} label="실제 대화" disabled />
 
           <div className="mt-4 mb-1">
-            <span className="text-mono-micro text-text-4 hidden px-3 font-mono uppercase lg:block">
-              내 프로필
-            </span>
+            <span className="text-mono-micro text-text-4 px-3 font-mono uppercase">내 프로필</span>
           </div>
           <SidebarItem icon={User} label="내 아바타" disabled />
           <SidebarItem icon={Gem} label="다이아" disabled />
@@ -70,7 +64,7 @@ export function AppShellLayout() {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="border-border bg-bg-elev-1 flex h-14 shrink-0 items-center justify-between border-b px-6">
-          <div className="text-subheading text-text-2">홈 &gt; 대시보드</div>
+          <div className="text-body-sm text-text-2">홈 &gt; 대시보드</div>
           <div className="flex items-center gap-3">
             <button
               type="button"

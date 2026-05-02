@@ -65,21 +65,21 @@ export function AvatarListRow({
       onKeyDown={handleRowKeyDown}
       className={cn(
         'border-border grid cursor-pointer border-b px-4 py-3 transition-colors',
-        'grid-cols-[1fr_140px_180px_100px_120px]',
+        'grid-cols-[1fr_140px_1fr_100px_120px]',
         'hover:bg-bg-elev-3 focus-visible:outline-brand focus-visible:outline-2'
       )}
     >
       {/* 아바타 */}
       <div className="flex items-center gap-3">
-        <div className="bg-bg-elev-3 border-border-hi flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border">
-          <span className="font-ui text-mono-meta text-text-2 font-semibold uppercase">
+        <div className="bg-brand-soft border-brand-border flex h-8 w-8 shrink-0 items-center justify-center rounded-full border">
+          <span className="font-ui text-mono-meta text-brand font-semibold uppercase">
             {initials}
           </span>
         </div>
         <div>
           <div className="font-ui text-ui text-text flex items-center gap-1.5">
             {name}
-            {verified && <Tag variant="success">인증</Tag>}
+            {verified && <Tag variant="brand">인증</Tag>}
           </div>
           <div className="text-mono-meta text-text-3 font-mono">{handle}</div>
         </div>

@@ -25,8 +25,7 @@ export function SidebarItem({
   const isActive = active || (to !== undefined && location.pathname === to);
 
   const baseClass = cn(
-    'font-ui text-ui flex w-full items-center rounded-sm py-2 transition-colors',
-    'justify-center gap-0 px-2 lg:justify-start lg:gap-3 lg:px-3',
+    'font-ui text-ui flex w-full items-center gap-3 rounded-sm px-3 py-2 transition-colors',
     'duration-[var(--duration-fast)] ease-[var(--ease)]',
     isActive ? 'bg-bg-elev-2 text-text' : 'text-text-2 hover:text-text',
     disabled && 'pointer-events-none opacity-50'
@@ -35,7 +34,7 @@ export function SidebarItem({
   const content = (
     <>
       <Icon size={16} aria-hidden="true" className={cn(isActive ? 'text-brand' : 'text-text-3')} />
-      <span className="sr-only lg:not-sr-only">{label}</span>
+      <span>{label}</span>
       {badge !== undefined && badge > 0 && (
         <span
           aria-label={`${badge}개`}
