@@ -8,6 +8,8 @@ import { Button, ToastProvider } from '@shared/ui';
 import { SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 import { router } from './router';
 
+// error prop 은 ErrorBoundary 의 onError(handleAppCrash) 경로에서 로깅된다.
+// 사용자 노출용 화면에서는 PII/스택 누출 방지를 위해 error 객체를 직접 표시하지 않는다.
 type AppFallbackProps = {
   resetErrorBoundary?: () => void;
 };

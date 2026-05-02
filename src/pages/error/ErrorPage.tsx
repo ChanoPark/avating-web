@@ -11,6 +11,7 @@ type ErrorPageProps = {
   variant: ErrorVariant;
   onRetry?: () => void;
   onContact?: () => void;
+  /** server-error variant 전용. 디자인 스펙 §3 — 500 화면의 문의 시 식별자. 다른 variant 에서는 무시된다. */
   requestId?: string;
   /**
    * 호출 측에서 명시할 수 있는 "이전 페이지로 돌아가기 가능" 플래그. 미지정 시 `window.history.length > 1` 로 추정.
@@ -222,7 +223,7 @@ export function ErrorPage({
               rel="noopener noreferrer"
               className="text-ui text-brand hover:text-brand-hover font-ui underline-offset-2 hover:underline"
             >
-              상태 페이지 →
+              상태 페이지<span aria-hidden="true"> →</span>
             </a>
           )}
         </div>
@@ -230,7 +231,7 @@ export function ErrorPage({
         {spec.code !== null && (
           <div className="text-mono-meta text-text-3 mt-8 font-mono">
             ERROR_CODE: {spec.code}
-            {requestId ? ` · REQUEST_ID: ${requestId}` : ''}
+            {variant === 'server-error' && requestId ? ` · REQUEST_ID: ${requestId}` : ''}
           </div>
         )}
       </div>

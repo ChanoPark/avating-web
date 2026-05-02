@@ -140,6 +140,16 @@ describe('ErrorPage', () => {
       expect(screen.getByText(/ERROR_CODE: 500/)).toBeInTheDocument();
       expect(screen.getByText(/REQUEST_ID: req_abc123/)).toBeInTheDocument();
     });
+
+    it('server-error 외 variant 에서 requestId 는 무시된다 (디자인 스펙: 500 전용)', () => {
+      render(
+        <MemoryRouter>
+          <ErrorPage variant="not-found" requestId="req_should_not_appear" />
+        </MemoryRouter>
+      );
+      expect(screen.getByText('ERROR_CODE: 404')).toBeInTheDocument();
+      expect(screen.queryByText(/REQUEST_ID/)).not.toBeInTheDocument();
+    });
   });
 
   describe('variant="forbidden" (403)', () => {
@@ -267,7 +277,7 @@ describe('ErrorPage', () => {
       expect(screen.getByText(/2026-05-02 02:00/)).toBeInTheDocument();
       expect(screen.getByText(/약 120분 소요 예정/)).toBeInTheDocument();
       expect(screen.getByText(/데이터베이스 마이그레이션/)).toBeInTheDocument();
-      const statusLink = screen.getByRole('link', { name: /상태 페이지/ });
+      const statusLink = screen.getByRole('link', { name: '상태 페이지' });
       expect(statusLink).toHaveAttribute('target', '_blank');
       expect(statusLink).toHaveAttribute('rel', 'noopener noreferrer');
     });
@@ -278,7 +288,7 @@ describe('ErrorPage', () => {
           <ErrorPage variant="maintenance" maintenanceStatusUrl="https://status.example.com" />
         </MemoryRouter>
       );
-      expect(screen.getByRole('link', { name: /상태 페이지/ })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: '상태 페이지' })).toHaveAttribute(
         'href',
         'https://status.example.com'
       );
