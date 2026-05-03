@@ -156,6 +156,7 @@ export function SurveyStep() {
     setSubmitError(null);
     try {
       await createAvatar(data);
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
       clearDraft();
       setOnboardingProgress('connect');
       void navigate('/onboarding/connect');

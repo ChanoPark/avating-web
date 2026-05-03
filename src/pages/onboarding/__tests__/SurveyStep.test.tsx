@@ -284,6 +284,32 @@ describe('SurveyStep', () => {
     });
   });
 
+  describe('draft 디바운스 저장', () => {
+    it('답변 선택 후 300ms 경과 시 localStorage 에 답변이 기록된다', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+
+      await vi.advanceTimersByTimeAsync(350);
+
+      const raw = localStorage.getItem(DRAFT_KEY);
+      expect(raw).not.toBeNull();
+      const parsed = JSON.parse(raw!) as { value: { answers: Record<string, string> } };
+      expect(parsed.value.answers).toMatchObject({
+        AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_1',
+      });
+
+      vi.useRealTimers();
+    });
+  });
+
   describe('draft 복원', () => {
     it('localStorage draft 에 저장된 답이 라디오에 체크된다', async () => {
       const draft = {
