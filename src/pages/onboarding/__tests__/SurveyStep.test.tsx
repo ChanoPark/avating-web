@@ -241,9 +241,12 @@ describe('SurveyStep', () => {
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(document.querySelector('[aria-invalid="true"]')).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toBeInTheDocument();
       });
 
+      const alert = screen.getByRole('alert');
+      expect(alert).toHaveClass('border-danger');
+      expect(alert.textContent ?? '').not.toBe('');
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect');
     });
   });
@@ -321,7 +324,7 @@ describe('SurveyStep', () => {
   });
 
   describe('제출 에러 처리', () => {
-    it('Error 인스턴스가 아닌 예외 발생 시 기본 에러 메시지가 표시된다', async () => {
+    it('API 에러 응답 시 서버 에러 메시지가 alert 로 표시되고 border-danger 시각 상태가 적용된다', async () => {
       const user = userEvent.setup();
 
       server.use(
@@ -355,8 +358,13 @@ describe('SurveyStep', () => {
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(document.querySelector('[aria-invalid="true"]')).toBeInTheDocument();
+        expect(screen.getByRole('alert')).toBeInTheDocument();
       });
+
+      const alert = screen.getByRole('alert');
+      expect(alert).toHaveClass('border-danger');
+      expect(alert).toHaveClass('text-danger');
+      expect(alert.textContent ?? '').toMatch(/알 수 없는 오류/);
     });
   });
 });

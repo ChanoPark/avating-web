@@ -99,19 +99,14 @@ describe('useSurveyQuestions', () => {
     expect(queryClient.getQueryCache().findAll()).toHaveLength(fetchCount);
   });
 
-  it('5xx 응답 시 에러 상태가 된다', async () => {
+  it('5xx 응답 시 isError 가 true 가 된다', async () => {
     server.use(surveyQuestionsHandlers.serverError);
     const { result } = renderHook(() => useSurveyQuestions(), {
       wrapper: createWrapper(),
     });
 
-    await waitFor(
-      () => {
-        expect(result.current.isError || result.error != null).toBe(true);
-      },
-      { timeout: 3000 }
-    ).catch(() => {});
-
-    expect(result.current.isError || result.error != null).toBe(true);
+    await waitFor(() => {
+      expect(result.current.isError).toBe(true);
+    });
   });
 });

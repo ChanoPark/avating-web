@@ -1,31 +1,78 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { setOnboardingProgress } from '@entities/onboarding';
+import {
+  avatarCreateFromSurveyRequestSchema,
+  type AvatarCreateFromSurveyRequest,
+  type SurveyQuestion as SurveyQuestionModel,
+} from '@entities/onboarding/model';
+import { cn } from '@shared/lib/cn';
+import { Button } from '@shared/ui/Button/Button';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
-import { Button } from '@shared/ui/Button/Button';
 
 export function SurveyStep() {
   const navigate = useNavigate();
   const { data: questions, isLoading, isError } = useSurveyQuestions();
   const [pageIndex, setPageIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [avatarName, setAvatarName] = useState('');
-  const [description, setDescription] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const draftRestoredRef = useRef(false);
+
+  const form = useForm<AvatarCreateFromSurveyRequest>({
+    resolver: zodResolver(avatarCreateFromSurveyRequestSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      avatarName: '',
+      description: '',
+      answers: [],
+    },
+  });
 
   const { mutateAsync: createAvatar, isPending: isSubmitting } = useSurveySubmit();
 
   useEffect(() => {
+    if (!questions || draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+
     const draft = loadDraft();
-    if (draft) {
-      setAnswers(draft.answers);
-      if (draft.avatarName) setAvatarName(draft.avatarName);
-      if (draft.description) setDescription(draft.description);
-    }
-  }, []);
+    if (!draft) return;
+
+    const restoredAnswers = Object.entries(draft.answers)
+      .map(([questionId, answerId]) => {
+        const q = questions.find((qq) => qq.id === questionId);
+        if (!q) return null;
+        return { questionId, questionType: q.questionType, answerId };
+      })
+      .filter((a): a is NonNullable<typeof a> => a !== null);
+
+    form.reset({
+      avatarName: draft.avatarName ?? '',
+      description: draft.description ?? '',
+      answers: restoredAnswers,
+    });
+  }, [questions, form]);
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      const answersMap = (values.answers ?? []).reduce<Record<string, string>>((acc, ans) => {
+        if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
+        return acc;
+      }, {});
+      saveDraft({
+        answers: answersMap,
+        avatarName: values.avatarName ?? '',
+        description: values.description ?? '',
+      });
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [form]);
 
   if (isLoading) {
     return (
@@ -38,48 +85,53 @@ export function SurveyStep() {
   if (isError || !questions) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-body text-danger">질문을 불러오지 못했습니다. 다시 시도해주세요.</p>
+        <p className="text-body text-danger" role="alert">
+          질문을 불러오지 못했습니다. 다시 시도해주세요.
+        </p>
       </div>
     );
   }
 
   const isAvatarNamePage = pageIndex === questions.length;
   const isFirstPage = pageIndex === 0;
-  const currentQuestion = !isAvatarNamePage ? questions[pageIndex] : null;
-  const currentAnswered = isAvatarNamePage
-    ? avatarName.trim().length > 0
-    : currentQuestion != null && Boolean(answers[currentQuestion.id]);
+  const currentQuestion: SurveyQuestionModel | null = !isAvatarNamePage
+    ? (questions[pageIndex] ?? null)
+    : null;
 
-  const persistDraft = (currentAnswers: Record<string, string>, name: string, desc: string) => {
-    saveDraft({ answers: currentAnswers, avatarName: name, description: desc });
+  const watchedAnswers = form.watch('answers');
+  const watchedName = form.watch('avatarName');
+
+  const currentAnswered = isAvatarNamePage
+    ? watchedName.trim().length > 0
+    : currentQuestion != null &&
+      watchedAnswers.some((a) => a.questionId === currentQuestion.id && a.answerId);
+
+  const getCurrentAnswerId = (questionId: string): string | undefined =>
+    watchedAnswers.find((a) => a.questionId === questionId)?.answerId;
+
+  const handleAnswer = (question: SurveyQuestionModel, answerId: string) => {
+    const current = form.getValues('answers');
+    const next = current.filter((a) => a.questionId !== question.id);
+    next.push({
+      questionId: question.id,
+      questionType: question.questionType,
+      answerId,
+    });
+    form.setValue('answers', next, { shouldDirty: true });
   };
 
   const handleNext = () => {
-    persistDraft(answers, avatarName, description);
-    setPageIndex((prev) => prev + 1);
+    setPageIndex((p) => p + 1);
   };
 
   const handlePrev = () => {
-    persistDraft(answers, avatarName, description);
-    setPageIndex((prev) => prev - 1);
+    setPageIndex((p) => p - 1);
   };
 
-  const handleAnswer = (questionId: string, answerId: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: answerId }));
-  };
-
-  const handleSubmit = async () => {
+  const onSubmit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      await createAvatar({
-        avatarName: avatarName.trim(),
-        description: description.trim(),
-        answers: questions.map((q) => ({
-          questionId: q.id,
-          questionType: q.questionType,
-          answerId: answers[q.id] ?? '',
-        })),
-      });
+      await createAvatar(data);
       clearDraft();
       setOnboardingProgress('connect');
       void navigate('/onboarding/connect');
@@ -87,18 +139,26 @@ export function SurveyStep() {
       const message = err instanceof Error ? err.message : '올바르지 않습니다. 다시 시도해주세요.';
       setSubmitError(message);
     }
-  };
+  });
+
+  const avatarNameError = form.formState.errors.avatarName?.message;
 
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8">
+    <form
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+      noValidate
+      className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8"
+    >
       {currentQuestion ? (
         <SurveyQuestion
           name={currentQuestion.id}
           question={currentQuestion.title}
           options={currentQuestion.answers}
-          value={answers[currentQuestion.id]}
+          value={getCurrentAnswerId(currentQuestion.id)}
           onChange={(answerId) => {
-            handleAnswer(currentQuestion.id, answerId);
+            handleAnswer(currentQuestion, answerId);
           }}
         />
       ) : (
@@ -110,14 +170,21 @@ export function SurveyStep() {
             <input
               id="avatarName"
               type="text"
-              value={avatarName}
-              onChange={(e) => {
-                setAvatarName(e.target.value);
-              }}
-              placeholder="아바타 이름을 입력하세요"
               maxLength={50}
-              className="border-border bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none"
+              placeholder="아바타 이름을 입력하세요"
+              aria-invalid={avatarNameError ? 'true' : undefined}
+              aria-describedby={avatarNameError ? 'avatarName-error' : undefined}
+              className={cn(
+                'bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none',
+                avatarNameError ? 'border-danger' : 'border-border'
+              )}
+              {...form.register('avatarName')}
             />
+            {avatarNameError && (
+              <p id="avatarName-error" className="text-body-sm text-danger">
+                {avatarNameError}
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="description" className="text-body text-text">
@@ -125,14 +192,11 @@ export function SurveyStep() {
             </label>
             <textarea
               id="description"
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-              }}
               placeholder="아바타를 간단히 소개해주세요"
               maxLength={200}
               rows={3}
               className="border-border bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand resize-none rounded-sm border px-3 py-2.5 text-sm outline-none"
+              {...form.register('description')}
             />
           </div>
         </div>
@@ -140,8 +204,8 @@ export function SurveyStep() {
 
       {submitError && (
         <p
+          role="alert"
           className="text-body-sm text-danger border-danger rounded-sm border px-3 py-2"
-          aria-invalid="true"
         >
           {submitError}
         </p>
@@ -154,12 +218,7 @@ export function SurveyStep() {
           </Button>
         )}
         {isAvatarNamePage ? (
-          <Button
-            type="button"
-            disabled={!currentAnswered || isSubmitting}
-            onClick={() => void handleSubmit()}
-            className="flex-1"
-          >
+          <Button type="submit" disabled={!currentAnswered || isSubmitting} className="flex-1">
             {isSubmitting ? '생성 중...' : '아바타 생성'}
           </Button>
         ) : (
@@ -168,6 +227,6 @@ export function SurveyStep() {
           </Button>
         )}
       </div>
-    </div>
+    </form>
   );
 }
