@@ -177,6 +177,37 @@ describe('CompleteStep', () => {
 
       expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
     });
+
+    it('500 응답 시 에러 토스트가 노출되고 navigate 는 호출되지 않는다', async () => {
+      const user = userEvent.setup();
+      server.use(generatedAvatarHandlers.success, completeOnboardingHandlers.serverError);
+
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /탐색 시작|대시보드/i })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /탐색 시작|대시보드/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('status')).toBeInTheDocument();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
+    });
+  });
+
+  describe('온보딩 진행 상태 가드', () => {
+    it('progress 가 complete 가 아니면 null 을 렌더하고 /onboarding/connect 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'connect');
+
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+      });
+    });
   });
 
   describe('데이터 fetch 실패', () => {
