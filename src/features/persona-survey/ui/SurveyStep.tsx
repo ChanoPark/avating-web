@@ -8,7 +8,6 @@ import {
   type AvatarCreateFromSurveyRequest,
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
-import { cn } from '@shared/lib/cn';
 import { Button } from '@shared/ui/Button/Button';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
@@ -17,10 +16,11 @@ import { SurveyQuestion } from './SurveyQuestion';
 
 export function SurveyStep() {
   const navigate = useNavigate();
-  const { data: questions, isLoading, isError } = useSurveyQuestions();
+  const { data: questions, isLoading, isError, refetch } = useSurveyQuestions();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const draftRestoredRef = useRef(false);
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const form = useForm<AvatarCreateFromSurveyRequest>({
     resolver: zodResolver(avatarCreateFromSurveyRequestSchema),
@@ -59,18 +59,22 @@ export function SurveyStep() {
 
   useEffect(() => {
     const subscription = form.watch((values) => {
-      const answersMap = (values.answers ?? []).reduce<Record<string, string>>((acc, ans) => {
-        if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
-        return acc;
-      }, {});
-      saveDraft({
-        answers: answersMap,
-        avatarName: values.avatarName ?? '',
-        description: values.description ?? '',
-      });
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+      draftSaveTimerRef.current = setTimeout(() => {
+        const answersMap = (values.answers ?? []).reduce<Record<string, string>>((acc, ans) => {
+          if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
+          return acc;
+        }, {});
+        saveDraft({
+          answers: answersMap,
+          avatarName: values.avatarName ?? '',
+          description: values.description ?? '',
+        });
+      }, 300);
     });
     return () => {
       subscription.unsubscribe();
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
     };
   }, [form]);
 
@@ -84,10 +88,19 @@ export function SurveyStep() {
 
   if (isError || !questions) {
     return (
-      <div className="flex items-center justify-center py-16">
+      <div className="flex flex-col items-center justify-center gap-4 py-16">
         <p className="text-body text-danger" role="alert">
           질문을 불러오지 못했습니다. 다시 시도해주세요.
         </p>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            void refetch();
+          }}
+        >
+          다시 시도
+        </Button>
       </div>
     );
   }
@@ -141,8 +154,6 @@ export function SurveyStep() {
     }
   });
 
-  const avatarNameError = form.formState.errors.avatarName?.message;
-
   return (
     <form
       onSubmit={(e) => {
@@ -172,19 +183,9 @@ export function SurveyStep() {
               type="text"
               maxLength={50}
               placeholder="아바타 이름을 입력하세요"
-              aria-invalid={avatarNameError ? 'true' : undefined}
-              aria-describedby={avatarNameError ? 'avatarName-error' : undefined}
-              className={cn(
-                'bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none',
-                avatarNameError ? 'border-danger' : 'border-border'
-              )}
+              className="border-border bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none"
               {...form.register('avatarName')}
             />
-            {avatarNameError && (
-              <p id="avatarName-error" className="text-body-sm text-danger">
-                {avatarNameError}
-              </p>
-            )}
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="description" className="text-body text-text">

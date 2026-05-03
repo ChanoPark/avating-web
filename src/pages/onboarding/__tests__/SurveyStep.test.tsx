@@ -321,6 +321,48 @@ describe('SurveyStep', () => {
         expect(screen.getByText(/불러오지 못했습니다/i)).toBeInTheDocument();
       });
     });
+
+    it('"다시 시도" 클릭 시 재요청 후 질문이 노출된다', async () => {
+      let callCount = 0;
+      server.use(
+        http.get(`${BASE_URL}/api/persona/survey/questions`, () => {
+          callCount += 1;
+          if (callCount === 1) {
+            return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+          }
+          return HttpResponse.json({
+            data: [
+              {
+                id: 'AFFECTION_EXPRESSION_0001',
+                title: '첫 데이트가 끝날 무렵 호감을 표현해야 할 때',
+                primaryType: 'AFFECTION_EXPRESSION',
+                questionType: 'SINGLE_CHOICE_5',
+                answers: [
+                  {
+                    answerId: 'AFFECTION_EXPRESSION_0001_ANS_1',
+                    text: '속으로만 생각하고 기다린다',
+                  },
+                ],
+              },
+            ],
+          });
+        })
+      );
+
+      const user = userEvent.setup();
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByText(/불러오지 못했습니다/i)).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /다시 시도/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+      expect(callCount).toBe(2);
+    });
   });
 
   describe('제출 에러 처리', () => {

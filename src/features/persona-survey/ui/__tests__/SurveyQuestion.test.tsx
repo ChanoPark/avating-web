@@ -66,8 +66,8 @@ describe('SurveyQuestion', () => {
     expect(onChange).toHaveBeenCalledWith('ANS_1');
   });
 
-  it('error prop 없을 때 에러 메시지가 없다', () => {
-    render(
+  it('error prop 없을 때 에러 메시지 노드가 DOM 에 없다', () => {
+    const { container } = render(
       <SurveyQuestion
         name="Q_001"
         question="질문"
@@ -76,7 +76,8 @@ describe('SurveyQuestion', () => {
         onChange={vi.fn()}
       />
     );
-    expect(screen.queryByRole('paragraph')).not.toBeInTheDocument();
+    expect(container.querySelector('p.text-danger')).toBeNull();
+    expect(screen.queryByText('필수 항목입니다')).not.toBeInTheDocument();
   });
 
   it('error prop 전달 시 에러 메시지가 렌더된다', () => {
