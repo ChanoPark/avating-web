@@ -104,11 +104,11 @@ describe('onboarding MSW 핸들러', () => {
     });
   });
 
-  describe('POST /api/onboarding/connect-code', () => {
+  describe('POST /api/persona/connect/code', () => {
     it('success 핸들러는 201 + ConnectCode 를 반환한다', async () => {
       server.use(connectCodeHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
@@ -119,27 +119,27 @@ describe('onboarding MSW 핸들러', () => {
       const parsed = apiResponseConnectCode.safeParse(json);
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.data.code).toMatch(/^AVT-[A-Z0-9]{4}-[A-Z0-9]{2}$/);
+        expect(parsed.data.data.connectCode).toBe(mockConnectCodeResponse.data.connectCode);
       }
     });
 
-    it('success 응답의 code 는 mockConnectCodeResponse 와 일치한다', async () => {
+    it('success 응답의 connectCode 는 mockConnectCodeResponse 와 일치한다', async () => {
       server.use(connectCodeHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
       });
 
       const json = await res.json();
-      expect(json.data.code).toBe(mockConnectCodeResponse.data.code);
+      expect(json.data.connectCode).toBe(mockConnectCodeResponse.data.connectCode);
     });
 
     it('rateLimit 핸들러는 429 를 반환한다', async () => {
       server.use(connectCodeHandlers.rateLimit);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',

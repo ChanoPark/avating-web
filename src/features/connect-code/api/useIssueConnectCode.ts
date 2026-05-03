@@ -4,7 +4,7 @@ import type { ConnectCode } from '@entities/onboarding';
 import { http } from '@shared/api/http';
 
 async function issueConnectCode(): Promise<ConnectCode> {
-  const response = await http.post('/api/onboarding/connect-code', {});
+  const response = await http.post('/api/persona/connect/code', {});
   const parsed = apiResponseConnectCode.parse(response.data);
   return parsed.data;
 }

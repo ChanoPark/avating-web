@@ -41,9 +41,9 @@ export const surveyDraftSchema = z.object({
 export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 
 export const connectCodeSchema = z.object({
-  code: z.string().regex(/^AVT-[A-Z0-9]{4}-[A-Z0-9]{2}$/),
+  connectCode: z.string(),
+  expiresIn: z.number().int().positive(),
   expiresAt: z.string().datetime(),
-  status: z.enum(['active', 'connected', 'expired']),
 });
 export type ConnectCode = z.infer<typeof connectCodeSchema>;
 

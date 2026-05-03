@@ -135,70 +135,28 @@ describe('surveyDraftSchema', () => {
 
 describe('connectCodeSchema', () => {
   const validExpiresAt = '2026-05-01T12:00:00.000Z';
+  const validCode = {
+    connectCode: 'AVT-A1B2-C3',
+    expiresIn: 600,
+    expiresAt: validExpiresAt,
+  };
 
-  it('AVT-A1B2-C3 패턴은 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(true);
+  it('필수 필드를 갖춘 유효한 응답은 파싱에 성공한다', () => {
+    expect(connectCodeSchema.safeParse(validCode).success).toBe(true);
   });
 
-  it('소문자 코드는 파싱에 실패한다 (AVT-abcd-ef)', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-abcd-ef',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(false);
+  it('connectCode 필드가 없으면 throw 한다', () => {
+    const { connectCode: _, ...rest } = validCode;
+    expect(() => connectCodeSchema.parse(rest)).toThrow();
   });
 
-  it('형식이 다른 코드 INVALID 는 파싱에 실패한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'INVALID',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(false);
+  it('expiresIn 이 양수 정수가 아니면 throw 한다', () => {
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresIn: 0 })).toThrow();
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresIn: -1 })).toThrow();
   });
 
   it('expiresAt 이 ISO datetime 이 아니면 throw 한다', () => {
-    expect(() =>
-      connectCodeSchema.parse({
-        code: 'AVT-A1B2-C3',
-        expiresAt: 'not-a-date',
-        status: 'active',
-      })
-    ).toThrow();
-  });
-
-  it('status 가 enum 외 값이면 throw 한다', () => {
-    expect(() =>
-      connectCodeSchema.parse({
-        code: 'AVT-A1B2-C3',
-        expiresAt: validExpiresAt,
-        status: 'unknown',
-      })
-    ).toThrow();
-  });
-
-  it('status 가 connected 이면 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'connected',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('status 가 expired 이면 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'expired',
-    });
-    expect(result.success).toBe(true);
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresAt: 'not-a-date' })).toThrow();
   });
 });
 
@@ -307,25 +265,25 @@ describe('apiResponseConnectCode', () => {
   it('data 필드가 있는 유효한 응답은 파싱에 성공한다', () => {
     const result = apiResponseConnectCode.safeParse({
       data: {
-        code: 'AVT-A1B2-C3',
+        connectCode: 'AVT-A1B2-C3',
+        expiresIn: 600,
         expiresAt: '2026-05-01T12:00:00.000Z',
-        status: 'active',
       },
     });
     expect(result.success).toBe(true);
   });
 
   it('data 필드가 없으면 throw 한다', () => {
-    expect(() => apiResponseConnectCode.parse({ code: 'AVT-A1B2-C3' })).toThrow();
+    expect(() => apiResponseConnectCode.parse({ connectCode: 'AVT-A1B2-C3' })).toThrow();
   });
 
-  it('data.code 가 잘못된 패턴이면 throw 한다', () => {
+  it('data.expiresAt 이 유효하지 않으면 throw 한다', () => {
     expect(() =>
       apiResponseConnectCode.parse({
         data: {
-          code: 'INVALID',
-          expiresAt: '2026-05-01T12:00:00.000Z',
-          status: 'active',
+          connectCode: 'AVT-A1B2-C3',
+          expiresIn: 600,
+          expiresAt: 'not-a-date',
         },
       })
     ).toThrow();

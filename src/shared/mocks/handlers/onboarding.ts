@@ -35,9 +35,9 @@ export const mockSurveyQuestionsResponse = {
 
 export const mockConnectCodeResponse = {
   data: {
-    code: 'AVT-A1B2-C3',
+    connectCode: 'AVT-A1B2-C3',
+    expiresIn: 600,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    status: 'active' as const,
   },
 };
 
@@ -102,7 +102,7 @@ export const surveySubmitHandlers = {
 };
 
 export const connectCodeHandlers = {
-  success: http.post(`${BASE_URL}/api/onboarding/connect-code`, () => {
+  success: http.post(`${BASE_URL}/api/persona/connect/code`, () => {
     return HttpResponse.json(
       {
         data: {
@@ -114,14 +114,14 @@ export const connectCodeHandlers = {
     );
   }),
 
-  rateLimit: http.post(`${BASE_URL}/api/onboarding/connect-code`, () => {
+  rateLimit: http.post(`${BASE_URL}/api/persona/connect/code`, () => {
     return HttpResponse.json(
       { message: '잠시 후 다시 시도해주세요.', code: 'RATE_LIMIT_EXCEEDED' },
       { status: 429 }
     );
   }),
 
-  serverError: http.post(`${BASE_URL}/api/onboarding/connect-code`, () => {
+  serverError: http.post(`${BASE_URL}/api/persona/connect/code`, () => {
     return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
   }),
 };

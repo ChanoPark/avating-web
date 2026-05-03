@@ -26,12 +26,7 @@ export function ConnectStep() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  const serverStatus = connectCode?.status ?? 'active';
-  const pollingEnabled =
-    !guardFailed &&
-    connectCode !== undefined &&
-    serverStatus !== 'expired' &&
-    serverStatus !== 'connected';
+  const pollingEnabled = !guardFailed && connectCode !== undefined;
 
   const { data: statusData } = useConnectStatus({ enabled: pollingEnabled });
 
@@ -84,9 +79,9 @@ export function ConnectStep() {
   }, []);
 
   const handleCopy = async () => {
-    if (!connectCode?.code) return;
+    if (!connectCode?.connectCode) return;
     try {
-      await navigator.clipboard.writeText(connectCode.code);
+      await navigator.clipboard.writeText(connectCode.connectCode);
       setCopySuccess(true);
       toast.show({ variant: 'success', title: '복사되었습니다' });
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -152,7 +147,7 @@ export function ConnectStep() {
       {connectCode && (
         <div className="border-border bg-bg-elev-2 flex flex-col items-center gap-4 rounded-md border p-6">
           <div className="text-text font-mono text-2xl tracking-[4px]" aria-label="연결 코드">
-            {connectCode.code}
+            {connectCode.connectCode}
           </div>
 
           <span role="timer" aria-live="polite" className="text-mono-meta text-text-3 font-mono">

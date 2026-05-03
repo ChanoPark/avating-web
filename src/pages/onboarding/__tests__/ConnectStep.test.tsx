@@ -40,7 +40,7 @@ describe('ConnectStep', () => {
   });
 
   describe('마운트 — 코드 발급', () => {
-    it('마운트 시 POST /api/onboarding/connect-code 가 1회 호출되고 코드가 렌더된다', async () => {
+    it('마운트 시 POST /api/persona/connect/code 가 1회 호출되고 코드가 렌더된다', async () => {
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
@@ -110,7 +110,7 @@ describe('ConnectStep', () => {
       await user.click(screen.getByRole('button', { name: /복사/i }));
 
       expect(writeText).toHaveBeenCalledOnce();
-      expect(writeText).toHaveBeenCalledWith(mockConnectCodeResponse.data.code);
+      expect(writeText).toHaveBeenCalledWith(mockConnectCodeResponse.data.connectCode);
     });
 
     it('"복사" 버튼 클릭 후 토스트 "복사되었습니다" 가 노출된다', async () => {
@@ -192,13 +192,13 @@ describe('ConnectStep', () => {
       const nearExpiry = new Date(Date.now() + 2000).toISOString();
 
       server.use(
-        http.post(`${BASE_URL}/api/onboarding/connect-code`, () =>
+        http.post(`${BASE_URL}/api/persona/connect/code`, () =>
           HttpResponse.json(
             {
               data: {
-                code: 'AVT-A1B2-C3',
+                connectCode: 'AVT-A1B2-C3',
+                expiresIn: 2,
                 expiresAt: nearExpiry,
-                status: 'active',
               },
             },
             { status: 201 }
@@ -225,13 +225,13 @@ describe('ConnectStep', () => {
       let statusCallCount = 0;
 
       server.use(
-        http.post(`${BASE_URL}/api/onboarding/connect-code`, () =>
+        http.post(`${BASE_URL}/api/persona/connect/code`, () =>
           HttpResponse.json(
             {
               data: {
-                code: 'AVT-A1B2-C3',
+                connectCode: 'AVT-A1B2-C3',
+                expiresIn: 2,
                 expiresAt: nearExpiry,
-                status: 'active',
               },
             },
             { status: 201 }
@@ -298,7 +298,7 @@ describe('ConnectStep', () => {
   });
 
   describe('재발급', () => {
-    it('"재발급" 버튼 클릭 시 POST /api/onboarding/connect-code 가 재호출되고 새 코드가 표시된다', async () => {
+    it('"재발급" 버튼 클릭 시 POST /api/persona/connect/code 가 재호출되고 새 코드가 표시된다', async () => {
       const user = userEvent.setup({
         advanceTimers: vi.advanceTimersByTime,
         writeToClipboard: false,
@@ -348,6 +348,40 @@ describe('ConnectStep', () => {
       vi.advanceTimersByTime(30_000);
 
       expect(statusCallCount).toBe(countAtUnmount);
+    });
+  });
+
+  describe('코드 발급 오류', () => {
+    it('서버 오류 시 에러 메시지가 alert role 로 렌더된다', async () => {
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
+          return HttpResponse.json({ message: '서버 오류입니다.' }, { status: 500 });
+        })
+      );
+
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('alert').textContent).toContain('서버 오류입니다.');
+    });
+
+    it('오류 메시지가 빈 문자열이면 "연결 코드 발급에 실패했어요." 기본 메시지가 노출된다', async () => {
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
+          return HttpResponse.json({ message: '' }, { status: 500 });
+        })
+      );
+
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+
+      expect(screen.getByRole('alert').textContent).toContain('연결 코드 발급에 실패했어요.');
     });
   });
 });
