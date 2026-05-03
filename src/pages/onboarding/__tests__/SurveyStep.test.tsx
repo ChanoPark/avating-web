@@ -29,6 +29,39 @@ describe('SurveyStep', () => {
     server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
   });
 
+  describe('진입 가드', () => {
+    it('progress 가 connect 이면 /onboarding/connect 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'connect');
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+      });
+    });
+
+    it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+      });
+    });
+
+    it('progress 가 welcome 이면 redirect 없이 질문이 노출된다', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+    });
+  });
+
   describe('질문 로딩', () => {
     it('첫 번째 질문이 노출된다', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });

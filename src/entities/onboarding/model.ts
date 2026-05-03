@@ -40,6 +40,8 @@ export const surveyDraftSchema = z.object({
 });
 export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 
+// 백엔드 계약 v2: connectCode 는 Custom GPT 측 발급 정책에 따라 포맷이 가변(예: 길이/구분자 변경)
+// 이라 정규식 제약을 두지 않는다. 형식 검증은 백엔드 단일 출처에 위임.
 export const connectCodeSchema = z.object({
   connectCode: z.string(),
   expiresIn: z.number().int().positive(),

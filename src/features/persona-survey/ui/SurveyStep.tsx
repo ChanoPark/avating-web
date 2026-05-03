@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { setOnboardingProgress } from '@entities/onboarding';
+import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import {
   avatarCreateFromSurveyRequestSchema,
   type AvatarCreateFromSurveyRequest,
@@ -21,6 +21,15 @@ export function SurveyStep() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onboardingProgress = getOnboardingProgress();
+  const guardFailed = onboardingProgress !== 'welcome';
+
+  useEffect(() => {
+    if (guardFailed) {
+      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
+    }
+  }, [guardFailed, onboardingProgress, navigate]);
 
   const form = useForm<AvatarCreateFromSurveyRequest>({
     resolver: zodResolver(avatarCreateFromSurveyRequestSchema),
@@ -77,6 +86,8 @@ export function SurveyStep() {
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
     };
   }, [form]);
+
+  if (guardFailed) return null;
 
   if (isLoading) {
     return (
