@@ -15,26 +15,25 @@ describe('draftStorage', () => {
 
   describe('saveDraft + loadDraft', () => {
     it('saveDraft 후 loadDraft 가 동일한 객체를 반환한다', () => {
-      const draft = { q1: 'solo' as const, q2: 'wait' as const };
+      const draft = { answers: { Q_001: 'Q_001_ANS_1', Q_002: 'Q_002_ANS_3' } };
       saveDraft(draft);
 
       const loaded = loadDraft();
       expect(loaded).toEqual(draft);
     });
 
-    it('빈 draft 를 저장하고 로드할 수 있다', () => {
-      saveDraft({});
+    it('빈 answers 를 저장하고 로드할 수 있다', () => {
+      saveDraft({ answers: {} });
 
       const loaded = loadDraft();
-      expect(loaded).toEqual({});
+      expect(loaded).toEqual({ answers: {} });
     });
 
-    it('여러 필드를 가진 draft 를 저장하고 로드할 수 있다', () => {
+    it('avatarName, description 포함 draft 를 저장하고 로드할 수 있다', () => {
       const draft = {
-        q1: 'few' as const,
-        q2: 'signal' as const,
-        q3: 'culture' as const,
-        q4: 'detailed' as const,
+        answers: { Q_001: 'Q_001_ANS_2', Q_002: 'Q_002_ANS_4' },
+        avatarName: '루나',
+        description: '내향적인 아바타',
       };
       saveDraft(draft);
 
@@ -47,7 +46,7 @@ describe('draftStorage', () => {
       vi.useFakeTimers();
       vi.setSystemTime(now);
 
-      saveDraft({ q1: 'solo' as const });
+      saveDraft({ answers: { Q_001: 'Q_001_ANS_1' } });
 
       const raw = localStorage.getItem(DRAFT_KEY);
       expect(raw).not.toBeNull();
@@ -68,7 +67,7 @@ describe('draftStorage', () => {
         DRAFT_KEY,
         JSON.stringify({
           savedAt: new Date(twentyFiveHoursAgo).toISOString(),
-          value: { q1: 'solo' },
+          value: { answers: { Q_001: 'Q_001_ANS_1' } },
         })
       );
 
@@ -89,7 +88,7 @@ describe('draftStorage', () => {
         DRAFT_KEY,
         JSON.stringify({
           savedAt: new Date(twentyFiveHoursAgo).toISOString(),
-          value: { q1: 'solo' },
+          value: { answers: { Q_001: 'Q_001_ANS_1' } },
         })
       );
 
@@ -111,7 +110,7 @@ describe('draftStorage', () => {
         DRAFT_KEY,
         JSON.stringify({
           savedAt: new Date(twentyThreeHoursAgo).toISOString(),
-          value: { q1: 'solo' },
+          value: { answers: { Q_001: 'Q_001_ANS_1' } },
         })
       );
 
@@ -119,7 +118,7 @@ describe('draftStorage', () => {
       vi.setSystemTime(now);
 
       const loaded = loadDraft();
-      expect(loaded).toEqual({ q1: 'solo' });
+      expect(loaded).toEqual({ answers: { Q_001: 'Q_001_ANS_1' } });
 
       vi.useRealTimers();
     });
@@ -134,7 +133,10 @@ describe('draftStorage', () => {
     });
 
     it('JSON 구조는 맞지만 savedAt 이 없으면 null 을 반환한다', () => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ value: { q1: 'solo' } }));
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({ value: { answers: { Q_001: 'Q_001_ANS_1' } } })
+      );
 
       const loaded = loadDraft();
       expect(loaded).toBeNull();
@@ -151,18 +153,32 @@ describe('draftStorage', () => {
 
       vi.useRealTimers();
     });
+
+    it('value 가 schema 에 맞지 않으면 null 을 반환하고 키가 삭제된다', () => {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({
+          savedAt: new Date().toISOString(),
+          value: 'invalid-value',
+        })
+      );
+
+      const loaded = loadDraft();
+      expect(loaded).toBeNull();
+      expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
+    });
   });
 
   describe('clearDraft', () => {
     it('clearDraft 호출 후 loadDraft 가 null 을 반환한다', () => {
-      saveDraft({ q1: 'solo' as const });
+      saveDraft({ answers: { Q_001: 'Q_001_ANS_1' } });
       clearDraft();
 
       expect(loadDraft()).toBeNull();
     });
 
     it('clearDraft 호출 후 localStorage 키가 삭제된다', () => {
-      saveDraft({ q1: 'solo' as const });
+      saveDraft({ answers: { Q_001: 'Q_001_ANS_1' } });
       clearDraft();
 
       expect(localStorage.getItem(DRAFT_KEY)).toBeNull();

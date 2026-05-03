@@ -1,16 +1,43 @@
 import { z } from 'zod';
 
-export const surveyResponseSchema = z.object({
-  q1: z.enum(['solo', 'few', 'crowd', 'mood']),
-  q2: z.enum(['wait', 'signal', 'active', 'situation']),
-  q3: z.enum(['cafe', 'culture', 'outdoor', 'food']),
-  q4: z.enum(['brief', 'detailed', 'match', 'offline']),
-  q5: z.enum(['calm', 'talk', 'wait_conflict', 'avoid']),
-  q6: z.enum(['conversation', 'hobby', 'stability', 'excitement']),
+export const surveyQuestionAnswerSchema = z.object({
+  answerId: z.string(),
+  text: z.string(),
 });
-export type SurveyResponse = z.infer<typeof surveyResponseSchema>;
+export type SurveyQuestionAnswer = z.infer<typeof surveyQuestionAnswerSchema>;
 
-export const surveyDraftSchema = surveyResponseSchema.partial();
+export const surveyQuestionSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  primaryType: z.string(),
+  questionType: z.literal('SINGLE_CHOICE_5'),
+  answers: z.array(surveyQuestionAnswerSchema),
+});
+export type SurveyQuestion = z.infer<typeof surveyQuestionSchema>;
+
+export const apiResponseSurveyQuestionsSchema = z.object({
+  data: z.array(surveyQuestionSchema),
+});
+
+export const surveyAnswerRequestSchema = z.object({
+  questionId: z.string(),
+  questionType: z.literal('SINGLE_CHOICE_5'),
+  answerId: z.string(),
+});
+export type SurveyAnswerRequest = z.infer<typeof surveyAnswerRequestSchema>;
+
+export const avatarCreateFromSurveyRequestSchema = z.object({
+  avatarName: z.string().min(1),
+  description: z.string(),
+  answers: z.array(surveyAnswerRequestSchema).min(1),
+});
+export type AvatarCreateFromSurveyRequest = z.infer<typeof avatarCreateFromSurveyRequestSchema>;
+
+export const surveyDraftSchema = z.object({
+  answers: z.record(z.string(), z.string()),
+  avatarName: z.string().optional(),
+  description: z.string().optional(),
+});
 export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 
 export const connectCodeSchema = z.object({
@@ -43,20 +70,9 @@ export const generatedAvatarSchema = z.object({
 });
 export type GeneratedAvatar = z.infer<typeof generatedAvatarSchema>;
 
-export const apiResponseSurveySubmit = z.object({
-  data: z.object({ avatarId: z.string().min(1) }),
-});
-
-export const apiResponseSurveyDraft = z.object({
-  data: z.object({ savedAt: z.string().datetime() }),
-});
-
 export const apiResponseConnectCode = z.object({ data: connectCodeSchema });
-
 export const apiResponseConnectStatus = z.object({ data: connectStatusSchema });
-
 export const apiResponseGeneratedAvatar = z.object({ data: generatedAvatarSchema });
-
 export const apiResponseCompleteOnboarding = z.object({
   data: z.object({ completedAt: z.string().datetime() }),
 });

@@ -9,7 +9,7 @@ type StoredDraft = {
   value: SurveyDraft;
 };
 
-export function saveDraft(data: Partial<SurveyDraft>): void {
+export function saveDraft(data: SurveyDraft): void {
   const stored: StoredDraft = {
     savedAt: new Date().toISOString(),
     value: data,

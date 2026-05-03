@@ -4,11 +4,10 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
-import { surveyHandlers, surveyDraftHandlers } from '@shared/mocks/handlers/onboarding';
+import { surveyQuestionsHandlers, surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
 import { SurveyStep } from '@features/persona-survey/ui/SurveyStep';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-
 const DRAFT_KEY = 'avating:onboarding:survey-draft';
 
 const mockNavigate = vi.fn();
@@ -18,292 +17,345 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
+const MOCK_Q1_TITLE = /첫 데이트가 끝날 무렵/i;
+const MOCK_Q2_TITLE = /팀장님 때문에/i;
+const MOCK_Q1_ANS1 = /속으로만 생각하고 기다린다/i;
+const MOCK_Q2_ANS1 = /상황 파악 우선/i;
+
 describe('SurveyStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    server.use(surveyHandlers.success, surveyDraftHandlers.success);
+    server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
   });
 
-  describe('페이지 1 렌더링', () => {
-    it('q1, q2 라디오 그룹이 노출된다', () => {
+  describe('질문 로딩', () => {
+    it('첫 번째 질문이 노출된다', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      expect(screen.getByRole('group', { name: /모임에서/i })).toBeInTheDocument();
-      expect(screen.getByRole('group', { name: /호감 있는/i })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
     });
 
-    it('q3~q6 라디오 그룹은 노출되지 않는다', () => {
+    it('두 번째 질문은 첫 페이지에서 노출되지 않는다', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      expect(screen.queryByRole('group', { name: /데이트 장소/i })).not.toBeInTheDocument();
-      expect(screen.queryByRole('group', { name: /대화 스타일/i })).not.toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('group', { name: MOCK_Q2_TITLE })).not.toBeInTheDocument();
     });
   });
 
   describe('진행 버튼 상태', () => {
-    it('q1, q2 미선택 상태에서 "다음" 버튼이 disabled 상태이다', () => {
+    it('미선택 상태에서 "다음" 버튼이 disabled 이다', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
       expect(screen.getByRole('button', { name: /다음/i })).toBeDisabled();
     });
 
-    it('q1 만 선택한 경우 "다음" 버튼이 disabled 상태이다', async () => {
+    it('답변 선택 시 "다음" 버튼이 활성화된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const q1Options = screen.getAllByRole('radio');
-      await user.click(q1Options[0]);
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
-      expect(screen.getByRole('button', { name: /다음/i })).toBeDisabled();
-    });
-
-    it('q1, q2 모두 선택하면 "다음" 버튼이 활성화된다', async () => {
-      const user = userEvent.setup();
-      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
-
-      const radios = screen.getAllByRole('radio');
-      await user.click(radios[0]);
-
-      const q2Radios = screen.getAllByRole('radio').filter((r) => r.getAttribute('name') === 'q2');
-      await user.click(q2Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
 
       expect(screen.getByRole('button', { name: /다음/i })).toBeEnabled();
     });
   });
 
   describe('페이지 이동', () => {
-    it('두 질문 선택 후 "다음" 클릭 시 페이지 2 로 이동한다', async () => {
+    it('답변 선택 후 "다음" 클릭 시 두 번째 질문으로 이동한다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const radios = screen.getAllByRole('radio');
-      const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-      const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
-      await user.click(q1Radios[0]);
-      await user.click(q2Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole('group', { name: /데이트 장소/i })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
     });
 
-    it('페이지 2에서 "이전" 클릭 시 페이지 1 의 이전 답이 보존된다', async () => {
+    it('"이전" 클릭 시 이전 답이 유지된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const radios = screen.getAllByRole('radio');
-      const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-      const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
-      await user.click(q1Radios[0]);
-      await user.click(q2Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /데이트 장소/i })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
 
       await user.click(screen.getByRole('button', { name: /이전/i }));
 
       await waitFor(() => {
-        const q1Radio = screen
-          .getAllByRole('radio')
-          .find((r) => r.getAttribute('name') === 'q1' && (r as HTMLInputElement).checked);
-        expect(q1Radio).toBeDefined();
+        const radio = screen.getByRole('radio', { name: MOCK_Q1_ANS1 }) as HTMLInputElement;
+        expect(radio.checked).toBe(true);
       });
+    });
+
+    it('첫 페이지에서는 "이전" 버튼이 없다', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      expect(screen.queryByRole('button', { name: /이전/i })).not.toBeInTheDocument();
     });
   });
 
-  describe('draft 복원', () => {
-    it('localStorage에 draft 주입 후 진입 시 복원된 답이 라디오에 체크된다', () => {
-      const draft = {
-        savedAt: new Date().toISOString(),
-        value: { q1: 'solo', q2: 'wait' },
-      };
-      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
-
+  describe('아바타 이름 페이지', () => {
+    const goToAvatarPage = async (user: ReturnType<typeof userEvent.setup>) => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const q1SoloRadio = screen
-        .getAllByRole('radio')
-        .find((r) => r.getAttribute('name') === 'q1' && r.getAttribute('value') === 'solo') as
-        | HTMLInputElement
-        | undefined;
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
-      expect(q1SoloRadio?.checked).toBe(true);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
+      });
+    };
+
+    it('모든 질문 답변 후 아바타 이름 입력 페이지가 노출된다', async () => {
+      const user = userEvent.setup();
+      await goToAvatarPage(user);
+    });
+
+    it('이름 미입력 시 "아바타 생성" 버튼이 disabled 이다', async () => {
+      const user = userEvent.setup();
+      await goToAvatarPage(user);
+
+      expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeDisabled();
+    });
+
+    it('이름 입력 시 "아바타 생성" 버튼이 활성화된다', async () => {
+      const user = userEvent.setup();
+      await goToAvatarPage(user);
+
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+
+      expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeEnabled();
     });
   });
 
   describe('최종 제출', () => {
-    it('3 페이지에서 완료 클릭 시 POST /api/onboarding/survey 가 호출되고 /onboarding/connect 로 이동한다', async () => {
+    it('"아바타 생성" 클릭 시 POST /api/avatars/survey/ 가 호출되고 /onboarding/connect 로 이동한다', async () => {
       const user = userEvent.setup();
-      let surveyCallCount = 0;
+      let createCallCount = 0;
+
       server.use(
-        http.post(`${BASE_URL}/api/onboarding/survey`, () => {
-          surveyCallCount++;
-          return HttpResponse.json({ data: { avatarId: 'avatar-001' } }, { status: 201 });
-        }),
-        surveyDraftHandlers.success
+        surveyQuestionsHandlers.success,
+        http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+          createCallCount++;
+          return HttpResponse.json({}, { status: 201 });
+        })
       );
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const answerPage = async () => {
-        const radios = screen.getAllByRole('radio');
-        const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-        const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
-        if (q1Radios[0]) await user.click(q1Radios[0]);
-        if (q2Radios[0]) await user.click(q2Radios[0]);
-      };
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
-      await answerPage();
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /데이트 장소/i })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
 
-      const p2Radios = screen.getAllByRole('radio');
-      const q3Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q3');
-      const q4Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q4');
-      if (q3Radios[0]) await user.click(q3Radios[0]);
-      if (q4Radios[0]) await user.click(q4Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /갈등 상황/i })).toBeInTheDocument();
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
       });
 
-      const p3Radios = screen.getAllByRole('radio');
-      const q5Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q5');
-      const q6Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q6');
-      if (q5Radios[0]) await user.click(q5Radios[0]);
-      if (q6Radios[0]) await user.click(q6Radios[0]);
-
-      await user.click(screen.getByRole('button', { name: /완료/i }));
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(surveyCallCount).toBe(1);
+        expect(createCallCount).toBe(1);
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
       });
     });
 
-    it('서버 422 응답 시 에러 메시지가 노출되고 navigate 는 호출되지 않는다', async () => {
+    it('서버 오류 응답 시 에러 메시지가 노출되고 navigate 는 호출되지 않는다', async () => {
       const user = userEvent.setup();
-      server.use(surveyHandlers.validationError, surveyDraftHandlers.success);
+
+      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const radios = screen.getAllByRole('radio');
-      const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-      const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
-      if (q1Radios[0]) await user.click(q1Radios[0]);
-      if (q2Radios[0]) await user.click(q2Radios[0]);
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /데이트 장소/i })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
 
-      const p2Radios = screen.getAllByRole('radio');
-      const q3Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q3');
-      const q4Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q4');
-      if (q3Radios[0]) await user.click(q3Radios[0]);
-      if (q4Radios[0]) await user.click(q4Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /갈등 상황/i })).toBeInTheDocument();
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
       });
 
-      const p3Radios = screen.getAllByRole('radio');
-      const q5Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q5');
-      const q6Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q6');
-      if (q5Radios[0]) await user.click(q5Radios[0]);
-      if (q6Radios[0]) await user.click(q6Radios[0]);
-
-      await user.click(screen.getByRole('button', { name: /완료/i }));
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/올바르지 않습니다|에러|오류/i)).toBeInTheDocument();
+        expect(document.querySelector('[aria-invalid="true"]')).toBeInTheDocument();
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect');
     });
   });
 
-  describe('draft 저장 — 페이지 이동 시 PATCH 호출', () => {
-    it('"다음" 클릭 시 PATCH /api/onboarding/survey/draft 가 호출된다', async () => {
-      const user = userEvent.setup();
-      let draftCallCount = 0;
-
-      server.events.on('request:start', ({ request }) => {
-        if (request.url.includes('/api/onboarding/survey/draft')) {
-          draftCallCount++;
-        }
-      });
+  describe('draft 복원', () => {
+    it('localStorage draft 에 저장된 답이 라디오에 체크된다', async () => {
+      const draft = {
+        savedAt: new Date().toISOString(),
+        value: {
+          answers: { AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_2' },
+        },
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const radios = screen.getAllByRole('radio');
-      const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-      const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
-      if (q1Radios[0]) await user.click(q1Radios[0]);
-      if (q2Radios[0]) await user.click(q2Radios[0]);
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      const radio = screen.getByRole('radio', {
+        name: /기본 인사만 깍듯이 한다/i,
+      }) as HTMLInputElement;
+      expect(radio.checked).toBe(true);
+    });
+
+    it('draft 에 avatarName 과 description 이 있으면 아바타 이름 페이지에서 복원된다', async () => {
+      const draft = {
+        savedAt: new Date().toISOString(),
+        value: {
+          answers: {
+            AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_1',
+            EMPATHY_0001: 'EMPATHY_0001_ANS_1',
+          },
+          avatarName: '루나',
+          description: '내향적인 아바타',
+        },
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+
+      const user = userEvent.setup();
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
 
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(draftCallCount).toBeGreaterThanOrEqual(1);
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
 
-      server.events.removeAllListeners();
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
+      });
+
+      expect((screen.getByLabelText(/아바타 이름/i) as HTMLInputElement).value).toBe('루나');
+      expect(screen.getByPlaceholderText(/간단히 소개/i)).toHaveValue('내향적인 아바타');
     });
   });
 
-  describe('에러 상태 스타일', () => {
-    it('유효성 에러 시 에러 필드에 border-danger 클래스가 적용된다', async () => {
-      const user = userEvent.setup();
-      server.use(surveyHandlers.validationError, surveyDraftHandlers.success);
+  describe('질문 로딩 실패', () => {
+    it('서버 오류 시 에러 메시지가 노출된다', async () => {
+      server.use(surveyQuestionsHandlers.serverError);
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
-      const radios = screen.getAllByRole('radio');
-      const q1Radios = radios.filter((r) => r.getAttribute('name') === 'q1');
-      const q2Radios = radios.filter((r) => r.getAttribute('name') === 'q2');
-      if (q1Radios[0]) await user.click(q1Radios[0]);
-      if (q2Radios[0]) await user.click(q2Radios[0]);
+      await waitFor(() => {
+        expect(screen.getByText(/불러오지 못했습니다/i)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('제출 에러 처리', () => {
+    it('Error 인스턴스가 아닌 예외 발생 시 기본 에러 메시지가 표시된다', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        surveyQuestionsHandlers.success,
+        http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+          return HttpResponse.json({ message: '알 수 없는 오류' }, { status: 500 });
+        })
+      );
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /데이트 장소/i })).toBeInTheDocument();
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
       });
 
-      const p2Radios = screen.getAllByRole('radio');
-      const q3Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q3');
-      const q4Radios = p2Radios.filter((r) => r.getAttribute('name') === 'q4');
-      if (q3Radios[0]) await user.click(q3Radios[0]);
-      if (q4Radios[0]) await user.click(q4Radios[0]);
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
       await user.click(screen.getByRole('button', { name: /다음/i }));
 
       await waitFor(() => {
-        expect(screen.queryByRole('group', { name: /갈등 상황/i })).toBeInTheDocument();
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
       });
 
-      const p3Radios = screen.getAllByRole('radio');
-      const q5Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q5');
-      const q6Radios = p3Radios.filter((r) => r.getAttribute('name') === 'q6');
-      if (q5Radios[0]) await user.click(q5Radios[0]);
-      if (q6Radios[0]) await user.click(q6Radios[0]);
-
-      await user.click(screen.getByRole('button', { name: /완료/i }));
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        const errorElements = document.querySelectorAll('[aria-invalid="true"],.border-danger');
-        expect(errorElements.length).toBeGreaterThan(0);
+        expect(document.querySelector('[aria-invalid="true"]')).toBeInTheDocument();
       });
     });
   });

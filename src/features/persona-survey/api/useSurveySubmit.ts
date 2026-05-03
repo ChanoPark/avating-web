@@ -1,17 +1,14 @@
 import { useMutation } from '@tanstack/react-query';
-import { apiResponseSurveySubmit } from '@entities/onboarding/model';
-import type { SurveyResponse } from '@entities/onboarding/model';
 import { http } from '@shared/api/http';
+import type { AvatarCreateFromSurveyRequest } from '@entities/onboarding/model';
 
-async function submitSurvey(data: SurveyResponse): Promise<{ avatarId: string }> {
-  const response = await http.post('/api/onboarding/survey', data);
-  const parsed = apiResponseSurveySubmit.parse(response.data);
-  return parsed.data;
+async function createAvatarFromSurvey(data: AvatarCreateFromSurveyRequest): Promise<void> {
+  await http.post('/api/avatars/survey/', data);
 }
 
 export function useSurveySubmit() {
   return useMutation({
-    mutationFn: submitSurvey,
+    mutationFn: createAvatarFromSurvey,
     throwOnError: false,
   });
 }
