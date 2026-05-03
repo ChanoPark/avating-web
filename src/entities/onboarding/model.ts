@@ -16,7 +16,7 @@ export const surveyQuestionSchema = z.object({
 export type SurveyQuestion = z.infer<typeof surveyQuestionSchema>;
 
 export const apiResponseSurveyQuestionsSchema = z.object({
-  data: z.array(surveyQuestionSchema),
+  data: z.array(surveyQuestionSchema).min(1),
 });
 
 export const surveyAnswerRequestSchema = z.object({
@@ -27,8 +27,8 @@ export const surveyAnswerRequestSchema = z.object({
 export type SurveyAnswerRequest = z.infer<typeof surveyAnswerRequestSchema>;
 
 export const avatarCreateFromSurveyRequestSchema = z.object({
-  avatarName: z.string().min(1),
-  description: z.string(),
+  avatarName: z.string().min(1).max(50),
+  description: z.string().max(200),
   answers: z.array(surveyAnswerRequestSchema).min(1),
 });
 export type AvatarCreateFromSurveyRequest = z.infer<typeof avatarCreateFromSurveyRequestSchema>;

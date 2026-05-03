@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { ZodError } from 'zod';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import {
   avatarCreateFromSurveyRequestSchema,
@@ -161,6 +162,10 @@ export function SurveyStep() {
       setOnboardingProgress('connect');
       void navigate('/onboarding/connect');
     } catch (err: unknown) {
+      if (err instanceof ZodError) {
+        setSubmitError('입력 데이터를 다시 확인해주세요.');
+        return;
+      }
       const message = err instanceof Error ? err.message : '올바르지 않습니다. 다시 시도해주세요.';
       setSubmitError(message);
     }

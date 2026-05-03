@@ -88,6 +88,35 @@ describe('avatarCreateFromSurveyRequestSchema', () => {
       avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, answers: [] })
     ).toThrow();
   });
+
+  it('avatarName 이 50자 경계는 통과한다', () => {
+    const name50 = 'a'.repeat(50);
+    expect(
+      avatarCreateFromSurveyRequestSchema.safeParse({ ...validRequest, avatarName: name50 }).success
+    ).toBe(true);
+  });
+
+  it('avatarName 이 51자면 throw 한다', () => {
+    const name51 = 'a'.repeat(51);
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, avatarName: name51 })
+    ).toThrow();
+  });
+
+  it('description 이 200자 경계는 통과한다', () => {
+    const desc200 = 'a'.repeat(200);
+    expect(
+      avatarCreateFromSurveyRequestSchema.safeParse({ ...validRequest, description: desc200 })
+        .success
+    ).toBe(true);
+  });
+
+  it('description 이 201자면 throw 한다', () => {
+    const desc201 = 'a'.repeat(201);
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, description: desc201 })
+    ).toThrow();
+  });
 });
 
 describe('apiResponseSurveyQuestionsSchema', () => {
@@ -108,6 +137,10 @@ describe('apiResponseSurveyQuestionsSchema', () => {
 
   it('data 가 없으면 throw 한다', () => {
     expect(() => apiResponseSurveyQuestionsSchema.parse({})).toThrow();
+  });
+
+  it('data 가 빈 배열이면 throw 한다 (백엔드 빈 응답으로 인한 화면 깨짐 방지)', () => {
+    expect(() => apiResponseSurveyQuestionsSchema.parse({ data: [] })).toThrow();
   });
 });
 

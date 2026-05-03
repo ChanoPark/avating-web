@@ -38,7 +38,7 @@ export function SurveyQuestion({
               'flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2.5 transition-colors',
               value === opt.answerId
                 ? 'border-brand bg-brand-soft'
-                : 'border-border hover:border-brand'
+                : 'border-border hover:border-border-hi'
             )}
           >
             <input
