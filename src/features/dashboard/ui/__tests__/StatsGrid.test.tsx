@@ -85,4 +85,64 @@ describe('StatsGrid', () => {
     // jest-axe 미설치 상태. GREEN 단계에서 의존성 추가 후 활성화.
     expect(true).toBe(true);
   });
+
+  it('totalDispatchedDelta < 0 시 delta 텍스트가 렌더되고 text-danger 클래스를 가진다', async () => {
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+    server.use(
+      http.get(`${BASE_URL}/api/dashboard/stats`, () => {
+        return HttpResponse.json({
+          data: {
+            totalDispatched: 10,
+            totalDispatchedDelta: -3,
+            avgAffinity: 50,
+            avgAffinityDelta: -2,
+            matches: 1,
+            matchRate: 10,
+            interventionsThisWeek: 5,
+            gemsUsed: 30,
+            gemsBalance: 500,
+          },
+        });
+      })
+    );
+
+    renderWithProviders(createElement(StatsGrid, null));
+
+    await waitFor(() => {
+      expect(screen.getByText(/-3 지난주 대비/)).toBeInTheDocument();
+    });
+
+    const deltaEl = screen.getByText(/-3 지난주 대비/);
+    expect(deltaEl).toHaveClass('text-danger');
+  });
+
+  it('totalDispatchedDelta === 0 시 delta 텍스트가 +0 으로 표시된다', async () => {
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+    server.use(
+      http.get(`${BASE_URL}/api/dashboard/stats`, () => {
+        return HttpResponse.json({
+          data: {
+            totalDispatched: 10,
+            totalDispatchedDelta: 0,
+            avgAffinity: 50,
+            avgAffinityDelta: 0,
+            matches: 1,
+            matchRate: 10,
+            interventionsThisWeek: 5,
+            gemsUsed: 30,
+            gemsBalance: 500,
+          },
+        });
+      })
+    );
+
+    renderWithProviders(createElement(StatsGrid, null));
+
+    await waitFor(() => {
+      expect(screen.getByText(/\+0 지난주 대비/)).toBeInTheDocument();
+    });
+
+    const deltaEl = screen.getByText(/\+0 지난주 대비/);
+    expect(deltaEl).toHaveClass('text-text-3');
+  });
 });

@@ -174,4 +174,41 @@ describe('AvatarList', () => {
       expect(dialog !== null || matchText !== null).toBe(true);
     });
   });
+
+  it('서버 500 응답 시 AvatarListFallback ("목록을 불러오지 못했어요") 가 렌더된다', async () => {
+    server.use(recommendedHandlers.serverError);
+    const onResetFilter = vi.fn();
+    renderWithProviders(
+      createElement(AvatarList, {
+        filter: defaultFilter,
+        onAvatarClick: vi.fn(),
+        onResetFilter,
+      })
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/목록을 불러오지 못했어요/)).toBeInTheDocument();
+    });
+  });
+
+  it('AvatarListFallback 의 "필터 초기화" 클릭 시 onResetFilter 가 호출된다', async () => {
+    server.use(recommendedHandlers.serverError);
+    const onResetFilter = vi.fn();
+    const user = userEvent.setup();
+    renderWithProviders(
+      createElement(AvatarList, {
+        filter: defaultFilter,
+        onAvatarClick: vi.fn(),
+        onResetFilter,
+      }),
+      { onResetFilter }
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/목록을 불러오지 못했어요/)).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole('button', { name: /필터 초기화/ }));
+    expect(onResetFilter).toHaveBeenCalledOnce();
+  });
 });
