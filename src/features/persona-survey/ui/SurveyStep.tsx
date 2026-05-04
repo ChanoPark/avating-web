@@ -56,6 +56,8 @@ export function SurveyStep() {
       .map(([questionId, answerId]) => {
         const q = questions.find((qq) => qq.id === questionId);
         if (!q) return null;
+        // 질문 카탈로그가 갱신되어 stale answerId 가 들어있을 수 있으므로 교차검증.
+        if (!q.answers.some((a) => a.answerId === answerId)) return null;
         return { questionId, questionType: q.questionType, answerId };
       })
       .filter((a): a is NonNullable<typeof a> => a !== null);
@@ -136,12 +138,14 @@ export function SurveyStep() {
 
   const handleAnswer = (question: SurveyQuestionModel, answerId: string) => {
     const current = form.getValues('answers');
-    const next = current.filter((a) => a.questionId !== question.id);
-    next.push({
-      questionId: question.id,
-      questionType: question.questionType,
-      answerId,
-    });
+    const next = [
+      ...current.filter((a) => a.questionId !== question.id),
+      {
+        questionId: question.id,
+        questionType: question.questionType,
+        answerId,
+      },
+    ];
     form.setValue('answers', next, { shouldDirty: true });
   };
 
@@ -166,7 +170,8 @@ export function SurveyStep() {
         setSubmitError('입력 데이터를 다시 확인해주세요.');
         return;
       }
-      const message = err instanceof Error ? err.message : '올바르지 않습니다. 다시 시도해주세요.';
+      const fallback = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
+      const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
       setSubmitError(message);
     }
   });

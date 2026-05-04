@@ -74,13 +74,31 @@ describe('useSurveyQuestions', () => {
     expect(answer).toHaveProperty('text');
   });
 
-  it('staleTime 이 Infinity 라 refetch 없이 캐시된 데이터를 재사용한다', async () => {
+  it('staleTime 이 Infinity 라 두 번째 마운트 시 네트워크 fetch 가 발생하지 않는다', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
-    server.use(surveyQuestionsHandlers.success);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+    const { http, HttpResponse } = await import('msw');
 
-    let fetchCount = 0;
+    let callCount = 0;
+    server.use(
+      http.get(`${BASE_URL}/api/persona/survey/questions`, () => {
+        callCount += 1;
+        return HttpResponse.json({
+          data: [
+            {
+              id: 'AFFECTION_EXPRESSION_0001',
+              title: '캐시 검증 질문',
+              primaryType: 'AFFECTION_EXPRESSION',
+              questionType: 'SINGLE_CHOICE_5',
+              answers: [{ answerId: 'AFFECTION_EXPRESSION_0001_ANS_1', text: '선택지' }],
+            },
+          ],
+        });
+      })
+    );
+
     const wrapper = ({ children }: { children: ReactNode }) =>
       createElement(QueryClientProvider, { client: queryClient }, children);
 
@@ -88,15 +106,14 @@ describe('useSurveyQuestions', () => {
     await waitFor(() => {
       expect(r1.current.data).toBeDefined();
     });
-
-    fetchCount = queryClient.getQueryCache().findAll().length;
+    expect(callCount).toBe(1);
 
     const { result: r2 } = renderHook(() => useSurveyQuestions(), { wrapper });
     await waitFor(() => {
       expect(r2.current.data).toBeDefined();
     });
 
-    expect(queryClient.getQueryCache().findAll()).toHaveLength(fetchCount);
+    expect(callCount).toBe(1);
   });
 
   it('5xx 응답 시 isError 가 true 가 된다', async () => {
