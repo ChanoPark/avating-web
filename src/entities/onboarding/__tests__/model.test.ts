@@ -3,6 +3,7 @@ import {
   surveyQuestionSchema,
   surveyAnswerRequestSchema,
   avatarCreateFromSurveyRequestSchema,
+  avatarCreateFromSurveyResponseSchema,
   apiResponseSurveyQuestionsSchema,
   surveyDraftSchema,
   connectCodeSchema,
@@ -141,6 +142,22 @@ describe('apiResponseSurveyQuestionsSchema', () => {
 
   it('data 가 빈 배열이면 throw 한다 (백엔드 빈 응답으로 인한 화면 깨짐 방지)', () => {
     expect(() => apiResponseSurveyQuestionsSchema.parse({ data: [] })).toThrow();
+  });
+});
+
+describe('avatarCreateFromSurveyResponseSchema', () => {
+  it('avatarId 가 있는 유효한 응답은 파싱에 성공한다', () => {
+    expect(
+      avatarCreateFromSurveyResponseSchema.safeParse({ data: { avatarId: 'avatar-001' } }).success
+    ).toBe(true);
+  });
+
+  it('avatarId 가 빈 문자열이면 throw 한다', () => {
+    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: { avatarId: '' } })).toThrow();
+  });
+
+  it('avatarId 필드가 없으면 throw 한다', () => {
+    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: {} })).toThrow();
   });
 });
 

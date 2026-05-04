@@ -88,9 +88,13 @@ export const surveyQuestionsHandlers = {
   }),
 };
 
+export const mockAvatarCreateFromSurveyResponse = {
+  data: { avatarId: 'avatar-generated-001' },
+};
+
 export const surveySubmitHandlers = {
   success: http.post(`${BASE_URL}/api/avatars/survey/`, () => {
-    return HttpResponse.json({}, { status: 201 });
+    return HttpResponse.json(mockAvatarCreateFromSurveyResponse, { status: 201 });
   }),
 
   validationError: http.post(`${BASE_URL}/api/avatars/survey/`, () => {

@@ -72,6 +72,13 @@ export const generatedAvatarSchema = z.object({
 });
 export type GeneratedAvatar = z.infer<typeof generatedAvatarSchema>;
 
+export const avatarCreateFromSurveyResponseSchema = z.object({
+  data: z.object({ avatarId: z.string().min(1) }),
+});
+export type AvatarCreateFromSurveyResponse = z.infer<
+  typeof avatarCreateFromSurveyResponseSchema
+>['data'];
+
 export const apiResponseConnectCode = z.object({ data: connectCodeSchema });
 export const apiResponseConnectStatus = z.object({ data: connectStatusSchema });
 export const apiResponseGeneratedAvatar = z.object({ data: generatedAvatarSchema });

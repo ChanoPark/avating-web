@@ -212,7 +212,7 @@ describe('SurveyStep', () => {
         surveyQuestionsHandlers.success,
         http.post(`${BASE_URL}/api/avatars/survey/`, () => {
           createCallCount++;
-          return HttpResponse.json({}, { status: 201 });
+          return HttpResponse.json({ data: { avatarId: 'avatar-001' } }, { status: 201 });
         })
       );
 

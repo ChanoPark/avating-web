@@ -2,11 +2,14 @@ import { describe, it, expect } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
 import { server } from '@shared/mocks/server';
 import { surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
 import { ZodError } from 'zod';
 import type { AvatarCreateFromSurveyRequest } from '@entities/onboarding/model';
 import { useSurveySubmit } from '../useSurveySubmit';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 function createWrapper() {
   const queryClient = new QueryClient({
@@ -40,6 +43,38 @@ describe('useSurveySubmit', () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
+  });
+
+  it('정상 응답 시 mutateAsync 가 avatarId 를 반환한다', async () => {
+    server.use(surveySubmitHandlers.success);
+    const { result } = renderHook(() => useSurveySubmit(), { wrapper: createWrapper() });
+
+    let returned: { avatarId: string } | undefined;
+    await act(async () => {
+      returned = await result.current.mutateAsync(validPayload);
+    });
+
+    expect(returned?.avatarId).toBe('avatar-generated-001');
+  });
+
+  it('백엔드가 avatarId 없는 응답을 반환하면 ZodError 가 throw 된다', async () => {
+    server.use(
+      http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+        return HttpResponse.json({ data: {} }, { status: 201 });
+      })
+    );
+    const { result } = renderHook(() => useSurveySubmit(), { wrapper: createWrapper() });
+
+    let caught: unknown = null;
+    await act(async () => {
+      try {
+        await result.current.mutateAsync(validPayload);
+      } catch (err: unknown) {
+        caught = err;
+      }
+    });
+
+    expect(caught).toBeInstanceOf(ZodError);
   });
 
   it('서버 5xx 응답 시 isError 가 true 가 된다', async () => {
