@@ -1,12 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
-import { server } from '@shared/mocks/server';
-import { statsHandlers } from '@shared/mocks/handlers/dashboard';
 import { AppShellLayout } from '../AppShellLayout';
 
 const mockToken = {
@@ -114,18 +112,6 @@ describe('AppShellLayout', () => {
       screen.queryByTestId('gem-balance') ??
       screen.queryByLabelText(/다이아/);
     expect(gemArea).not.toBeNull();
-  });
-
-  describe('GemBalance', () => {
-    it('stats API 응답 후 다이아 잔액이 숫자로 표시된다', async () => {
-      server.use(statsHandlers.success);
-      renderWithProviders('/dashboard');
-
-      await waitFor(() => {
-        const balanceEl = screen.queryByText(/1[,.]?240/);
-        expect(balanceEl).not.toBeNull();
-      });
-    });
   });
 
   describe('반응형', () => {

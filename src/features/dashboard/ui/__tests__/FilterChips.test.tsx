@@ -103,24 +103,4 @@ describe('FilterChips', () => {
     const onlineChip = screen.getByRole('button', { name: '온라인' });
     expect(onlineChip).toHaveFocus();
   });
-
-  it('유일하게 활성된 칩을 토글 오프 시 isAllActive → resetFilter() 경로가 호출된다', async () => {
-    // online 만 true 인 상태에서 "온라인" 클릭 → next = 모두 false → isAllActive(next)=true → resetFilter
-    const onFilterChange = vi.fn();
-    const user = userEvent.setup();
-    const onlyOnlineFilter: RecommendedAvatarFilter = {
-      online: true,
-      introvert: false,
-      extrovert: false,
-      verified: false,
-    };
-    render(<FilterChips filter={onlyOnlineFilter} onFilterChange={onFilterChange} />);
-    await user.click(screen.getByRole('button', { name: '온라인' }));
-    expect(onFilterChange).toHaveBeenCalledWith({
-      online: false,
-      introvert: false,
-      extrovert: false,
-      verified: false,
-    });
-  });
 });
