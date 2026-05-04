@@ -39,6 +39,17 @@ describe('ConnectStep', () => {
     vi.useRealTimers();
   });
 
+  describe('진입 가드', () => {
+    it('progress 가 welcome 이면 /onboarding/survey 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'welcome');
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey', { replace: true });
+      });
+    });
+  });
+
   describe('마운트 — 코드 발급', () => {
     it('마운트 시 POST /api/persona/connect/code 가 1회 호출되고 코드가 렌더된다', async () => {
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });

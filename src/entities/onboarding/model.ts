@@ -42,8 +42,9 @@ export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 
 // 백엔드 계약 v2: connectCode 는 Custom GPT 측 발급 정책에 따라 포맷이 가변(예: 길이/구분자 변경)
 // 이라 정규식 제약을 두지 않는다. 형식 검증은 백엔드 단일 출처에 위임.
+// 단, 빈 문자열은 클라이언트에서도 명백한 계약 위반이므로 min(1) 만 강제.
 export const connectCodeSchema = z.object({
-  connectCode: z.string(),
+  connectCode: z.string().min(1),
   expiresIn: z.number().int().positive(),
   expiresAt: z.string().datetime(),
 });

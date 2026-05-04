@@ -88,7 +88,7 @@ export const surveyQuestionsHandlers = {
   }),
 };
 
-export const mockAvatarCreateFromSurveyResponse = {
+const mockAvatarCreateFromSurveyResponse = {
   data: { avatarId: 'avatar-generated-001' },
 };
 
