@@ -1,13 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { server } from '@shared/mocks/server';
 import {
-  surveyHandlers,
-  surveyDraftHandlers,
+  surveyQuestionsHandlers,
+  surveySubmitHandlers,
   connectCodeHandlers,
   connectStatusHandlers,
   generatedAvatarHandlers,
   completeOnboardingHandlers,
-  mockSurveySubmitResponse,
+  mockSurveyQuestionsResponse,
   mockConnectCodeResponse,
   mockConnectStatusConnected,
   mockGeneratedAvatar,
@@ -17,53 +17,84 @@ import {
   apiResponseConnectCode,
   apiResponseConnectStatus,
   apiResponseGeneratedAvatar,
+  apiResponseSurveyQuestionsSchema,
 } from '@entities/onboarding/model';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 describe('onboarding MSW 핸들러', () => {
-  describe('POST /api/onboarding/survey', () => {
-    it('success 핸들러는 201 + avatarId 를 반환한다', async () => {
-      server.use(surveyHandlers.success);
+  describe('GET /api/persona/survey/questions', () => {
+    it('success 핸들러는 200 + 질문 배열을 반환한다', async () => {
+      server.use(surveyQuestionsHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/survey`, {
+      const res = await fetch(`${BASE_URL}/api/persona/survey/questions`);
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      const parsed = apiResponseSurveyQuestionsSchema.safeParse(json);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.data.length).toBeGreaterThan(0);
+        expect(parsed.data.data[0].questionType).toBe('SINGLE_CHOICE_5');
+      }
+    });
+
+    it('success 응답 데이터는 mockSurveyQuestionsResponse 와 일치한다', async () => {
+      server.use(surveyQuestionsHandlers.success);
+
+      const res = await fetch(`${BASE_URL}/api/persona/survey/questions`);
+      const json = await res.json();
+
+      expect(json.data[0].id).toBe(mockSurveyQuestionsResponse.data[0].id);
+      expect(json.data[0].answers.length).toBe(5);
+    });
+
+    it('serverError 핸들러는 500 을 반환한다', async () => {
+      server.use(surveyQuestionsHandlers.serverError);
+
+      const res = await fetch(`${BASE_URL}/api/persona/survey/questions`);
+
+      expect(res.status).toBe(500);
+    });
+  });
+
+  describe('POST /api/avatars/survey/', () => {
+    it('success 핸들러는 201 을 반환한다', async () => {
+      server.use(surveySubmitHandlers.success);
+
+      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          q1: 'solo',
-          q2: 'wait',
-          q3: 'cafe',
-          q4: 'brief',
-          q5: 'calm',
-          q6: 'conversation',
+          avatarName: '루나',
+          description: '소개글',
+          answers: [
+            { questionId: 'Q_001', questionType: 'SINGLE_CHOICE_5', answerId: 'Q_001_ANS_1' },
+          ],
         }),
       });
 
       expect(res.status).toBe(201);
-      const json = await res.json();
-      expect(json).toEqual(mockSurveySubmitResponse);
-      expect(typeof json.data.avatarId).toBe('string');
-      expect(json.data.avatarId.length).toBeGreaterThan(0);
     });
 
-    it('validationError 핸들러는 422 를 반환한다', async () => {
-      server.use(surveyHandlers.validationError);
+    it('validationError 핸들러는 400 을 반환한다', async () => {
+      server.use(surveySubmitHandlers.validationError);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/survey`, {
+      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q1: 'invalid' }),
+        body: '{}',
       });
 
-      expect(res.status).toBe(422);
+      expect(res.status).toBe(400);
       const json = await res.json();
       expect(json).toHaveProperty('code', 'VALIDATION_ERROR');
     });
 
     it('serverError 핸들러는 500 을 반환한다', async () => {
-      server.use(surveyHandlers.serverError);
+      server.use(surveySubmitHandlers.serverError);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/survey`, {
+      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
@@ -73,40 +104,11 @@ describe('onboarding MSW 핸들러', () => {
     });
   });
 
-  describe('PATCH /api/onboarding/survey/draft', () => {
-    it('success 핸들러는 200 + savedAt 을 반환한다', async () => {
-      server.use(surveyDraftHandlers.success);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/survey/draft`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ q1: 'solo' }),
-      });
-
-      expect(res.status).toBe(200);
-      const json = await res.json();
-      expect(json.data).toHaveProperty('savedAt');
-      expect(new Date(json.data.savedAt).getTime()).not.toBeNaN();
-    });
-
-    it('serverError 핸들러는 500 을 반환한다', async () => {
-      server.use(surveyDraftHandlers.serverError);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/survey/draft`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-
-      expect(res.status).toBe(500);
-    });
-  });
-
-  describe('POST /api/onboarding/connect-code', () => {
+  describe('POST /api/persona/connect/code', () => {
     it('success 핸들러는 201 + ConnectCode 를 반환한다', async () => {
       server.use(connectCodeHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
@@ -117,27 +119,27 @@ describe('onboarding MSW 핸들러', () => {
       const parsed = apiResponseConnectCode.safeParse(json);
       expect(parsed.success).toBe(true);
       if (parsed.success) {
-        expect(parsed.data.data.code).toMatch(/^AVT-[A-Z0-9]{4}-[A-Z0-9]{2}$/);
+        expect(parsed.data.data.connectCode).toBe(mockConnectCodeResponse.data.connectCode);
       }
     });
 
-    it('success 응답의 code 는 mockConnectCodeResponse 와 일치한다', async () => {
+    it('success 응답의 connectCode 는 mockConnectCodeResponse 와 일치한다', async () => {
       server.use(connectCodeHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
       });
 
       const json = await res.json();
-      expect(json.data.code).toBe(mockConnectCodeResponse.data.code);
+      expect(json.data.connectCode).toBe(mockConnectCodeResponse.data.connectCode);
     });
 
     it('rateLimit 핸들러는 429 를 반환한다', async () => {
       server.use(connectCodeHandlers.rateLimit);
 
-      const res = await fetch(`${BASE_URL}/api/onboarding/connect-code`, {
+      const res = await fetch(`${BASE_URL}/api/persona/connect/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',

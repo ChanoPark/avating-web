@@ -1,172 +1,265 @@
-import { useEffect, useState } from 'react';
-import { useForm, type Path, type PathValue } from 'react-hook-form';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { surveyResponseSchema } from '@entities/onboarding/model';
-import type { SurveyResponse } from '@entities/onboarding/model';
-import { setOnboardingProgress } from '@entities/onboarding';
+import { ZodError } from 'zod';
+import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
+import {
+  avatarCreateFromSurveyRequestSchema,
+  type AvatarCreateFromSurveyRequest,
+  type SurveyQuestion as SurveyQuestionModel,
+} from '@entities/onboarding/model';
+import { Button } from '@shared/ui/Button/Button';
+import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
-import { useSurveyDraft } from '../api/useSurveyDraft';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
-import { Button } from '@shared/ui/Button/Button';
 
-const PAGES = {
-  questions: [
-    '모임에서 당신은 주로 어떤 편인가요?',
-    '호감 있는 상대에게 먼저 다가가는 편인가요?',
-    '첫 데이트 장소로 선호하는 곳은?',
-    '대화 스타일은 어떤 편인가요?',
-    '갈등 상황에서 주로 어떻게 반응하나요?',
-    '연애에서 가장 중요하게 생각하는 것은?',
-  ],
-  options: {
-    q1: [
-      { value: 'solo', label: '혼자 조용히 있는 편' },
-      { value: 'few', label: '소수 친한 사람과' },
-      { value: 'crowd', label: '여러 사람과 어울리는 편' },
-      { value: 'mood', label: '그때그때 다름' },
-    ],
-    q2: [
-      { value: 'wait', label: '상대가 먼저 다가올 때까지 기다림' },
-      { value: 'signal', label: '신호를 보내고 반응 확인' },
-      { value: 'active', label: '적극적으로 먼저 다가감' },
-      { value: 'situation', label: '상황에 따라 다름' },
-    ],
-    q3: [
-      { value: 'cafe', label: '카페·디저트' },
-      { value: 'culture', label: '전시·영화·공연' },
-      { value: 'outdoor', label: '공원·야외' },
-      { value: 'food', label: '맛집·식사' },
-    ],
-    q4: [
-      { value: 'brief', label: '짧고 핵심만' },
-      { value: 'detailed', label: '상세하게 설명' },
-      { value: 'match', label: '상대 스타일에 맞춤' },
-      { value: 'offline', label: '직접 만나서' },
-    ],
-    q5: [
-      { value: 'calm', label: '차분하게 대화로 해결' },
-      { value: 'talk', label: '즉시 이야기하는 편' },
-      { value: 'wait_conflict', label: '잠시 냉각 후 대화' },
-      { value: 'avoid', label: '가능하면 갈등 자체를 피함' },
-    ],
-    q6: [
-      { value: 'conversation', label: '대화와 소통' },
-      { value: 'hobby', label: '공통 관심사' },
-      { value: 'stability', label: '안정감과 신뢰' },
-      { value: 'excitement', label: '설렘과 재미' },
-    ],
-  },
-};
-
-const PAGE_FIELD_SETS: (keyof SurveyResponse)[][] = [
-  ['q1', 'q2'],
-  ['q3', 'q4'],
-  ['q5', 'q6'],
-];
-
-const QUESTION_INDEX: Record<keyof SurveyResponse, number> = {
-  q1: 0,
-  q2: 1,
-  q3: 2,
-  q4: 3,
-  q5: 4,
-  q6: 5,
-};
-
-// 진입 가드 부재는 의도적 — 사용자가 답변을 다시 수정하거나 draft 를 이어서
-// 작성하기 위해 어떤 진행률에서도 재진입할 수 있어야 한다.
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const draftRestoredRef = useRef(false);
+  const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { mutateAsync: submitSurvey, isPending: isSubmitting } = useSurveySubmit();
-  const { mutateAsync: saveDraftApi } = useSurveyDraft();
+  const onboardingProgress = getOnboardingProgress();
+  const guardFailed = onboardingProgress !== 'welcome';
 
   const {
-    watch,
-    setValue,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<SurveyResponse>({
-    resolver: zodResolver(surveyResponseSchema),
-    mode: 'onSubmit',
-  });
-
-  const allValues = watch();
-  const currentFields = PAGE_FIELD_SETS[pageIndex] ?? [];
-  const allCurrentAnswered = currentFields.every((f) => Boolean(allValues[f]));
+    data: questions,
+    isLoading,
+    isError,
+    refetch,
+  } = useSurveyQuestions({ enabled: !guardFailed });
 
   useEffect(() => {
-    const draft = loadDraft();
-    if (draft && Object.keys(draft).length > 0) {
-      reset(draft as SurveyResponse);
+    if (guardFailed) {
+      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
     }
-  }, [reset]);
+  }, [guardFailed, onboardingProgress, navigate]);
 
-  const persistDraft = (values: Partial<SurveyResponse>) => {
-    saveDraft(values);
-    saveDraftApi(values).catch(() => undefined);
+  const form = useForm<AvatarCreateFromSurveyRequest>({
+    resolver: zodResolver(avatarCreateFromSurveyRequestSchema),
+    mode: 'onSubmit',
+    reValidateMode: 'onChange',
+    defaultValues: {
+      avatarName: '',
+      description: '',
+      answers: [],
+    },
+  });
+
+  const { mutateAsync: createAvatar, isPending: isSubmitting } = useSurveySubmit();
+
+  useEffect(() => {
+    if (!questions || draftRestoredRef.current) return;
+    draftRestoredRef.current = true;
+
+    const draft = loadDraft();
+    if (!draft) return;
+
+    const restoredAnswers = Object.entries(draft.answers)
+      .map(([questionId, answerId]) => {
+        const q = questions.find((qq) => qq.id === questionId);
+        if (!q) return null;
+        // 질문 카탈로그가 갱신되어 stale answerId 가 들어있을 수 있으므로 교차검증.
+        if (!q.answers.some((a) => a.answerId === answerId)) return null;
+        return { questionId, questionType: q.questionType, answerId };
+      })
+      .filter((a): a is NonNullable<typeof a> => a !== null);
+
+    form.reset({
+      avatarName: draft.avatarName ?? '',
+      description: draft.description ?? '',
+      answers: restoredAnswers,
+    });
+  }, [questions, form]);
+
+  useEffect(() => {
+    const subscription = form.watch((values) => {
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+      draftSaveTimerRef.current = setTimeout(() => {
+        const answersMap = (values.answers ?? []).reduce<Record<string, string>>((acc, ans) => {
+          if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
+          return acc;
+        }, {});
+        saveDraft({
+          answers: answersMap,
+          avatarName: values.avatarName ?? '',
+          description: values.description ?? '',
+        });
+      }, 300);
+    });
+    return () => {
+      subscription.unsubscribe();
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
+    };
+  }, [form]);
+
+  if (guardFailed) return null;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <p className="text-body text-text-2">질문을 불러오는 중...</p>
+      </div>
+    );
+  }
+
+  if (isError || !questions) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-4 py-16">
+        <p className="text-body text-danger" role="alert">
+          질문을 불러오지 못했습니다. 다시 시도해주세요.
+        </p>
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            void refetch();
+          }}
+        >
+          다시 시도
+        </Button>
+      </div>
+    );
+  }
+
+  const isAvatarNamePage = pageIndex === questions.length;
+  const isFirstPage = pageIndex === 0;
+  const currentQuestion: SurveyQuestionModel | null = !isAvatarNamePage
+    ? (questions[pageIndex] ?? null)
+    : null;
+
+  const watchedAnswers = form.watch('answers');
+  const watchedName = form.watch('avatarName');
+
+  const currentAnswered = isAvatarNamePage
+    ? watchedName.trim().length > 0
+    : currentQuestion != null &&
+      watchedAnswers.some((a) => a.questionId === currentQuestion.id && a.answerId);
+
+  const getCurrentAnswerId = (questionId: string): string | undefined =>
+    watchedAnswers.find((a) => a.questionId === questionId)?.answerId;
+
+  const handleAnswer = (question: SurveyQuestionModel, answerId: string) => {
+    const current = form.getValues('answers');
+    const next = [
+      ...current.filter((a) => a.questionId !== question.id),
+      {
+        questionId: question.id,
+        questionType: question.questionType,
+        answerId,
+      },
+    ];
+    form.setValue('answers', next, { shouldDirty: true });
   };
 
   const handleNext = () => {
-    persistDraft(allValues);
-    setPageIndex((prev) => prev + 1);
+    setPageIndex((p) => p + 1);
   };
 
   const handlePrev = () => {
-    persistDraft(allValues);
-    setPageIndex((prev) => prev - 1);
+    setPageIndex((p) => p - 1);
   };
 
-  const onSubmit = async (data: SurveyResponse) => {
+  const onSubmit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
-      await submitSurvey(data);
+      await createAvatar(data);
+      if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
       clearDraft();
       setOnboardingProgress('connect');
       void navigate('/onboarding/connect');
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : '올바르지 않습니다. 다시 시도해주세요.';
+      if (err instanceof ZodError) {
+        setSubmitError('입력 데이터를 다시 확인해주세요.');
+        return;
+      }
+      const fallback = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
+      const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
       setSubmitError(message);
     }
-  };
-
-  const isLastPage = pageIndex === PAGE_FIELD_SETS.length - 1;
-  const isFirstPage = pageIndex === 0;
+  });
 
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8">
-      <div className="flex flex-col gap-4">
-        {currentFields.map((field) => {
-          const qIdx = QUESTION_INDEX[field];
-          const fieldOptions = PAGES.options[field];
-          const fieldError = errors[field]?.message;
-          return (
-            <SurveyQuestion
-              key={field}
-              name={field}
-              question={PAGES.questions[qIdx] ?? ''}
-              options={fieldOptions}
-              value={allValues[field]}
-              onChange={(val) => {
-                setValue(field, val as PathValue<SurveyResponse, Path<SurveyResponse>>, {
-                  shouldValidate: true,
-                });
-              }}
-              {...(fieldError !== undefined ? { error: fieldError } : {})}
+    <form
+      onSubmit={(e) => {
+        void onSubmit(e);
+      }}
+      noValidate
+      className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8"
+    >
+      <p role="status" aria-live="polite" className="sr-only">
+        {isAvatarNamePage
+          ? `아바타 이름 입력 페이지`
+          : `질문 ${pageIndex + 1} / ${questions.length}`}
+      </p>
+      {currentQuestion ? (
+        <SurveyQuestion
+          name={currentQuestion.id}
+          question={currentQuestion.title}
+          options={currentQuestion.answers}
+          value={getCurrentAnswerId(currentQuestion.id)}
+          onChange={(answerId) => {
+            handleAnswer(currentQuestion, answerId);
+          }}
+        />
+      ) : (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1">
+            <label htmlFor="avatarName" className="text-body text-text">
+              아바타 이름
+            </label>
+            <input
+              id="avatarName"
+              type="text"
+              maxLength={50}
+              placeholder="아바타 이름을 입력하세요"
+              aria-invalid={form.formState.errors.avatarName ? 'true' : undefined}
+              aria-describedby={form.formState.errors.avatarName ? 'avatarName-error' : undefined}
+              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none ${
+                form.formState.errors.avatarName ? 'border-danger' : 'border-border'
+              }`}
+              {...form.register('avatarName')}
             />
-          );
-        })}
-      </div>
+            {/* v8 ignore next 5 — maxLength+disabled 가드로 UX상 도달 불가 */}
+            {form.formState.errors.avatarName?.message && (
+              <p id="avatarName-error" className="text-body-sm text-danger">
+                {form.formState.errors.avatarName.message}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <label htmlFor="description" className="text-body text-text">
+              소개 <span className="text-text-3 text-sm">(선택)</span>
+            </label>
+            <textarea
+              id="description"
+              placeholder="아바타를 간단히 소개해주세요"
+              maxLength={200}
+              rows={3}
+              aria-invalid={form.formState.errors.description ? 'true' : undefined}
+              aria-describedby={form.formState.errors.description ? 'description-error' : undefined}
+              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand resize-none rounded-sm border px-3 py-2.5 text-sm outline-none ${
+                form.formState.errors.description ? 'border-danger' : 'border-border'
+              }`}
+              {...form.register('description')}
+            />
+            {/* v8 ignore next 5 — maxLength(200)+Zod max(200) 일치로 UX상 도달 불가 */}
+            {form.formState.errors.description?.message && (
+              <p id="description-error" className="text-body-sm text-danger">
+                {form.formState.errors.description.message}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {submitError && (
         <p
+          role="alert"
           className="text-body-sm text-danger border-danger rounded-sm border px-3 py-2"
-          aria-invalid="true"
         >
           {submitError}
         </p>
@@ -178,28 +271,16 @@ export function SurveyStep() {
             이전
           </Button>
         )}
-        {isLastPage ? (
-          <Button
-            type="button"
-            disabled={!allCurrentAnswered || isSubmitting}
-            onClick={() => {
-              void handleSubmit(onSubmit)();
-            }}
-            className="flex-1"
-          >
-            {isSubmitting ? '제출 중...' : '완료'}
+        {isAvatarNamePage ? (
+          <Button type="submit" disabled={!currentAnswered || isSubmitting} className="flex-1">
+            {isSubmitting ? '생성 중...' : '아바타 생성'}
           </Button>
         ) : (
-          <Button
-            type="button"
-            disabled={!allCurrentAnswered}
-            onClick={handleNext}
-            className="flex-1"
-          >
+          <Button type="button" disabled={!currentAnswered} onClick={handleNext} className="flex-1">
             다음
           </Button>
         )}
       </div>
-    </div>
+    </form>
   );
 }

@@ -13,7 +13,8 @@ export function ConnectStep() {
   const queryClient = useQueryClient();
   const toast = useToast();
 
-  const guardFailed = getOnboardingProgress() === 'welcome';
+  const onboardingProgress = getOnboardingProgress();
+  const guardFailed = onboardingProgress !== 'connect';
 
   const {
     mutate: issueCode,
@@ -26,12 +27,9 @@ export function ConnectStep() {
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  const serverStatus = connectCode?.status ?? 'active';
-  const pollingEnabled =
-    !guardFailed &&
-    connectCode !== undefined &&
-    serverStatus !== 'expired' &&
-    serverStatus !== 'connected';
+  // expired 상태 후 폴링 중단은 useConnectStatus 내부 refetchInterval 이 담당
+  // (active 일 때만 15초 간격, 그 외 false) — 여기서 status 조건을 추가하면 이중 관리.
+  const pollingEnabled = !guardFailed && connectCode !== undefined;
 
   const { data: statusData } = useConnectStatus({ enabled: pollingEnabled });
 
@@ -41,9 +39,9 @@ export function ConnectStep() {
 
   useEffect(() => {
     if (guardFailed) {
-      void navigate('/onboarding/survey', { replace: true });
+      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
     }
-  }, [guardFailed, navigate]);
+  }, [guardFailed, onboardingProgress, navigate]);
 
   useEffect(() => {
     if (guardFailed) return;
@@ -84,9 +82,9 @@ export function ConnectStep() {
   }, []);
 
   const handleCopy = async () => {
-    if (!connectCode?.code) return;
+    if (!connectCode?.connectCode) return;
     try {
-      await navigator.clipboard.writeText(connectCode.code);
+      await navigator.clipboard.writeText(connectCode.connectCode);
       setCopySuccess(true);
       toast.show({ variant: 'success', title: '복사되었습니다' });
       if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
@@ -152,7 +150,7 @@ export function ConnectStep() {
       {connectCode && (
         <div className="border-border bg-bg-elev-2 flex flex-col items-center gap-4 rounded-md border p-6">
           <div className="text-text font-mono text-2xl tracking-[4px]" aria-label="연결 코드">
-            {connectCode.code}
+            {connectCode.connectCode}
           </div>
 
           <span role="timer" aria-live="polite" className="text-mono-meta text-text-3 font-mono">

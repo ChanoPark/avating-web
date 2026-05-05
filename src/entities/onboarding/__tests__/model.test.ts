@@ -1,137 +1,226 @@
 import { describe, it, expect } from 'vitest';
 import {
-  surveyResponseSchema,
+  surveyQuestionSchema,
+  surveyAnswerRequestSchema,
+  avatarCreateFromSurveyRequestSchema,
+  avatarCreateFromSurveyResponseSchema,
+  apiResponseSurveyQuestionsSchema,
+  surveyDraftSchema,
   connectCodeSchema,
   connectStatusSchema,
   generatedAvatarSchema,
   apiResponseConnectCode,
   apiResponseConnectStatus,
   apiResponseGeneratedAvatar,
-  apiResponseSurveySubmit,
-  apiResponseSurveyDraft,
   apiResponseCompleteOnboarding,
 } from '../model';
 
-describe('surveyResponseSchema', () => {
-  const validSurvey = {
-    q1: 'solo',
-    q2: 'wait',
-    q3: 'cafe',
-    q4: 'brief',
-    q5: 'calm',
-    q6: 'conversation',
+describe('surveyQuestionSchema', () => {
+  const validQuestion = {
+    id: 'AFFECTION_EXPRESSION_0001',
+    title: '질문 텍스트',
+    primaryType: 'AFFECTION_EXPRESSION',
+    questionType: 'SINGLE_CHOICE_5' as const,
+    answers: [
+      { answerId: 'AFFECTION_EXPRESSION_0001_ANS_1', text: '선택지 1' },
+      { answerId: 'AFFECTION_EXPRESSION_0001_ANS_2', text: '선택지 2' },
+    ],
   };
 
-  it('6 문항 모두 enum 정상 입력 시 파싱에 성공한다', () => {
-    const result = surveyResponseSchema.safeParse(validSurvey);
+  it('유효한 질문 데이터는 파싱에 성공한다', () => {
+    expect(surveyQuestionSchema.safeParse(validQuestion).success).toBe(true);
+  });
+
+  it('questionType 이 SINGLE_CHOICE_5 가 아니면 throw 한다', () => {
+    expect(() =>
+      surveyQuestionSchema.parse({ ...validQuestion, questionType: 'MULTI_CHOICE' })
+    ).toThrow();
+  });
+
+  it('answers 가 없으면 throw 한다', () => {
+    const { answers: _a, ...rest } = validQuestion;
+    expect(() => surveyQuestionSchema.parse(rest)).toThrow();
+  });
+});
+
+describe('surveyAnswerRequestSchema', () => {
+  const validAnswer = {
+    questionId: 'AFFECTION_EXPRESSION_0001',
+    questionType: 'SINGLE_CHOICE_5' as const,
+    answerId: 'AFFECTION_EXPRESSION_0001_ANS_1',
+  };
+
+  it('유효한 답변 요청은 파싱에 성공한다', () => {
+    expect(surveyAnswerRequestSchema.safeParse(validAnswer).success).toBe(true);
+  });
+
+  it('questionType 이 SINGLE_CHOICE_5 가 아니면 throw 한다', () => {
+    expect(() =>
+      surveyAnswerRequestSchema.parse({ ...validAnswer, questionType: 'OTHER' })
+    ).toThrow();
+  });
+});
+
+describe('avatarCreateFromSurveyRequestSchema', () => {
+  const validRequest = {
+    avatarName: '루나',
+    description: '내향적인 아바타',
+    answers: [
+      {
+        questionId: 'Q_001',
+        questionType: 'SINGLE_CHOICE_5' as const,
+        answerId: 'Q_001_ANS_1',
+      },
+    ],
+  };
+
+  it('유효한 요청은 파싱에 성공한다', () => {
+    expect(avatarCreateFromSurveyRequestSchema.safeParse(validRequest).success).toBe(true);
+  });
+
+  it('avatarName 이 빈 문자열이면 throw 한다', () => {
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, avatarName: '' })
+    ).toThrow();
+  });
+
+  it('answers 가 빈 배열이면 throw 한다', () => {
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, answers: [] })
+    ).toThrow();
+  });
+
+  it('avatarName 이 50자 경계는 통과한다', () => {
+    const name50 = 'a'.repeat(50);
+    expect(
+      avatarCreateFromSurveyRequestSchema.safeParse({ ...validRequest, avatarName: name50 }).success
+    ).toBe(true);
+  });
+
+  it('avatarName 이 51자면 throw 한다', () => {
+    const name51 = 'a'.repeat(51);
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, avatarName: name51 })
+    ).toThrow();
+  });
+
+  it('description 이 200자 경계는 통과한다', () => {
+    const desc200 = 'a'.repeat(200);
+    expect(
+      avatarCreateFromSurveyRequestSchema.safeParse({ ...validRequest, description: desc200 })
+        .success
+    ).toBe(true);
+  });
+
+  it('description 이 201자면 throw 한다', () => {
+    const desc201 = 'a'.repeat(201);
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, description: desc201 })
+    ).toThrow();
+  });
+});
+
+describe('apiResponseSurveyQuestionsSchema', () => {
+  it('data 배열이 있는 유효한 응답은 파싱에 성공한다', () => {
+    const result = apiResponseSurveyQuestionsSchema.safeParse({
+      data: [
+        {
+          id: 'Q_001',
+          title: '질문',
+          primaryType: 'EXTROVERSION',
+          questionType: 'SINGLE_CHOICE_5',
+          answers: [{ answerId: 'Q_001_ANS_1', text: '선택지' }],
+        },
+      ],
+    });
     expect(result.success).toBe(true);
   });
 
-  it('q1에 enum 외 값 입력 시 throw 한다', () => {
-    expect(() => surveyResponseSchema.parse({ ...validSurvey, q1: 'invalid' })).toThrow();
+  it('data 가 없으면 throw 한다', () => {
+    expect(() => apiResponseSurveyQuestionsSchema.parse({})).toThrow();
   });
 
-  it('q2에 enum 외 값 입력 시 throw 한다', () => {
-    expect(() => surveyResponseSchema.parse({ ...validSurvey, q2: 'invalid' })).toThrow();
+  it('data 가 빈 배열이면 throw 한다 (백엔드 빈 응답으로 인한 화면 깨짐 방지)', () => {
+    expect(() => apiResponseSurveyQuestionsSchema.parse({ data: [] })).toThrow();
+  });
+});
+
+describe('avatarCreateFromSurveyResponseSchema', () => {
+  it('avatarId 가 있는 유효한 응답은 파싱에 성공한다', () => {
+    expect(
+      avatarCreateFromSurveyResponseSchema.safeParse({ data: { avatarId: 'avatar-001' } }).success
+    ).toBe(true);
   });
 
-  it('q3에 enum 외 값 입력 시 throw 한다', () => {
-    expect(() => surveyResponseSchema.parse({ ...validSurvey, q3: 'invalid' })).toThrow();
+  it('avatarId 가 빈 문자열이면 throw 한다', () => {
+    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: { avatarId: '' } })).toThrow();
   });
 
-  it('q6에 enum 외 값 입력 시 throw 한다', () => {
-    expect(() => surveyResponseSchema.parse({ ...validSurvey, q6: 'invalid' })).toThrow();
+  it('avatarId 필드가 없으면 throw 한다', () => {
+    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: {} })).toThrow();
+  });
+});
+
+describe('surveyDraftSchema', () => {
+  it('answers 와 선택적 필드가 있는 유효한 draft 는 파싱에 성공한다', () => {
+    const result = surveyDraftSchema.safeParse({
+      answers: { Q_001: 'Q_001_ANS_1', Q_002: 'Q_002_ANS_3' },
+      avatarName: '루나',
+      description: '소개글',
+    });
+    expect(result.success).toBe(true);
   });
 
-  it('필드가 누락되면 throw 한다', () => {
-    const { q6: _q6, ...partial } = validSurvey;
-    expect(() => surveyResponseSchema.parse(partial)).toThrow();
+  it('avatarName, description 없이 answers 만 있어도 파싱에 성공한다', () => {
+    const result = surveyDraftSchema.safeParse({
+      answers: { Q_001: 'Q_001_ANS_2' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('answers 가 없으면 throw 한다', () => {
+    expect(() => surveyDraftSchema.parse({ avatarName: '루나' })).toThrow();
   });
 });
 
 describe('connectCodeSchema', () => {
   const validExpiresAt = '2026-05-01T12:00:00.000Z';
+  const validCode = {
+    connectCode: 'AVT-A1B2-C3',
+    expiresIn: 600,
+    expiresAt: validExpiresAt,
+  };
 
-  it('AVT-A1B2-C3 패턴은 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(true);
+  it('필수 필드를 갖춘 유효한 응답은 파싱에 성공한다', () => {
+    expect(connectCodeSchema.safeParse(validCode).success).toBe(true);
   });
 
-  it('소문자 코드는 파싱에 실패한다 (AVT-abcd-ef)', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-abcd-ef',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(false);
+  it('connectCode 필드가 없으면 throw 한다', () => {
+    const { connectCode: _, ...rest } = validCode;
+    expect(() => connectCodeSchema.parse(rest)).toThrow();
   });
 
-  it('형식이 다른 코드 INVALID 는 파싱에 실패한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'INVALID',
-      expiresAt: validExpiresAt,
-      status: 'active',
-    });
-    expect(result.success).toBe(false);
+  it('expiresIn 이 양수 정수가 아니면 throw 한다', () => {
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresIn: 0 })).toThrow();
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresIn: -1 })).toThrow();
   });
 
   it('expiresAt 이 ISO datetime 이 아니면 throw 한다', () => {
-    expect(() =>
-      connectCodeSchema.parse({
-        code: 'AVT-A1B2-C3',
-        expiresAt: 'not-a-date',
-        status: 'active',
-      })
-    ).toThrow();
-  });
-
-  it('status 가 enum 외 값이면 throw 한다', () => {
-    expect(() =>
-      connectCodeSchema.parse({
-        code: 'AVT-A1B2-C3',
-        expiresAt: validExpiresAt,
-        status: 'unknown',
-      })
-    ).toThrow();
-  });
-
-  it('status 가 connected 이면 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'connected',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('status 가 expired 이면 파싱에 성공한다', () => {
-    const result = connectCodeSchema.safeParse({
-      code: 'AVT-A1B2-C3',
-      expiresAt: validExpiresAt,
-      status: 'expired',
-    });
-    expect(result.success).toBe(true);
+    expect(() => connectCodeSchema.parse({ ...validCode, expiresAt: 'not-a-date' })).toThrow();
   });
 });
 
 describe('connectStatusSchema', () => {
   it('active 상태는 파싱에 성공한다', () => {
-    const result = connectStatusSchema.safeParse({ status: 'active' });
-    expect(result.success).toBe(true);
+    expect(connectStatusSchema.safeParse({ status: 'active' }).success).toBe(true);
   });
 
   it('connected 상태는 파싱에 성공한다', () => {
-    const result = connectStatusSchema.safeParse({ status: 'connected' });
-    expect(result.success).toBe(true);
+    expect(connectStatusSchema.safeParse({ status: 'connected' }).success).toBe(true);
   });
 
   it('expired 상태는 파싱에 성공한다', () => {
-    const result = connectStatusSchema.safeParse({ status: 'expired' });
-    expect(result.success).toBe(true);
+    expect(connectStatusSchema.safeParse({ status: 'expired' }).success).toBe(true);
   });
 
   it('enum 외 상태는 throw 한다', () => {
@@ -156,8 +245,7 @@ describe('generatedAvatarSchema', () => {
   };
 
   it('유효한 아바타 데이터는 파싱에 성공한다', () => {
-    const result = generatedAvatarSchema.safeParse(validAvatar);
-    expect(result.success).toBe(true);
+    expect(generatedAvatarSchema.safeParse(validAvatar).success).toBe(true);
   });
 
   it('tags 가 6개이면 파싱에 성공한다', () => {
@@ -213,8 +301,9 @@ describe('generatedAvatarSchema', () => {
   });
 
   it('initials 가 4자이면 파싱에 성공한다', () => {
-    const result = generatedAvatarSchema.safeParse({ ...validAvatar, initials: 'ABCD' });
-    expect(result.success).toBe(true);
+    expect(generatedAvatarSchema.safeParse({ ...validAvatar, initials: 'ABCD' }).success).toBe(
+      true
+    );
   });
 
   it('initials 가 5자이면 throw 한다', () => {
@@ -226,25 +315,25 @@ describe('apiResponseConnectCode', () => {
   it('data 필드가 있는 유효한 응답은 파싱에 성공한다', () => {
     const result = apiResponseConnectCode.safeParse({
       data: {
-        code: 'AVT-A1B2-C3',
+        connectCode: 'AVT-A1B2-C3',
+        expiresIn: 600,
         expiresAt: '2026-05-01T12:00:00.000Z',
-        status: 'active',
       },
     });
     expect(result.success).toBe(true);
   });
 
   it('data 필드가 없으면 throw 한다', () => {
-    expect(() => apiResponseConnectCode.parse({ code: 'AVT-A1B2-C3' })).toThrow();
+    expect(() => apiResponseConnectCode.parse({ connectCode: 'AVT-A1B2-C3' })).toThrow();
   });
 
-  it('data.code 가 잘못된 패턴이면 throw 한다', () => {
+  it('data.expiresAt 이 유효하지 않으면 throw 한다', () => {
     expect(() =>
       apiResponseConnectCode.parse({
         data: {
-          code: 'INVALID',
-          expiresAt: '2026-05-01T12:00:00.000Z',
-          status: 'active',
+          connectCode: 'AVT-A1B2-C3',
+          expiresIn: 600,
+          expiresAt: 'not-a-date',
         },
       })
     ).toThrow();
@@ -253,8 +342,7 @@ describe('apiResponseConnectCode', () => {
 
 describe('apiResponseConnectStatus', () => {
   it('유효한 status 응답은 파싱에 성공한다', () => {
-    const result = apiResponseConnectStatus.safeParse({ data: { status: 'active' } });
-    expect(result.success).toBe(true);
+    expect(apiResponseConnectStatus.safeParse({ data: { status: 'active' } }).success).toBe(true);
   });
 
   it('data 필드가 없으면 throw 한다', () => {
@@ -280,34 +368,6 @@ describe('apiResponseGeneratedAvatar', () => {
 
   it('data 필드가 없으면 throw 한다', () => {
     expect(() => apiResponseGeneratedAvatar.parse({ name: '루나' })).toThrow();
-  });
-});
-
-describe('apiResponseSurveySubmit', () => {
-  it('유효한 avatarId 응답은 파싱에 성공한다', () => {
-    const result = apiResponseSurveySubmit.safeParse({ data: { avatarId: 'avatar-123' } });
-    expect(result.success).toBe(true);
-  });
-
-  it('data.avatarId 가 빈 문자열이면 throw 한다', () => {
-    expect(() => apiResponseSurveySubmit.parse({ data: { avatarId: '' } })).toThrow();
-  });
-
-  it('data 필드가 없으면 throw 한다', () => {
-    expect(() => apiResponseSurveySubmit.parse({ avatarId: 'avatar-123' })).toThrow();
-  });
-});
-
-describe('apiResponseSurveyDraft', () => {
-  it('유효한 savedAt 응답은 파싱에 성공한다', () => {
-    const result = apiResponseSurveyDraft.safeParse({
-      data: { savedAt: '2026-05-01T12:00:00.000Z' },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('savedAt 이 ISO datetime 이 아니면 throw 한다', () => {
-    expect(() => apiResponseSurveyDraft.parse({ data: { savedAt: 'not-a-date' } })).toThrow();
   });
 });
 
