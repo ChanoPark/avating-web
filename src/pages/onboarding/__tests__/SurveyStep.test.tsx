@@ -192,6 +192,13 @@ describe('SurveyStep', () => {
       expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeDisabled();
     });
 
+    it('avatarName 입력 필드에 maxLength 50 이 적용된다', async () => {
+      const user = userEvent.setup();
+      await goToAvatarPage(user);
+
+      expect(screen.getByLabelText(/아바타 이름/i)).toHaveAttribute('maxLength', '50');
+    });
+
     it('이름 입력 시 "아바타 생성" 버튼이 활성화된다', async () => {
       const user = userEvent.setup();
       await goToAvatarPage(user);

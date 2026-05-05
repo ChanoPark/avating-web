@@ -18,6 +18,7 @@ export function saveDraft(data: SurveyDraft): void {
       value: data,
     };
     localStorage.setItem(KEY, JSON.stringify(stored));
+    /* v8 ignore next 2 */
   } catch {
     // QuotaExceededError / SecurityError (Safari private mode) — skip silently
   }

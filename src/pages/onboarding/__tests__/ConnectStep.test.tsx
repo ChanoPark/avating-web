@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -91,7 +91,9 @@ describe('ConnectStep', () => {
 
       const initialTime = screen.getByRole('timer').textContent!;
 
-      await vi.advanceTimersByTimeAsync(1000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
 
       await waitFor(() => {
         const currentTime = screen.getByRole('timer').textContent!;
@@ -163,7 +165,9 @@ describe('ConnectStep', () => {
 
       const initialCount = statusCallCount;
 
-      await vi.advanceTimersByTimeAsync(15_000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
 
       await waitFor(() => {
         expect(statusCallCount).toBeGreaterThan(initialCount);
@@ -190,7 +194,9 @@ describe('ConnectStep', () => {
 
       const callCountAtNav = statusCallCount;
 
-      await vi.advanceTimersByTimeAsync(15_000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
 
       await waitFor(() => {
         expect(statusCallCount).toBe(callCountAtNav);
@@ -224,7 +230,9 @@ describe('ConnectStep', () => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
 
-      await vi.advanceTimersByTimeAsync(3000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
+      });
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /재발급/i })).toBeInTheDocument();
@@ -263,7 +271,9 @@ describe('ConnectStep', () => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
 
-      await vi.advanceTimersByTimeAsync(3000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(3000);
+      });
 
       await waitFor(() => {
         expect(screen.queryByRole('button', { name: /재발급/i })).toBeInTheDocument();
@@ -271,7 +281,9 @@ describe('ConnectStep', () => {
 
       const countAfterLocalExpiry = statusCallCount;
 
-      await vi.advanceTimersByTimeAsync(15_000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(15_000);
+      });
 
       await waitFor(() => {
         expect(statusCallCount).toBeGreaterThan(countAfterLocalExpiry);
@@ -300,7 +312,9 @@ describe('ConnectStep', () => {
 
       const countAtExpiry = statusCallCount;
 
-      await vi.advanceTimersByTimeAsync(30_000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30_000);
+      });
 
       await waitFor(() => {
         expect(statusCallCount).toBe(countAtExpiry);
@@ -356,7 +370,9 @@ describe('ConnectStep', () => {
 
       const countAtUnmount = statusCallCount;
 
-      await vi.advanceTimersByTimeAsync(30_000);
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(30_000);
+      });
 
       expect(statusCallCount).toBe(countAtUnmount);
     });
