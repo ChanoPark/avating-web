@@ -17,7 +17,6 @@ import { SurveyQuestion } from './SurveyQuestion';
 
 export function SurveyStep() {
   const navigate = useNavigate();
-  const { data: questions, isLoading, isError, refetch } = useSurveyQuestions();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const draftRestoredRef = useRef(false);
@@ -25,6 +24,13 @@ export function SurveyStep() {
 
   const onboardingProgress = getOnboardingProgress();
   const guardFailed = onboardingProgress !== 'welcome';
+
+  const {
+    data: questions,
+    isLoading,
+    isError,
+    refetch,
+  } = useSurveyQuestions({ enabled: !guardFailed });
 
   useEffect(() => {
     if (guardFailed) {
@@ -205,9 +211,18 @@ export function SurveyStep() {
               type="text"
               maxLength={50}
               placeholder="아바타 이름을 입력하세요"
-              className="border-border bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none"
+              aria-invalid={form.formState.errors.avatarName ? 'true' : undefined}
+              aria-describedby={form.formState.errors.avatarName ? 'avatarName-error' : undefined}
+              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none ${
+                form.formState.errors.avatarName ? 'border-danger' : 'border-border'
+              }`}
               {...form.register('avatarName')}
             />
+            {form.formState.errors.avatarName?.message && (
+              <p id="avatarName-error" className="text-body-sm text-danger">
+                {form.formState.errors.avatarName.message}
+              </p>
+            )}
           </div>
           <div className="flex flex-col gap-1">
             <label htmlFor="description" className="text-body text-text">
@@ -218,9 +233,18 @@ export function SurveyStep() {
               placeholder="아바타를 간단히 소개해주세요"
               maxLength={200}
               rows={3}
-              className="border-border bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand resize-none rounded-sm border px-3 py-2.5 text-sm outline-none"
+              aria-invalid={form.formState.errors.description ? 'true' : undefined}
+              aria-describedby={form.formState.errors.description ? 'description-error' : undefined}
+              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand resize-none rounded-sm border px-3 py-2.5 text-sm outline-none ${
+                form.formState.errors.description ? 'border-danger' : 'border-border'
+              }`}
               {...form.register('description')}
             />
+            {form.formState.errors.description?.message && (
+              <p id="description-error" className="text-body-sm text-danger">
+                {form.formState.errors.description.message}
+              </p>
+            )}
           </div>
         </div>
       )}
