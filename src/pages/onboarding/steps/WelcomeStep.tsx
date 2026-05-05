@@ -20,7 +20,7 @@ export function WelcomeStep() {
 
   return (
     <div className="mx-auto flex w-full max-w-[640px] flex-col gap-8 px-4 py-8">
-      <div className="text-center">
+      <div className="text-center select-none">
         <h1 className="text-title text-text mb-3">당신의 아바타를 만듭니다</h1>
         <p className="text-body text-text-2">
           AI 아바타가 당신 대신 소개팅을 합니다. 3단계로 시작하세요.
@@ -31,7 +31,7 @@ export function WelcomeStep() {
         {STEPS.map((step) => (
           <li
             key={step.num}
-            className="border-border bg-bg-elev-2 flex items-start gap-4 rounded-md border p-4"
+            className="border-border bg-bg-elev-2 flex cursor-default items-start gap-4 rounded-md border p-4 select-none"
           >
             <span className="text-brand font-mono text-lg font-bold">{step.num}</span>
             <div>
