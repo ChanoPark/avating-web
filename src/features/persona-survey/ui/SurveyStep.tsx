@@ -190,6 +190,11 @@ export function SurveyStep() {
       noValidate
       className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8"
     >
+      <p role="status" aria-live="polite" className="sr-only">
+        {isAvatarNamePage
+          ? `아바타 이름 입력 페이지`
+          : `질문 ${pageIndex + 1} / ${questions.length}`}
+      </p>
       {currentQuestion ? (
         <SurveyQuestion
           name={currentQuestion.id}

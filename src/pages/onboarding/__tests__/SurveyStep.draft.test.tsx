@@ -10,6 +10,7 @@ const DRAFT_KEY = 'avating:onboarding:survey-draft';
 const MOCK_Q1_TITLE = /첫 데이트가 끝날 무렵/i;
 const MOCK_Q2_TITLE = /팀장님 때문에/i;
 const MOCK_Q1_ANS1 = /속으로만 생각하고 기다린다/i;
+const MOCK_Q2_ANS1 = /상황 파악 우선/i;
 
 const mockNavigate = vi.fn();
 
@@ -48,6 +49,51 @@ describe('SurveyStep — draft', () => {
       });
 
       vi.useRealTimers();
+    });
+  });
+
+  describe('draft 삭제', () => {
+    it('제출 성공 시 localStorage draft 가 삭제된다', async () => {
+      const draft = {
+        savedAt: new Date().toISOString(),
+        value: {
+          answers: {
+            AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_1',
+            EMPATHY_0001: 'EMPATHY_0001_ANS_1',
+          },
+        },
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+
+      const user = userEvent.setup();
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
+      });
+
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+      });
+
+      expect(localStorage.getItem(DRAFT_KEY)).toBeNull();
     });
   });
 

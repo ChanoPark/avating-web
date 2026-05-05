@@ -66,50 +66,7 @@ describe('SurveyQuestion', () => {
     expect(onChange).toHaveBeenCalledWith('ANS_1');
   });
 
-  it('error prop 없을 때 에러 메시지 노드가 DOM 에 없다', () => {
-    const { container } = render(
-      <SurveyQuestion
-        name="Q_001"
-        question="질문"
-        options={OPTIONS}
-        value={undefined}
-        onChange={vi.fn()}
-      />
-    );
-    expect(container.querySelector('p.text-danger')).toBeNull();
-    expect(screen.queryByText('필수 항목입니다')).not.toBeInTheDocument();
-  });
-
-  it('error prop 전달 시 에러 메시지가 렌더된다', () => {
-    render(
-      <SurveyQuestion
-        name="Q_001"
-        question="질문"
-        options={OPTIONS}
-        value={undefined}
-        onChange={vi.fn()}
-        error="필수 항목입니다"
-      />
-    );
-    expect(screen.getByText('필수 항목입니다')).toBeInTheDocument();
-  });
-
-  it('error prop 전달 시 fieldset 에 border-danger 클래스가 적용된다', () => {
-    render(
-      <SurveyQuestion
-        name="Q_001"
-        question="질문"
-        options={OPTIONS}
-        value={undefined}
-        onChange={vi.fn()}
-        error="오류"
-      />
-    );
-    const fieldset = screen.getByRole('group');
-    expect(fieldset).toHaveClass('border-danger');
-  });
-
-  it('error prop 없을 때 fieldset 에 border-border 클래스가 적용된다', () => {
+  it('fieldset 에 border-border 클래스가 적용된다', () => {
     render(
       <SurveyQuestion
         name="Q_001"
