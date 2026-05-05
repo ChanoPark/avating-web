@@ -91,7 +91,7 @@ describe('ConnectStep', () => {
 
       const initialTime = screen.getByRole('timer').textContent!;
 
-      vi.advanceTimersByTime(1000);
+      await vi.advanceTimersByTimeAsync(1000);
 
       await waitFor(() => {
         const currentTime = screen.getByRole('timer').textContent!;
@@ -163,7 +163,7 @@ describe('ConnectStep', () => {
 
       const initialCount = statusCallCount;
 
-      vi.advanceTimersByTime(15_000);
+      await vi.advanceTimersByTimeAsync(15_000);
 
       await waitFor(() => {
         expect(statusCallCount).toBeGreaterThan(initialCount);
@@ -190,7 +190,7 @@ describe('ConnectStep', () => {
 
       const callCountAtNav = statusCallCount;
 
-      vi.advanceTimersByTime(15_000);
+      await vi.advanceTimersByTimeAsync(15_000);
 
       await waitFor(() => {
         expect(statusCallCount).toBe(callCountAtNav);
@@ -224,7 +224,7 @@ describe('ConnectStep', () => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
 
-      vi.advanceTimersByTime(3000);
+      await vi.advanceTimersByTimeAsync(3000);
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /재발급/i })).toBeInTheDocument();
@@ -263,7 +263,7 @@ describe('ConnectStep', () => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
 
-      vi.advanceTimersByTime(3000);
+      await vi.advanceTimersByTimeAsync(3000);
 
       await waitFor(() => {
         expect(screen.queryByRole('button', { name: /재발급/i })).toBeInTheDocument();
@@ -271,7 +271,7 @@ describe('ConnectStep', () => {
 
       const countAfterLocalExpiry = statusCallCount;
 
-      vi.advanceTimersByTime(15_000);
+      await vi.advanceTimersByTimeAsync(15_000);
 
       await waitFor(() => {
         expect(statusCallCount).toBeGreaterThan(countAfterLocalExpiry);
@@ -300,7 +300,7 @@ describe('ConnectStep', () => {
 
       const countAtExpiry = statusCallCount;
 
-      vi.advanceTimersByTime(30_000);
+      await vi.advanceTimersByTimeAsync(30_000);
 
       await waitFor(() => {
         expect(statusCallCount).toBe(countAtExpiry);
@@ -356,7 +356,7 @@ describe('ConnectStep', () => {
 
       const countAtUnmount = statusCallCount;
 
-      vi.advanceTimersByTime(30_000);
+      await vi.advanceTimersByTimeAsync(30_000);
 
       expect(statusCallCount).toBe(countAtUnmount);
     });

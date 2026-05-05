@@ -12,11 +12,15 @@ type StoredDraft = {
 };
 
 export function saveDraft(data: SurveyDraft): void {
-  const stored: StoredDraft = {
-    savedAt: new Date().toISOString(),
-    value: data,
-  };
-  localStorage.setItem(KEY, JSON.stringify(stored));
+  try {
+    const stored: StoredDraft = {
+      savedAt: new Date().toISOString(),
+      value: data,
+    };
+    localStorage.setItem(KEY, JSON.stringify(stored));
+  } catch {
+    // QuotaExceededError / SecurityError (Safari private mode) — skip silently
+  }
 }
 
 export function loadDraft(): SurveyDraft | null {
