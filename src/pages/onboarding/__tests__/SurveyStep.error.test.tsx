@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { surveyQuestionsHandlers, surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
@@ -41,6 +41,20 @@ describe('SurveyStep — 에러 처리', () => {
     vi.clearAllMocks();
     localStorage.clear();
     server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
+  });
+
+  describe('질문 로딩 중', () => {
+    it('요청 중에는 로딩 텍스트가 표시된다', () => {
+      server.use(
+        http.get(`${BASE_URL}/api/persona/survey/questions`, async () => {
+          await delay('infinite');
+        })
+      );
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      expect(screen.getByText(/질문을 불러오는 중/i)).toBeInTheDocument();
+    });
   });
 
   describe('질문 로딩 실패', () => {

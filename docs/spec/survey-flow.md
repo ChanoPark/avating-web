@@ -36,6 +36,7 @@
 - 답변 선택/이름 입력 시 300ms debounce 후 localStorage에 저장 (`avating:onboarding:survey-draft`)
 - 페이지 재방문 시 draft를 복원, 질문 카탈로그와 교차 검증 후 stale 답변 제거
 - 아바타 생성 성공 시 draft 즉시 삭제
+- **PII 예외 근거**: `avatarName`은 온보딩 완료 전 계정 미생성 단계의 임시 입력값으로, 실 서비스 닉네임 PII 범주에 해당하지 않음. 24h TTL 자동 삭제 및 아바타 생성 성공 시 `clearDraft()`로 즉시 제거되어 잔류하지 않음.
 
 ### 4. 에러 처리
 

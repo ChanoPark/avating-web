@@ -223,7 +223,7 @@ export function SurveyStep() {
               }`}
               {...form.register('avatarName')}
             />
-            {/* v8 ignore next 3 — maxLength+disabled 가드로 UX상 도달 불가 */}
+            {/* v8 ignore next 5 — maxLength+disabled 가드로 UX상 도달 불가 */}
             {form.formState.errors.avatarName?.message && (
               <p id="avatarName-error" className="text-body-sm text-danger">
                 {form.formState.errors.avatarName.message}
@@ -246,7 +246,7 @@ export function SurveyStep() {
               }`}
               {...form.register('description')}
             />
-            {/* v8 ignore next 3 — maxLength(200)+Zod max(200) 일치로 UX상 도달 불가 */}
+            {/* v8 ignore next 5 — maxLength(200)+Zod max(200) 일치로 UX상 도달 불가 */}
             {form.formState.errors.description?.message && (
               <p id="description-error" className="text-body-sm text-danger">
                 {form.formState.errors.description.message}
