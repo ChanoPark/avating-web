@@ -158,8 +158,9 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           {isLoading ? '가입 중...' : '회원가입'}
         </Button>
 
-        <Link to="/login" className="text-body-sm text-text-2 hover:text-text text-center">
-          이미 계정이 있으신가요? 로그인
+        <Link to="/login" className="group text-body-sm text-text-2 hover:text-text mx-auto w-fit">
+          이미 계정이 있으신가요?{' '}
+          <span className="text-brand group-hover:text-brand-hover">로그인</span>
         </Link>
       </div>
     </form>

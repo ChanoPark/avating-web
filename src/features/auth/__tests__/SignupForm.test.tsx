@@ -35,6 +35,35 @@ describe('SignupForm', () => {
       renderWithProviders(<SignupForm />);
       expect(screen.getByRole('button', { name: /회원가입/i })).toBeInTheDocument();
     });
+
+    it('로그인 링크가 렌더되고 /login href를 가진다', () => {
+      renderWithProviders(<SignupForm />);
+      const link = screen.getByRole('link', { name: /로그인/i });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/login');
+    });
+
+    it('"로그인" 텍스트에 브랜드 컬러·hover 클래스가 적용된다', () => {
+      renderWithProviders(<SignupForm />);
+      const link = screen.getByRole('link', { name: /로그인/i });
+      const brandSpan = link.querySelector('span');
+      expect(brandSpan).toHaveClass('text-brand');
+      expect(brandSpan).toHaveClass('group-hover:text-brand-hover');
+    });
+
+    it('로그인 링크 클릭 영역이 텍스트 너비로 제한되고 중앙 정렬된다', () => {
+      renderWithProviders(<SignupForm />);
+      const link = screen.getByRole('link', { name: /로그인/i });
+      expect(link).toHaveClass('w-fit');
+      expect(link).toHaveClass('mx-auto');
+    });
+
+    it('로그인 링크가 포커스 가능하다', () => {
+      renderWithProviders(<SignupForm />);
+      const link = screen.getByRole('link', { name: /로그인/i });
+      link.focus();
+      expect(link).toHaveFocus();
+    });
   });
 
   describe('닉네임 유효성 검증', () => {
