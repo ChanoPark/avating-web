@@ -33,7 +33,7 @@
 
 ### 3. 임시 저장 (Draft)
 
-- 답변 선택/이름 입력 시 300ms debounce 후 localStorage에 저장 (`avating:survey:draft`)
+- 답변 선택/이름 입력 시 300ms debounce 후 localStorage에 저장 (`avating:onboarding:survey-draft`)
 - 페이지 재방문 시 draft를 복원, 질문 카탈로그와 교차 검증 후 stale 답변 제거
 - 아바타 생성 성공 시 draft 즉시 삭제
 
@@ -47,7 +47,7 @@
 
 | 엔드포인트                      | 메서드 | 설명                                         |
 | ------------------------------- | ------ | -------------------------------------------- |
-| `/api/persona/survey/questions` | GET    | 설문 질문 목록 (queryCount 파라미터)         |
+| `/api/persona/survey/questions` | GET    | 설문 질문 목록 (questionCount 파라미터)      |
 | `/api/avatars/survey/`          | POST   | 아바타 생성 (후행 슬래시 — DRF APPEND_SLASH) |
 
 ### POST `/api/avatars/survey/` 요청 바디
