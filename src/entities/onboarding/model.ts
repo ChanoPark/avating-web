@@ -28,6 +28,8 @@ export type SurveyAnswerRequest = z.infer<typeof surveyAnswerRequestSchema>;
 
 export const avatarCreateFromSurveyRequestSchema = z.object({
   avatarName: z.string().min(1).max(50),
+  // UI에서 선택 항목이나 백엔드는 빈 문자열(empty string)을 허용 — optional()이 아닌 이유:
+  // 필드 자체를 누락하면 백엔드 직렬화 계약 위반, 빈 문자열은 명시적 "미입력" 의사 표현.
   description: z.string().max(200),
   answers: z.array(surveyAnswerRequestSchema).min(1),
 });
