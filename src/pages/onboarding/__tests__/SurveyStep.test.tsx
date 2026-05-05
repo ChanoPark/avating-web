@@ -251,6 +251,45 @@ describe('SurveyStep', () => {
       });
     });
 
+    it('제출 진행 중 "아바타 생성" 버튼이 "생성 중..." 텍스트로 변경되고 disabled 된다', async () => {
+      const user = userEvent.setup();
+
+      server.use(
+        surveyQuestionsHandlers.success,
+        http.post(`${BASE_URL}/api/avatars/survey/`, async () => {
+          await new Promise(() => undefined);
+        })
+      );
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
+      });
+
+      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /생성 중/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /생성 중/i })).toBeDisabled();
+      });
+    });
+
     it('서버 오류 응답 시 에러 메시지가 노출되고 navigate 는 호출되지 않는다', async () => {
       const user = userEvent.setup();
 

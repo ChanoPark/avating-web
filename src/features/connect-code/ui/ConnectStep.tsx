@@ -13,7 +13,8 @@ export function ConnectStep() {
   const queryClient = useQueryClient();
   const toast = useToast();
 
-  const guardFailed = getOnboardingProgress() === 'welcome';
+  const onboardingProgress = getOnboardingProgress();
+  const guardFailed = onboardingProgress !== 'connect';
 
   const {
     mutate: issueCode,
@@ -38,9 +39,9 @@ export function ConnectStep() {
 
   useEffect(() => {
     if (guardFailed) {
-      void navigate('/onboarding/survey', { replace: true });
+      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
     }
-  }, [guardFailed, navigate]);
+  }, [guardFailed, onboardingProgress, navigate]);
 
   useEffect(() => {
     if (guardFailed) return;

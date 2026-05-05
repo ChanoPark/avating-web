@@ -40,12 +40,21 @@ describe('ConnectStep', () => {
   });
 
   describe('진입 가드', () => {
-    it('progress 가 welcome 이면 /onboarding/survey 로 redirect 한다', async () => {
+    it('progress 가 welcome 이면 /onboarding/welcome 으로 redirect 한다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'welcome');
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+      });
+    });
+
+    it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
       });
     });
   });
@@ -141,6 +150,29 @@ describe('ConnectStep', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/복사되었습니다/i)).toBeInTheDocument();
+      });
+    });
+
+    it('클립보드 API 실패 시 에러 토스트 "복사를 사용할 수 없는 환경입니다" 가 노출된다', async () => {
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        writable: true,
+        value: { writeText: vi.fn().mockRejectedValue(new Error('not allowed')) },
+      });
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /복사/i })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /복사/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/복사를 사용할 수 없는 환경입니다/i)).toBeInTheDocument();
       });
     });
   });
