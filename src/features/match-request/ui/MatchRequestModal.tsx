@@ -1,12 +1,14 @@
-import { useEffect, useId } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
+import { Link } from 'react-router';
 import { Button } from '@shared/ui/Button';
 import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
 import { cn } from '@shared/lib/cn';
+import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import { matchRequestFormSchema } from '../lib/formSchema';
 import type { MatchRequestFormValues } from '../lib/formSchema';
 import { useMyAvatars } from '../api/useMyAvatars';
@@ -16,6 +18,8 @@ import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCar
 
 const REQUEST_COST_GEMS = 30;
 const GREETING_MAX = 100;
+
+type InlineError = { kind: 'insufficient-gems' } | { kind: 'network' };
 
 type Props = {
   open: boolean;
@@ -30,13 +34,22 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const greetingErrorId = useId();
   const radioErrorId = useId();
   const costNoteId = useId();
+  const inlineErrorId = useId();
 
   const { show: showToast } = useToast();
-  const { data: myAvatarsData, isLoading: avatarsLoading } = useMyAvatars();
+  const {
+    data: myAvatarsData,
+    isLoading: avatarsLoading,
+    isError: avatarsError,
+    refetch: refetchAvatars,
+  } = useMyAvatars();
   const { mutateAsync, isPending } = useSendMatchRequest();
 
   const myAvatars = myAvatarsData?.items ?? [];
   const firstSelectableId = myAvatars.find((a) => !a.busy)?.id ?? '';
+
+  const [inlineError, setInlineError] = useState<InlineError | null>(null);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
 
   const {
     register,
@@ -48,6 +61,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   } = useForm<MatchRequestFormValues>({
     resolver: zodResolver(matchRequestFormSchema),
     mode: 'onTouched',
+    reValidateMode: 'onChange',
     defaultValues: { requesterAvatarId: '', greeting: '' },
   });
 
@@ -59,7 +73,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   }, [open, firstSelectableId, setValue, watch]);
 
   useEffect(() => {
-    if (!open) reset({ requesterAvatarId: '', greeting: '' });
+    if (!open) {
+      reset({ requesterAvatarId: '', greeting: '' });
+      setInlineError(null);
+    }
   }, [open, reset]);
 
   useEffect(() => {
@@ -73,16 +90,37 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     };
   }, [open, onClose, isPending]);
 
+  useFocusTrap(open, dialogRef);
+
+  useEffect(() => {
+    if (!open) return;
+    if (avatarsLoading) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const firstRadio = dialog.querySelector<HTMLInputElement>('input[type="radio"]:not(:disabled)');
+    if (firstRadio !== null) {
+      firstRadio.focus();
+      return;
+    }
+    dialog.focus();
+  }, [open, avatarsLoading, avatarsError]);
+
   if (!open) return null;
 
   const greetingValue = watch('greeting') ?? '';
   const greetingLength = greetingValue.length;
   const requesterAvatarId = watch('requesterAvatarId');
 
-  const noSelectableAvatars = !avatarsLoading && myAvatars.every((a) => a.busy);
+  const hasNoAvatars = !avatarsLoading && !avatarsError && myAvatars.length === 0;
+  const allBusy =
+    !avatarsLoading && !avatarsError && myAvatars.length > 0 && myAvatars.every((a) => a.busy);
+  const isGreetingOverLimit = greetingLength > GREETING_MAX;
   const isLoading = isSubmitting || isPending;
+  const submitDisabled =
+    isLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
+    setInlineError(null);
     const greeting = (values.greeting ?? '').trim();
     try {
       await mutateAsync({
@@ -96,7 +134,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     } catch (err) {
       if (isApiError(err)) {
         if (err.statusCode === 402 && err.code === 'INSUFFICIENT_GEMS') {
-          showToast({ variant: 'error', title: '다이아가 부족해요' });
+          setInlineError({ kind: 'insufficient-gems' });
           return;
         }
         if (err.statusCode === 409 && err.code === 'PARTNER_BLOCKED') {
@@ -110,6 +148,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           return;
         }
       }
+      setInlineError({ kind: 'network' });
       showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
     }
   };
@@ -129,10 +168,12 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="border-border bg-bg-elev-1 shadow-2 relative flex w-full max-w-[440px] flex-col gap-4 rounded-xl border p-6"
+        tabIndex={-1}
+        className="border-border bg-bg-elev-1 shadow-2 relative flex w-full max-w-[440px] flex-col gap-4 rounded-xl border p-6 focus:outline-none"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-center justify-between">
@@ -176,7 +217,30 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             </div>
             {avatarsLoading ? (
               <p className="text-body-sm text-text-3">아바타 목록 불러오는 중…</p>
-            ) : noSelectableAvatars ? (
+            ) : avatarsError ? (
+              <div
+                role="alert"
+                className="text-body-sm text-danger border-border bg-bg-elev-2 flex flex-col gap-2 rounded-sm border p-3"
+              >
+                <span>아바타 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    void refetchAvatars();
+                  }}
+                  className="text-mono-meta text-brand self-start font-mono uppercase"
+                >
+                  다시 시도
+                </button>
+              </div>
+            ) : hasNoAvatars ? (
+              <p
+                role="alert"
+                className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
+              >
+                아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
+              </p>
+            ) : allBusy ? (
               <p
                 role="alert"
                 className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
@@ -220,7 +284,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               <span
                 className={cn(
                   'text-mono-meta font-mono uppercase',
-                  greetingLength > GREETING_MAX ? 'text-danger' : 'text-text-3'
+                  isGreetingOverLimit ? 'text-danger' : 'text-text-3'
                 )}
               >
                 {greetingLength}/{GREETING_MAX}
@@ -231,7 +295,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               rows={3}
               maxLength={GREETING_MAX + 20}
               placeholder="비워두면 아바타가 자율적으로 인사를 시작합니다"
-              aria-invalid={errors.greeting ? true : undefined}
+              aria-invalid={errors.greeting !== undefined ? true : undefined}
               aria-describedby={errors.greeting !== undefined ? greetingErrorId : undefined}
               {...register('greeting')}
               className={cn(
@@ -250,6 +314,42 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               </p>
             )}
           </div>
+
+          {inlineError !== null && (
+            <div
+              id={inlineErrorId}
+              role="alert"
+              className="border-danger bg-bg-elev-2 text-body-sm text-text flex flex-col gap-2 rounded-sm border p-3"
+            >
+              {inlineError.kind === 'insufficient-gems' ? (
+                <>
+                  <span className="font-medium">다이아가 부족해요</span>
+                  <span className="text-text-2">
+                    매칭 요청에는 ◇ {REQUEST_COST_GEMS}이 필요해요. 충전 후 다시 시도해주세요.
+                  </span>
+                  <Link
+                    to="/shop"
+                    className="text-mono-meta text-brand self-start font-mono uppercase"
+                  >
+                    충전하러 가기 →
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <span className="font-medium">전송에 실패했어요</span>
+                  <span className="text-text-2">
+                    네트워크 오류로 요청을 보내지 못했어요. 같은 내용으로 다시 시도할 수 있어요.
+                  </span>
+                  <button
+                    type="submit"
+                    className="text-mono-meta text-brand self-start font-mono uppercase"
+                  >
+                    다시 시도
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           <div
             id={costNoteId}
@@ -279,7 +379,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               type="submit"
               variant="primary"
               className="flex-[2]"
-              disabled={isLoading || noSelectableAvatars}
+              disabled={submitDisabled}
               aria-busy={isLoading}
               aria-describedby={costNoteId}
             >

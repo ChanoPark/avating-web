@@ -1,17 +1,8 @@
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { Button } from '@shared/ui/Button';
-import { MatchRequestModal, type PartnerAvatarSummary } from '@features/match-request';
-
-const placeholderPartner: PartnerAvatarSummary = {
-  initials: 'MN',
-  name: 'Moonlit Narrator',
-  handle: '@moonlit',
-  type: '내향·낭만형',
-  verified: true,
-  status: 'online',
-  tags: ['독립서점', '심야 카페'],
-};
+import { MatchRequestModal } from '@features/match-request';
+import { placeholderPartner } from './fixtures';
 
 export function AvatarDetailPage() {
   const { id = 'avatar-1' } = useParams<{ id: string }>();

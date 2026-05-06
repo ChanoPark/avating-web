@@ -165,6 +165,61 @@ describe('MatchRequestModal', () => {
     });
   });
 
+  describe('greeting 유효성 UX (에러 상태 스타일·트리거 타이밍)', () => {
+    it('100자 초과 후 blur 시 textarea 에 border-danger 클래스가 적용된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
+      await user.type(textarea, 'a'.repeat(101));
+      await user.tab();
+      await waitFor(() => {
+        expect(textarea.className).toMatch(/border-danger/);
+      });
+    });
+
+    it('100자 초과 후 blur 시 aria-invalid="true" 가 적용된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
+      await user.type(textarea, 'a'.repeat(101));
+      await user.tab();
+      await waitFor(() => {
+        expect(textarea.getAttribute('aria-invalid')).toBe('true');
+      });
+    });
+
+    it('100자 초과 시 카운터가 빨강이고 제출 버튼이 비활성화된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
+      await user.type(textarea, 'a'.repeat(101));
+      await waitFor(() => {
+        expect(screen.getByText(/101\/100/).className).toMatch(/text-danger/);
+      });
+      expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
+    });
+
+    it('blur 후 재입력 시 onChange 로 즉시 재검증된다 (reValidateMode=onChange)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
+      await user.type(textarea, 'a'.repeat(101));
+      await user.tab();
+      await waitFor(() => {
+        expect(screen.getByText(/100자 이내로 작성해주세요/)).toBeInTheDocument();
+      });
+      await user.click(textarea);
+      await user.keyboard('{Backspace}');
+      await waitFor(() => {
+        expect(screen.queryByText(/100자 이내로 작성해주세요/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
   describe('성공 플로우', () => {
     it('요청 보내기 → MSW 핸들러가 호출되고 성공 토스트가 노출된다', async () => {
       const onClose = vi.fn();
