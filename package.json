@@ -19,7 +19,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prepare": "husky"
+    "prepare": "husky && chmod +x .claude/hooks/*.sh 2>/dev/null || true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
