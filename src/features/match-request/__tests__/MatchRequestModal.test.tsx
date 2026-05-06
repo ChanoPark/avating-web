@@ -388,6 +388,26 @@ describe('MatchRequestModal', () => {
       expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
     });
 
+    it('아바타 목록 로드 실패 후 다시 시도 버튼 클릭 시 목록이 정상 노출된다', async () => {
+      setMyAvatarsScenario('load-error');
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/아바타 목록을 불러오지 못했어요/)).toBeInTheDocument();
+      });
+
+      setMyAvatarsScenario('success');
+      await user.click(screen.getByRole('button', { name: /다시 시도/ }));
+
+      await waitFor(() => {
+        expect(screen.queryByText(/아바타 목록을 불러오지 못했어요/)).not.toBeInTheDocument();
+      });
+      expect(
+        await screen.findByRole('radiogroup', { name: /요청에 사용할 내 아바타/ })
+      ).toBeInTheDocument();
+    });
+
     it('아바타가 0 개일 때 "아바타를 먼저 만들어주세요" 안내가 노출되고 제출이 막힌다', async () => {
       setMyAvatarsScenario('no-avatars');
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);

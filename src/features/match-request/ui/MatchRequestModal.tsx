@@ -2,7 +2,6 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router';
 import { Button } from '@shared/ui/Button';
 import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -16,8 +15,9 @@ import { useMyAvatars } from '../api/useMyAvatars';
 import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
+import { InlineErrorPanel, type InlineErrorKind } from './InlineErrorPanel';
 
-type InlineError = { kind: 'insufficient-gems' } | { kind: 'network' };
+type InlineError = { kind: InlineErrorKind };
 
 type Props = {
   open: boolean;
@@ -30,7 +30,6 @@ type Props = {
 export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onSuccess }: Props) {
   const titleId = useId();
   const greetingErrorId = useId();
-  const radioErrorId = useId();
   const costNoteId = useId();
   const inlineErrorId = useId();
 
@@ -277,18 +276,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   onChange={(next) => {
                     setValue('requesterAvatarId', next, { shouldValidate: true });
                   }}
-                  invalid={errors.requesterAvatarId !== undefined}
-                  describedById={errors.requesterAvatarId !== undefined ? radioErrorId : undefined}
                 />
-                {errors.requesterAvatarId?.message && (
-                  <p
-                    id={radioErrorId}
-                    role="alert"
-                    className="text-mono-meta text-danger mt-1.5 font-mono"
-                  >
-                    {errors.requesterAvatarId.message}
-                  </p>
-                )}
               </>
             )}
           </div>
@@ -336,40 +324,11 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           </div>
 
           {inlineError !== null && (
-            <div
+            <InlineErrorPanel
               id={inlineErrorId}
-              role="alert"
-              className="border-danger bg-bg-elev-2 text-body-sm text-text flex flex-col gap-2 rounded-sm border p-3"
-            >
-              {inlineError.kind === 'insufficient-gems' ? (
-                <>
-                  <span className="font-medium">다이아가 부족해요</span>
-                  <span className="text-text-2">
-                    매칭 요청에는 ◇ {MATCH_REQUEST_COST_GEMS}이 필요해요. 충전 후 다시 시도해주세요.
-                  </span>
-                  <Link
-                    to="/shop"
-                    className="text-mono-meta text-brand self-start font-mono uppercase"
-                  >
-                    충전하러 가기 →
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <span className="font-medium">전송에 실패했어요</span>
-                  <span className="text-text-2">
-                    네트워크 오류로 요청을 보내지 못했어요. 같은 내용으로 다시 시도할 수 있어요.
-                  </span>
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="text-mono-meta text-brand self-start font-mono uppercase disabled:opacity-50"
-                  >
-                    다시 시도
-                  </button>
-                </>
-              )}
-            </div>
+              kind={inlineError.kind}
+              retryDisabled={isLoading}
+            />
           )}
 
           <div

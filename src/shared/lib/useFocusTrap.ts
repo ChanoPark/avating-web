@@ -39,9 +39,9 @@ export function useFocusTrap(active: boolean, containerRef: RefObject<HTMLElemen
       }
     }
 
-    container.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey);
     return () => {
-      container.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey);
     };
   }, [active, containerRef]);
 }
