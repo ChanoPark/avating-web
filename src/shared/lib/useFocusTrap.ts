@@ -15,14 +15,14 @@ export function useFocusTrap(active: boolean, containerRef: RefObject<HTMLElemen
     const container = containerRef.current;
     if (!container) return;
 
-    function onKey(event: KeyboardEvent) {
+    const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
-      if (!container) return;
       const focusables = Array.from(container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTORS));
       const first = focusables[0];
       const last = focusables[focusables.length - 1];
       if (first === undefined || last === undefined) return;
-      const focused = document.activeElement as HTMLElement | null;
+      const focusedEl = document.activeElement;
+      const focused = focusedEl instanceof HTMLElement ? focusedEl : null;
       const inside = focused !== null && container.contains(focused);
 
       if (event.shiftKey) {
@@ -37,7 +37,7 @@ export function useFocusTrap(active: boolean, containerRef: RefObject<HTMLElemen
         event.preventDefault();
         first.focus();
       }
-    }
+    };
 
     document.addEventListener('keydown', onKey);
     return () => {

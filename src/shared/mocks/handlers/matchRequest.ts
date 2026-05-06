@@ -5,8 +5,8 @@ import type { MatchRequest, MyAvatar } from '@entities/match-request';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const matchRequestBodySchema = z.object({
-  partnerAvatarId: z.string().optional(),
-  requesterAvatarId: z.string().optional(),
+  partnerAvatarId: z.string().min(1),
+  requesterAvatarId: z.string().min(1),
   greeting: z.string().optional(),
 });
 
@@ -153,8 +153,8 @@ export const matchRequestHandlers = [
 
     const accepted: MatchRequest = {
       ...mockSentRequest,
-      requesterAvatarId: body.requesterAvatarId ?? mockSentRequest.requesterAvatarId,
-      partnerAvatarId: body.partnerAvatarId ?? mockSentRequest.partnerAvatarId,
+      requesterAvatarId: body.requesterAvatarId,
+      partnerAvatarId: body.partnerAvatarId,
       greeting: body.greeting ?? null,
     };
     return HttpResponse.json({ data: accepted });

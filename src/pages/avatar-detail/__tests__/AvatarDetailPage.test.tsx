@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -28,6 +28,19 @@ describe('AvatarDetailPage', () => {
     await user.click(screen.getByRole('button', { name: '취소' }));
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('production 가드', () => {
+    afterEach(() => {
+      vi.unstubAllEnvs();
+    });
+
+    it('DEV=false 환경에서는 placeholder 데이터 대신 안내 카피만 노출된다', () => {
+      vi.stubEnv('DEV', false);
+      renderWithProviders(<AvatarDetailPage />);
+      expect(screen.getByText(/아바타 정보 API.*도입 후 활성화/)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '매칭 요청' })).not.toBeInTheDocument();
     });
   });
 });

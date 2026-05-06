@@ -24,7 +24,7 @@ export function MyAvatarRadioGroup({ avatars, value, onChange }: Props) {
             key={avatar.id}
             htmlFor={inputId}
             className={cn(
-              'flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2 transition-colors',
+              'focus-within:ring-brand flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2 transition-colors focus-within:ring-2',
               checked
                 ? 'border-brand-border bg-brand-soft'
                 : 'border-border bg-bg-elev-2 hover:border-border-hi',

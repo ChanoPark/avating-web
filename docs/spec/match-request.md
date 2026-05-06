@@ -152,7 +152,7 @@ interface MatchRequest {
 | `GET`  | `/api/match-requests/:id`        | 단건 상세                                                                 |
 | `POST` | `/api/match-requests/:id/accept` | B 의 수락                                                                 |
 | `POST` | `/api/match-requests/:id/reject` | B 의 거절. body: `{ reason }`                                             |
-| `GET`  | `/api/me/avatars`                | A 의 매칭 가능한 본인 아바타 목록 (`busy` 제외)                           |
+| `GET`  | `/api/me/avatars`                | A 의 본인 아바타 목록 (busy 포함, FE 가 `busy` 플래그로 비활성화)         |
 
 응답 envelope: `{ data: T }` (기존 컨벤션과 동일).
 

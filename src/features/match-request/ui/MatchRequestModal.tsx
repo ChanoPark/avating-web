@@ -135,12 +135,11 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   const onSubmit = async (values: MatchRequestFormValues) => {
     setInlineError(null);
-    const greeting = (values.greeting ?? '').trim();
     try {
       await mutateAsync({
         partnerAvatarId,
         requesterAvatarId: values.requesterAvatarId,
-        greeting: greeting === '' ? undefined : greeting,
+        greeting: values.greeting,
       });
       showToast({ variant: 'success', title: '요청을 보냈어요' });
       onSuccess?.();
@@ -369,7 +368,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               className="flex-[2]"
               disabled={submitDisabled}
               aria-busy={isLoading}
-              aria-describedby={costNoteId}
+              aria-describedby={
+                inlineError !== null ? `${inlineErrorId} ${costNoteId}` : costNoteId
+              }
             >
               {isLoading ? '요청 보내는 중…' : '요청 보내기 →'}
             </Button>

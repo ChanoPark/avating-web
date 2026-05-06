@@ -40,6 +40,7 @@ export function AvatarDetailPage() {
           setRequestOpen(true);
         }}
         aria-haspopup="dialog"
+        aria-expanded={requestOpen}
       >
         매칭 요청
       </Button>
