@@ -2,8 +2,14 @@ import { setupServer } from 'msw/node';
 import { authHandlers } from './handlers/auth';
 import { dashboardHandlers } from './handlers/dashboard';
 import { onboardingHandlers } from './handlers/onboarding';
+import { matchRequestHandlers } from './handlers/matchRequest';
 
-export const server = setupServer(...authHandlers, ...dashboardHandlers, ...onboardingHandlers);
+export const server = setupServer(
+  ...authHandlers,
+  ...dashboardHandlers,
+  ...onboardingHandlers,
+  ...matchRequestHandlers
+);
 
 server.events.on('request:unhandled', ({ request }) => {
   throw new Error(
