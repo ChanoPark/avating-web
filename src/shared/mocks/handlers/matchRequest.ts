@@ -8,9 +8,14 @@ export type MatchRequestScenario =
   | 'insufficient-gems'
   | 'partner-blocked'
   | 'duplicate-request'
+  | 'avatar-not-found'
+  | 'request-expired'
   | 'server-error';
 
+export type MyAvatarsScenario = 'success' | 'no-avatars' | 'all-busy' | 'load-error';
+
 let scenario: MatchRequestScenario = 'success';
+let avatarsScenario: MyAvatarsScenario = 'success';
 
 export function setMatchRequestScenario(next: MatchRequestScenario): void {
   scenario = next;
@@ -18,6 +23,11 @@ export function setMatchRequestScenario(next: MatchRequestScenario): void {
 
 export function resetMatchRequestScenario(): void {
   scenario = 'success';
+  avatarsScenario = 'success';
+}
+
+export function setMyAvatarsScenario(next: MyAvatarsScenario): void {
+  avatarsScenario = next;
 }
 
 export const mockMyAvatars: { data: { items: MyAvatar[] } } = {
@@ -77,8 +87,25 @@ const mockSentRequest: MatchRequest = {
   expiresAt: '2026-05-07T05:00:00.000Z',
 };
 
+const allBusyAvatars: MyAvatar[] = mockMyAvatars.data.items.map((avatar) => ({
+  ...avatar,
+  status: 'busy',
+  busy: true,
+}));
+
 export const matchRequestHandlers = [
-  http.get(`${BASE_URL}/api/me/avatars`, () => HttpResponse.json(mockMyAvatars)),
+  http.get(`${BASE_URL}/api/me/avatars`, () => {
+    if (avatarsScenario === 'load-error') {
+      return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+    }
+    if (avatarsScenario === 'no-avatars') {
+      return HttpResponse.json({ data: { items: [] } });
+    }
+    if (avatarsScenario === 'all-busy') {
+      return HttpResponse.json({ data: { items: allBusyAvatars } });
+    }
+    return HttpResponse.json(mockMyAvatars);
+  }),
   http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
     const body = (await request.json()) as {
       partnerAvatarId?: string;
@@ -102,6 +129,18 @@ export const matchRequestHandlers = [
       return HttpResponse.json(
         { message: '이미 응답 대기 중인 요청이 있어요', code: 'DUPLICATE_REQUEST' },
         { status: 409 }
+      );
+    }
+    if (scenario === 'avatar-not-found') {
+      return HttpResponse.json(
+        { message: '아바타를 찾을 수 없어요', code: 'AVATAR_NOT_FOUND' },
+        { status: 404 }
+      );
+    }
+    if (scenario === 'request-expired') {
+      return HttpResponse.json(
+        { message: '요청이 만료됐어요', code: 'REQUEST_EXPIRED' },
+        { status: 410 }
       );
     }
     if (scenario === 'server-error') {

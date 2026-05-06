@@ -9,15 +9,13 @@ import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
+import { MATCH_REQUEST_COST_GEMS, MATCH_REQUEST_GREETING_MAX } from '@entities/match-request';
 import { matchRequestFormSchema } from '../lib/formSchema';
 import type { MatchRequestFormValues } from '../lib/formSchema';
 import { useMyAvatars } from '../api/useMyAvatars';
 import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
-
-const REQUEST_COST_GEMS = 30;
-const GREETING_MAX = 100;
 
 type InlineError = { kind: 'insufficient-gems' } | { kind: 'network' };
 
@@ -114,7 +112,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const hasNoAvatars = !avatarsLoading && !avatarsError && myAvatars.length === 0;
   const allBusy =
     !avatarsLoading && !avatarsError && myAvatars.length > 0 && myAvatars.every((a) => a.busy);
-  const isGreetingOverLimit = greetingLength > GREETING_MAX;
+  const isGreetingOverLimit = greetingLength > MATCH_REQUEST_GREETING_MAX;
   const isLoading = isSubmitting || isPending;
   const submitDisabled =
     isLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
@@ -144,6 +142,16 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         }
         if (err.statusCode === 409 && err.code === 'DUPLICATE_REQUEST') {
           showToast({ variant: 'error', title: '이미 응답 대기 중인 요청이 있어요' });
+          onClose();
+          return;
+        }
+        if (err.statusCode === 404 && err.code === 'AVATAR_NOT_FOUND') {
+          showToast({ variant: 'error', title: '아바타를 찾을 수 없어요' });
+          onClose();
+          return;
+        }
+        if (err.statusCode === 410 && err.code === 'REQUEST_EXPIRED') {
+          showToast({ variant: 'error', title: '요청이 만료됐어요' });
           onClose();
           return;
         }
@@ -287,13 +295,13 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   isGreetingOverLimit ? 'text-danger' : 'text-text-3'
                 )}
               >
-                {greetingLength}/{GREETING_MAX}
+                {greetingLength}/{MATCH_REQUEST_GREETING_MAX}
               </span>
             </div>
             <textarea
               id="match-request-greeting"
               rows={3}
-              maxLength={GREETING_MAX + 20}
+              maxLength={MATCH_REQUEST_GREETING_MAX + 20}
               placeholder="비워두면 아바타가 자율적으로 인사를 시작합니다"
               aria-invalid={errors.greeting !== undefined ? true : undefined}
               aria-describedby={errors.greeting !== undefined ? greetingErrorId : undefined}
@@ -325,7 +333,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 <>
                   <span className="font-medium">다이아가 부족해요</span>
                   <span className="text-text-2">
-                    매칭 요청에는 ◇ {REQUEST_COST_GEMS}이 필요해요. 충전 후 다시 시도해주세요.
+                    매칭 요청에는 ◇ {MATCH_REQUEST_COST_GEMS}이 필요해요. 충전 후 다시 시도해주세요.
                   </span>
                   <Link
                     to="/shop"
@@ -359,7 +367,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               매칭 요청 비용 · 상대 수락 시 채팅 시작
             </span>
             <span className="font-ui text-subheading text-brand font-medium">
-              ◇ {REQUEST_COST_GEMS}
+              ◇ {MATCH_REQUEST_COST_GEMS}
             </span>
           </div>
 

@@ -1,0 +1,2 @@
+export const MATCH_REQUEST_COST_GEMS = 30;
+export const MATCH_REQUEST_GREETING_MAX = 100;

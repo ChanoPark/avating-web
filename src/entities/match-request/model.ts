@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { avatarBaseSchema } from '@entities/avatar/model';
+import { MATCH_REQUEST_GREETING_MAX } from './constants';
 
 export const matchRequestStatusSchema = z.enum(['pending', 'accepted', 'rejected', 'expired']);
 export type MatchRequestStatus = z.infer<typeof matchRequestStatusSchema>;
@@ -25,7 +26,7 @@ export const sendMatchRequestSchema = z
     requesterAvatarId: z.string().min(1, '사용할 아바타를 선택해주세요'),
     greeting: z
       .string()
-      .max(100, '첫 인사는 100자 이내로 작성해주세요')
+      .max(MATCH_REQUEST_GREETING_MAX, '첫 인사는 100자 이내로 작성해주세요')
       .optional()
       .transform((value) => {
         if (value === undefined) return undefined;

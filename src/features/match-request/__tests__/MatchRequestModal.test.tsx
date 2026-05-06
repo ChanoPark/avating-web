@@ -5,6 +5,7 @@ import { http, HttpResponse, delay } from 'msw';
 import { server } from '@shared/mocks/server';
 import {
   setMatchRequestScenario,
+  setMyAvatarsScenario,
   resetMatchRequestScenario,
 } from '@shared/mocks/handlers/matchRequest';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -325,6 +326,86 @@ describe('MatchRequestModal', () => {
         expect(screen.getByText('잠시 후 다시 시도해주세요')).toBeInTheDocument();
       });
       expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('404 AVATAR_NOT_FOUND → 안내 토스트, 모달 닫힘', async () => {
+      setMatchRequestScenario('avatar-not-found');
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
+      await screen.findByRole('radiogroup');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText('아바타를 찾을 수 없어요')).toBeInTheDocument();
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('410 REQUEST_EXPIRED → 안내 토스트, 모달 닫힘', async () => {
+      setMatchRequestScenario('request-expired');
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
+      await screen.findByRole('radiogroup');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText('요청이 만료됐어요')).toBeInTheDocument();
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('500 → 인라인 다시 시도 버튼 클릭 시 재요청이 성공한다', async () => {
+      setMatchRequestScenario('server-error');
+      const user = userEvent.setup();
+      const onClose = vi.fn();
+      const onSuccess = vi.fn();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose, onSuccess })} />);
+      await screen.findByRole('radiogroup');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      const retry = await screen.findByRole('button', { name: /다시 시도/ });
+      setMatchRequestScenario('success');
+      await user.click(retry);
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalled();
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  describe('아바타 목록 분기', () => {
+    it('GET /api/me/avatars 실패 시 에러 알림과 다시 시도 버튼이 노출된다', async () => {
+      setMyAvatarsScenario('load-error');
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/아바타 목록을 불러오지 못했어요/)).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /다시 시도/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
+    });
+
+    it('아바타가 0 개일 때 "아바타를 먼저 만들어주세요" 안내가 노출되고 제출이 막힌다', async () => {
+      setMyAvatarsScenario('no-avatars');
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/아바타를 먼저 만들어주세요/)).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
+    });
+
+    it('아바타가 모두 매칭 중일 때 "매칭 중인 아바타가 끝나면" 안내가 노출되고 제출이 막힌다', async () => {
+      setMyAvatarsScenario('all-busy');
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/매칭 중인 아바타가 끝나면 다시 시도해주세요/)).toBeInTheDocument();
+      });
+      expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
     });
   });
 
