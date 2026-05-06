@@ -1,7 +1,14 @@
 import { http, HttpResponse } from 'msw';
+import { z } from 'zod';
 import type { MatchRequest, MyAvatar } from '@entities/match-request';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
+const matchRequestBodySchema = z.object({
+  partnerAvatarId: z.string().optional(),
+  requesterAvatarId: z.string().optional(),
+  greeting: z.string().optional(),
+});
 
 export type MatchRequestScenario =
   | 'success'
@@ -30,7 +37,7 @@ export function setMyAvatarsScenario(next: MyAvatarsScenario): void {
   avatarsScenario = next;
 }
 
-export const mockMyAvatars: { data: { items: MyAvatar[] } } = {
+const mockMyAvatars: { data: { items: MyAvatar[] } } = {
   data: {
     items: [
       {
@@ -107,11 +114,8 @@ export const matchRequestHandlers = [
     return HttpResponse.json(mockMyAvatars);
   }),
   http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
-    const body = (await request.json()) as {
-      partnerAvatarId?: string;
-      requesterAvatarId?: string;
-      greeting?: string;
-    };
+    const raw: unknown = await request.json();
+    const body = matchRequestBodySchema.parse(raw);
 
     if (scenario === 'insufficient-gems') {
       return HttpResponse.json(

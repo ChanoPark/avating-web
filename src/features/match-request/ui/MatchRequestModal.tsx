@@ -48,6 +48,18 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   const [inlineError, setInlineError] = useState<InlineError | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      triggerRef.current = document.activeElement as HTMLElement | null;
+      return;
+    }
+    const trigger = triggerRef.current;
+    if (trigger !== null && document.body.contains(trigger)) {
+      trigger.focus();
+    }
+  }, [open]);
 
   const {
     register,
@@ -350,7 +362,8 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   </span>
                   <button
                     type="submit"
-                    className="text-mono-meta text-brand self-start font-mono uppercase"
+                    disabled={isLoading}
+                    className="text-mono-meta text-brand self-start font-mono uppercase disabled:opacity-50"
                   >
                     다시 시도
                   </button>

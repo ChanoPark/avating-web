@@ -14,5 +14,6 @@ export function useMyAvatars() {
   return useQuery<MyAvatarsResponse, ApiError>({
     queryKey: matchRequestKeys.myAvatars(),
     queryFn: fetchMyAvatars,
+    retry: false,
   });
 }
