@@ -156,6 +156,8 @@ interface MatchRequest {
 
 응답 envelope: `{ data: T }` (기존 컨벤션과 동일).
 
+> **API 계약 출처**: `.claude/api/openapi.yaml` 는 BE springdoc 자동 생성 결과를 동기화하는 로컬 캐시이며 `.gitignore` 로 차단되어 있다(IP 보호). BE 가 본 엔드포인트를 구현하기 전까지는 본 스펙(`docs/spec/match-request.md`) 이 FE 측 contract 단일 출처이고, MSW 핸들러(`src/shared/mocks/handlers/matchRequest.ts`) 와 Zod 스키마(`src/entities/match-request/model.ts`) 가 본 표를 따른다.
+
 ### 6.3 에러 코드
 
 | HTTP | code                | 의미                  |
