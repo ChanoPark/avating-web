@@ -8,7 +8,11 @@ import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
-import { MATCH_REQUEST_COST_GEMS, MATCH_REQUEST_GREETING_MAX } from '@entities/match-request';
+import {
+  MATCH_REQUEST_COST_GEMS,
+  MATCH_REQUEST_GREETING_HARD_LIMIT,
+  MATCH_REQUEST_GREETING_MAX,
+} from '@entities/match-request';
 import { matchRequestFormSchema } from '../lib/formSchema';
 import type { MatchRequestFormValues } from '../lib/formSchema';
 import { useMyAvatars } from '../api/useMyAvatars';
@@ -51,7 +55,8 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   useEffect(() => {
     if (open) {
-      triggerRef.current = document.activeElement as HTMLElement | null;
+      const active = document.activeElement;
+      triggerRef.current = active instanceof HTMLElement ? active : null;
       return;
     }
     const trigger = triggerRef.current;
@@ -301,7 +306,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             <textarea
               id="match-request-greeting"
               rows={3}
-              maxLength={MATCH_REQUEST_GREETING_MAX + 20}
+              maxLength={MATCH_REQUEST_GREETING_HARD_LIMIT}
               placeholder="비워두면 아바타가 자율적으로 인사를 시작합니다"
               aria-invalid={errors.greeting !== undefined ? true : undefined}
               aria-describedby={errors.greeting !== undefined ? greetingErrorId : undefined}
@@ -328,6 +333,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               id={inlineErrorId}
               kind={inlineError.kind}
               retryDisabled={isLoading}
+              onRetry={() => {
+                void handleSubmit(onSubmit)();
+              }}
             />
           )}
 

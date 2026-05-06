@@ -7,9 +7,10 @@ type Props = {
   id: string;
   kind: InlineErrorKind;
   retryDisabled?: boolean;
+  onRetry?: () => void;
 };
 
-export function InlineErrorPanel({ id, kind, retryDisabled }: Props) {
+export function InlineErrorPanel({ id, kind, retryDisabled, onRetry }: Props) {
   if (kind === 'insufficient-gems') {
     return (
       <div
@@ -39,8 +40,9 @@ export function InlineErrorPanel({ id, kind, retryDisabled }: Props) {
         네트워크 오류로 요청을 보내지 못했어요. 같은 내용으로 다시 시도할 수 있어요.
       </span>
       <button
-        type="submit"
+        type="button"
         disabled={retryDisabled}
+        onClick={onRetry}
         className="text-mono-meta text-brand self-start font-mono uppercase disabled:opacity-50"
       >
         다시 시도

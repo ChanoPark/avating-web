@@ -153,6 +153,42 @@ describe('MatchRequestModal', () => {
       });
     });
 
+    it('공백만 입력된 인사말은 trim 되어 빈 인사말과 동일하게 처리된다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      let capturedGreeting: unknown = '__not_captured__';
+      server.use(
+        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
+          const body = (await request.json()) as { greeting?: unknown };
+          capturedGreeting = body.greeting;
+          return HttpResponse.json({
+            data: {
+              id: 'req-1',
+              requesterUserId: 'me',
+              requesterAvatarId: 'me-hyunwoo',
+              partnerUserId: 'partner',
+              partnerAvatarId: 'avatar-1',
+              greeting: null,
+              status: 'pending',
+              rejectionReason: null,
+              createdAt: '2026-05-06T05:00:00.000Z',
+              respondedAt: null,
+              expiresAt: '2026-05-07T05:00:00.000Z',
+            },
+          });
+        })
+      );
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
+      await user.type(textarea, '   ');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(capturedGreeting).toBeUndefined();
+      });
+    });
+
     it('100자 초과 시 검증 에러가 표시된다 (Zod max)', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);

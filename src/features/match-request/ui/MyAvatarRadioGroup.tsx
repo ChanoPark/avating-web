@@ -7,21 +7,13 @@ type Props = {
   avatars: readonly MyAvatar[];
   value: string;
   onChange: (next: string) => void;
-  invalid?: boolean;
-  describedById?: string | undefined;
 };
 
-export function MyAvatarRadioGroup({ avatars, value, onChange, invalid, describedById }: Props) {
+export function MyAvatarRadioGroup({ avatars, value, onChange }: Props) {
   const groupId = useId();
 
   return (
-    <div
-      role="radiogroup"
-      aria-label="요청에 사용할 내 아바타"
-      aria-invalid={invalid ? true : undefined}
-      aria-describedby={describedById}
-      className="flex flex-col gap-2"
-    >
+    <div role="radiogroup" aria-label="요청에 사용할 내 아바타" className="flex flex-col gap-2">
       {avatars.map((avatar) => {
         const checked = value === avatar.id;
         const disabled = avatar.busy;

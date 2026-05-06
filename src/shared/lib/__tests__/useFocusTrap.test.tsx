@@ -99,4 +99,36 @@ describe('useFocusTrap', () => {
     await user.keyboard('{Enter}');
     expect(document.activeElement).toBe(last);
   });
+
+  it('컨테이너 내부에 포커스 가능 요소가 없으면 트랩이 무효 동작한다', async () => {
+    function EmptyHarness() {
+      const ref = useRef<HTMLDivElement | null>(null);
+      useFocusTrap(true, ref);
+      return (
+        <div>
+          <button type="button" data-testid="outside">
+            outside
+          </button>
+          <div ref={ref} data-testid="container">
+            <span>nothing focusable</span>
+          </div>
+        </div>
+      );
+    }
+    const user = userEvent.setup();
+    const { getByTestId } = render(<EmptyHarness />);
+    const outside = getByTestId('outside');
+    outside.focus();
+    await user.tab();
+    expect(document.activeElement).not.toBe(outside);
+  });
+
+  it('containerRef.current 가 null 이면 안전하게 무시된다', () => {
+    function NullRefHarness() {
+      const ref = useRef<HTMLElement | null>(null);
+      useFocusTrap(true, ref);
+      return <div data-testid="root">root</div>;
+    }
+    expect(() => render(<NullRefHarness />)).not.toThrow();
+  });
 });

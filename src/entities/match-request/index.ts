@@ -15,4 +15,8 @@ export type {
   MyAvatarsResponse,
 } from './model';
 export { matchRequestKeys } from './queryKeys';
-export { MATCH_REQUEST_COST_GEMS, MATCH_REQUEST_GREETING_MAX } from './constants';
+export {
+  MATCH_REQUEST_COST_GEMS,
+  MATCH_REQUEST_GREETING_MAX,
+  MATCH_REQUEST_GREETING_HARD_LIMIT,
+} from './constants';
