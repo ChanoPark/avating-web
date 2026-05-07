@@ -15,5 +15,6 @@ export function useMyAvatars() {
     queryKey: matchRequestKeys.myAvatars(),
     queryFn: fetchMyAvatars,
     retry: false,
+    staleTime: 30_000,
   });
 }

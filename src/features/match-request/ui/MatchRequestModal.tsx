@@ -69,6 +69,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     register,
     handleSubmit,
     setValue,
+    getValues,
     watch,
     reset,
     formState: { errors, isSubmitting },
@@ -81,10 +82,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   useEffect(() => {
     if (!open) return;
-    if (firstSelectableId !== '' && watch('requesterAvatarId') === '') {
+    if (firstSelectableId !== '' && getValues('requesterAvatarId') === '') {
       setValue('requesterAvatarId', firstSelectableId, { shouldValidate: false });
     }
-  }, [open, firstSelectableId, setValue, watch]);
+  }, [open, firstSelectableId, setValue, getValues]);
 
   useEffect(() => {
     if (!open) {
