@@ -129,6 +129,46 @@ describe('MatchRequestModal', () => {
       await user.click(screen.getByRole('button', { name: '닫기' }));
       expect(onClose).toHaveBeenCalledOnce();
     });
+
+    it('제출 중(isPending) 에 ESC 키를 눌러도 onClose 가 호출되지 않는다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      server.use(
+        http.post(`${BASE_URL}/api/match-requests`, async () => {
+          await delay('infinite');
+          return HttpResponse.json({});
+        })
+      );
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
+      await screen.findByRole('radiogroup');
+      void user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /요청 보내는 중/ })).toBeDisabled();
+      });
+      await user.keyboard('{Escape}');
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('제출 중(isPending) 에 백드롭을 눌러도 onClose 가 호출되지 않는다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      server.use(
+        http.post(`${BASE_URL}/api/match-requests`, async () => {
+          await delay('infinite');
+          return HttpResponse.json({});
+        })
+      );
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
+      await screen.findByRole('radiogroup');
+      void user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /요청 보내는 중/ })).toBeDisabled();
+      });
+      await user.click(screen.getByLabelText('모달 닫기'));
+      expect(onClose).not.toHaveBeenCalled();
+    });
   });
 
   describe('greeting 검증', () => {

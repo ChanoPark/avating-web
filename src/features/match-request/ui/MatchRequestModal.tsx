@@ -259,14 +259,16 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               </div>
             ) : hasNoAvatars ? (
               <p
-                role="alert"
+                role="status"
+                aria-live="polite"
                 className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
               >
                 아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
               </p>
             ) : allBusy ? (
               <p
-                role="alert"
+                role="status"
+                aria-live="polite"
                 className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
               >
                 현재 매칭에 사용할 수 있는 아바타가 없어요. 매칭 중인 아바타가 끝나면 다시
@@ -369,9 +371,13 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               className="flex-[2]"
               disabled={submitDisabled}
               aria-busy={isLoading}
-              aria-describedby={
-                inlineError !== null ? `${inlineErrorId} ${costNoteId}` : costNoteId
-              }
+              aria-describedby={[
+                errors.greeting ? greetingErrorId : null,
+                inlineError !== null ? inlineErrorId : null,
+                costNoteId,
+              ]
+                .filter((id): id is string => id !== null)
+                .join(' ')}
             >
               {isLoading ? '요청 보내는 중…' : '요청 보내기 →'}
             </Button>
