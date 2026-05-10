@@ -348,7 +348,7 @@ describe('MatchRequestModal', () => {
   });
 
   describe('에러 플로우', () => {
-    it('402 INSUFFICIENT_GEMS → 다이아 부족 토스트, 모달 유지', async () => {
+    it('402 INSUFFICIENT_GEMS → 다이아 부족 인라인 알림 + 충전 링크, 모달 유지', async () => {
       setMatchRequestScenario('insufficient-gems');
       const onClose = vi.fn();
       const user = userEvent.setup();
