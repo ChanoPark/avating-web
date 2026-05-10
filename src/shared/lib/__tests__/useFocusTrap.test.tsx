@@ -131,4 +131,18 @@ describe('useFocusTrap', () => {
     }
     expect(() => render(<NullRefHarness />)).not.toThrow();
   });
+
+  it('document.activeElement 가 HTMLElement 가 아니면(SVGElement) 외부 포커스로 간주해 첫 요소로 진입한다', async () => {
+    const user = userEvent.setup();
+    const { getByTestId } = render(<TrapHarness active />);
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('tabindex', '0');
+    svg.setAttribute('data-testid', 'svg-focus');
+    document.body.appendChild(svg);
+    svg.focus();
+    expect(document.activeElement).toBe(svg);
+    await user.tab();
+    expect(document.activeElement).toBe(getByTestId('first'));
+    document.body.removeChild(svg);
+  });
 });

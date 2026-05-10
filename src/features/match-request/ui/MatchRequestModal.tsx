@@ -33,6 +33,7 @@ type Props = {
 
 export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onSuccess }: Props) {
   const titleId = useId();
+  const descriptionId = useId();
   const greetingErrorId = useId();
   const costNoteId = useId();
   const inlineErrorId = useId();
@@ -89,7 +90,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   useEffect(() => {
     if (!open) {
-      reset({ requesterAvatarId: '', greeting: '' });
+      reset();
       setInlineError(null);
     }
   }, [open, reset]);
@@ -196,6 +197,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         tabIndex={-1}
         className="border-border bg-bg-elev-1 shadow-2 relative flex w-full max-w-[440px] flex-col gap-4 rounded-xl border p-6 focus:outline-none"
         style={{ zIndex: 'var(--z-modal)' }}
@@ -218,7 +220,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           <h2 id={titleId} className="font-ui text-heading text-text">
             이 아바타에게 소개팅을 요청합니다
           </h2>
-          <p className="text-body-sm text-text-2 mt-1">
+          <p id={descriptionId} className="text-body-sm text-text-2 mt-1">
             요청을 받은 사용자가 수락하면 두 아바타가 채팅을 시작해요
           </p>
         </div>
