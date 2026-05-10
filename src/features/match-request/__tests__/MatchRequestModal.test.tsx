@@ -359,6 +359,7 @@ describe('MatchRequestModal', () => {
       await waitFor(() => {
         expect(screen.getByText('다이아가 부족해요')).toBeInTheDocument();
       });
+      expect(screen.getByRole('link', { name: /충전하러 가기/ })).toHaveAttribute('href', '/shop');
       expect(onClose).not.toHaveBeenCalled();
     });
 
