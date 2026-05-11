@@ -10,11 +10,12 @@ async function fetchMyAvatars(): Promise<MyAvatarsResponse> {
   return parsed.data;
 }
 
-export function useMyAvatars() {
+export function useMyAvatars(options: { enabled?: boolean } = {}) {
   return useQuery<MyAvatarsResponse, ApiError>({
     queryKey: matchRequestKeys.myAvatars(),
     queryFn: fetchMyAvatars,
     retry: false,
     staleTime: 30_000,
+    enabled: options.enabled ?? true,
   });
 }
