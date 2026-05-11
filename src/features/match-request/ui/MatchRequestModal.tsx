@@ -133,7 +133,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const isGreetingOverLimit = greetingLength > MATCH_REQUEST_GREETING_MAX;
   const isLoading = isSubmitting || isPending;
   const submitDisabled =
-    isLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
+    isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
     setInlineError(null);
@@ -286,6 +286,11 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                     setValue('requesterAvatarId', next, { shouldValidate: true });
                   }}
                 />
+                {errors.requesterAvatarId?.message && (
+                  <p role="alert" className="text-mono-meta text-danger mt-2 font-mono">
+                    {errors.requesterAvatarId.message}
+                  </p>
+                )}
               </>
             )}
           </div>
