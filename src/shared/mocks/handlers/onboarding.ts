@@ -93,18 +93,18 @@ const mockAvatarCreateFromSurveyResponse = {
 };
 
 export const surveySubmitHandlers = {
-  success: http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+  success: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json(mockAvatarCreateFromSurveyResponse, { status: 201 });
   }),
 
-  validationError: http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+  validationError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json(
       { message: '설문 답변이 올바르지 않습니다.', code: 'VALIDATION_ERROR' },
       { status: 400 }
     );
   }),
 
-  serverError: http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+  serverError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
   }),
 };

@@ -59,7 +59,7 @@ describe('useSurveySubmit', () => {
 
   it('백엔드가 avatarId 없는 응답을 반환하면 ZodError 가 throw 된다', async () => {
     server.use(
-      http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+      http.post(`${BASE_URL}/api/avatars/survey`, () => {
         return HttpResponse.json({ data: {} }, { status: 201 });
       })
     );

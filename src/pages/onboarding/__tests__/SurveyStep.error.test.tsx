@@ -117,7 +117,7 @@ describe('SurveyStep — 에러 처리', () => {
 
       server.use(
         surveyQuestionsHandlers.success,
-        http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+        http.post(`${BASE_URL}/api/avatars/survey`, () => {
           return HttpResponse.json({ message: '알 수 없는 오류' }, { status: 500 });
         })
       );
@@ -141,7 +141,7 @@ describe('SurveyStep — 에러 처리', () => {
     it('응답 avatarId 누락 시 ZodError 경로 UI 메시지 "입력 데이터를 다시 확인해주세요." 가 alert 로 렌더된다', async () => {
       server.use(
         surveyQuestionsHandlers.success,
-        http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+        http.post(`${BASE_URL}/api/avatars/survey`, () => {
           return HttpResponse.json({ data: {} }, { status: 201 });
         })
       );

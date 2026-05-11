@@ -210,13 +210,13 @@ describe('SurveyStep', () => {
   });
 
   describe('최종 제출', () => {
-    it('"아바타 생성" 클릭 시 POST /api/avatars/survey/ 가 호출되고 /onboarding/connect 로 이동한다', async () => {
+    it('"아바타 생성" 클릭 시 POST /api/avatars/survey 가 호출되고 /onboarding/connect 로 이동한다', async () => {
       const user = userEvent.setup();
       let createCallCount = 0;
 
       server.use(
         surveyQuestionsHandlers.success,
-        http.post(`${BASE_URL}/api/avatars/survey/`, () => {
+        http.post(`${BASE_URL}/api/avatars/survey`, () => {
           createCallCount++;
           return HttpResponse.json({ data: { avatarId: 'avatar-001' } }, { status: 201 });
         })
@@ -256,7 +256,7 @@ describe('SurveyStep', () => {
 
       server.use(
         surveyQuestionsHandlers.success,
-        http.post(`${BASE_URL}/api/avatars/survey/`, async () => {
+        http.post(`${BASE_URL}/api/avatars/survey`, async () => {
           await new Promise(() => undefined);
         })
       );
