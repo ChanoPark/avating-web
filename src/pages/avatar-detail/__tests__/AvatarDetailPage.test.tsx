@@ -31,6 +31,24 @@ describe('AvatarDetailPage', () => {
     });
   });
 
+  it('CTA 의 aria-expanded 가 모달 열림/닫힘과 동기화된다', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<AvatarDetailPage />);
+    const trigger = screen.getByRole('button', { name: '매칭 요청' });
+    expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(trigger);
+    await screen.findByRole('dialog');
+    expect(trigger).toHaveAttribute('aria-expanded', 'true');
+
+    await user.click(screen.getByRole('button', { name: '취소' }));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
   describe('production 가드', () => {
     afterEach(() => {
       vi.unstubAllEnvs();

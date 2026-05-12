@@ -58,11 +58,11 @@ describe('onboarding MSW 핸들러', () => {
     });
   });
 
-  describe('POST /api/avatars/survey/', () => {
+  describe('POST /api/avatars/survey', () => {
     it('success 핸들러는 201 을 반환한다', async () => {
       server.use(surveySubmitHandlers.success);
 
-      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
+      const res = await fetch(`${BASE_URL}/api/avatars/survey`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -80,7 +80,7 @@ describe('onboarding MSW 핸들러', () => {
     it('validationError 핸들러는 400 을 반환한다', async () => {
       server.use(surveySubmitHandlers.validationError);
 
-      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
+      const res = await fetch(`${BASE_URL}/api/avatars/survey`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',
@@ -94,7 +94,7 @@ describe('onboarding MSW 핸들러', () => {
     it('serverError 핸들러는 500 을 반환한다', async () => {
       server.use(surveySubmitHandlers.serverError);
 
-      const res = await fetch(`${BASE_URL}/api/avatars/survey/`, {
+      const res = await fetch(`${BASE_URL}/api/avatars/survey`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: '{}',

@@ -92,6 +92,46 @@ describe('MatchRequestModal', () => {
     });
   });
 
+  describe('포커스 라이프사이클', () => {
+    it('모달 오픈 시 첫 번째 비-busy 라디오로 포커스가 이동한다', async () => {
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+      const firstRadio = within(radioGroup).getByRole('radio', { name: /hyunwoo/ });
+      await waitFor(() => {
+        expect(document.activeElement).toBe(firstRadio);
+      });
+    });
+
+    it('모달이 닫히면 (Esc) 트리거 요소로 포커스가 복귀한다', async () => {
+      const onClose = vi.fn();
+      const user = userEvent.setup();
+      function Harness({ open }: { open: boolean }) {
+        return (
+          <>
+            <button type="button" data-testid="trigger">
+              매칭 요청 열기
+            </button>
+            <MatchRequestModal {...defaultProps({ open, onClose })} />
+          </>
+        );
+      }
+      const { rerender } = renderWithProviders(<Harness open={false} />);
+      const trigger = screen.getByTestId('trigger');
+      trigger.focus();
+      expect(document.activeElement).toBe(trigger);
+
+      rerender(<Harness open={true} />);
+      await screen.findByRole('radiogroup');
+      await user.keyboard('{Escape}');
+      expect(onClose).toHaveBeenCalledOnce();
+
+      rerender(<Harness open={false} />);
+      await waitFor(() => {
+        expect(document.activeElement).toBe(trigger);
+      });
+    });
+  });
+
   describe('닫기 인터랙션', () => {
     it('Esc 키 입력 시 onClose 가 호출된다', async () => {
       const onClose = vi.fn();
@@ -348,7 +388,7 @@ describe('MatchRequestModal', () => {
   });
 
   describe('에러 플로우', () => {
-    it('402 INSUFFICIENT_GEMS → 다이아 부족 토스트, 모달 유지', async () => {
+    it('402 INSUFFICIENT_GEMS → 다이아 부족 인라인 알림 + 충전 링크, 모달 유지', async () => {
       setMatchRequestScenario('insufficient-gems');
       const onClose = vi.fn();
       const user = userEvent.setup();
@@ -359,6 +399,7 @@ describe('MatchRequestModal', () => {
       await waitFor(() => {
         expect(screen.getByText('다이아가 부족해요')).toBeInTheDocument();
       });
+      expect(screen.getByRole('link', { name: /충전하러 가기/ })).toHaveAttribute('href', '/shop');
       expect(onClose).not.toHaveBeenCalled();
     });
 

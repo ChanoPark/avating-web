@@ -33,6 +33,8 @@ type Props = {
 
 export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onSuccess }: Props) {
   const titleId = useId();
+  const descriptionId = useId();
+  const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
   const costNoteId = useId();
   const inlineErrorId = useId();
@@ -43,7 +45,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     isLoading: avatarsLoading,
     isError: avatarsError,
     refetch: refetchAvatars,
-  } = useMyAvatars();
+  } = useMyAvatars({ enabled: open });
   const { mutateAsync, isPending } = useSendMatchRequest();
 
   const myAvatars = myAvatarsData?.items ?? [];
@@ -89,7 +91,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   useEffect(() => {
     if (!open) {
-      reset({ requesterAvatarId: '', greeting: '' });
+      reset();
       setInlineError(null);
     }
   }, [open, reset]);
@@ -132,7 +134,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const isGreetingOverLimit = greetingLength > MATCH_REQUEST_GREETING_MAX;
   const isLoading = isSubmitting || isPending;
   const submitDisabled =
-    isLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
+    isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
     setInlineError(null);
@@ -196,6 +198,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={descriptionId}
         tabIndex={-1}
         className="border-border bg-bg-elev-1 shadow-2 relative flex w-full max-w-[440px] flex-col gap-4 rounded-xl border p-6 focus:outline-none"
         style={{ zIndex: 'var(--z-modal)' }}
@@ -218,7 +221,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           <h2 id={titleId} className="font-ui text-heading text-text">
             이 아바타에게 소개팅을 요청합니다
           </h2>
-          <p className="text-body-sm text-text-2 mt-1">
+          <p id={descriptionId} className="text-body-sm text-text-2 mt-1">
             요청을 받은 사용자가 수락하면 두 아바타가 채팅을 시작해요
           </p>
         </div>
@@ -240,7 +243,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               <span className="text-mono-meta text-text-3 font-mono uppercase">1개 선택</span>
             </div>
             {avatarsLoading ? (
-              <p className="text-body-sm text-text-3">아바타 목록 불러오는 중…</p>
+              <p role="status" aria-live="polite" className="text-body-sm text-text-3">
+                아바타 목록 불러오는 중…
+              </p>
             ) : avatarsError ? (
               <div
                 role="alert"
@@ -283,7 +288,20 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   onChange={(next) => {
                     setValue('requesterAvatarId', next, { shouldValidate: true });
                   }}
+                  aria-invalid={errors.requesterAvatarId !== undefined ? true : undefined}
+                  aria-describedby={
+                    errors.requesterAvatarId !== undefined ? requesterAvatarErrorId : undefined
+                  }
                 />
+                {errors.requesterAvatarId?.message && (
+                  <p
+                    id={requesterAvatarErrorId}
+                    role="alert"
+                    className="text-mono-meta text-danger mt-2 font-mono"
+                  >
+                    {errors.requesterAvatarId.message}
+                  </p>
+                )}
               </>
             )}
           </div>
@@ -372,6 +390,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               disabled={submitDisabled}
               aria-busy={isLoading}
               aria-describedby={[
+                errors.requesterAvatarId ? requesterAvatarErrorId : null,
                 errors.greeting ? greetingErrorId : null,
                 inlineError !== null ? inlineErrorId : null,
                 costNoteId,
