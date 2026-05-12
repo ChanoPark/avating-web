@@ -1,5 +1,3 @@
-반드시 지켜야 하는 것: **자동으로 진행하라고 하면 명령어 등을 허락받지 않고 yes로 처리해 자동으로 처리할 것.**
-
 > **IMPORTANT**: 기본적인 의사 결정은 반드시 **karpathy-guidelines**에 정의된 것을 기본으로 하되, 대규모 환경에서의 확장성과 유지보수를 고려할 것. 두 원칙이 충돌하는 경우(예: 단순함 vs 확장성)에는 어떤 트레이드오프인지 명시하고 사용자에게 판단을 구한다.
 
 > **PUBLIC REPOSITORY (1급 보안 경고)**: 이 저장소는 `https://github.com/ChanoPark/avating-web` (Public)이다. **커밋된 순간 전 세계에 공개**되며 `git revert`·force-push 로도 포크/캐시/AI 학습본까지 회수 불가. 모든 코드 작성/커밋/PR 결정은 [§ 보안 (1급)](#보안-1급) 절을 먼저 통과해야 한다. 단일 출처: [`.claude/skills/git-flow-public-repo/SKILL.md`](.claude/skills/git-flow-public-repo/SKILL.md).
@@ -12,6 +10,7 @@
 
 > 서비스 정의/유저 플로우/용어의 단일 출처: [.claude/docs/project-overview.md](.claude/docs/project-overview.md).
 > 인프라/단계별 구축 계획: [.claude/plans/project-setup-plan.md](.claude/plans/project-setup-plan.md).
+> 도메인/플로우/엔티티/API narrative/ADR 의 atomic 페이지·변경 이력·코드 매핑: [.claude/wiki/](.claude/wiki/) (wiki-maintainer 스킬 경유 갱신, project-overview.md 의 derived view).
 
 ---
 
@@ -100,15 +99,16 @@
 
 ### 이중 방어 (6계층)
 
-| #   | 계층                                                          | 역할                                                   | 현재 상태                                                                                                            |
-| --- | ------------------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| L1  | 코드/문서 정책 (CLAUDE.md + `git-flow-public-repo`)           | 하드코딩·PII 금지, 플레이스홀더 강제                   | ✅                                                                                                                   |
-| L2  | `.gitignore`                                                  | `.env.*`(예외 `.env.example`)·키·자격증명·SA JSON 차단 | ✅                                                                                                                   |
-| L3  | `.env.example` STRICT (키만, 값 비움)                         | 신규 변수 누락 + 값 누출 동시 차단                     | ⚠️ 현재 위반 — `.env.example` 에 값/중복 존재. 키만 남기도록 정리 필요                                               |
-| L4  | Husky pre-commit (lint-staged + 시크릿 스캔)                  | 푸시 전 staged diff 차단                               | ⚠️ `.husky/` 가 `.gitignore` 로 차단되어 새 클론·CI 머신에서 자동 동작 안 함 → 클론 시 셋업 가이드 필수 + L5 로 보강 |
-| L5  | CI 시크릿 스캐닝 (gitleaks/trufflehog, GitHub Actions)        | history 전체 + push 단계 차단                          | ❌ `.github/workflows/` 부재 — **도입 필수**. 도입 전까지는 사람이 모든 커밋 수동 검토                               |
-| L6  | GitHub Native: Secret Scanning + Push Protection + Dependabot | Public Repo 에서 자동 활성, 패턴 한정 보호             | ✅ (Repo 설정에서 활성 확인)                                                                                         |
-| L+  | AI 게이트 (`commit-work` → `pr-code-reviewer-iterative`)      | AI 발화 경로 한정 — 사람 직접 커밋은 우회됨            | ✅ 단 우회 가능                                                                                                      |
+| #   | 계층                                                          | 역할                                                          | 현재 상태                                                                                                            |
+| --- | ------------------------------------------------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| L1  | 코드/문서 정책 (CLAUDE.md + `git-flow-public-repo`)           | 하드코딩·PII 금지, 플레이스홀더 강제                          | ✅                                                                                                                   |
+| L2  | `.gitignore`                                                  | `.env.*`(예외 `.env.example`)·키·자격증명·SA JSON 차단        | ✅                                                                                                                   |
+| L3  | `.env.example` STRICT (키만, 값 비움)                         | 신규 변수 누락 + 값 누출 동시 차단                            | ⚠️ 현재 위반 — `.env.example` 에 값/중복 존재. 키만 남기도록 정리 필요                                               |
+| L4  | Husky pre-commit (lint-staged + 시크릿 스캔)                  | 푸시 전 staged diff 차단                                      | ⚠️ `.husky/` 가 `.gitignore` 로 차단되어 새 클론·CI 머신에서 자동 동작 안 함 → 클론 시 셋업 가이드 필수 + L5 로 보강 |
+| L5  | CI 시크릿 스캐닝 (gitleaks/trufflehog, GitHub Actions)        | history 전체 + push 단계 차단                                 | ❌ `.github/workflows/` 부재 — **도입 필수**. 도입 전까지는 사람이 모든 커밋 수동 검토                               |
+| L6  | GitHub Native: Secret Scanning + Push Protection + Dependabot | Public Repo 에서 자동 활성, 패턴 한정 보호                    | ✅ (Repo 설정에서 활성 확인)                                                                                         |
+| L+  | AI 게이트 (`commit-work` → `pr-code-reviewer-iterative`)      | AI 발화 경로 한정 — 사람 직접 커밋은 우회됨                   | ✅ 단 우회 가능                                                                                                      |
+| L+  | wiki-maintainer INGEST 사전 스캔                              | raw/ 저장 전 시크릿/PII 차단 — wiki 가 누출 채널 되는 것 방지 | ✅ (스킬 도입 시 자동)                                                                                               |
 
 L3·L4·L5 는 현재 결함. L4 가 작동하지 않는 한 **L5 (CI gitleaks) 가 사실상 유일한 자동 방어**이므로 우선 도입 대상으로 둔다.
 
@@ -140,6 +140,50 @@ AI 는 `git commit` 직전 다음을 **모두** 통과시키고 사용자 승인
 
 ---
 
+## Wiki 시스템
+
+이 프로젝트는 LLM Wiki 패턴을 따른다. **3계층 구조**로 단일 출처 원칙을 유지한다.
+
+| 계층                             | 위치                               | 유지 주체            | 담는 것                                      |
+| -------------------------------- | ---------------------------------- | -------------------- | -------------------------------------------- |
+| 정책·스키마                      | `CLAUDE.md` (이 파일)              | 사람                 | 보안·의사결정·게이트·기술 스택               |
+| 마스터 narrative                 | `.claude/docs/project-overview.md` | **사람**             | 서비스 정의·유저 플로우·용어 (단일 출처)     |
+| Atomic 페이지 + 이력 + 코드 매핑 | `.claude/wiki/`                    | wiki-maintainer 스킬 | domains/flows/apis/entities/ui/decisions/raw |
+
+### 단일 출처 원칙
+
+`.claude/wiki/` 는 `project-overview.md` 의 분해된 **derived view + 변경 이력 + 코드 동기화 layer** 다.
+
+- 동일 사실이 둘에 등장하면 **`project-overview.md` 가 우선**. wiki 페이지는 frontmatter `surfaced-in: .claude/docs/project-overview.md#<anchor>` 로 derive 관계 명시 (해당 사실이 project-overview.md 에서 파생된 경우에만).
+- 사용자 발언으로 진실이 바뀌면 wiki-maintainer **INGEST** 가 raw 저장 + wiki 갱신 + `project-overview.md` 갱신 필요 여부를 사용자에게 **보고만** 한다. project-overview.md 는 사용자의 확인 후 수정.
+- 코드 변경 시 dev-avatar 가 **UPDATE** 호출 → wiki 만 갱신. project-overview.md 반영 여부는 사용자 검토 후 수동.
+- karpathy-guidelines 는 모든 의사결정의 baseline. `wiki/decisions/000-karpathy-baseline.md` 가 우선 출처. 결제/매칭/관측성처럼 대규모 영향 영역은 확장성 가중치를 별도 ADR 로 분리해 트레이드오프를 명시.
+
+### 운영 규칙
+
+- 모든 sub-agent 는 작업 시작 전 wiki-maintainer **QUERY** 로 컨텍스트 로드 (읽기 전용, 토큰 불요).
+- **INGEST 트리거 판정 의무는 turn 첫 단계의 응답 주체가 가진다.**
+  - avatar 서브에이전트가 활성이면 → avatar 가 판정, 매칭 시 `wiki-avatar` 에 Agent 위임 (avatar 본인은 Bash/Edit/Write 부재).
+  - **avatar 미경유 (사용자가 main Claude 에 직접 작업 지시) 인 경우 → main Claude 가 동일한 판정 의무를 가진다.** [.claude/skills/wiki-maintainer/modes/INGEST.md § 1. 트리거 판정](.claude/skills/wiki-maintainer/modes/INGEST.md) 의 신호 표로 매 사용자 발언을 검사. 매칭 시 main Claude 가 직접 wiki-maintainer SKILL 의 INGEST 절차를 수행 (Bash 로 토큰 발급/회수 + Edit/Write 로 raw 저장·페이지 갱신). 이 의무가 없으면 초기 단계의 빈번한 사양 변경이 wiki 에 박제되지 않아 시스템 진실이 유실된다.
+  - 판정이 모호하면 INGEST 한다 (false negative > false positive 비용).
+- dev-avatar 는 작업 종료 직전 **UPDATE** 호출 의무 (자체 Bash/Edit/Write 로 수행).
+- pr-code-reviewer 는 PR 검증 5축에 **Wiki Drift** 포함, **LINT** 호출 (자체 도구로 수행).
+- `.claude/api/openapi.yaml` 은 API 계약의 단일 진실. `wiki/apis/*` 는 narrative 만 담는다 (스키마 중복 금지).
+- **어떤 에이전트도 `.claude/wiki/**` 를 직접 편집하지 않는다** — wiki-maintainer 스킬(또는 wiki-avatar 에이전트) 경유만. PreToolUse hook (`wiki-write-gate.sh`, `wiki-bash-gate.sh`)이 강제.
+- 토큰은 모드별 분리 — `.claude/.wiki-edit-token.{ingest,update,lint}`. 동시 활성 가능 (호출자 경합 방지).
+- **drift 용어 단일 정의**는 [.claude/skills/wiki-maintainer/SKILL.md § 2.8](.claude/skills/wiki-maintainer/SKILL.md) 단일 출처. settings.json 의 git commit pre-hook 은 `update-lag` 만 검사 (커밋 직전 staged set 기반 빠른 차단), LINT 는 `content-drift / orphan-code / stale-ref` 를 검사 (전수 점검) — 역할이 다르므로 중복 아님.
+
+### 보안 1급 통합
+
+- INGEST 는 raw 저장 **전** 시크릿/PII 스캔. CLAUDE.md [§ 보안 (1급) — 자동 탐지 패턴](#보안-1급) 위반 시 raw 자체 거부 + 사용자 보고.
+- LINT 는 보안 카테고리를 1순위 CRITICAL 로 검사. wiki 본문/raw/페이지 frontmatter 어디서든 시크릿·PII 흔적 발견 시 즉시 보고.
+- `.env.example` ↔ `src/shared/config/env.ts` Zod 스키마 동시 갱신 검증을 UPDATE/LINT 가 자동 수행.
+- wiki 가 새로운 시크릿 누출 채널이 되는 것을 차단한다.
+
+자세한 규칙: [.claude/skills/wiki-maintainer/SKILL.md](.claude/skills/wiki-maintainer/SKILL.md).
+
+---
+
 ## 환경 및 배포
 
 - **환경**: `development`(MSW 우선) / `staging` / `production`.
@@ -163,7 +207,7 @@ AI 는 `git commit` 직전 다음을 **모두** 통과시키고 사용자 승인
 
 ## 개발 규칙
 
-- **의사결정**: `karpathy-guidelines` 우선 — 단순·외과적 수정·검증 가능한 성공 기준. 단, 결제/매칭/관측성처럼 **대규모 트래픽·운영 영향**이 있는 영역에서는 확장성·유지보수성을 추가 가중치로 둔다.
+- **의사결정**: `karpathy-guidelines` 우선 — 단순·외과적 수정·검증 가능한 성공 기준. 단, 결제/매칭/관측성처럼 **대규모 트래픽·운영 영향**이 있는 영역에서는 확장성·유지보수성을 추가 가중치로 둔다. ADR 형태로 [.claude/wiki/decisions/](.claude/wiki/decisions/) 에 박제한다.
 - **레이아웃 변경 금지**: 레이아웃(섹션 구조, 그리드, 컬럼 배치, 배경 등 시각적 구성) 수정은 **디자인 스펙이 먼저 확정된 후에만** 가능. 디자인 없이 레이아웃을 임의로 변경하지 않는다. 동작(select-none, 이벤트 핸들러 등) 수정은 레이아웃 변경이 아니므로 해당 없음.
 
 - **TDD**: Zod 스키마 → 테스트(RED) → 구현(GREEN) → 리팩터 → 커버리지 확인.
@@ -189,7 +233,8 @@ AI 는 `git commit` 직전 다음을 **모두** 통과시키고 사용자 승인
   - 계획/설계 → `.claude/plans/`
   - 운영 런북 → `.claude/runbook/`
   - 리서치/노트 → `.claude/notes/`
-  - 서비스 개요/스펙 참조본 → `.claude/docs/`
+  - 서비스 개요/스펙 참조본 → `.claude/docs/` (사람이 유지하는 마스터 narrative)
+  - **시스템 진실 (도메인/플로우/엔티티/API narrative/UI/ADR) → `.claude/wiki/`** (wiki-maintainer 스킬 경유 쓰기만 허용)
 - 프로젝트 외부 경로(`~/.claude/plans/*` 등) 저장 금지.
 - `docs/` 는 **사람이 작성**하는 공식 문서 전용 — AI가 먼저 만들지 않는다.
 - AI 산출물을 공식 문서로 승격하려면 사용자가 직접 `docs/`로 이동.
@@ -208,11 +253,14 @@ AI 는 `git commit` 직전 다음을 **모두** 통과시키고 사용자 승인
 
 사용자 발화에 아래 패턴이 감지되면 반드시 해당 스킬을 실행한다.
 
-| 발화 패턴                                               | 실행 스킬                                            |
-| ------------------------------------------------------- | ---------------------------------------------------- |
-| "커밋해줘", "작업 내용을 커밋해줘", "변경사항 커밋해줘" | `.claude/skills/commit-work/SKILL.md`                |
-| "PR 올려줘", "PR 만들어줘", "PR 생성해줘", "PR 보내줘"  | `.claude/skills/pr-code-reviewer-iterative/SKILL.md` |
-| "PR …" + 미커밋 변경이 있는 경우                        | `commit-work` → `pr-code-reviewer-iterative` 순서    |
+| 발화 패턴                                                | 실행 스킬                                             |
+| -------------------------------------------------------- | ----------------------------------------------------- |
+| "커밋해줘", "작업 내용을 커밋해줘", "변경사항 커밋해줘"  | `.claude/skills/commit-work/SKILL.md`                 |
+| "PR 올려줘", "PR 만들어줘", "PR 생성해줘", "PR 보내줘"   | `.claude/skills/pr-code-reviewer-iterative/SKILL.md`  |
+| "PR …" + 미커밋 변경이 있는 경우                         | `commit-work` → `pr-code-reviewer-iterative` 순서     |
+| "wiki 정리", "wiki lint", "wiki 점검", "spec drift 봐줘" | `.claude/skills/wiki-maintainer/SKILL.md` (mode=lint) |
+
+> 자동 INGEST 는 매 사용자 턴 첫 단계에서 avatar 가 트리거 규칙으로 판정 → 별도 발화 트리거 불필요. 사용자가 명시적으로 "이거 기억해줘", "프로젝트 결정으로 박제해줘" 라고 하면 INGEST 강제 트리거.
 
 ### 자동 진행 모드
 
@@ -222,3 +270,4 @@ AI 는 `git commit` 직전 다음을 **모두** 통과시키고 사용자 승인
 - 커밋 단위별 개별 승인 생략
 - 세션 한정, 다음 대화로 이월 금지
 - `git commit` 포함 파괴적 작업에도 적용 (시크릿 노출 의심 시 예외)
+- **wiki-maintainer INGEST 사전 스캔에서 시크릿/PII 의심이 감지되면 자동 모드 즉시 해제** — CLAUDE.md 보안 1급 정책 그대로 따름.
