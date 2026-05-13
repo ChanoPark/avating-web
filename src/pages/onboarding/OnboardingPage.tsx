@@ -4,23 +4,36 @@ import { ProgressBar } from '@shared/ui/ProgressBar/ProgressBar';
 
 const STEP_MAP: Record<string, number> = {
   '/onboarding/welcome': 1,
-  '/onboarding/survey': 2,
+  '/onboarding/method': 2,
+  '/onboarding/survey': 3,
   '/onboarding/connect': 3,
   '/onboarding/complete': 4,
 };
 
-const ONBOARDING_STEP_LABELS = ['환영합니다', '페르소나 설문', '연결 코드', '완료'] as const;
+const STEP_LABEL_BY_ROUTE: Record<string, string> = {
+  '/onboarding/welcome': '시작',
+  '/onboarding/method': '방법 선택',
+  '/onboarding/survey': '성향 설문',
+  '/onboarding/connect': 'Bot 대화',
+  '/onboarding/complete': '아바타 확인',
+};
 
-// 라우트 단위 PageTransition 대신 자체 AnimatePresence 사용 — 4단계 사이의
-// 트랜지션은 ProgressBar 와 함께 헤더를 유지한 채 본문만 fade/slide 해야 하므로.
+const FALLBACK_LABELS = ['시작', '방법 선택', '아바타 생성', '아바타 확인'] as const;
+
 export function OnboardingPage() {
   const location = useLocation();
   const currentStep = STEP_MAP[location.pathname] ?? 1;
+  const currentLabel = STEP_LABEL_BY_ROUTE[location.pathname] ?? FALLBACK_LABELS[currentStep - 1];
+
+  const labels = FALLBACK_LABELS.map((label, idx) => {
+    if (idx + 1 === currentStep && currentLabel !== undefined) return currentLabel;
+    return label;
+  });
 
   return (
     <div className="bg-bg flex min-h-screen flex-col">
       <header className="px-6 pt-8 pb-4">
-        <ProgressBar current={currentStep} total={4} labels={ONBOARDING_STEP_LABELS} />
+        <ProgressBar current={currentStep} total={4} labels={labels} />
       </header>
 
       <main className="flex flex-1 items-start justify-center px-4 pb-8">
