@@ -1,39 +1,31 @@
 import { Outlet, useLocation } from 'react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { ProgressBar } from '@shared/ui/ProgressBar/ProgressBar';
+import {
+  ONBOARDING_FALLBACK_LABELS,
+  ONBOARDING_STEPS,
+  ONBOARDING_TOTAL_STEPS,
+  type OnboardingRoute,
+} from '@entities/onboarding';
 
-const STEP_MAP: Record<string, number> = {
-  '/onboarding/welcome': 1,
-  '/onboarding/method': 2,
-  '/onboarding/survey': 3,
-  '/onboarding/connect': 3,
-  '/onboarding/complete': 4,
-};
-
-const STEP_LABEL_BY_ROUTE: Record<string, string> = {
-  '/onboarding/welcome': '시작',
-  '/onboarding/method': '방법 선택',
-  '/onboarding/survey': '성향 설문',
-  '/onboarding/connect': 'Bot 대화',
-  '/onboarding/complete': '아바타 확인',
-};
-
-const FALLBACK_LABELS = ['시작', '방법 선택', '아바타 생성', '아바타 확인'] as const;
+function isOnboardingRoute(pathname: string): pathname is OnboardingRoute {
+  return pathname in ONBOARDING_STEPS;
+}
 
 export function OnboardingPage() {
   const location = useLocation();
-  const currentStep = STEP_MAP[location.pathname] ?? 1;
-  const currentLabel = STEP_LABEL_BY_ROUTE[location.pathname] ?? FALLBACK_LABELS[currentStep - 1];
+  const descriptor = isOnboardingRoute(location.pathname)
+    ? ONBOARDING_STEPS[location.pathname]
+    : { step: 1 as const, label: ONBOARDING_FALLBACK_LABELS[0] ?? '시작' };
 
-  const labels = FALLBACK_LABELS.map((label, idx) => {
-    if (idx + 1 === currentStep && currentLabel !== undefined) return currentLabel;
-    return label;
-  });
+  const labels = ONBOARDING_FALLBACK_LABELS.map((label, idx) =>
+    idx + 1 === descriptor.step ? descriptor.label : label
+  );
 
   return (
     <div className="bg-bg flex min-h-screen flex-col">
       <header className="px-6 pt-8 pb-4">
-        <ProgressBar current={currentStep} total={4} labels={labels} />
+        <ProgressBar current={descriptor.step} total={ONBOARDING_TOTAL_STEPS} labels={labels} />
       </header>
 
       <main className="flex flex-1 items-start justify-center px-4 pb-8">

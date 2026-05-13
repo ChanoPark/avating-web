@@ -2,9 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
-import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
-
-type Method = 'survey' | 'connect';
+import {
+  getOnboardingMethod,
+  getOnboardingProgress,
+  setOnboardingMethod,
+  setOnboardingProgress,
+  type OnboardingMethod,
+} from '@entities/onboarding';
 
 type MethodCardProps = {
   selected: boolean;
@@ -83,18 +87,33 @@ function MethodCard({
 
 export function MethodSelectStep() {
   const navigate = useNavigate();
-  const [method, setMethod] = useState<Method>('survey');
+  const [method, setMethod] = useState<OnboardingMethod>(() => getOnboardingMethod() ?? 'survey');
 
   useEffect(() => {
     const progress = getOnboardingProgress();
     if (progress === 'welcome') {
       void navigate('/onboarding/welcome', { replace: true });
-    } else if (progress === 'complete') {
+      return;
+    }
+    if (progress === 'complete') {
       void navigate('/onboarding/complete', { replace: true });
+      return;
+    }
+    if (progress === 'creating') {
+      const stored = getOnboardingMethod();
+      if (stored === 'survey') {
+        void navigate('/onboarding/survey', { replace: true });
+      } else if (stored === 'connect') {
+        void navigate('/onboarding/connect', { replace: true });
+      }
+      // stored === null: PROGRESS_KEY 가 'creating' 이지만 METHOD_KEY 가 없는 비정상 상태.
+      // 일반 플로우로는 도달 불가 (수동 localStorage 조작 시만 발생). 사용자에게 방법을
+      // 다시 선택할 기회를 주는 조용한 복구로 처리 — 별도 redirect 없이 화면 표시.
     }
   }, [navigate]);
 
   const handleNext = () => {
+    setOnboardingMethod(method);
     setOnboardingProgress('creating');
     if (method === 'survey') {
       void navigate('/onboarding/survey');
