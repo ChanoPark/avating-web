@@ -136,6 +136,30 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(screen.getByText('1/3')).toBeInTheDocument();
     });
 
+    it('Escape 키로 다이얼로그를 닫으면 트리거 버튼으로 포커스가 복원된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      const triggerBtn = screen.getByRole('button', { name: /공감 스탯/ });
+      await user.click(triggerBtn);
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+
+      // requestAnimationFrame 으로 포커스 복원되므로 다음 paint 대기
+      await waitFor(() => {
+        expect(triggerBtn).toHaveFocus();
+      });
+    });
+
     it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });

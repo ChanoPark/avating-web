@@ -1,10 +1,11 @@
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { HexRadar } from '@shared/ui/HexRadar/HexRadar';
 import { useToast } from '@shared/ui/Toast/useToast';
+import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import { clearOnboardingProgress, getOnboardingProgress } from '@entities/onboarding';
 import type { GeneratedAvatar } from '@entities/onboarding';
 import { isApiError } from '@shared/lib/errors';
@@ -32,6 +33,8 @@ const STAT_LABEL: Record<StatKey, string> = {
   listening: '경청',
   expressiveness: '표현력',
 };
+
+const RADAR_LABELS: readonly string[] = STAT_ORDER.map((key) => STAT_LABEL[key]);
 
 type TuneSurveyEntry = { question: string; options: readonly string[]; deltas: readonly number[] };
 
@@ -85,13 +88,48 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
   const [activeStat, setActiveStat] = useState<StatKey | null>(null);
 
   const radarValues = useMemo(() => STAT_ORDER.map((key) => stats[key]), [stats]);
-  const radarLabels = useMemo(() => STAT_ORDER.map((key) => STAT_LABEL[key]), []);
+
+  const statButtonRefs = useRef<Map<StatKey, HTMLButtonElement>>(new Map());
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const firstDialogButtonRef = useRef<HTMLButtonElement>(null);
+  const triggerStatRef = useRef<StatKey | null>(null);
+
+  useFocusTrap(activeStat !== null, dialogRef);
+
+  const closeDialog = useCallback((restoreFocus: boolean) => {
+    const triggerKey = triggerStatRef.current;
+    setActiveStat(null);
+    if (restoreFocus && triggerKey !== null) {
+      // 다음 paint 에서 트리거 버튼으로 포커스 복원
+      requestAnimationFrame(() => {
+        statButtonRefs.current.get(triggerKey)?.focus();
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (activeStat === null) return;
+    // 다이얼로그 오픈 시 첫 답변 버튼으로 포커스 이동
+    firstDialogButtonRef.current?.focus();
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeDialog(true);
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [activeStat, closeDialog]);
 
   const handleStatClick = (key: StatKey) => {
     if (tuneCount >= MAX_TUNE) {
       toast.show({ variant: 'warning', title: '더 이상 조정할 수 없습니다.' });
       return;
     }
+    triggerStatRef.current = key;
     setActiveStat(key);
   };
 
@@ -102,7 +140,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
     const key = activeStat;
     setStats((prev) => ({ ...prev, [key]: clampStat(prev[key] + delta) }));
     setTuneCount((c) => c + 1);
-    setActiveStat(null);
+    closeDialog(true);
   };
 
   return (
@@ -112,11 +150,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
           <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
             STEP 4 / 4 · 아바타 확인
           </span>
-          <div
-            className="flex items-center gap-1.5"
-            role="status"
-            aria-label={`튜닝 ${tuneCount} / ${MAX_TUNE}`}
-          >
+          <div className="flex items-center gap-1.5" aria-label={`튜닝 ${tuneCount} / ${MAX_TUNE}`}>
             {Array.from({ length: MAX_TUNE }).map((_, i) => (
               <span
                 key={i}
@@ -159,7 +193,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
 
       <div className="border-border bg-bg-elev-2 grid grid-cols-[140px_1fr] items-center gap-4 rounded-md border p-4">
         <div className="flex items-center justify-center">
-          <HexRadar stats={radarValues} labels={radarLabels} size={140} />
+          <HexRadar stats={radarValues} labels={[...RADAR_LABELS]} size={140} />
         </div>
         <ul className="flex flex-col gap-1.5">
           {STAT_ORDER.map((key) => {
@@ -170,10 +204,17 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
               <li key={key}>
                 <button
                   type="button"
+                  ref={(el) => {
+                    if (el) statButtonRefs.current.set(key, el);
+                    else statButtonRefs.current.delete(key);
+                  }}
                   onClick={() => {
                     handleStatClick(key);
                   }}
-                  aria-label={`${STAT_LABEL[key]} 스탯 ${v} - 클릭해 재조정`}
+                  aria-disabled={disabled}
+                  aria-label={`${STAT_LABEL[key]} 스탯 ${v}${
+                    disabled ? ' (튜닝 한도 초과)' : ' - 클릭해 재조정'
+                  }`}
                   className={`group flex w-full items-center gap-2 rounded-sm border px-2 py-1 text-left transition-colors ${
                     isActive
                       ? 'border-brand-border bg-brand-soft'
@@ -226,21 +267,23 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
       </p>
 
       {activeStat !== null && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="tune-survey-title"
-          className="fixed inset-0 z-[var(--z-modal)] flex items-end px-4 pb-4"
-        >
+        <div className="fixed inset-0 z-[var(--z-modal)] flex items-end px-4 pb-4">
           <button
             type="button"
-            aria-label="닫기"
+            aria-hidden="true"
+            tabIndex={-1}
             className="absolute inset-0 cursor-default bg-black/50"
             onClick={() => {
-              setActiveStat(null);
+              closeDialog(true);
             }}
           />
-          <div className="border-border-hi bg-bg-elev-1 relative mx-auto w-full max-w-[480px] rounded-md border p-5">
+          <div
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tune-survey-title"
+            className="border-border-hi bg-bg-elev-1 relative mx-auto w-full max-w-[480px] rounded-md border p-5"
+          >
             <div className="mb-3 flex items-center justify-between">
               <span className="text-mono-meta text-brand font-mono">
                 {STAT_LABEL[activeStat]} 재조정
@@ -250,7 +293,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
                 aria-label="다이얼로그 닫기"
                 className="text-text-3 hover:text-text"
                 onClick={() => {
-                  setActiveStat(null);
+                  closeDialog(true);
                 }}
               >
                 ✕
@@ -263,6 +306,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
               {TUNE_SURVEY[activeStat].options.map((opt, oi) => (
                 <button
                   key={opt}
+                  ref={oi === 0 ? firstDialogButtonRef : undefined}
                   type="button"
                   onClick={() => {
                     handleAnswer(oi);
