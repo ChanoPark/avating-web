@@ -34,17 +34,13 @@ export const loginFormSchema = z.object({
   password: rawPasswordSchema,
 });
 
-export const signupFormSchema = z
-  .object({
-    email: emailSchema,
-    nickname: nicknameSchema,
-    password: rawPasswordSchema,
-    passwordConfirm: z.string(),
-  })
-  .refine((v) => v.password === v.passwordConfirm, {
-    path: ['passwordConfirm'],
-    message: '비밀번호가 일치하지 않습니다',
-  });
+export const signupFormSchema = z.object({
+  email: emailSchema,
+  nickname: nicknameSchema,
+  password: rawPasswordSchema,
+  termsAgreed: z.boolean().refine((v) => v, { message: '약관에 동의해주세요' }),
+  marketingOptIn: z.boolean().default(false),
+});
 
 export const loginRequestSchema = z.object({
   email: emailSchema,
