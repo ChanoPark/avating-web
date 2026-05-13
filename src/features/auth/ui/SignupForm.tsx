@@ -116,7 +116,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui-label hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
@@ -124,7 +124,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui-label hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
@@ -138,7 +138,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </div>
 
         <div>
-          <label htmlFor="signup-email" className="font-ui text-ui-label text-text mb-2 block">
+          <label htmlFor="signup-email" className="font-ui text-ui text-text mb-2 block">
             이메일
           </label>
           <input
@@ -163,7 +163,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </div>
 
         <div>
-          <label htmlFor="signup-nickname" className="font-ui text-ui-label text-text mb-2 block">
+          <label htmlFor="signup-nickname" className="font-ui text-ui text-text mb-2 block">
             닉네임
           </label>
           <input
@@ -188,7 +188,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </div>
 
         <div>
-          <label htmlFor="signup-password" className="font-ui text-ui-label text-text mb-2 block">
+          <label htmlFor="signup-password" className="font-ui text-ui text-text mb-2 block">
             비밀번호
           </label>
           <input

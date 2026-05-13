@@ -63,7 +63,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui-label hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
@@ -71,7 +71,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui-label hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
@@ -85,7 +85,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
 
         <div>
-          <label htmlFor="login-email" className="font-ui text-ui-label text-text mb-2 block">
+          <label htmlFor="login-email" className="font-ui text-ui text-text mb-2 block">
             이메일
           </label>
           <input
@@ -110,7 +110,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
 
         <div>
-          <label htmlFor="login-password" className="font-ui text-ui-label text-text mb-2 block">
+          <label htmlFor="login-password" className="font-ui text-ui text-text mb-2 block">
             비밀번호
           </label>
           <input
