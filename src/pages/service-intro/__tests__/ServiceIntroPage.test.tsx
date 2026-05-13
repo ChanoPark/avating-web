@@ -19,14 +19,24 @@ function renderPage() {
 }
 
 describe('ServiceIntroPage', () => {
-  it('서비스 헤더 타이틀이 렌더된다', () => {
+  it('Avating 로고가 헤더에 렌더된다', () => {
     renderPage();
-    expect(screen.getByText('Avating')).toBeInTheDocument();
+    expect(screen.getByRole('banner')).toHaveTextContent('Avating');
+  });
+
+  it('BETA 태그가 렌더된다', () => {
+    renderPage();
+    expect(screen.getByText(/BETA · 인터랙티브 소셜 게임/)).toBeInTheDocument();
   });
 
   it('메인 헤드카피가 렌더된다', () => {
     renderPage();
-    expect(screen.getByText(/귀찮은 밀당은 아바타가/)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(/귀찮은 밀당은 아바타가/);
+  });
+
+  it('서브카피에서 "매칭" 단어를 사용한다 (파견 금지)', () => {
+    renderPage();
+    expect(screen.getByText(/AI 아바타를 소개팅에 매칭하고/)).toBeInTheDocument();
   });
 
   it('기능 카드 3개가 렌더된다', () => {
@@ -36,37 +46,42 @@ describe('ServiceIntroPage', () => {
     expect(screen.getAllByText('에프터 연결').length).toBeGreaterThanOrEqual(1);
   });
 
-  it('가입하기 버튼이 렌더된다', () => {
+  it('누적 매칭 / 평균 호감도 / 에프터 연결 지표가 렌더된다', () => {
     renderPage();
-    expect(screen.getByRole('button', { name: /가입하기/i })).toBeInTheDocument();
+    expect(screen.getByText('4.2만+')).toBeInTheDocument();
+    expect(screen.getByText('누적 매칭')).toBeInTheDocument();
+    expect(screen.getByText('68%')).toBeInTheDocument();
+    expect(screen.getByText('평균 호감도')).toBeInTheDocument();
+    expect(screen.getByText('1.1만')).toBeInTheDocument();
+  });
+
+  it('하단 CTA 영역에 "회원가입" primary 와 "로그인" secondary 가 함께 있다', () => {
+    renderPage();
+    expect(screen.getByRole('button', { name: /회원가입/i })).toBeInTheDocument();
+    const loginButtons = screen.getAllByRole('button', { name: /^로그인$/i });
+    expect(loginButtons.length).toBeGreaterThanOrEqual(2);
   });
 
   it('헤더 "로그인" 버튼 클릭 시 /login 으로 이동한다', async () => {
     const user = userEvent.setup();
     renderPage();
-    const loginBtns = screen.getAllByRole('button', { name: /로그인/i });
+    const loginBtns = screen.getAllByRole('button', { name: /^로그인$/i });
     await user.click(loginBtns[0]!);
     expect(mockNavigate).toHaveBeenCalledWith('/login');
   });
 
-  it('"가입하기" 버튼 클릭 시 /signup 으로 이동한다', async () => {
+  it('"회원가입" 버튼 클릭 시 /signup 으로 이동한다', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: /가입하기/i }));
+    await user.click(screen.getByRole('button', { name: /회원가입/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/signup');
   });
 
-  it('섹션 "로그인" 버튼 클릭 시 /login 으로 이동한다', async () => {
+  it('섹션 하단 "로그인" 버튼 클릭 시 /login 으로 이동한다', async () => {
     const user = userEvent.setup();
     renderPage();
-    const loginBtns = screen.getAllByRole('button', { name: /로그인/i });
+    const loginBtns = screen.getAllByRole('button', { name: /^로그인$/i });
     await user.click(loginBtns[loginBtns.length - 1]!);
     expect(mockNavigate).toHaveBeenCalledWith('/login');
-  });
-
-  it('누적 매칭 지표 카드가 렌더된다', () => {
-    renderPage();
-    expect(screen.getByText('4.2만+')).toBeInTheDocument();
-    expect(screen.getByText('누적 매칭')).toBeInTheDocument();
   });
 });
