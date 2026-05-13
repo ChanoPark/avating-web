@@ -24,7 +24,7 @@ describe('ConnectStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    localStorage.setItem('avating:onboarding:progress', 'connect');
+    localStorage.setItem('avating:onboarding:progress', 'creating');
 
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
