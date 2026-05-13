@@ -153,9 +153,12 @@ describe('SignupForm', () => {
         expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
         // 단언 2: aria-invalid="true"
         expect(termsCheckbox).toHaveAttribute('aria-invalid', 'true');
-        // 단언 3: aria-describedby 가 에러 id 를 가리킴
+        // 단언 3: 에러 시각 스타일(border-danger + outline-danger)
+        expect(termsCheckbox).toHaveClass('border-danger');
+        expect(termsCheckbox).toHaveClass('outline-danger');
+        // 단언 4: aria-describedby 가 에러 id 를 가리킴
         expect(termsCheckbox).toHaveAttribute('aria-describedby', 'signup-terms-error');
-        // 단언 4: 에러 p 요소가 해당 id 를 가짐
+        // 단언 5: 에러 p 요소가 해당 id 를 가짐 (describedby 양방향 정합)
         expect(screen.getByText(/약관에 동의해주세요/).closest('p')).toHaveAttribute(
           'id',
           'signup-terms-error'
@@ -202,6 +205,32 @@ describe('SignupForm', () => {
       await waitFor(() => {
         expect(progressbar).toHaveAttribute('aria-valuenow', '1');
         expect(screen.getByText(/8자 이상 필요/)).toBeInTheDocument();
+      });
+    });
+
+    it('1종 카테고리 + 8자 이상("password") 입력 시 aria-valuenow=1, "약함" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'password');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '1');
+        expect(screen.getByText(/^약함$/)).toBeInTheDocument();
+      });
+    });
+
+    it('2종 카테고리 + 8자 이상("password1") 입력 시 aria-valuenow=2, "보통" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'password1');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '2');
+        expect(screen.getByText(/^보통$/)).toBeInTheDocument();
       });
     });
 

@@ -52,7 +52,7 @@ describe('signupFormSchema', () => {
     email: 'user@avating.com',
     nickname: '아바팅유저',
     password: 'Password1!',
-    termsAgreed: true as const,
+    termsAgreed: true,
     marketingOptIn: false,
   };
 
@@ -88,6 +88,7 @@ describe('signupFormSchema', () => {
         (i) => JSON.stringify(i.path) === JSON.stringify(['termsAgreed'])
       );
       expect(termsError).toBeDefined();
+      expect(termsError?.message).toBe('약관에 동의해주세요');
     }
   });
 

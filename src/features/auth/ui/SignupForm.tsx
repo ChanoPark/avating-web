@@ -78,6 +78,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
   const strength = useMemo(() => computePasswordStrength(passwordValue), [passwordValue]);
 
   const onSubmit = async (values: SignupFormValues) => {
+    // termsAgreed / marketingOptIn 은 서버 payload 비포함 — 와이어프레임 미명세 + 사용자 결정
+    // (인수인계 plan §5.1). 클라이언트 측 폼 검증·로컬 기록 용도로만 사용.
     try {
       await mutateAsync({
         email: values.email,
@@ -238,7 +240,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               type="checkbox"
               aria-invalid={errors.termsAgreed ? true : undefined}
               aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
-              className="border-border-hi accent-brand h-4 w-4 rounded-sm border"
+              className={`accent-brand h-4 w-4 rounded-sm border ${errors.termsAgreed ? 'border-danger outline-danger outline outline-1' : 'border-border-hi'}`}
               {...register('termsAgreed')}
             />
             <span>
