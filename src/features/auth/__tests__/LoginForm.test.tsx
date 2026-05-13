@@ -53,6 +53,14 @@ describe('LoginForm', () => {
       renderWithProviders(<LoginForm />);
       expect(screen.getByRole('button', { name: /비밀번호 찾기/ })).toBeInTheDocument();
     });
+
+    it('"비밀번호 찾기" 버튼은 준비 중 상태로 disabled + aria-disabled + title 이 명시된다', () => {
+      renderWithProviders(<LoginForm />);
+      const resetBtn = screen.getByRole('button', { name: /비밀번호 찾기/ });
+      expect(resetBtn).toBeDisabled();
+      expect(resetBtn).toHaveAttribute('aria-disabled', 'true');
+      expect(resetBtn).toHaveAttribute('title', '비밀번호 찾기 (준비 중)');
+    });
   });
 
   describe('빈 폼 제출 유효성 검증', () => {

@@ -22,6 +22,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     resolver: zodResolver(loginFormSchema),
     defaultValues: { email: '', password: '' },
     mode: 'onTouched',
+    reValidateMode: 'onChange',
   });
 
   const { mutateAsync, isPending } = useLogin();
@@ -136,7 +137,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         <div className="text-right">
           <button
             type="button"
-            className="text-mono-meta text-brand hover:text-brand-hover font-mono"
+            disabled
+            aria-disabled="true"
+            title="비밀번호 찾기 (준비 중)"
+            className="text-mono-meta text-text-3 font-mono disabled:cursor-not-allowed disabled:opacity-70"
           >
             비밀번호 찾기
           </button>

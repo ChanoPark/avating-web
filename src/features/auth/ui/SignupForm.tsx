@@ -13,6 +13,8 @@ type SignupFormProps = {
   onSuccess?: () => void;
 };
 
+// UI 강도 표시 전용 — entities/auth/model.ts 의 hasThreeOfFour 와 의도적으로 독립 유지.
+// hasThreeOfFour 는 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
 function computePasswordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;
@@ -60,10 +62,11 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       email: '',
       nickname: '',
       password: '',
-      termsAgreed: false as unknown as true,
+      termsAgreed: false,
       marketingOptIn: false,
     },
     mode: 'onTouched',
+    reValidateMode: 'onChange',
   });
 
   const { mutateAsync, isPending } = useSignup();
@@ -234,6 +237,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             <input
               type="checkbox"
               aria-invalid={errors.termsAgreed ? true : undefined}
+              aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
               className="border-border-hi accent-brand h-4 w-4 rounded-sm border"
               {...register('termsAgreed')}
             />
@@ -242,7 +246,11 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             </span>
           </label>
           {errors.termsAgreed?.message && (
-            <p role="alert" className="text-mono-meta text-danger ml-6 font-mono">
+            <p
+              id="signup-terms-error"
+              role="alert"
+              className="text-mono-meta text-danger ml-6 font-mono"
+            >
               ✕ {errors.termsAgreed.message}
             </p>
           )}
