@@ -138,7 +138,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <button
             type="button"
             disabled
-            aria-disabled="true"
             title="비밀번호 찾기 (준비 중)"
             className="text-mono-meta text-text-3 font-mono disabled:cursor-not-allowed disabled:opacity-70"
           >

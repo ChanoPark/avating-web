@@ -17,15 +17,13 @@ export function SignupPage() {
 
           <div
             aria-hidden="true"
-            className="border-border bg-bg flex h-24 items-center justify-center rounded-md border"
+            className="border-border bg-bg h-24 rounded-md border"
             style={{
               backgroundImage:
                 'linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
               backgroundSize: '24px 24px',
             }}
-          >
-            <span className="text-mono-meta text-text-4 font-mono">[ 48×48 grid bg ]</span>
-          </div>
+          />
 
           <h2 className="font-ui text-title text-text whitespace-pre-line select-none">
             {'귀찮은 밀당은 아바타가,\n결정은 당신이.'}

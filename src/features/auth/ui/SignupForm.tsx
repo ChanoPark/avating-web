@@ -235,18 +235,19 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-body-sm text-text-2 flex items-center gap-2">
+          <div className="text-body-sm text-text-2 flex items-center gap-2">
             <input
+              id="signup-terms"
               type="checkbox"
               aria-invalid={errors.termsAgreed ? true : undefined}
               aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
               className={`accent-brand h-4 w-4 rounded-sm border ${errors.termsAgreed ? 'border-danger outline-danger outline outline-1' : 'border-border-hi'}`}
               {...register('termsAgreed')}
             />
-            <span>
+            <label htmlFor="signup-terms">
               만 19세 이상이며 약관에 동의 <span className="text-danger">*</span>
-            </span>
-          </label>
+            </label>
+          </div>
           {errors.termsAgreed?.message && (
             <p
               id="signup-terms-error"
@@ -256,14 +257,15 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               ✕ {errors.termsAgreed.message}
             </p>
           )}
-          <label className="text-body-sm text-text-2 flex items-center gap-2">
+          <div className="text-body-sm text-text-2 flex items-center gap-2">
             <input
+              id="signup-marketing"
               type="checkbox"
               className="border-border-hi accent-brand h-4 w-4 rounded-sm border"
               {...register('marketingOptIn')}
             />
-            <span>알림 수신 (선택)</span>
-          </label>
+            <label htmlFor="signup-marketing">알림 수신 (선택)</label>
+          </div>
         </div>
 
         <Button type="submit" variant="primary" disabled={isLoading} aria-busy={isLoading}>
