@@ -4,6 +4,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { StatsGrid } from '@features/dashboard/ui/StatsGrid';
 import { AvatarList } from '@features/dashboard/ui/AvatarList';
 import { FilterChips } from '@features/dashboard/ui/FilterChips';
+import { MyAvatarGrid } from '@features/dashboard/ui/MyAvatarGrid';
+import { InboxPanel } from '@features/dashboard/ui/InboxPanel';
 import type { RecommendedAvatarFilter } from '@entities/dashboard';
 import { dashboardKeys } from '@entities/dashboard';
 import { initialFilter, resetFilter } from '@features/dashboard/lib/filterModel';
@@ -26,6 +28,11 @@ export function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
       <StatsGrid />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+        <MyAvatarGrid />
+        <InboxPanel />
+      </div>
 
       <div>
         <div className="mb-4 flex items-center justify-between">
