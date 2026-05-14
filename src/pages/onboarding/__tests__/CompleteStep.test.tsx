@@ -245,6 +245,30 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
       expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
     });
+
+    it('서버 응답에 message 가 없으면 "오류가 발생했습니다." fallback 토스트가 노출된다', async () => {
+      const user = userEvent.setup();
+      server.use(
+        generatedAvatarHandlers.success,
+        http.post(`${BASE_URL}/api/onboarding/complete`, () => {
+          return HttpResponse.json({ message: '' }, { status: 500 });
+        })
+      );
+
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: '시작하기' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('오류가 발생했습니다.')).toBeInTheDocument();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
+    });
   });
 
   describe('데이터 fetch 실패', () => {

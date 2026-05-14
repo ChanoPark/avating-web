@@ -34,7 +34,7 @@ function MethodCard({
   return (
     <label
       htmlFor={inputId}
-      className={`relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${
+      className={`focus-within:ring-brand relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors focus-within:ring-2 ${
         selected
           ? 'border-brand-border bg-brand-soft'
           : 'border-border bg-bg-elev-2 hover:border-border-hi'
@@ -47,7 +47,7 @@ function MethodCard({
         value={inputId}
         checked={selected}
         onChange={onSelect}
-        className="sr-only"
+        className="peer sr-only"
       />
       <span
         aria-hidden="true"

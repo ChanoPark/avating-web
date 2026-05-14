@@ -57,6 +57,15 @@ describe('ConnectStep', () => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
       });
     });
+
+    it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'method');
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method', { replace: true });
+      });
+    });
   });
 
   describe('마운트 — 코드 발급', () => {

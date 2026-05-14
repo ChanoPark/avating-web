@@ -193,7 +193,6 @@ export function SurveyStep() {
   const headerSubtitle = isAvatarNamePage
     ? '아바타 이름 입력'
     : `${currentQuestionNumber} / ${totalQuestions} · ${currentQuestion?.title ?? '질문'}`;
-  const showSelectError = !isAvatarNamePage && form.formState.isSubmitted && !currentAnswered;
 
   return (
     <form
@@ -290,12 +289,6 @@ export function SurveyStep() {
             )}
           </div>
         </div>
-      )}
-
-      {showSelectError && (
-        <p role="alert" className="text-mono-meta text-danger font-mono">
-          ✕ 다음 단계로 진행하려면 항목을 선택해주세요
-        </p>
       )}
 
       {submitError && (

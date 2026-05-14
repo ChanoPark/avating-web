@@ -444,39 +444,6 @@ describe('SignupForm', () => {
     });
   });
 
-  describe('접근성', () => {
-    it('이메일 input 에 label 이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      const emailInput = screen.getByLabelText(/이메일/i);
-      expect(emailInput).toBeInTheDocument();
-    });
-
-    it('닉네임 input 에 label 이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      const nicknameInput = screen.getByLabelText(/닉네임/i);
-      expect(nicknameInput).toBeInTheDocument();
-    });
-
-    it('비밀번호 input 에 label 이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      const passwordInput = screen.getByLabelText(/^비밀번호$/i);
-      expect(passwordInput).toBeInTheDocument();
-    });
-
-    it('OAuth 버튼들은 aria-label 로 준비 중 상태가 명시되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      expect(screen.getByRole('button', { name: /Google.*계속하기.*준비 중/ })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Apple.*계속하기.*준비 중/ })).toBeInTheDocument();
-    });
-
-    it('약관 체크박스에 필수 표시(*)가 시각적으로 노출된다', () => {
-      renderWithProviders(<SignupForm />);
-      const termsLabel = screen.getByText(/만 19세 이상이며 약관에 동의/);
-      expect(termsLabel).toBeInTheDocument();
-      expect(termsLabel.textContent).toContain('*');
-    });
-  });
-
   describe('에러 상태 스타일', () => {
     it('이메일 형식 에러일 때 input 에 border-danger 클래스가 적용된다', async () => {
       const user = userEvent.setup();

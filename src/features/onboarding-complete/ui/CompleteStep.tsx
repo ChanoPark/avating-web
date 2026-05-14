@@ -212,6 +212,8 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
                     handleStatClick(key);
                   }}
                   aria-disabled={disabled}
+                  aria-haspopup="dialog"
+                  aria-expanded={isActive}
                   aria-label={`${STAT_LABEL[key]} 스탯 ${v}${
                     disabled ? ' (튜닝 한도 초과)' : ' - 클릭해 재조정'
                   }`}
@@ -342,7 +344,7 @@ function AvatarContent() {
         } else {
           toast.show({
             variant: 'error',
-            title: err instanceof Error ? err.message : '오류가 발생했습니다.',
+            title: err.message || '오류가 발생했습니다.',
           });
         }
       },
