@@ -49,7 +49,7 @@ describe('InboxPanel', () => {
       server.use(inboxScenarios.success);
       renderWithProviders(<InboxPanel />);
       await waitFor(() => {
-        expect(screen.getByText('Moonlit')).toBeInTheDocument();
+        expect(screen.getByText('Moonlit Narrator')).toBeInTheDocument();
         expect(screen.getByText('MN')).toBeInTheDocument();
         const messageEls = screen.getAllByText(/내 아바타에 호감을 표시했어요/);
         expect(messageEls.length).toBeGreaterThan(0);
