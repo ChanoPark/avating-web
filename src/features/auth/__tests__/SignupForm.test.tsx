@@ -382,6 +382,68 @@ describe('SignupForm', () => {
     });
   });
 
+  describe('marketingOptIn 로컬 기록', () => {
+    beforeEach(() => {
+      localStorage.removeItem('avating:marketing-opt-in');
+    });
+
+    it('체크되지 않은 상태로 가입 성공 시 localStorage 에 "false" 가 기록된다', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith('avating:marketing-opt-in', 'false');
+      setItemSpy.mockRestore();
+    });
+
+    it('체크 후 가입 성공 시 localStorage 에 "true" 가 기록된다', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('checkbox', { name: /알림 수신/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith('avating:marketing-opt-in', 'true');
+      setItemSpy.mockRestore();
+    });
+
+    it('localStorage.setItem 이 throw 해도 onSuccess 는 정상 호출된다 (Safari 프라이빗 모드 등 방어)', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      setItemSpy.mockRestore();
+    });
+  });
+
   describe('에러 상태 스타일', () => {
     it('이메일 형식 에러일 때 input 에 border-danger 클래스가 적용된다', async () => {
       const user = userEvent.setup();
