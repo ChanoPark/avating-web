@@ -33,15 +33,20 @@ export function AppShellLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar>
-        <div className="border-border flex h-14 items-center border-b px-4">
-          <span className="font-ui text-heading text-text font-semibold">Avating</span>
+      <Sidebar collapsed>
+        <div
+          className="border-border flex h-14 items-center justify-center border-b"
+          title="Avating"
+        >
+          <span
+            aria-hidden="true"
+            className="font-ui text-heading text-brand font-semibold tracking-tight"
+          >
+            A
+          </span>
         </div>
 
-        <div className="flex flex-1 flex-col overflow-y-auto px-3 py-4">
-          <div className="mb-1">
-            <span className="text-mono-micro text-text-4 px-3 font-mono uppercase">HOME</span>
-          </div>
+        <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2 py-4">
           <SidebarItem
             icon={LayoutGrid}
             label="대시보드"
@@ -53,9 +58,8 @@ export function AppShellLayout() {
           <SidebarItem icon={Heart} label="매칭" disabled />
           <SidebarItem icon={MessageCircle} label="실제 대화" disabled />
 
-          <div className="mt-4 mb-1">
-            <span className="text-mono-micro text-text-4 px-3 font-mono uppercase">내 프로필</span>
-          </div>
+          <div className="border-border my-2 border-t" aria-hidden="true" />
+
           <SidebarItem icon={User} label="내 아바타" disabled />
           <SidebarItem icon={Gem} label="다이아" disabled />
           <SidebarItem icon={Settings} label="설정" disabled />
@@ -98,9 +102,11 @@ export function AppShellLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-              className="px-8 py-7"
+              className="px-6 py-6 md:px-8 md:py-7"
             >
-              <Outlet />
+              <div data-shell-content className="mx-auto w-full max-w-[1280px]">
+                <Outlet />
+              </div>
             </motion.div>
           </AnimatePresence>
         </main>
