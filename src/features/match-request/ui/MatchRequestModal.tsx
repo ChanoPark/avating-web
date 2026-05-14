@@ -15,7 +15,7 @@ import {
 } from '@entities/match-request';
 import { matchRequestFormSchema } from '../lib/formSchema';
 import type { MatchRequestFormValues } from '../lib/formSchema';
-import { useMyAvatars } from '../api/useMyAvatars';
+import { useMyAvatars } from '@entities/avatar';
 import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
