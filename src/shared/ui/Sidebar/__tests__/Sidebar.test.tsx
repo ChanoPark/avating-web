@@ -39,4 +39,16 @@ describe('Sidebar', () => {
     const nav = screen.getByRole('navigation');
     expect(nav).not.toHaveAttribute('data-collapsed', 'true');
   });
+
+  it('collapsed=true 시 56px 폭(w-14) 으로 렌더된다', () => {
+    render(<Sidebar collapsed>항목</Sidebar>);
+    const nav = screen.getByRole('navigation');
+    expect(nav.className.includes('w-14')).toBe(true);
+  });
+
+  it('collapsed=false 시 220px 폭(w-[220px]) 으로 렌더된다', () => {
+    render(<Sidebar collapsed={false}>항목</Sidebar>);
+    const nav = screen.getByRole('navigation');
+    expect(nav.className.includes('w-[220px]')).toBe(true);
+  });
 });

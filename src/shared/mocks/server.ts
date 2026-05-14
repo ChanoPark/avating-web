@@ -3,12 +3,14 @@ import { authHandlers } from './handlers/auth';
 import { dashboardHandlers } from './handlers/dashboard';
 import { onboardingHandlers } from './handlers/onboarding';
 import { matchRequestHandlers } from './handlers/matchRequest';
+import { inboxHandlers } from './handlers/inbox';
 
 export const server = setupServer(
   ...authHandlers,
   ...dashboardHandlers,
   ...onboardingHandlers,
-  ...matchRequestHandlers
+  ...matchRequestHandlers,
+  ...inboxHandlers
 );
 
 server.events.on('request:unhandled', ({ request }) => {

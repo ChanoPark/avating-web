@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
 import { apiResponseMyAvatars, matchRequestKeys } from '@entities/match-request';
 import type { MyAvatarsResponse } from '@entities/match-request';
@@ -18,4 +18,13 @@ export function useMyAvatars(options: { enabled?: boolean } = {}) {
     staleTime: 30_000,
     enabled: options.enabled ?? true,
   });
+}
+
+export function useMyAvatarsSuspense(): MyAvatarsResponse {
+  const { data } = useSuspenseQuery({
+    queryKey: matchRequestKeys.myAvatars(),
+    queryFn: fetchMyAvatars,
+    staleTime: 30_000,
+  });
+  return data;
 }

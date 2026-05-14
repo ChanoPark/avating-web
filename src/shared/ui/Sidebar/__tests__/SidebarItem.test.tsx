@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, useLocation } from 'react-router';
 import { LayoutGrid } from 'lucide-react';
 import { SidebarItem } from '../SidebarItem';
+import { Sidebar } from '../Sidebar';
 
 function LocationDisplay() {
   const location = useLocation();
@@ -138,6 +139,44 @@ describe('SidebarItem', () => {
       );
       await user.click(screen.getByRole('link', { name: /대시보드/ }));
       expect(onClick).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('collapsed (아이콘 only) 모드', () => {
+    it('Sidebar collapsed 컨텍스트일 때 라벨은 sr-only 로 렌더된다', () => {
+      render(
+        <MemoryRouter>
+          <Sidebar collapsed>
+            <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" />
+          </Sidebar>
+        </MemoryRouter>
+      );
+      const labelSpan = screen.getByText('대시보드');
+      expect(labelSpan.className.includes('sr-only')).toBe(true);
+    });
+
+    it('collapsed 컨텍스트일 때 링크에 title="대시보드" 가 적용된다 (마우스 호버 힌트)', () => {
+      render(
+        <MemoryRouter>
+          <Sidebar collapsed>
+            <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" />
+          </Sidebar>
+        </MemoryRouter>
+      );
+      const link = screen.getByRole('link', { name: /대시보드/ });
+      expect(link).toHaveAttribute('title', '대시보드');
+    });
+
+    it('collapsed=false 컨텍스트일 때 라벨은 일반 렌더(sr-only 미적용)', () => {
+      render(
+        <MemoryRouter>
+          <Sidebar collapsed={false}>
+            <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" />
+          </Sidebar>
+        </MemoryRouter>
+      );
+      const labelSpan = screen.getByText('대시보드');
+      expect(labelSpan.className.includes('sr-only')).toBe(false);
     });
   });
 });

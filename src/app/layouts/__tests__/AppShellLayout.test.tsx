@@ -142,4 +142,40 @@ describe('AppShellLayout', () => {
       expect(isHiddenOrSmall || true).toBe(true);
     });
   });
+
+  describe('아이콘-only 사이드바 (와이어프레임 56px)', () => {
+    it('사이드바는 collapsed 모드(data-collapsed="true") 로 렌더된다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      expect(nav).toHaveAttribute('data-collapsed', 'true');
+    });
+
+    it('사이드바 폭은 w-14(56px) 이다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      expect(nav.className.includes('w-14')).toBe(true);
+    });
+
+    it('사이드바 항목의 가시 라벨 텍스트는 sr-only 처리된다 (대시보드)', () => {
+      renderWithProviders('/dashboard');
+      const labelSpan = screen.getByText('대시보드');
+      expect(labelSpan.className.includes('sr-only')).toBe(true);
+    });
+  });
+
+  describe('메인 콘텐츠 폭 (웹 비율)', () => {
+    it('메인 영역 안 콘텐츠 컨테이너에 max-w-[1280px] 가 적용된다', () => {
+      renderWithProviders('/dashboard');
+      const outlet = screen.getByTestId('outlet-content');
+      const container = outlet.closest('[data-shell-content]');
+      expect(container?.className.includes('max-w-[1280px]')).toBe(true);
+    });
+
+    it('메인 영역 안 콘텐츠 컨테이너에 mx-auto 가 적용된다 (가운데 정렬)', () => {
+      renderWithProviders('/dashboard');
+      const outlet = screen.getByTestId('outlet-content');
+      const container = outlet.closest('[data-shell-content]');
+      expect(container?.className.includes('mx-auto')).toBe(true);
+    });
+  });
 });
