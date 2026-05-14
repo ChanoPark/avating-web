@@ -22,6 +22,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     resolver: zodResolver(loginFormSchema),
     defaultValues: { email: '', password: '' },
     mode: 'onTouched',
+    reValidateMode: 'onChange',
   });
 
   const { mutateAsync, isPending } = useLogin();
@@ -49,10 +50,39 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
     >
       <div className="flex flex-col gap-4">
         {errors.root?.message && (
-          <div role="alert" aria-live="polite" className="text-danger text-body-sm">
-            {errors.root.message}
+          <div
+            role="alert"
+            aria-live="polite"
+            className="text-danger text-body-sm border-danger/30 bg-danger/5 rounded-sm border px-3 py-2"
+          >
+            ✕ {errors.root.message}
           </div>
         )}
+
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            disabled
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            aria-label="Google 로 계속하기 (준비 중)"
+          >
+            Google로 계속하기
+          </button>
+          <button
+            type="button"
+            disabled
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            aria-label="Apple 로 계속하기 (준비 중)"
+          >
+            Apple로 계속하기
+          </button>
+        </div>
+
+        <div className="flex items-center gap-2" aria-hidden="true">
+          <span className="bg-border h-px flex-1" />
+          <span className="text-mono-meta text-text-3 font-mono">OR</span>
+          <span className="bg-border h-px flex-1" />
+        </div>
 
         <div>
           <label htmlFor="login-email" className="font-ui text-ui text-text mb-2 block">
@@ -62,10 +92,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             id="login-email"
             type="email"
             autoComplete="email"
-            placeholder="example@email.com"
+            placeholder="you@example.com"
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? 'login-email-error' : undefined}
-            className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.email ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
+            className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.email ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
             {...register('email')}
           />
           {errors.email?.message && (
@@ -74,7 +104,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               role="alert"
               className="text-mono-meta text-danger mt-1 font-mono"
             >
-              {errors.email.message}
+              ✕ {errors.email.message}
             </p>
           )}
         </div>
@@ -87,10 +117,10 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             id="login-password"
             type="password"
             autoComplete="current-password"
-            placeholder="비밀번호"
+            placeholder="••••••••"
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={errors.password ? 'login-password-error' : undefined}
-            className={`bg-bg text-body text-text h-10 w-full rounded-sm border px-3 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
+            className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
             {...register('password')}
           />
           {errors.password?.message && (
@@ -99,17 +129,28 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               role="alert"
               className="text-mono-meta text-danger mt-1 font-mono"
             >
-              {errors.password.message}
+              ✕ {errors.password.message}
             </p>
           )}
         </div>
 
+        <div className="text-right">
+          <button
+            type="button"
+            disabled
+            title="비밀번호 찾기 (준비 중)"
+            className="text-mono-meta text-text-3 font-mono disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            비밀번호 찾기
+          </button>
+        </div>
+
         <Button type="submit" variant="primary" disabled={isLoading} aria-busy={isLoading}>
-          {isLoading ? '로그인 중...' : '로그인'}
+          {isLoading ? '로그인 중...' : '로그인 →'}
         </Button>
 
-        <Link to="/signup" className="text-body-sm text-text-2 hover:text-text text-center">
-          회원가입
+        <Link to="/signup" className="group text-body-sm text-text-2 hover:text-text mx-auto w-fit">
+          계정 없음? <span className="text-brand group-hover:text-brand-hover">가입하기</span>
         </Link>
       </div>
     </form>

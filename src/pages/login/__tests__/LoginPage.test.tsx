@@ -8,6 +8,16 @@ vi.mock('@features/auth/lib/encryptPassword', () => ({
 }));
 
 describe('LoginPage', () => {
+  it('브랜드 패널이 좌측에 렌더된다', () => {
+    renderWithProviders(<LoginPage />);
+    expect(screen.getByRole('complementary', { name: /브랜드/ })).toHaveTextContent(/Avating/);
+  });
+
+  it('브랜드 패널에 "귀찮은 밀당은 아바타가" 헤드카피가 렌더된다', () => {
+    renderWithProviders(<LoginPage />);
+    expect(screen.getByText(/귀찮은 밀당은 아바타가/)).toBeInTheDocument();
+  });
+
   it('로그인 제목이 렌더된다', () => {
     renderWithProviders(<LoginPage />);
     expect(screen.getByRole('heading', { name: /로그인/i })).toBeInTheDocument();

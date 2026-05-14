@@ -84,6 +84,10 @@ export const signupHandlers = {
       { status: 422 }
     );
   }),
+
+  badRequest: http.post(`${BASE_URL}/api/auth/signup`, () => {
+    return HttpResponse.json({ message: '잘못된 요청입니다.' }, { status: 400 });
+  }),
 };
 
 export const publicKeyHandlers = {

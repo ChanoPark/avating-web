@@ -33,7 +33,32 @@ describe('LoginForm', () => {
 
     it('회원가입 링크가 렌더된다', () => {
       renderWithProviders(<LoginForm />);
-      expect(screen.getByRole('link', { name: /회원가입/i })).toBeInTheDocument();
+      const link = screen.getByRole('link', { name: /가입하기/ });
+      expect(link).toBeInTheDocument();
+      expect(link).toHaveAttribute('href', '/signup');
+    });
+
+    it('Google·Apple OAuth 버튼이 렌더된다', () => {
+      renderWithProviders(<LoginForm />);
+      expect(screen.getByRole('button', { name: /Google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apple/i })).toBeInTheDocument();
+    });
+
+    it('OR divider 가 렌더된다', () => {
+      renderWithProviders(<LoginForm />);
+      expect(screen.getByText('OR')).toBeInTheDocument();
+    });
+
+    it('"비밀번호 찾기" 보조 액션이 렌더된다', () => {
+      renderWithProviders(<LoginForm />);
+      expect(screen.getByRole('button', { name: /비밀번호 찾기/ })).toBeInTheDocument();
+    });
+
+    it('"비밀번호 찾기" 버튼은 준비 중 상태로 disabled + title 이 명시된다', () => {
+      renderWithProviders(<LoginForm />);
+      const resetBtn = screen.getByRole('button', { name: /비밀번호 찾기/ });
+      expect(resetBtn).toBeDisabled();
+      expect(resetBtn).toHaveAttribute('title', '비밀번호 찾기 (준비 중)');
     });
   });
 
@@ -45,7 +70,7 @@ describe('LoginForm', () => {
       await user.click(screen.getByRole('button', { name: /로그인/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('이메일을 입력해주세요')).toBeInTheDocument();
+        expect(screen.getByText(/이메일을 입력해주세요/)).toBeInTheDocument();
       });
     });
 
@@ -68,7 +93,7 @@ describe('LoginForm', () => {
       await user.click(screen.getByRole('button', { name: /로그인/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('이메일을 입력해주세요')).toBeInTheDocument();
+        expect(screen.getByText(/이메일을 입력해주세요/)).toBeInTheDocument();
       });
 
       expect(requestMade).toBe(false);
@@ -84,7 +109,7 @@ describe('LoginForm', () => {
       await user.click(screen.getByRole('button', { name: /로그인/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+        expect(screen.getByText(/올바른 이메일 형식이 아닙니다/)).toBeInTheDocument();
       });
     });
   });
@@ -119,7 +144,7 @@ describe('LoginForm', () => {
       await user.click(screen.getByRole('button', { name: /로그인/i }));
 
       await waitFor(() => {
-        expect(screen.getByText('이메일 또는 비밀번호가 올바르지 않습니다.')).toBeInTheDocument();
+        expect(screen.getByText(/이메일 또는 비밀번호가 올바르지 않습니다/)).toBeInTheDocument();
       });
     });
 
@@ -224,7 +249,7 @@ describe('LoginForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+        expect(screen.getByText(/올바른 이메일 형식이 아닙니다/)).toBeInTheDocument();
       });
     });
 
@@ -237,13 +262,13 @@ describe('LoginForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+        expect(screen.getByText(/올바른 이메일 형식이 아닙니다/)).toBeInTheDocument();
       });
 
       await user.type(emailInput, '@avating.com');
 
       await waitFor(() => {
-        expect(screen.queryByText('올바른 이메일 형식이 아닙니다')).not.toBeInTheDocument();
+        expect(screen.queryByText(/올바른 이메일 형식이 아닙니다/)).not.toBeInTheDocument();
       });
     });
   });

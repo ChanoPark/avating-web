@@ -52,7 +52,8 @@ describe('signupFormSchema', () => {
     email: 'user@avating.com',
     nickname: '아바팅유저',
     password: 'Password1!',
-    passwordConfirm: 'Password1!',
+    termsAgreed: true,
+    marketingOptIn: false,
   };
 
   it('닉네임이 1자이면 실패한다', () => {
@@ -72,22 +73,35 @@ describe('signupFormSchema', () => {
     const result = signupFormSchema.safeParse({
       ...validBase,
       password: 'Pas1!aB',
-      passwordConfirm: 'Pas1!aB',
     });
     expect(result.success).toBe(false);
   });
 
-  it('passwordConfirm이 password와 불일치하면 path가 ["passwordConfirm"]인 에러를 반환한다', () => {
+  it('약관 미동의이면 termsAgreed 에러를 반환한다', () => {
     const result = signupFormSchema.safeParse({
       ...validBase,
-      passwordConfirm: 'DifferentPass1!',
+      termsAgreed: false,
     });
     expect(result.success).toBe(false);
     if (!result.success) {
-      const confirmError = result.error.issues.find(
-        (i) => JSON.stringify(i.path) === JSON.stringify(['passwordConfirm'])
+      const termsError = result.error.issues.find(
+        (i) => JSON.stringify(i.path) === JSON.stringify(['termsAgreed'])
       );
-      expect(confirmError?.message).toBe('비밀번호가 일치하지 않습니다');
+      expect(termsError).toBeDefined();
+      expect(termsError?.message).toBe('약관에 동의해주세요');
+    }
+  });
+
+  it('marketingOptIn은 선택이며 기본값 false 로 파싱된다', () => {
+    const result = signupFormSchema.safeParse({
+      email: 'user@avating.com',
+      nickname: '아바팅유저',
+      password: 'Password1!',
+      termsAgreed: true,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.marketingOptIn).toBe(false);
     }
   });
 

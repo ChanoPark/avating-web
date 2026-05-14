@@ -10,6 +10,13 @@ vi.mock('../lib/encryptPassword', () => ({
   encryptPassword: vi.fn(() => 'mock-encrypted-password'),
 }));
 
+async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
+  await user.type(screen.getByLabelText(/닉네임/i), '아바팅유저');
+  await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
+  await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+}
+
 describe('SignupForm', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -31,9 +38,40 @@ describe('SignupForm', () => {
       expect(screen.getByLabelText(/닉네임/i)).toBeInTheDocument();
     });
 
-    it('제출 버튼이 렌더된다', () => {
+    it('Google·Apple OAuth 버튼이 렌더된다', () => {
       renderWithProviders(<SignupForm />);
-      expect(screen.getByRole('button', { name: /회원가입/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Google/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Apple/i })).toBeInTheDocument();
+    });
+
+    it('OR divider 가 렌더된다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByText('OR')).toBeInTheDocument();
+    });
+
+    it('비밀번호 강도 progressbar 가 렌더된다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByRole('progressbar', { name: /비밀번호 강도/ })).toBeInTheDocument();
+    });
+
+    it('약관 동의 체크박스가 렌더된다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByRole('checkbox', { name: /약관에 동의/ })).toBeInTheDocument();
+    });
+
+    it('알림 수신 체크박스가 렌더된다 (선택)', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByRole('checkbox', { name: /알림 수신/ })).toBeInTheDocument();
+    });
+
+    it('"계정 만들기" 제출 버튼이 렌더된다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByRole('button', { name: /계정 만들기/ })).toBeInTheDocument();
+    });
+
+    it('"본인 인증은 실제 매칭 시점에 진행됩니다" 안내가 렌더된다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByText(/본인 인증은 실제 매칭 시점에 진행됩니다/)).toBeInTheDocument();
     });
 
     it('로그인 링크가 렌더되고 /login href를 가진다', () => {
@@ -50,20 +88,6 @@ describe('SignupForm', () => {
       expect(brandSpan).toHaveClass('text-brand');
       expect(brandSpan).toHaveClass('group-hover:text-brand-hover');
     });
-
-    it('로그인 링크 클릭 영역이 텍스트 너비로 제한되고 중앙 정렬된다', () => {
-      renderWithProviders(<SignupForm />);
-      const link = screen.getByRole('link', { name: /로그인/i });
-      expect(link).toHaveClass('w-fit');
-      expect(link).toHaveClass('mx-auto');
-    });
-
-    it('로그인 링크가 포커스 가능하다', () => {
-      renderWithProviders(<SignupForm />);
-      const link = screen.getByRole('link', { name: /로그인/i });
-      link.focus();
-      expect(link).toHaveFocus();
-    });
   });
 
   describe('닉네임 유효성 검증', () => {
@@ -73,11 +97,11 @@ describe('SignupForm', () => {
 
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText('닉네임을 입력해주세요')).toBeInTheDocument();
+        expect(screen.getByText(/닉네임을 입력해주세요/)).toBeInTheDocument();
       });
     });
 
@@ -88,11 +112,11 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '나');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText('2자 이상 입력해주세요')).toBeInTheDocument();
+        expect(screen.getByText(/2자 이상 입력해주세요/)).toBeInTheDocument();
       });
     });
 
@@ -103,29 +127,171 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), 'a'.repeat(31));
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText('30자 이하로 입력해주세요')).toBeInTheDocument();
+        expect(screen.getByText(/30자 이하로 입력해주세요/)).toBeInTheDocument();
       });
     });
   });
 
-  describe('비밀번호 확인 유효성 검증', () => {
-    it('비밀번호 확인이 불일치하면 인라인 에러가 표시된다', async () => {
+  describe('약관 동의 유효성', () => {
+    it('약관 미동의 시 제출하면 메시지·aria-invalid·aria-describedby 가 모두 적용된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '아바팅유저');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'DifferentPass1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      const termsCheckbox = screen.getByRole('checkbox', { name: /약관에 동의/ });
 
       await waitFor(() => {
-        expect(screen.getByText('비밀번호가 일치하지 않습니다')).toBeInTheDocument();
+        // 단언 1: 에러 메시지 텍스트
+        expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
+        // 단언 2: aria-invalid="true"
+        expect(termsCheckbox).toHaveAttribute('aria-invalid', 'true');
+        // 단언 3: 에러 시각 스타일(border-danger + outline-danger)
+        expect(termsCheckbox).toHaveClass('border-danger');
+        expect(termsCheckbox).toHaveClass('outline-danger');
+        // 단언 4: aria-describedby 가 에러 id 를 가리킴
+        expect(termsCheckbox).toHaveAttribute('aria-describedby', 'signup-terms-error');
+        // 단언 5: 에러 p 요소가 해당 id 를 가짐 (describedby 양방향 정합)
+        expect(screen.getByText(/약관에 동의해주세요/).closest('p')).toHaveAttribute(
+          'id',
+          'signup-terms-error'
+        );
       });
+    });
+
+    it('약관 동의 후 재제출 시 에러가 사라진다 (reValidateMode: onChange)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await fillValidForm(user);
+      // 한 번 체크해제 → 제출 → 에러
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
+      });
+
+      // 다시 체크 → 즉시 에러 사라짐
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+
+      await waitFor(() => {
+        expect(screen.queryByText(/약관에 동의해주세요/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('비밀번호 강도 progressbar', () => {
+    it('빈 입력 시 aria-valuenow 가 0 이다', () => {
+      renderWithProviders(<SignupForm />);
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      expect(progressbar).toHaveAttribute('aria-valuenow', '0');
+    });
+
+    it('짧은 비밀번호("Aa1") 입력 시 aria-valuenow=1, "8자 이상 필요" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'Aa1');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '1');
+        expect(screen.getByText(/8자 이상 필요/)).toBeInTheDocument();
+      });
+    });
+
+    it('1종 카테고리 + 8자 이상("password") 입력 시 aria-valuenow=1, "약함" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'password');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '1');
+        expect(screen.getByText(/^약함$/)).toBeInTheDocument();
+      });
+    });
+
+    it('2종 카테고리 + 8자 이상("password1") 입력 시 aria-valuenow=2, "보통" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'password1');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '2');
+        expect(screen.getByText(/^보통$/)).toBeInTheDocument();
+      });
+    });
+
+    it('3종 + 8자 이상("Password1") 입력 시 aria-valuenow=3, "강함" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '3');
+        expect(screen.getByText(/^강함$/)).toBeInTheDocument();
+      });
+    });
+
+    it('4종 + 8자 이상("Password1!") 입력 시 aria-valuenow=4, "매우 강함" 라벨', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
+
+      const progressbar = screen.getByRole('progressbar', { name: /비밀번호 강도/ });
+      await waitFor(() => {
+        expect(progressbar).toHaveAttribute('aria-valuenow', '4');
+        expect(screen.getByText(/매우 강함/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('비밀번호 input aria-describedby 전환', () => {
+    it('에러 없을 때는 강도 컨테이너를 가리킨다 (signup-password-strength)', () => {
+      renderWithProviders(<SignupForm />);
+      const passwordInput = screen.getByLabelText(/^비밀번호$/i);
+      expect(passwordInput).toHaveAttribute('aria-describedby', 'signup-password-strength');
+    });
+
+    it('비밀번호 유효성 에러 발생 시 에러 id 를 가리킨다 (signup-password-error)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      const passwordInput = screen.getByLabelText(/^비밀번호$/i);
+      await user.type(passwordInput, 'short');
+      await user.tab();
+
+      await waitFor(() => {
+        expect(passwordInput).toHaveAttribute('aria-describedby', 'signup-password-error');
+      });
+    });
+  });
+
+  describe('marketingOptIn 체크박스 인터랙션', () => {
+    it('기본 미체크 상태에서 클릭 시 체크 상태로 전환된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SignupForm />);
+
+      const optIn = screen.getByRole('checkbox', { name: /알림 수신/ });
+      expect(optIn).not.toBeChecked();
+
+      await user.click(optIn);
+      expect(optIn).toBeChecked();
     });
   });
 
@@ -139,8 +305,8 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'existing@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '새유저');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
         expect(screen.getByText(/이미 사용 중인 이메일/)).toBeInTheDocument();
@@ -156,8 +322,8 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '이미있는닉네임');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
         expect(screen.getByText(/이미 사용 중인 닉네임/)).toBeInTheDocument();
@@ -170,14 +336,28 @@ describe('SignupForm', () => {
 
       renderWithProviders(<SignupForm />);
 
-      await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
-      await user.type(screen.getByLabelText(/닉네임/i), '새유저');
-      await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/비밀번호/)).toBeInTheDocument();
+        expect(screen.getByText(/비밀번호 형식이 올바르지 않습니다/)).toBeInTheDocument();
+      });
+    });
+
+    it('400 응답 시 root 에러 배너가 role="alert" 영역에 표시된다', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.badRequest);
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        const banner = screen.getByText(/입력 정보를 확인해 주세요/);
+        expect(banner).toBeInTheDocument();
+        // role=alert 컨테이너 안에 위치
+        expect(banner.closest('[role="alert"]')).not.toBeNull();
       });
     });
   });
@@ -193,8 +373,8 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'newuser@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '새유저');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.type(screen.getByLabelText(/비밀번호 확인/i), 'Password1!');
-      await user.click(screen.getByRole('button', { name: /회원가입/i }));
+      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
         expect(onSuccess).toHaveBeenCalledOnce();
@@ -202,20 +382,65 @@ describe('SignupForm', () => {
     });
   });
 
-  describe('접근성', () => {
-    it('이메일 필드에 label이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      expect(screen.getByLabelText(/이메일/i)).toBeInTheDocument();
+  describe('marketingOptIn 로컬 기록', () => {
+    beforeEach(() => {
+      localStorage.removeItem('avating:marketing-opt-in');
     });
 
-    it('닉네임 필드에 label이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      expect(screen.getByLabelText(/닉네임/i)).toBeInTheDocument();
+    it('체크되지 않은 상태로 가입 성공 시 localStorage 에 "false" 가 기록된다', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith('avating:marketing-opt-in', 'false');
+      setItemSpy.mockRestore();
     });
 
-    it('비밀번호 필드에 label이 연결되어 있다', () => {
-      renderWithProviders(<SignupForm />);
-      expect(screen.getByLabelText(/^비밀번호$/i)).toBeInTheDocument();
+    it('체크 후 가입 성공 시 localStorage 에 "true" 가 기록된다', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('checkbox', { name: /알림 수신/ }));
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      expect(setItemSpy).toHaveBeenCalledWith('avating:marketing-opt-in', 'true');
+      setItemSpy.mockRestore();
+    });
+
+    it('localStorage.setItem 이 throw 해도 onSuccess 는 정상 호출된다 (Safari 프라이빗 모드 등 방어)', async () => {
+      server.use(publicKeyHandlers.success, signupHandlers.success);
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('QuotaExceededError');
+      });
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+
+      renderWithProviders(<SignupForm onSuccess={onSuccess} />);
+
+      await fillValidForm(user);
+      await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce();
+      });
+      setItemSpy.mockRestore();
     });
   });
 
@@ -258,7 +483,7 @@ describe('SignupForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+        expect(screen.getByText(/올바른 이메일 형식이 아닙니다/)).toBeInTheDocument();
       });
     });
 
@@ -271,13 +496,13 @@ describe('SignupForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(screen.getByText('올바른 이메일 형식이 아닙니다')).toBeInTheDocument();
+        expect(screen.getByText(/올바른 이메일 형식이 아닙니다/)).toBeInTheDocument();
       });
 
       await user.type(emailInput, '@avating.com');
 
       await waitFor(() => {
-        expect(screen.queryByText('올바른 이메일 형식이 아닙니다')).not.toBeInTheDocument();
+        expect(screen.queryByText(/올바른 이메일 형식이 아닙니다/)).not.toBeInTheDocument();
       });
     });
   });
