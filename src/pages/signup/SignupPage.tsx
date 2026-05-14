@@ -25,9 +25,9 @@ export function SignupPage() {
             }}
           />
 
-          <h2 className="font-ui text-title text-text whitespace-pre-line select-none">
+          <div className="font-ui text-title text-text whitespace-pre-line select-none">
             {'귀찮은 밀당은 아바타가,\n결정은 당신이.'}
-          </h2>
+          </div>
           <p className="text-body-sm text-text-2 whitespace-pre-line select-none">
             {'AI 아바타를 소개팅에 매칭하고, 관전하고,\n결정적인 순간에만 개입하세요.'}
           </p>

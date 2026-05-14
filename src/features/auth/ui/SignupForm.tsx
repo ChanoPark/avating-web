@@ -19,7 +19,7 @@ function computePasswordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;
 } {
-  if (password.length === 0) return { score: 0, label: '비밀번호를 입력해주세요' };
+  if (password.length === 0) return { score: 0, label: '' };
   let categories = 0;
   if (/[A-Z]/.test(password)) categories++;
   if (/[a-z]/.test(password)) categories++;
@@ -86,6 +86,12 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         nickname: values.nickname,
         password: values.password,
       });
+      // marketingOptIn 로컬 기록 — 추후 서버 동기 연결 시점에 읽어 payload 포함.
+      try {
+        localStorage.setItem('avating:marketing-opt-in', String(values.marketingOptIn));
+      } catch {
+        // 사파리 프라이빗 모드 등 localStorage 접근 실패 — 무시 (선택 항목이라 손실 허용).
+      }
       onSuccess?.();
     } catch (err) {
       mapServerError(err, setError, showToast, 'signup');
@@ -116,7 +122,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
@@ -124,7 +130,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui hover:text-text font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
@@ -203,11 +209,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
             {...register('password')}
           />
-          <div
-            id="signup-password-strength"
-            className="mt-2 flex items-center gap-2"
-            aria-live="polite"
-          >
+          <div id="signup-password-strength" className="mt-2 flex items-center gap-2">
             <div className="bg-bg-elev-3 relative h-1 flex-1 overflow-hidden rounded-sm">
               <div
                 role="progressbar"
@@ -219,7 +221,10 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                 style={{ width: `${(strength.score / 4) * 100}%` }}
               />
             </div>
-            <span className={`text-mono-meta font-mono ${STRENGTH_TEXT_COLORS[strength.score]}`}>
+            <span
+              aria-live="polite"
+              className={`text-mono-meta font-mono ${STRENGTH_TEXT_COLORS[strength.score]}`}
+            >
               {strength.label}
             </span>
           </div>
