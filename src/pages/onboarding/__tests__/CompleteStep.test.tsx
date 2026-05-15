@@ -24,8 +24,20 @@ vi.mock('react-router', async (importOriginal) => ({
 describe('CompleteStep (Avatar Confirm)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     localStorage.setItem('avating:onboarding:progress', 'complete');
     server.use(generatedAvatarHandlers.success, completeOnboardingHandlers.success);
+  });
+
+  describe('진입 가드', () => {
+    it('progress 가 complete 가 아니면 /onboarding/welcome 으로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'welcome');
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+      });
+    });
   });
 
   describe('와이어프레임 헤더', () => {
@@ -172,6 +184,26 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(screen.getByRole('dialog')).toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: /다이얼로그 닫기/ }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
+    it('백드롭 클릭 시 다이얼로그가 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      const dialog = screen.getByRole('dialog');
+      const backdrop = dialog.previousElementSibling;
+      expect(backdrop).not.toBeNull();
+
+      await user.click(backdrop as HTMLElement);
 
       await waitFor(() => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

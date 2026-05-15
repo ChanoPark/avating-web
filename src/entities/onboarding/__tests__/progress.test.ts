@@ -45,6 +45,23 @@ describe('getOnboardingProgress', () => {
     setItemSpy.mockRestore();
   });
 
+  it('setOnboardingProgress 가 setItem 실패 환경에서도 throw 하지 않는다', () => {
+    setOnboardingProgress('welcome');
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(() => setOnboardingProgress('creating')).not.toThrow();
+    setItemSpy.mockRestore();
+  });
+
+  it('setOnboardingMethod 가 setItem 실패 환경에서도 throw 하지 않는다', () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(() => setOnboardingMethod('survey')).not.toThrow();
+    setItemSpy.mockRestore();
+  });
+
   it('알 수 없는 값은 welcome 으로 fallback', () => {
     localStorage.setItem(PROGRESS_KEY, 'garbage');
     expect(getOnboardingProgress()).toBe('welcome');
