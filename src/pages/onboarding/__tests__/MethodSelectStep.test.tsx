@@ -14,6 +14,7 @@ vi.mock('react-router', async (importOriginal) => ({
 describe('MethodSelectStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     localStorage.setItem('avating:onboarding:progress', 'method');
   });
 
@@ -40,6 +41,13 @@ describe('MethodSelectStep', () => {
       renderWithProviders(<MethodSelectStep />);
       expect(screen.getByRole('radio', { name: /성향 설문/ })).toBeChecked();
       expect(screen.getByRole('radio', { name: /ChatGPT Bot 연동/ })).not.toBeChecked();
+    });
+
+    it('이전 세션에서 method=connect 가 저장돼 있으면 ChatGPT Bot 으로 복원된다', () => {
+      localStorage.setItem('avating:onboarding:method', 'connect');
+      renderWithProviders(<MethodSelectStep />);
+      expect(screen.getByRole('radio', { name: /ChatGPT Bot 연동/ })).toBeChecked();
+      expect(screen.getByRole('radio', { name: /성향 설문/ })).not.toBeChecked();
     });
 
     it('튜닝 가능 안내 문구가 렌더된다', () => {

@@ -35,7 +35,11 @@ export function getOnboardingProgress(): OnboardingProgress {
 
 export function setOnboardingProgress(step: OnboardingProgress): void {
   if (ORDER[step] > ORDER[getOnboardingProgress()]) {
-    localStorage.setItem(PROGRESS_KEY, step);
+    try {
+      localStorage.setItem(PROGRESS_KEY, step);
+    } catch {
+      // Safari 프라이빗 모드 등 setItem 실패 — 베스트에포트 쓰기, 호출자에게 throw 전파 차단
+    }
   }
 }
 
@@ -50,5 +54,9 @@ export function getOnboardingMethod(): OnboardingMethod | null {
 }
 
 export function setOnboardingMethod(method: OnboardingMethod): void {
-  localStorage.setItem(METHOD_KEY, method);
+  try {
+    localStorage.setItem(METHOD_KEY, method);
+  } catch {
+    // Safari 프라이빗 모드 등 setItem 실패 — 베스트에포트 쓰기, 호출자에게 throw 전파 차단
+  }
 }
