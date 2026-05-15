@@ -65,16 +65,30 @@ describe('MethodSelectStep', () => {
       expect(screen.getByRole('radio', { name: /성향 설문/ })).not.toBeChecked();
     });
 
-    it('성향 설문 선택 후 다음 → /onboarding/survey 로 이동', async () => {
+    it('ChatGPT Bot 선택 후 성향 설문으로 다시 전환할 수 있다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MethodSelectStep />);
+
+      await user.click(screen.getByRole('radio', { name: /ChatGPT Bot 연동/ }));
+      expect(screen.getByRole('radio', { name: /ChatGPT Bot 연동/ })).toBeChecked();
+
+      await user.click(screen.getByRole('radio', { name: /성향 설문/ }));
+      expect(screen.getByRole('radio', { name: /성향 설문/ })).toBeChecked();
+      expect(screen.getByRole('radio', { name: /ChatGPT Bot 연동/ })).not.toBeChecked();
+    });
+
+    it('성향 설문 선택 후 다음 → /onboarding/survey 로 이동하고 method=survey + progress=creating 가 저장된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MethodSelectStep />);
 
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey');
+      expect(localStorage.getItem('avating:onboarding:method')).toBe('survey');
+      expect(localStorage.getItem('avating:onboarding:progress')).toBe('creating');
     });
 
-    it('ChatGPT Bot 선택 후 다음 → /onboarding/connect 로 이동', async () => {
+    it('ChatGPT Bot 선택 후 다음 → /onboarding/connect 로 이동하고 method=connect + progress=creating 가 저장된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MethodSelectStep />);
 
@@ -82,6 +96,8 @@ describe('MethodSelectStep', () => {
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+      expect(localStorage.getItem('avating:onboarding:method')).toBe('connect');
+      expect(localStorage.getItem('avating:onboarding:progress')).toBe('creating');
     });
 
     it('이전 → /onboarding/welcome 으로 이동', async () => {
@@ -119,6 +135,16 @@ describe('MethodSelectStep', () => {
       localStorage.setItem('avating:onboarding:method', 'connect');
       renderWithProviders(<MethodSelectStep />);
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+    });
+
+    it('progress=creating + method=null 비정상 복구 경로에서는 redirect 없이 메소드 선택 화면이 표시된다', () => {
+      localStorage.setItem('avating:onboarding:progress', 'creating');
+      localStorage.removeItem('avating:onboarding:method');
+      renderWithProviders(<MethodSelectStep />);
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('heading', { level: 1, name: /어떻게 아바타를 만들까요/ })
+      ).toBeInTheDocument();
     });
   });
 });
