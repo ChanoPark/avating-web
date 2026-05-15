@@ -212,8 +212,6 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
                     handleStatClick(key);
                   }}
                   aria-disabled={disabled}
-                  aria-haspopup="dialog"
-                  aria-expanded={isActive}
                   aria-label={`${STAT_LABEL[key]} 스탯 ${v}${
                     disabled ? ' (튜닝 한도 초과)' : ' - 클릭해 재조정'
                   }`}
@@ -284,11 +282,10 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
             role="dialog"
             aria-modal="true"
             aria-labelledby="tune-survey-title"
-            aria-describedby="tune-survey-desc"
             className="border-border-hi bg-bg-elev-1 relative mx-auto w-full max-w-[480px] rounded-md border p-5"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span id="tune-survey-title" className="text-mono-meta text-brand font-mono">
+              <span className="text-mono-meta text-brand font-mono">
                 {STAT_LABEL[activeStat]} 재조정
               </span>
               <button
@@ -302,7 +299,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
                 ✕
               </button>
             </div>
-            <p id="tune-survey-desc" className="font-ui text-subheading text-text mb-3">
+            <p id="tune-survey-title" className="font-ui text-subheading text-text mb-3">
               {TUNE_SURVEY[activeStat].question}
             </p>
             <div className="flex flex-col gap-2">
