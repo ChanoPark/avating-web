@@ -106,5 +106,19 @@ describe('MethodSelectStep', () => {
       renderWithProviders(<MethodSelectStep />);
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
     });
+
+    it('progress=creating + method=survey 이면 /onboarding/survey 로 redirect 한다', () => {
+      localStorage.setItem('avating:onboarding:progress', 'creating');
+      localStorage.setItem('avating:onboarding:method', 'survey');
+      renderWithProviders(<MethodSelectStep />);
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey', { replace: true });
+    });
+
+    it('progress=creating + method=connect 이면 /onboarding/connect 로 redirect 한다', () => {
+      localStorage.setItem('avating:onboarding:progress', 'creating');
+      localStorage.setItem('avating:onboarding:method', 'connect');
+      renderWithProviders(<MethodSelectStep />);
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+    });
   });
 });

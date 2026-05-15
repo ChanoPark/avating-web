@@ -160,6 +160,24 @@ describe('CompleteStep (Avatar Confirm)', () => {
       });
     });
 
+    it('X 버튼 클릭 시 다이얼로그가 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /다이얼로그 닫기/ }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
     it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
