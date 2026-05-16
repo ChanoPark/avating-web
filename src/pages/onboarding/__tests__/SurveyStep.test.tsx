@@ -25,17 +25,28 @@ describe('SurveyStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('avating:onboarding:progress', 'creating');
     server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
   });
 
   describe('진입 가드', () => {
-    it('progress 가 connect 이면 /onboarding/connect 로 redirect 한다', async () => {
-      localStorage.setItem('avating:onboarding:progress', 'connect');
+    it('progress 가 welcome 이면 /onboarding/welcome 으로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'welcome');
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+      });
+    });
+
+    it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'method');
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method', { replace: true });
       });
     });
 
@@ -49,15 +60,34 @@ describe('SurveyStep', () => {
       });
     });
 
-    it('progress 가 welcome 이면 redirect 없이 질문이 노출된다', async () => {
+    it('progress 가 creating 이면 redirect 없이 질문이 노출된다', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
       await waitFor(() => {
         expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
       });
 
-      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect', { replace: true });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/method', { replace: true });
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+    });
+  });
+
+  describe('와이어프레임 헤더', () => {
+    it('"STEP 3 / 4 · 성향 설문" 라벨이 렌더된다', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByText(/STEP 3 \/ 4 · 성향 설문/)).toBeInTheDocument();
+      });
+    });
+
+    it('설문 진행률 progressbar 가 렌더된다 (aria-valuemax=100)', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        const bar = screen.getByRole('progressbar', { name: /설문 진행률/ });
+        expect(bar).toHaveAttribute('aria-valuemax', '100');
+      });
     });
   });
 
@@ -210,7 +240,7 @@ describe('SurveyStep', () => {
   });
 
   describe('최종 제출', () => {
-    it('"아바타 생성" 클릭 시 POST /api/avatars/survey 가 호출되고 /onboarding/connect 로 이동한다', async () => {
+    it('"아바타 생성" 클릭 시 POST /api/avatars/survey 가 호출되고 /onboarding/complete 로 이동한다', async () => {
       const user = userEvent.setup();
       let createCallCount = 0;
 
@@ -247,7 +277,7 @@ describe('SurveyStep', () => {
 
       await waitFor(() => {
         expect(createCallCount).toBe(1);
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
       });
     });
 
@@ -325,7 +355,7 @@ describe('SurveyStep', () => {
       const alert = screen.getByRole('alert');
       expect(alert).toHaveClass('border-danger');
       expect(alert.textContent ?? '').not.toBe('');
-      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect');
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
   });
 });

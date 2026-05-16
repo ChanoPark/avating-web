@@ -24,7 +24,7 @@ describe('ConnectStep', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    localStorage.setItem('avating:onboarding:progress', 'connect');
+    localStorage.setItem('avating:onboarding:progress', 'creating');
 
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -55,6 +55,15 @@ describe('ConnectStep', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+      });
+    });
+
+    it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'method');
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method', { replace: true });
       });
     });
   });

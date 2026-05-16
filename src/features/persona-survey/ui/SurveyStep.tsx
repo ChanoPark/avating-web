@@ -23,7 +23,7 @@ export function SurveyStep() {
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
-  const guardFailed = onboardingProgress !== 'welcome';
+  const guardFailed = onboardingProgress !== 'creating';
 
   const {
     data: questions,
@@ -33,8 +33,13 @@ export function SurveyStep() {
   } = useSurveyQuestions({ enabled: !guardFailed });
 
   useEffect(() => {
-    if (guardFailed) {
-      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
+    if (!guardFailed) return;
+    if (onboardingProgress === 'welcome') {
+      void navigate('/onboarding/welcome', { replace: true });
+    } else if (onboardingProgress === 'method') {
+      void navigate('/onboarding/method', { replace: true });
+    } else {
+      void navigate('/onboarding/complete', { replace: true });
     }
   }, [guardFailed, onboardingProgress, navigate]);
 
@@ -169,8 +174,8 @@ export function SurveyStep() {
       await createAvatar(data);
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
       clearDraft();
-      setOnboardingProgress('connect');
-      void navigate('/onboarding/connect');
+      setOnboardingProgress('complete');
+      void navigate('/onboarding/complete');
     } catch (err: unknown) {
       if (err instanceof ZodError) {
         setSubmitError('입력 데이터를 다시 확인해주세요.');
@@ -182,19 +187,49 @@ export function SurveyStep() {
     }
   });
 
+  const totalQuestions = questions.length;
+  const currentQuestionNumber = isAvatarNamePage ? totalQuestions : pageIndex + 1;
+  const percent = isAvatarNamePage ? 100 : Math.round(((pageIndex + 1) / totalQuestions) * 100);
+  const headerSubtitle = isAvatarNamePage
+    ? '아바타 이름 입력'
+    : `${currentQuestionNumber} / ${totalQuestions} · ${currentQuestion?.title ?? '질문'}`;
+
   return (
     <form
       onSubmit={(e) => {
         void onSubmit(e);
       }}
       noValidate
-      className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8"
+      className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6"
     >
       <p role="status" aria-live="polite" className="sr-only">
         {isAvatarNamePage
           ? `아바타 이름 입력 페이지`
           : `질문 ${pageIndex + 1} / ${questions.length}`}
       </p>
+
+      <header className="flex flex-col gap-2">
+        <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
+          STEP 3 / 4 · 성향 설문
+        </span>
+        <div className="flex items-center justify-between">
+          <span className="font-ui text-subheading text-text">{headerSubtitle}</span>
+          <span className="text-mono-meta text-brand font-mono">{percent}%</span>
+        </div>
+        <div
+          role="progressbar"
+          aria-label="설문 진행률"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={percent}
+          className="bg-bg-elev-3 h-1 w-full overflow-hidden rounded-sm"
+        >
+          <div
+            className="bg-brand h-full rounded-sm transition-[width] duration-[var(--duration-base)] ease-[var(--ease)]"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+      </header>
       {currentQuestion ? (
         <SurveyQuestion
           name={currentQuestion.id}

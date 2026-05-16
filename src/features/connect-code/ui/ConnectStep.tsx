@@ -14,7 +14,7 @@ export function ConnectStep() {
   const toast = useToast();
 
   const onboardingProgress = getOnboardingProgress();
-  const guardFailed = onboardingProgress !== 'connect';
+  const guardFailed = onboardingProgress !== 'creating';
 
   const {
     mutate: issueCode,
@@ -38,8 +38,13 @@ export function ConnectStep() {
   const issuedRef = useRef(false);
 
   useEffect(() => {
-    if (guardFailed) {
-      void navigate(`/onboarding/${onboardingProgress}`, { replace: true });
+    if (!guardFailed) return;
+    if (onboardingProgress === 'welcome') {
+      void navigate('/onboarding/welcome', { replace: true });
+    } else if (onboardingProgress === 'method') {
+      void navigate('/onboarding/method', { replace: true });
+    } else {
+      void navigate('/onboarding/complete', { replace: true });
     }
   }, [guardFailed, onboardingProgress, navigate]);
 
@@ -138,17 +143,61 @@ export function ConnectStep() {
     );
   }
 
+  const steps = [
+    { n: '01', text: 'Avating Bot과 자유롭게 대화합니다' },
+    { n: '02', text: '대화 분석 후 아바타 스탯이 자동 생성됩니다' },
+    { n: '03', text: '결과를 확인하고 확정합니다' },
+  ];
+
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-6 px-4 py-8">
-      <div className="text-center">
-        <h2 className="text-subheading text-text mb-2">Custom GPT 연결</h2>
+    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6">
+      <header className="flex flex-col gap-1">
+        <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
+          STEP 3 / 4 · ChatGPT Bot 대화
+        </span>
+        <h1 className="font-ui text-title text-text">ChatGPT Bot과 대화해보세요</h1>
+      </header>
+
+      <div className="bg-brand-soft border-brand-border flex flex-col gap-2 rounded-md border p-4">
+        <p className="text-body text-text">
+          ChatGPT Bot과 대화해서, 나와 비슷한 아바타를 생성해보세요.
+        </p>
         <p className="text-body-sm text-text-2">
-          아래 코드를 Custom GPT에 입력하면 아바타가 활성화됩니다.
+          대화 내용을 바탕으로 당신과 딱 맞는 아바타를 생성해드립니다.
+        </p>
+      </div>
+
+      <ol className="flex flex-col gap-2">
+        {steps.map((s) => (
+          <li key={s.n} className="text-body-sm text-text-2 flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="bg-bg-elev-2 border-border-hi text-text-3 text-mono-meta flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border font-mono"
+            >
+              {s.n}
+            </span>
+            {s.text}
+          </li>
+        ))}
+      </ol>
+
+      <div
+        role="note"
+        className="border-border bg-bg-elev-2 flex items-start gap-2 rounded-sm border p-3"
+      >
+        <span className="text-warning mt-px text-base" aria-hidden="true">
+          !
+        </span>
+        <p className="text-body-sm text-text-2">
+          약 10분 소요 · 대화가 길수록 더 정확한 아바타가 생성됩니다
         </p>
       </div>
 
       {connectCode && (
         <div className="border-border bg-bg-elev-2 flex flex-col items-center gap-4 rounded-md border p-6">
+          <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
+            연결 코드
+          </span>
           <div className="text-text font-mono text-2xl tracking-[4px]" aria-label="연결 코드">
             {connectCode.connectCode}
           </div>
@@ -161,6 +210,7 @@ export function ConnectStep() {
             <Button
               type="button"
               variant="secondary"
+              size="sm"
               onClick={() => {
                 void handleCopy();
               }}
@@ -169,17 +219,17 @@ export function ConnectStep() {
             </Button>
 
             {showReissueCta && (
-              <Button type="button" variant="ghost" onClick={handleReissue}>
+              <Button type="button" variant="ghost" size="sm" onClick={handleReissue}>
                 재발급
               </Button>
             )}
           </div>
+
+          <p className="text-mono-meta text-text-3 font-mono">
+            연결 후 자동으로 다음 단계로 이동합니다
+          </p>
         </div>
       )}
-
-      <p className="text-body-sm text-text-3 text-center">
-        연결 후 자동으로 다음 단계로 이동합니다.
-      </p>
     </div>
   );
 }

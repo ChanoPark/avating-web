@@ -236,10 +236,12 @@ describe('generatedAvatarSchema', () => {
     level: 3,
     type: '내향 · 분석형',
     stats: {
-      extroversion: 40,
-      sensitivity: 70,
-      enthusiasm: 55,
-      dateStyle: 80,
+      empathy: 72,
+      proactivity: 45,
+      humor: 58,
+      sensitivity: 65,
+      listening: 80,
+      expressiveness: 53,
     },
     tags: ['독서', '카페투어', '음악감상'],
   };
@@ -265,11 +267,11 @@ describe('generatedAvatarSchema', () => {
     ).toThrow();
   });
 
-  it('stats.extroversion 이 100 초과이면 throw 한다', () => {
+  it('stats.empathy 가 100 초과이면 throw 한다', () => {
     expect(() =>
       generatedAvatarSchema.parse({
         ...validAvatar,
-        stats: { ...validAvatar.stats, extroversion: 101 },
+        stats: { ...validAvatar.stats, empathy: 101 },
       })
     ).toThrow();
   });
@@ -287,7 +289,7 @@ describe('generatedAvatarSchema', () => {
     expect(() =>
       generatedAvatarSchema.parse({
         ...validAvatar,
-        stats: { ...validAvatar.stats, enthusiasm: 55.5 },
+        stats: { ...validAvatar.stats, humor: 55.5 },
       })
     ).toThrow();
   });
@@ -359,7 +361,14 @@ describe('apiResponseGeneratedAvatar', () => {
         handle: '@luna_av',
         level: 3,
         type: '내향 · 분석형',
-        stats: { extroversion: 40, sensitivity: 70, enthusiasm: 55, dateStyle: 80 },
+        stats: {
+          empathy: 72,
+          proactivity: 45,
+          humor: 58,
+          sensitivity: 65,
+          listening: 80,
+          expressiveness: 53,
+        },
         tags: ['독서'],
       },
     });

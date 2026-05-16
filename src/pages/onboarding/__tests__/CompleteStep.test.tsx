@@ -21,23 +21,55 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
-vi.mock('motion/react', async (importOriginal) => {
-  const original = await importOriginal<typeof import('motion/react')>();
-  return {
-    ...original,
-    useReducedMotion: vi.fn(() => false),
-  };
-});
-
-describe('CompleteStep', () => {
+describe('CompleteStep (Avatar Confirm)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     localStorage.setItem('avating:onboarding:progress', 'complete');
     server.use(generatedAvatarHandlers.success, completeOnboardingHandlers.success);
   });
 
+  describe('진입 가드', () => {
+    it('progress 가 complete 가 아니면 /onboarding/welcome 으로 redirect 한다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'welcome');
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+      });
+    });
+  });
+
+  describe('와이어프레임 헤더', () => {
+    it('STEP 4 / 4 · 아바타 확인 라벨이 렌더된다', async () => {
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByText(/STEP 4 \/ 4 · 아바타 확인/)).toBeInTheDocument();
+      });
+    });
+
+    it('"생성된 아바타를 확인하세요" 제목이 렌더된다', async () => {
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(
+          screen.getByRole('heading', { level: 1, name: /생성된 아바타를 확인하세요/ })
+        ).toBeInTheDocument();
+      });
+    });
+
+    it('초기 튜닝 카운터 "0/3" 이 렌더된다', async () => {
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByText('0/3')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('아바타 데이터 렌더링', () => {
-    it('GET /api/onboarding/avatar 응답 후 아바타 이름이 렌더된다', async () => {
+    it('API 응답 후 아바타 이름이 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
@@ -45,24 +77,24 @@ describe('CompleteStep', () => {
       });
     });
 
-    it('4개의 StatBar (role=progressbar) 가 렌더된다', async () => {
+    it('6개의 클릭 가능한 스탯 버튼이 렌더된다 (공감·적극성·유머·감성·경청·표현력)', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const statBars = screen.getAllByRole('progressbar');
-        expect(statBars.length).toBe(4);
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /적극성 스탯/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /유머 스탯/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /감성 스탯/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /경청 스탯/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /표현력 스탯/ })).toBeInTheDocument();
       });
     });
 
-    it('StatBar 의 aria-valuenow 가 stats 값으로 설정된다', async () => {
+    it('HexRadar(role=img) 가 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const extroversionBar = screen.getByRole('progressbar', { name: /extroversion|외향/i });
-        expect(extroversionBar).toHaveAttribute(
-          'aria-valuenow',
-          String(mockGeneratedAvatar.data.stats.extroversion)
-        );
+        expect(screen.getByRole('img', { name: /아바타 스탯 레이더/ })).toBeInTheDocument();
       });
     });
 
@@ -86,40 +118,126 @@ describe('CompleteStep', () => {
     });
   });
 
-  describe('reduced-motion', () => {
-    it('useReducedMotion=true 이면 StatBar fill 의 transitionDuration 이 0s 로 설정된다', async () => {
-      const { useReducedMotion } = await import('motion/react');
-      vi.mocked(useReducedMotion).mockReturnValue(true);
-
+  describe('인터랙티브 스탯 튜닝', () => {
+    it('스탯 클릭 시 미니 설문 다이얼로그가 열린다', async () => {
+      const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const fills = screen.getAllByTestId('stat-bar-fill');
-        expect(fills.length).toBe(4);
-        for (const fill of fills) {
-          expect((fill as HTMLElement).style.transitionDuration).toBe('0s');
-        }
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(screen.getByText(/상대방 감정에 얼마나 잘 공감하나요/)).toBeInTheDocument();
+    });
+
+    it('미니 설문 답변 선택 시 다이얼로그가 닫히고 카운터가 1 증가한다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      await user.click(screen.getByRole('button', { name: /매우 잘 공감/ }));
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByText('1/3')).toBeInTheDocument();
+    });
+
+    it('Escape 키로 다이얼로그를 닫으면 트리거 버튼으로 포커스가 복원된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      const triggerBtn = screen.getByRole('button', { name: /공감 스탯/ });
+      await user.click(triggerBtn);
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+
+      // requestAnimationFrame 으로 포커스 복원되므로 다음 paint 대기
+      await waitFor(() => {
+        expect(triggerBtn).toHaveFocus();
       });
     });
 
-    it('useReducedMotion=false 이면 StatBar fill 의 transitionDuration 이 400ms 로 설정된다', async () => {
-      const { useReducedMotion } = await import('motion/react');
-      vi.mocked(useReducedMotion).mockReturnValue(false);
-
+    it('X 버튼 클릭 시 다이얼로그가 닫힌다', async () => {
+      const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const fills = screen.getAllByTestId('stat-bar-fill');
-        expect(fills.length).toBe(4);
-        for (const fill of fills) {
-          expect((fill as HTMLElement).style.transitionDuration).toBe('400ms');
-        }
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
       });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /다이얼로그 닫기/ }));
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
+    it('백드롭 클릭 시 다이얼로그가 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      const dialog = screen.getByRole('dialog');
+      const backdrop = dialog.previousElementSibling;
+      expect(backdrop).not.toBeNull();
+
+      await user.click(backdrop as HTMLElement);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
+    it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+      });
+
+      // 3번 튜닝
+      for (let i = 0; i < 3; i++) {
+        await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+        await user.click(screen.getByRole('button', { name: /매우 잘 공감/ }));
+      }
+
+      expect(screen.getByText('3/3')).toBeInTheDocument();
+
+      // 4번째 시도
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/더 이상 조정할 수 없습니다/)).toBeInTheDocument();
+      });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 
   describe('대시보드 이동', () => {
-    it('"탐색 시작" 클릭 시 POST /api/onboarding/complete 가 호출된다', async () => {
+    it('"시작하기" 클릭 시 POST /api/onboarding/complete 가 호출된다', async () => {
       const user = userEvent.setup();
       let completeCallCount = 0;
 
@@ -134,25 +252,25 @@ describe('CompleteStep', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /탐색 시작|대시보드/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: /탐색 시작|대시보드/i }));
+      await user.click(screen.getByRole('button', { name: '시작하기' }));
 
       await waitFor(() => {
         expect(completeCallCount).toBe(1);
       });
     });
 
-    it('"탐색 시작" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {
+    it('"시작하기" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /탐색 시작|대시보드/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: /탐색 시작|대시보드/i }));
+      await user.click(screen.getByRole('button', { name: '시작하기' }));
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
@@ -166,13 +284,37 @@ describe('CompleteStep', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /탐색 시작|대시보드/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: /탐색 시작|대시보드/i }));
+      await user.click(screen.getByRole('button', { name: '시작하기' }));
 
       await waitFor(() => {
-        expect(screen.getByRole('status')).toBeInTheDocument();
+        expect(screen.getByText(/이미 온보딩이 완료되었습니다/)).toBeInTheDocument();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('서버 응답에 message 가 없으면 "오류가 발생했습니다." fallback 토스트가 노출된다', async () => {
+      const user = userEvent.setup();
+      server.use(
+        generatedAvatarHandlers.success,
+        http.post(`${BASE_URL}/api/onboarding/complete`, () => {
+          return HttpResponse.json({ message: '' }, { status: 500 });
+        })
+      );
+
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('button', { name: '시작하기' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('오류가 발생했습니다.')).toBeInTheDocument();
       });
 
       expect(mockNavigate).not.toHaveBeenCalledWith('/dashboard');
@@ -186,7 +328,7 @@ describe('CompleteStep', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const errorEl = screen.queryByRole('alert') || screen.queryByText(/오류|에러|실패|다시/i);
+        const errorEl = screen.queryByRole('alert') ?? screen.queryByText(/오류|에러|실패|다시/i);
         expect(errorEl).toBeInTheDocument();
       });
     });
@@ -197,7 +339,7 @@ describe('CompleteStep', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const errorEl = screen.queryByRole('alert') || screen.queryByText(/오류|에러|실패|다시/i);
+        const errorEl = screen.queryByRole('alert') ?? screen.queryByText(/오류|에러|실패|다시/i);
         expect(errorEl).toBeInTheDocument();
       });
     });

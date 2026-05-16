@@ -9,6 +9,7 @@ function renderAt(initialRoute: string) {
     <Routes>
       <Route path="/onboarding" element={<OnboardingPage />}>
         <Route path="welcome" element={<div data-testid="step-welcome">welcome</div>} />
+        <Route path="method" element={<div data-testid="step-method">method</div>} />
         <Route path="survey" element={<div data-testid="step-survey">survey</div>} />
         <Route path="connect" element={<div data-testid="step-connect">connect</div>} />
         <Route path="complete" element={<div data-testid="step-complete">complete</div>} />
@@ -25,35 +26,43 @@ describe('OnboardingPage', () => {
     expect(bar).toHaveAttribute('aria-valuemax', '4');
   });
 
-  it('/onboarding/welcome 진입 시 aria-valuenow=1 + 환영합니다 라벨', () => {
+  it('/onboarding/welcome 진입 시 aria-valuenow=1 + "시작" 라벨', () => {
     renderAt('/onboarding/welcome');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '1');
-    expect(bar.getAttribute('aria-valuetext')).toContain('환영합니다');
+    expect(bar.getAttribute('aria-valuetext')).toContain('시작');
     expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
   });
 
-  it('/onboarding/survey 진입 시 aria-valuenow=2 + 페르소나 설문 라벨', () => {
-    renderAt('/onboarding/survey');
+  it('/onboarding/method 진입 시 aria-valuenow=2 + "방법 선택" 라벨', () => {
+    renderAt('/onboarding/method');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '2');
-    expect(bar.getAttribute('aria-valuetext')).toContain('페르소나 설문');
+    expect(bar.getAttribute('aria-valuetext')).toContain('방법 선택');
+    expect(screen.getByTestId('step-method')).toBeInTheDocument();
+  });
+
+  it('/onboarding/survey 진입 시 aria-valuenow=3 + "성향 설문" 라벨', () => {
+    renderAt('/onboarding/survey');
+    const bar = screen.getByRole('progressbar');
+    expect(bar).toHaveAttribute('aria-valuenow', '3');
+    expect(bar.getAttribute('aria-valuetext')).toContain('성향 설문');
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  it('/onboarding/connect 진입 시 aria-valuenow=3 + 연결 코드 라벨', () => {
+  it('/onboarding/connect 진입 시 aria-valuenow=3 + "Bot 대화" 라벨', () => {
     renderAt('/onboarding/connect');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '3');
-    expect(bar.getAttribute('aria-valuetext')).toContain('연결 코드');
+    expect(bar.getAttribute('aria-valuetext')).toContain('Bot 대화');
     expect(screen.getByTestId('step-connect')).toBeInTheDocument();
   });
 
-  it('/onboarding/complete 진입 시 aria-valuenow=4 + 완료 라벨', () => {
+  it('/onboarding/complete 진입 시 aria-valuenow=4 + "아바타 확인" 라벨', () => {
     renderAt('/onboarding/complete');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '4');
-    expect(bar.getAttribute('aria-valuetext')).toContain('완료');
+    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 확인');
     expect(screen.getByTestId('step-complete')).toBeInTheDocument();
   });
 });

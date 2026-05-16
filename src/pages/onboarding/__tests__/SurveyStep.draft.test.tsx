@@ -23,6 +23,7 @@ describe('SurveyStep — draft', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('avating:onboarding:progress', 'creating');
     server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
   });
 
@@ -90,7 +91,7 @@ describe('SurveyStep — draft', () => {
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
       });
 
       expect(localStorage.getItem(DRAFT_KEY)).toBeNull();

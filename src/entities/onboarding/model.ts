@@ -62,10 +62,12 @@ export const connectStatusSchema = z.object({
 export type ConnectStatus = z.infer<typeof connectStatusSchema>;
 
 export const generatedAvatarStatsSchema = z.object({
-  extroversion: z.number().int().min(0).max(100),
+  empathy: z.number().int().min(0).max(100),
+  proactivity: z.number().int().min(0).max(100),
+  humor: z.number().int().min(0).max(100),
   sensitivity: z.number().int().min(0).max(100),
-  enthusiasm: z.number().int().min(0).max(100),
-  dateStyle: z.number().int().min(0).max(100),
+  listening: z.number().int().min(0).max(100),
+  expressiveness: z.number().int().min(0).max(100),
 });
 
 export const generatedAvatarSchema = z.object({

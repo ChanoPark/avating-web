@@ -40,6 +40,7 @@ describe('SurveyStep — 에러 처리', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
+    localStorage.setItem('avating:onboarding:progress', 'creating');
     server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.success);
   });
 
@@ -158,7 +159,7 @@ describe('SurveyStep — 에러 처리', () => {
         expect(alert.textContent).toContain('입력 데이터를 다시 확인해주세요.');
       });
 
-      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/connect');
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
   });
 });
