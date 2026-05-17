@@ -213,6 +213,7 @@ describe('SurveyStep', () => {
     it('모든 질문 답변 후 아바타 이름 입력 페이지가 노출된다', async () => {
       const user = userEvent.setup();
       await goToAvatarPage(user);
+      expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
     });
 
     it('이름 미입력 시 "아바타 생성" 버튼이 disabled 이다', async () => {

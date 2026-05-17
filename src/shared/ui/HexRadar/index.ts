@@ -1,1 +1,0 @@
-export { HexRadar } from './HexRadar';
