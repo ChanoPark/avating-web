@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { avatarStatusSchema, avatarBaseSchema } from '../model';
+import {
+  avatarStatusSchema,
+  avatarBaseSchema,
+  avatarStatsSchema,
+  avatarSessionHistoryItemSchema,
+  avatarDetailSchema,
+  AVATAR_STAT_KEYS,
+} from '../model';
 
 const validAvatarBase = {
   id: 'avatar-1',
@@ -88,5 +95,96 @@ describe('avatarBaseSchema', () => {
   it('verified 가 없으면 실패한다', () => {
     const { verified: _omit, ...without } = validAvatarBase;
     expect(() => avatarBaseSchema.parse(without)).toThrow();
+  });
+});
+
+const validStats = {
+  empathy: 81,
+  proactivity: 52,
+  humor: 69,
+  sensitivity: 88,
+  listening: 74,
+  expressiveness: 60,
+};
+
+describe('avatarStatsSchema', () => {
+  it('6축 0–100 정수 객체를 파싱한다', () => {
+    expect(avatarStatsSchema.parse(validStats)).toEqual(validStats);
+  });
+
+  it('AVATAR_STAT_KEYS 는 6개여야 한다', () => {
+    expect(AVATAR_STAT_KEYS).toHaveLength(6);
+  });
+
+  it('범위 외 값(>100) 은 실패한다', () => {
+    expect(() => avatarStatsSchema.parse({ ...validStats, empathy: 101 })).toThrow();
+  });
+
+  it('음수는 실패한다', () => {
+    expect(() => avatarStatsSchema.parse({ ...validStats, humor: -1 })).toThrow();
+  });
+
+  it('소수는 실패한다 (int 강제)', () => {
+    expect(() => avatarStatsSchema.parse({ ...validStats, listening: 70.5 })).toThrow();
+  });
+
+  it('필수 키 누락 시 실패한다', () => {
+    const { listening: _omit, ...without } = validStats;
+    expect(() => avatarStatsSchema.parse(without)).toThrow();
+  });
+});
+
+describe('avatarSessionHistoryItemSchema', () => {
+  const validItem = {
+    id: 'sess-1',
+    turn: 12,
+    totalTurns: 12,
+    affinity: 91,
+    result: 'matched' as const,
+    endedAt: '2026-04-21T13:21:00.000Z',
+  };
+
+  it('정상 row 를 파싱한다', () => {
+    expect(avatarSessionHistoryItemSchema.parse(validItem).result).toBe('matched');
+  });
+
+  it('result 가 ended / aborted / matched 외이면 실패한다', () => {
+    expect(() =>
+      avatarSessionHistoryItemSchema.parse({ ...validItem, result: 'unknown' })
+    ).toThrow();
+  });
+
+  it('affinity 가 100 초과면 실패한다', () => {
+    expect(() => avatarSessionHistoryItemSchema.parse({ ...validItem, affinity: 101 })).toThrow();
+  });
+
+  it('turn 이 음수면 실패한다', () => {
+    expect(() => avatarSessionHistoryItemSchema.parse({ ...validItem, turn: -1 })).toThrow();
+  });
+});
+
+describe('avatarDetailSchema', () => {
+  const validDetail = {
+    ...validAvatarBase,
+    type: '내향·낭만형',
+    tags: ['독립서점', '심야 카페'],
+    stats: validStats,
+    sessionHistory: [],
+  };
+
+  it('base + type + tags + stats + sessionHistory 를 모두 파싱한다', () => {
+    const parsed = avatarDetailSchema.parse(validDetail);
+    expect(parsed.tags).toHaveLength(2);
+    expect(parsed.stats.empathy).toBe(81);
+    expect(parsed.sessionHistory).toHaveLength(0);
+  });
+
+  it('type 이 빈 문자열이면 실패한다', () => {
+    expect(() => avatarDetailSchema.parse({ ...validDetail, type: '' })).toThrow();
+  });
+
+  it('tags 가 누락되면 실패한다', () => {
+    const { tags: _omit, ...without } = validDetail;
+    expect(() => avatarDetailSchema.parse(without)).toThrow();
   });
 });
