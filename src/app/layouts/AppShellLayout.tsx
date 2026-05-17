@@ -14,7 +14,44 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
 import { useDashboardStats } from '@features/dashboard/api/useDashboardStats';
+import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { Suspense } from 'react';
+
+// 라우트별 chrome breadcrumb. 단일 출처는 AppShellLayout 의 chrome.
+// 페이지가 데이터 로드 후 동적 세그먼트(아바타 이름 등)를 push 할 수 있도록 store slot 을 우선 사용.
+// store 가 비어 있으면 pathname 기본 매핑으로 fallback.
+function ChromeBreadcrumb({ pathname }: { pathname: string }) {
+  const trail = useChromeBreadcrumbStore((s) => s.trail);
+  const segments =
+    trail !== null && trail.length > 0
+      ? trail
+      : pathname === '/dashboard'
+        ? ['홈', '대시보드']
+        : pathname.startsWith('/avatars/')
+          ? ['홈', '탐색']
+          : ['홈'];
+  return (
+    <nav aria-label="현재 위치" className="text-body-sm text-text-2">
+      <ol className="flex items-center gap-1.5">
+        {segments.map((seg, i) => (
+          <li key={seg} className="flex items-center gap-1.5">
+            {i > 0 && (
+              <span aria-hidden="true" className="text-text-3">
+                &gt;
+              </span>
+            )}
+            <span
+              className={i === segments.length - 1 ? 'text-text' : undefined}
+              {...(i === segments.length - 1 ? { 'aria-current': 'page' as const } : {})}
+            >
+              {seg}
+            </span>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  );
+}
 
 function GemBalance() {
   const stats = useDashboardStats();
@@ -68,7 +105,7 @@ export function AppShellLayout() {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <header className="border-border bg-bg-elev-1 flex h-14 shrink-0 items-center justify-between border-b px-6">
-          <div className="text-body-sm text-text-2">홈 &gt; 대시보드</div>
+          <ChromeBreadcrumb pathname={location.pathname} />
           <div className="flex items-center gap-3">
             <button
               type="button"
