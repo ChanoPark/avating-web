@@ -1,10 +1,11 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
+import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { server } from '@shared/mocks/server';
 import { statsHandlers } from '@shared/mocks/handlers/dashboard';
 import { AppShellLayout } from '../AppShellLayout';
@@ -158,7 +159,9 @@ describe('AppShellLayout', () => {
 
     it('사이드바 항목의 가시 라벨 텍스트는 sr-only 처리된다 (대시보드)', () => {
       renderWithProviders('/dashboard');
-      const labelSpan = screen.getByText('대시보드');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      const dashboardLink = within(nav).getByRole('link', { name: /대시보드/ });
+      const labelSpan = within(dashboardLink).getByText('대시보드');
       expect(labelSpan.className.includes('sr-only')).toBe(true);
     });
   });
@@ -176,6 +179,32 @@ describe('AppShellLayout', () => {
       const outlet = screen.getByTestId('outlet-content');
       const container = outlet.closest('[data-shell-content]');
       expect(container?.className.includes('mx-auto')).toBe(true);
+    });
+  });
+
+  describe('chrome breadcrumb (라우트별 매핑 + store slot)', () => {
+    it('/dashboard 에서는 "홈 > 대시보드" 가 표시된다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(nav).toHaveTextContent('홈');
+      expect(nav).toHaveTextContent('대시보드');
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('대시보드');
+    });
+
+    it('/avatars/:id 기본 매핑은 "홈 > 탐색" (store 비어있을 때)', () => {
+      renderWithProviders('/avatars/avatar-1');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(nav).toHaveTextContent('홈');
+      expect(nav).toHaveTextContent('탐색');
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('탐색');
+    });
+
+    it('store 에 trail 이 push 되면 동적 세그먼트(아바타 이름 등) 가 마지막에 추가된다', () => {
+      useChromeBreadcrumbStore.getState().setTrail(['홈', '탐색', 'Moonlit Narrator']);
+      renderWithProviders('/avatars/avatar-1');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('Moonlit Narrator');
+      useChromeBreadcrumbStore.getState().clearTrail();
     });
   });
 });

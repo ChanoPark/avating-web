@@ -3,10 +3,12 @@ import { authHandlers } from './handlers/auth';
 import { dashboardHandlers } from './handlers/dashboard';
 import { matchRequestHandlers } from './handlers/matchRequest';
 import { inboxHandlers } from './handlers/inbox';
+import { avatarDetailHandlers } from './handlers/avatarDetail';
 
 export const worker = setupWorker(
   ...authHandlers,
   ...dashboardHandlers,
   ...matchRequestHandlers,
-  ...inboxHandlers
+  ...inboxHandlers,
+  ...avatarDetailHandlers
 );
