@@ -23,6 +23,9 @@ const OnboardingPage = lazy(() =>
 const WelcomeStep = lazy(() =>
   import('@pages/onboarding/steps/WelcomeStep').then((m) => ({ default: m.WelcomeStep }))
 );
+const IntroStep = lazy(() =>
+  import('@pages/onboarding/steps/IntroStep').then((m) => ({ default: m.IntroStep }))
+);
 const MethodSelectStep = lazy(() =>
   import('@pages/onboarding/steps/MethodSelectStep').then((m) => ({ default: m.MethodSelectStep }))
 );
@@ -79,6 +82,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/onboarding/welcome" replace /> },
       { path: 'welcome', element: <WelcomeStep /> },
+      { path: 'intro', element: <IntroStep /> },
       { path: 'method', element: <MethodSelectStep /> },
       { path: 'survey', element: <SurveyStep /> },
       { path: 'connect', element: <ConnectStep /> },

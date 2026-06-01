@@ -108,13 +108,13 @@ describe('MethodSelectStep', () => {
       expect(localStorage.getItem('avating:onboarding:progress')).toBe('creating');
     });
 
-    it('이전 → /onboarding/welcome 으로 이동', async () => {
+    it('이전 → /onboarding/intro 로 이동 (와이어프레임 v2: 직전 단계는 이름·설명)', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MethodSelectStep />);
 
       await user.click(screen.getByRole('button', { name: /이전/ }));
 
-      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/intro');
     });
   });
 
@@ -123,6 +123,12 @@ describe('MethodSelectStep', () => {
       localStorage.setItem('avating:onboarding:progress', 'welcome');
       renderWithProviders(<MethodSelectStep />);
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+    });
+
+    it('progress 가 intro 이면 /onboarding/intro 로 redirect 한다 (이름·설명 미완료 시 진입 차단)', () => {
+      localStorage.setItem('avating:onboarding:progress', 'intro');
+      renderWithProviders(<MethodSelectStep />);
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/intro', { replace: true });
     });
 
     it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', () => {
