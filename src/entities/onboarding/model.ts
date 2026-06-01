@@ -39,6 +39,8 @@ export const surveyDraftSchema = z.object({
   answers: z.record(z.string(), z.string()),
   avatarName: z.string().optional(),
   description: z.string().optional(),
+  // 자주 쓰는 표현(선택). 백엔드 제출 계약 미정(spec-gap)이라 draft 로컬 보관 전용이며 제출 payload 에는 포함하지 않는다.
+  expressions: z.array(z.string()).optional(),
 });
 export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 

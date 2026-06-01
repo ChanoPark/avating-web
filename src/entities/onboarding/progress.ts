@@ -1,18 +1,26 @@
 const PROGRESS_KEY = 'avating:onboarding:progress';
 const METHOD_KEY = 'avating:onboarding:method';
 
-export type OnboardingProgress = 'welcome' | 'method' | 'creating' | 'complete';
+export type OnboardingProgress = 'welcome' | 'intro' | 'method' | 'creating' | 'complete';
 export type OnboardingMethod = 'survey' | 'connect';
 
+// 와이어프레임 v2 단계 순서. welcome 은 진행바 없는 환영 모멘트(pre-step), intro 가 Step 1(이름·설명).
 const ORDER: Record<OnboardingProgress, number> = {
   welcome: 0,
-  method: 1,
-  creating: 2,
-  complete: 3,
+  intro: 1,
+  method: 2,
+  creating: 3,
+  complete: 4,
 };
 
 function isValidProgress(val: string | null): val is OnboardingProgress {
-  return val === 'welcome' || val === 'method' || val === 'creating' || val === 'complete';
+  return (
+    val === 'welcome' ||
+    val === 'intro' ||
+    val === 'method' ||
+    val === 'creating' ||
+    val === 'complete'
+  );
 }
 
 function isValidMethod(val: string | null): val is OnboardingMethod {
