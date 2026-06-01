@@ -83,6 +83,7 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
       await user.click(screen.getByRole('button', { name: /Bot 연동/ }));
 
       expect(localStorage.getItem(METHOD_KEY)).toBe('connect');
+      expect(localStorage.getItem(PROGRESS_KEY)).toBe('intro');
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/intro');
     });
   });
