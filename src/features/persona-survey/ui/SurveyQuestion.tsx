@@ -20,7 +20,7 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
           <label
             key={opt.answerId}
             className={[
-              'flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2.5 transition-colors',
+              'flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2.5 transition-colors focus-within:shadow-[var(--focus-ring)]',
               value === opt.answerId
                 ? 'border-brand bg-brand-soft'
                 : 'border-border hover:border-border-hi',

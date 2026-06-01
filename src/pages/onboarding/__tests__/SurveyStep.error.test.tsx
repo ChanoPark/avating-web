@@ -5,6 +5,7 @@ import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { surveyQuestionsHandlers, surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
+import { saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { SurveyStep } from '@features/persona-survey/ui/SurveyStep';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
@@ -20,7 +21,12 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
-async function navigateToNamePage(user: ReturnType<typeof userEvent.setup>) {
+// 이름은 IntroStep 에서 draft 로 저장된 상태를 가정한다.
+function seedNameDraft() {
+  saveDraft({ answers: {}, avatarName: '루나', description: '' });
+}
+
+async function navigateToExpressionsPage(user: ReturnType<typeof userEvent.setup>) {
   await waitFor(() => {
     expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
   });
@@ -32,7 +38,7 @@ async function navigateToNamePage(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('radio', { name: MOCK_Q2_ANS1 }));
   await user.click(screen.getByRole('button', { name: /다음/i }));
   await waitFor(() => {
-    expect(screen.getByLabelText(/아바타 이름/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('자주 쓰는 표현 입력')).toBeInTheDocument();
   });
 }
 
@@ -115,6 +121,7 @@ describe('SurveyStep — 에러 처리', () => {
   describe('제출 에러 처리', () => {
     it('API 에러 응답 시 서버 에러 메시지가 alert 로 표시되고 border-danger 시각 상태가 적용된다', async () => {
       const user = userEvent.setup();
+      seedNameDraft();
 
       server.use(
         surveyQuestionsHandlers.success,
@@ -124,9 +131,8 @@ describe('SurveyStep — 에러 처리', () => {
       );
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
-      await navigateToNamePage(user);
+      await navigateToExpressionsPage(user);
 
-      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
@@ -148,10 +154,10 @@ describe('SurveyStep — 에러 처리', () => {
       );
 
       const user = userEvent.setup();
+      seedNameDraft();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
-      await navigateToNamePage(user);
+      await navigateToExpressionsPage(user);
 
-      await user.type(screen.getByLabelText(/아바타 이름/i), '루나');
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {

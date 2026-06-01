@@ -10,15 +10,19 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
+import { Tag } from '@shared/ui/Tag/Tag';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
+import { ExpressionsField } from './ExpressionsField';
 
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
+  const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -32,10 +36,13 @@ export function SurveyStep() {
     refetch,
   } = useSurveyQuestions({ enabled: !guardFailed });
 
+  // 와이어프레임 v2 단계 순서: welcome → intro → method → (creating)survey/connect → complete.
   useEffect(() => {
     if (!guardFailed) return;
     if (onboardingProgress === 'welcome') {
       void navigate('/onboarding/welcome', { replace: true });
+    } else if (onboardingProgress === 'intro') {
+      void navigate('/onboarding/intro', { replace: true });
     } else if (onboardingProgress === 'method') {
       void navigate('/onboarding/method', { replace: true });
     } else {
@@ -47,11 +54,8 @@ export function SurveyStep() {
     resolver: zodResolver(avatarCreateFromSurveyRequestSchema),
     mode: 'onSubmit',
     reValidateMode: 'onChange',
-    defaultValues: {
-      avatarName: '',
-      description: '',
-      answers: [],
-    },
+    // 이름·설명은 IntroStep(Step 1)에서 draft 로 저장되어 아래 복원 effect 로 채워진다.
+    defaultValues: { avatarName: '', description: '', answers: [] },
   });
 
   const { mutateAsync: createAvatar, isPending: isSubmitting } = useSurveySubmit();
@@ -67,7 +71,6 @@ export function SurveyStep() {
       .map(([questionId, answerId]) => {
         const q = questions.find((qq) => qq.id === questionId);
         if (!q) return null;
-        // 질문 카탈로그가 갱신되어 stale answerId 가 들어있을 수 있으므로 교차검증.
         if (!q.answers.some((a) => a.answerId === answerId)) return null;
         return { questionId, questionType: q.questionType, answerId };
       })
@@ -78,6 +81,11 @@ export function SurveyStep() {
       description: draft.description ?? '',
       answers: restoredAnswers,
     });
+
+    if (draft.expressions && draft.expressions.length > 0) {
+      setExpressions(draft.expressions);
+      expressionsRef.current = draft.expressions;
+    }
   }, [questions, form]);
 
   useEffect(() => {
@@ -92,6 +100,8 @@ export function SurveyStep() {
           answers: answersMap,
           avatarName: values.avatarName ?? '',
           description: values.description ?? '',
+          // 표현은 RHF 폼 밖 로컬 상태라 ref 로 보존한다.
+          expressions: expressionsRef.current,
         });
       }, 300);
     });
@@ -130,17 +140,17 @@ export function SurveyStep() {
     );
   }
 
-  const isAvatarNamePage = pageIndex === questions.length;
+  // 페이지: [질문 0..N-1, 자주 쓰는 표현(선택)]. 표현 단계가 마지막 = 제출 단계.
+  const totalSteps = questions.length + 1;
+  const isExpressionsPage = pageIndex === questions.length;
   const isFirstPage = pageIndex === 0;
-  const currentQuestion: SurveyQuestionModel | null = !isAvatarNamePage
+  const currentQuestion: SurveyQuestionModel | null = !isExpressionsPage
     ? (questions[pageIndex] ?? null)
     : null;
 
   const watchedAnswers = form.watch('answers');
-  const watchedName = form.watch('avatarName');
-
-  const currentAnswered = isAvatarNamePage
-    ? watchedName.trim().length > 0
+  const currentAnswered = isExpressionsPage
+    ? true
     : currentQuestion != null &&
       watchedAnswers.some((a) => a.questionId === currentQuestion.id && a.answerId);
 
@@ -151,11 +161,7 @@ export function SurveyStep() {
     const current = form.getValues('answers');
     const next = [
       ...current.filter((a) => a.questionId !== question.id),
-      {
-        questionId: question.id,
-        questionType: question.questionType,
-        answerId,
-      },
+      { questionId: question.id, questionType: question.questionType, answerId },
     ];
     form.setValue('answers', next, { shouldDirty: true });
   };
@@ -166,6 +172,22 @@ export function SurveyStep() {
 
   const handlePrev = () => {
     setPageIndex((p) => p - 1);
+  };
+
+  const persistExpressions = (next: string[]) => {
+    setExpressions(next);
+    expressionsRef.current = next;
+    const values = form.getValues();
+    const answersMap = values.answers.reduce<Record<string, string>>((acc, ans) => {
+      if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
+      return acc;
+    }, {});
+    saveDraft({
+      answers: answersMap,
+      avatarName: values.avatarName,
+      description: values.description,
+      expressions: next,
+    });
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
@@ -187,12 +209,17 @@ export function SurveyStep() {
     }
   });
 
-  const totalQuestions = questions.length;
-  const currentQuestionNumber = isAvatarNamePage ? totalQuestions : pageIndex + 1;
-  const percent = isAvatarNamePage ? 100 : Math.round(((pageIndex + 1) / totalQuestions) * 100);
-  const headerSubtitle = isAvatarNamePage
-    ? '아바타 이름 입력'
-    : `${currentQuestionNumber} / ${totalQuestions} · ${currentQuestion?.title ?? '질문'}`;
+  const handleSkip = () => {
+    // 표현 단계 건너뛰기 — 표현을 비우고 제출한다.
+    persistExpressions([]);
+    void onSubmit();
+  };
+
+  const currentStepNumber = pageIndex + 1;
+  const percent = Math.round((currentStepNumber / totalSteps) * 100);
+  const headerSubtitle = isExpressionsPage
+    ? `${currentStepNumber} / ${totalSteps} · 자주 쓰는 표현`
+    : `${currentStepNumber} / ${totalSteps} · ${currentQuestion?.title ?? '질문'}`;
 
   return (
     <form
@@ -203,8 +230,8 @@ export function SurveyStep() {
       className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6"
     >
       <p role="status" aria-live="polite" className="sr-only">
-        {isAvatarNamePage
-          ? `아바타 이름 입력 페이지`
+        {isExpressionsPage
+          ? '자주 쓰는 표현 입력 (선택)'
           : `질문 ${pageIndex + 1} / ${questions.length}`}
       </p>
 
@@ -212,8 +239,11 @@ export function SurveyStep() {
         <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
           STEP 3 / 4 · 성향 설문
         </span>
-        <div className="flex items-center justify-between">
-          <span className="font-ui text-subheading text-text">{headerSubtitle}</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="font-ui text-subheading text-text">{headerSubtitle}</span>
+            {isExpressionsPage && <Tag>선택</Tag>}
+          </div>
           <span className="text-mono-meta text-brand font-mono">{percent}%</span>
         </div>
         <div
@@ -230,7 +260,16 @@ export function SurveyStep() {
           />
         </div>
       </header>
-      {currentQuestion ? (
+
+      {isExpressionsPage ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-body-sm text-text-2">
+            아바타가 더 나답게 말할 수 있도록, 평소 자주 쓰는 말투·표현·이모지를 알려주세요.
+          </p>
+          <p className="text-mono-micro text-text-3 font-mono">예) 그치 그치, ~인 듯, 🥲✨</p>
+          <ExpressionsField value={expressions} onChange={persistExpressions} />
+        </div>
+      ) : currentQuestion ? (
         <SurveyQuestion
           name={currentQuestion.id}
           question={currentQuestion.title}
@@ -240,56 +279,7 @@ export function SurveyStep() {
             handleAnswer(currentQuestion, answerId);
           }}
         />
-      ) : (
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label htmlFor="avatarName" className="text-body text-text">
-              아바타 이름
-            </label>
-            <input
-              id="avatarName"
-              type="text"
-              maxLength={50}
-              placeholder="아바타 이름을 입력하세요"
-              aria-invalid={form.formState.errors.avatarName ? 'true' : undefined}
-              aria-describedby={form.formState.errors.avatarName ? 'avatarName-error' : undefined}
-              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand rounded-sm border px-3 py-2.5 text-sm outline-none ${
-                form.formState.errors.avatarName ? 'border-danger' : 'border-border'
-              }`}
-              {...form.register('avatarName')}
-            />
-            {/* v8 ignore next 5 — maxLength+disabled 가드로 UX상 도달 불가 */}
-            {form.formState.errors.avatarName?.message && (
-              <p id="avatarName-error" className="text-body-sm text-danger">
-                {form.formState.errors.avatarName.message}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <label htmlFor="description" className="text-body text-text">
-              소개 <span className="text-text-3 text-sm">(선택)</span>
-            </label>
-            <textarea
-              id="description"
-              placeholder="아바타를 간단히 소개해주세요"
-              maxLength={200}
-              rows={3}
-              aria-invalid={form.formState.errors.description ? 'true' : undefined}
-              aria-describedby={form.formState.errors.description ? 'description-error' : undefined}
-              className={`bg-bg-elev-2 text-text placeholder:text-text-3 focus:border-brand resize-none rounded-sm border px-3 py-2.5 text-sm outline-none ${
-                form.formState.errors.description ? 'border-danger' : 'border-border'
-              }`}
-              {...form.register('description')}
-            />
-            {/* v8 ignore next 5 — maxLength(200)+Zod max(200) 일치로 UX상 도달 불가 */}
-            {form.formState.errors.description?.message && (
-              <p id="description-error" className="text-body-sm text-danger">
-                {form.formState.errors.description.message}
-              </p>
-            )}
-          </div>
-        </div>
-      )}
+      ) : null}
 
       {submitError && (
         <p
@@ -306,10 +296,15 @@ export function SurveyStep() {
             이전
           </Button>
         )}
-        {isAvatarNamePage ? (
-          <Button type="submit" disabled={!currentAnswered || isSubmitting} className="flex-1">
-            {isSubmitting ? '생성 중...' : '아바타 생성'}
-          </Button>
+        {isExpressionsPage ? (
+          <>
+            <Button type="button" variant="secondary" disabled={isSubmitting} onClick={handleSkip}>
+              건너뛰기
+            </Button>
+            <Button type="submit" disabled={isSubmitting} className="flex-1">
+              {isSubmitting ? '생성 중...' : '아바타 생성'}
+            </Button>
+          </>
         ) : (
           <Button type="button" disabled={!currentAnswered} onClick={handleNext} className="flex-1">
             다음
