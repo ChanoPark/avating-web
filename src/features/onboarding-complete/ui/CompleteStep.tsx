@@ -83,6 +83,8 @@ type AvatarContentInnerProps = {
 
 function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerProps) {
   const toast = useToast();
+  // 와이어프레임 v2: 기본은 읽기 전용 확인. "스탯 다듬기" 진입 시에만 튜닝 가능.
+  const [tuning, setTuning] = useState(false);
   const [stats, setStats] = useState(avatar.stats);
   const [tuneCount, setTuneCount] = useState(0);
   const [activeStat, setActiveStat] = useState<StatKey | null>(null);
@@ -100,7 +102,6 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
     const triggerKey = triggerStatRef.current;
     setActiveStat(null);
     if (restoreFocus && triggerKey !== null) {
-      // 다음 paint 에서 트리거 버튼으로 포커스 복원
       requestAnimationFrame(() => {
         statButtonRefs.current.get(triggerKey)?.focus();
       });
@@ -109,7 +110,6 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
 
   useEffect(() => {
     if (activeStat === null) return;
-    // 다이얼로그 오픈 시 첫 답변 버튼으로 포커스 이동
     firstDialogButtonRef.current?.focus();
 
     const onKey = (e: KeyboardEvent) => {
@@ -150,28 +150,39 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
           <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
             STEP 4 / 4 · 아바타 확인
           </span>
-          <div className="flex items-center gap-1.5" aria-label={`튜닝 ${tuneCount} / ${MAX_TUNE}`}>
-            {Array.from({ length: MAX_TUNE }).map((_, i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                className={`border-border-hi h-1.5 w-1.5 rounded-full border ${
-                  i < tuneCount ? 'bg-brand' : 'bg-bg-elev-3'
-                }`}
-              />
-            ))}
-            <span
-              className={`text-mono-meta font-mono ${
-                tuneCount >= MAX_TUNE ? 'text-danger' : 'text-text-3'
-              }`}
+          {tuning ? (
+            <div
+              className="flex items-center gap-1.5"
+              aria-label={`튜닝 ${tuneCount} / ${MAX_TUNE}`}
             >
-              {tuneCount}/{MAX_TUNE}
-            </span>
-          </div>
+              {Array.from({ length: MAX_TUNE }).map((_, i) => (
+                <span
+                  key={i}
+                  aria-hidden="true"
+                  className={`border-border-hi h-1.5 w-1.5 rounded-full border ${
+                    i < tuneCount ? 'bg-brand' : 'bg-bg-elev-3'
+                  }`}
+                />
+              ))}
+              <span
+                className={`text-mono-meta font-mono ${
+                  tuneCount >= MAX_TUNE ? 'text-danger' : 'text-text-3'
+                }`}
+              >
+                {tuneCount}/{MAX_TUNE}
+              </span>
+            </div>
+          ) : (
+            <Tag variant="success">✓ 생성 완료</Tag>
+          )}
         </div>
-        <h1 className="font-ui text-title text-text">생성된 아바타를 확인하세요</h1>
+        <h1 className="font-ui text-title text-text">
+          {tuning ? '스탯 다듬기' : '생성된 아바타입니다'}
+        </h1>
         <p className="text-body-sm text-text-2">
-          마음에 안드는 스탯을 눌러서 관련된 스탯을 재조정해보세요.
+          {tuning
+            ? '마음에 안 드는 스탯을 눌러 재조정해보세요.'
+            : '아래 정보를 확인한 뒤 완료 버튼을 눌러주세요.'}
         </p>
       </header>
 
@@ -198,6 +209,25 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
         <ul className="flex flex-col gap-1.5">
           {STAT_ORDER.map((key) => {
             const v = stats[key];
+            if (!tuning) {
+              // 읽기 전용 스탯 바
+              return (
+                <li key={key} className="flex items-center gap-2 px-2 py-1">
+                  <span className="text-mono-meta text-text-3 w-10 font-mono">
+                    {STAT_LABEL[key]}
+                  </span>
+                  <span className="bg-bg-elev-3 relative h-1 flex-1 overflow-hidden rounded-sm">
+                    <span
+                      data-testid={`stat-bar-fill-${key}`}
+                      className="bg-brand block h-full"
+                      style={{ width: `${v}%` }}
+                    />
+                  </span>
+                  <span className="text-mono-meta text-text-2 w-6 text-right font-mono">{v}</span>
+                </li>
+              );
+            }
+
             const isActive = activeStat === key;
             const disabled = tuneCount >= MAX_TUNE;
             return (
@@ -252,21 +282,46 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
         </div>
       )}
 
-      <Button
-        type="button"
-        variant="primary"
-        onClick={onStart}
-        disabled={isPending}
-        className="w-full"
-      >
-        시작하기
-      </Button>
+      {tuning ? (
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={() => {
+            setTuning(false);
+          }}
+          className="w-full"
+        >
+          확인으로 돌아가기
+        </Button>
+      ) : (
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="primary"
+            onClick={onStart}
+            disabled={isPending}
+            className="w-full"
+          >
+            완료
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => {
+              setTuning(true);
+            }}
+            className="w-full"
+          >
+            스탯 다듬기
+          </Button>
+        </div>
+      )}
 
       <p className="text-mono-meta text-text-3 text-center font-mono">
         확정 이후 스탯은 튜닝 기능을 통해 조정할 수 있습니다
       </p>
 
-      {activeStat !== null && (
+      {tuning && activeStat !== null && (
         <div className="fixed inset-0 z-[var(--z-modal)] flex items-end px-4 pb-4">
           <button
             type="button"

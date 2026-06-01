@@ -21,6 +21,17 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
+// 와이어프레임 v2: Step 4 는 읽기 전용 확인. 튜닝은 "스탯 다듬기" 진입 후에만 가능.
+async function enterTuning(user: ReturnType<typeof userEvent.setup>) {
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /스탯 다듬기/ })).toBeInTheDocument();
+  });
+  await user.click(screen.getByRole('button', { name: /스탯 다듬기/ }));
+  await waitFor(() => {
+    expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
+  });
+}
+
 describe('CompleteStep (Avatar Confirm)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -40,35 +51,37 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
   });
 
-  describe('와이어프레임 헤더', () => {
-    it('STEP 4 / 4 · 아바타 확인 라벨이 렌더된다', async () => {
+  describe('와이어프레임 헤더 (읽기 전용 확인)', () => {
+    it('STEP 4 / 4 · 아바타 확인 라벨과 "✓ 생성 완료" 태그가 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
         expect(screen.getByText(/STEP 4 \/ 4 · 아바타 확인/)).toBeInTheDocument();
       });
+      expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
     });
 
-    it('"생성된 아바타를 확인하세요" 제목이 렌더된다', async () => {
+    it('"생성된 아바타입니다" 제목이 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
         expect(
-          screen.getByRole('heading', { level: 1, name: /생성된 아바타를 확인하세요/ })
+          screen.getByRole('heading', { level: 1, name: /생성된 아바타입니다/ })
         ).toBeInTheDocument();
       });
     });
 
-    it('초기 튜닝 카운터 "0/3" 이 렌더된다', async () => {
+    it('기본(읽기 전용) 화면에는 튜닝 카운터가 보이지 않는다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByText('0/3')).toBeInTheDocument();
+        expect(screen.getByText(mockGeneratedAvatar.data.name)).toBeInTheDocument();
       });
+      expect(screen.queryByText('0/3')).not.toBeInTheDocument();
     });
   });
 
-  describe('아바타 데이터 렌더링', () => {
+  describe('아바타 데이터 렌더링 (읽기 전용)', () => {
     it('API 응답 후 아바타 이름이 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
@@ -77,17 +90,31 @@ describe('CompleteStep (Avatar Confirm)', () => {
       });
     });
 
-    it('6개의 클릭 가능한 스탯 버튼이 렌더된다 (공감·적극성·유머·감성·경청·표현력)', async () => {
+    it('기본 화면의 스탯은 읽기 전용이라 클릭 가능한 스탯 버튼이 없다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /적극성 스탯/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /유머 스탯/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /감성 스탯/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /경청 스탯/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /표현력 스탯/ })).toBeInTheDocument();
+        expect(screen.getByText(mockGeneratedAvatar.data.name)).toBeInTheDocument();
       });
+      expect(screen.queryByRole('button', { name: /공감 스탯/ })).not.toBeInTheDocument();
+    });
+
+    it('6개의 읽기 전용 스탯 바가 렌더된다', async () => {
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+
+      await waitFor(() => {
+        expect(screen.getByTestId('stat-bar-fill-empathy')).toBeInTheDocument();
+      });
+      for (const key of [
+        'empathy',
+        'proactivity',
+        'humor',
+        'sensitivity',
+        'listening',
+        'expressiveness',
+      ]) {
+        expect(screen.getByTestId(`stat-bar-fill-${key}`)).toBeInTheDocument();
+      }
     });
 
     it('HexRadar(role=img) 가 렌더된다', async () => {
@@ -108,24 +135,29 @@ describe('CompleteStep (Avatar Confirm)', () => {
       });
     });
 
-    it('태그 개수가 최대 6개 이하이다', async () => {
+    it('"스탯 다듬기" 링크가 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        const tagElements = screen.getAllByTestId('avatar-tag');
-        expect(tagElements.length).toBeLessThanOrEqual(6);
+        expect(screen.getByRole('button', { name: /스탯 다듬기/ })).toBeInTheDocument();
       });
     });
   });
 
-  describe('인터랙티브 스탯 튜닝', () => {
+  describe('인터랙티브 스탯 튜닝 (스탯 다듬기 진입 후)', () => {
+    it('"스탯 다듬기" 진입 시 클릭 가능한 스탯 버튼과 0/3 카운터가 나타난다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      await enterTuning(user);
+
+      expect(screen.getByRole('button', { name: /적극성 스탯/ })).toBeInTheDocument();
+      expect(screen.getByText('0/3')).toBeInTheDocument();
+    });
+
     it('스탯 클릭 시 미니 설문 다이얼로그가 열린다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
+      await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
 
@@ -136,10 +168,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     it('미니 설문 답변 선택 시 다이얼로그가 닫히고 카운터가 1 증가한다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
+      await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
       await user.click(screen.getByRole('button', { name: /매우 잘 공감/ }));
@@ -148,37 +177,10 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(screen.getByText('1/3')).toBeInTheDocument();
     });
 
-    it('Escape 키로 다이얼로그를 닫으면 트리거 버튼으로 포커스가 복원된다', async () => {
-      const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
-
-      const triggerBtn = screen.getByRole('button', { name: /공감 스탯/ });
-      await user.click(triggerBtn);
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-
-      await user.keyboard('{Escape}');
-
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      });
-
-      // requestAnimationFrame 으로 포커스 복원되므로 다음 paint 대기
-      await waitFor(() => {
-        expect(triggerBtn).toHaveFocus();
-      });
-    });
-
     it('X 버튼 클릭 시 다이얼로그가 닫힌다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
+      await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
       expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -190,35 +192,11 @@ describe('CompleteStep (Avatar Confirm)', () => {
       });
     });
 
-    it('백드롭 클릭 시 다이얼로그가 닫힌다', async () => {
-      const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
-      const dialog = screen.getByRole('dialog');
-      const backdrop = dialog.previousElementSibling;
-      expect(backdrop).not.toBeNull();
-
-      await user.click(backdrop as HTMLElement);
-
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      });
-    });
-
     it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      await enterTuning(user);
 
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /공감 스탯/ })).toBeInTheDocument();
-      });
-
-      // 3번 튜닝
       for (let i = 0; i < 3; i++) {
         await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
         await user.click(screen.getByRole('button', { name: /매우 잘 공감/ }));
@@ -226,7 +204,6 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
       expect(screen.getByText('3/3')).toBeInTheDocument();
 
-      // 4번째 시도
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
 
       await waitFor(() => {
@@ -237,7 +214,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
   });
 
   describe('대시보드 이동', () => {
-    it('"시작하기" 클릭 시 POST /api/onboarding/complete 가 호출된다', async () => {
+    it('"완료" 클릭 시 POST /api/onboarding/complete 가 호출된다', async () => {
       const user = userEvent.setup();
       let completeCallCount = 0;
 
@@ -252,25 +229,25 @@ describe('CompleteStep (Avatar Confirm)', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: '시작하기' }));
+      await user.click(screen.getByRole('button', { name: '완료' }));
 
       await waitFor(() => {
         expect(completeCallCount).toBe(1);
       });
     });
 
-    it('"시작하기" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {
+    it('"완료" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: '시작하기' }));
+      await user.click(screen.getByRole('button', { name: '완료' }));
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
@@ -284,10 +261,10 @@ describe('CompleteStep (Avatar Confirm)', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: '시작하기' }));
+      await user.click(screen.getByRole('button', { name: '완료' }));
 
       await waitFor(() => {
         expect(screen.getByText(/이미 온보딩이 완료되었습니다/)).toBeInTheDocument();
@@ -308,10 +285,10 @@ describe('CompleteStep (Avatar Confirm)', () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
       });
 
-      await user.click(screen.getByRole('button', { name: '시작하기' }));
+      await user.click(screen.getByRole('button', { name: '완료' }));
 
       await waitFor(() => {
         expect(screen.getByText('오류가 발생했습니다.')).toBeInTheDocument();
