@@ -192,6 +192,42 @@ describe('CompleteStep (Avatar Confirm)', () => {
       });
     });
 
+    it('Escape 키로 다이얼로그를 닫으면 트리거 스탯 버튼으로 포커스가 복원된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      await enterTuning(user);
+
+      const triggerBtn = screen.getByRole('button', { name: /공감 스탯/ });
+      await user.click(triggerBtn);
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+      await user.keyboard('{Escape}');
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+      await waitFor(() => {
+        expect(triggerBtn).toHaveFocus();
+      });
+    });
+
+    it('백드롭 클릭 시 다이얼로그가 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      await enterTuning(user);
+
+      await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
+      const dialog = screen.getByRole('dialog');
+      const backdrop = dialog.previousElementSibling;
+      expect(backdrop).not.toBeNull();
+
+      await user.click(backdrop as HTMLElement);
+
+      await waitFor(() => {
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      });
+    });
+
     it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });

@@ -64,14 +64,32 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.getByText('7/16')).toBeInTheDocument();
     });
 
-    it('이름이 비어 있으면 다음 클릭 시 검증 에러를 보이고 이동하지 않는다', async () => {
+    it('이름이 비어 있으면 다음 클릭 시 검증 에러(메시지·aria-invalid·border-danger)를 보이고 이동하지 않는다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<IntroStep />);
 
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
+      const nameInput = screen.getByLabelText(/아바타 이름/);
       expect(await screen.findByRole('alert')).toHaveTextContent(/이름을 입력해주세요/);
+      expect(nameInput).toHaveAttribute('aria-invalid', 'true');
+      expect(nameInput).toHaveClass('border-danger');
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('검증 에러 후 이름을 입력하면(reValidateMode onChange) 에러가 즉시 해소된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<IntroStep />);
+
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+      expect(await screen.findByRole('alert')).toBeInTheDocument();
+
+      const nameInput = screen.getByLabelText(/아바타 이름/);
+      await user.type(nameInput, '루나');
+
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(nameInput).not.toHaveClass('border-danger');
+      expect(nameInput).not.toHaveAttribute('aria-invalid');
     });
 
     it('이름 입력 후 다음 → draft 저장 + progress=method + /onboarding/method 이동', async () => {
