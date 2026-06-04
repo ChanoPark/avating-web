@@ -34,7 +34,7 @@ function MethodCard({
   return (
     <label
       htmlFor={inputId}
-      className={`relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${
+      className={`relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors focus-within:shadow-[var(--focus-ring)] ${
         selected
           ? 'border-brand-border bg-brand-soft'
           : 'border-border bg-bg-elev-2 hover:border-border-hi'
@@ -95,6 +95,11 @@ export function MethodSelectStep() {
       void navigate('/onboarding/welcome', { replace: true });
       return;
     }
+    // 와이어프레임 v2: 이름·설명(intro) 미완료 상태에서 method 직접 진입 시 Step 1 로 되돌린다.
+    if (progress === 'intro') {
+      void navigate('/onboarding/intro', { replace: true });
+      return;
+    }
     if (progress === 'complete') {
       void navigate('/onboarding/complete', { replace: true });
       return;
@@ -123,7 +128,7 @@ export function MethodSelectStep() {
   };
 
   const handlePrev = () => {
-    void navigate('/onboarding/welcome');
+    void navigate('/onboarding/intro');
   };
 
   return (
@@ -133,7 +138,7 @@ export function MethodSelectStep() {
           STEP 2 / 4 · 아바타 생성 방법
         </span>
         <h1 className="font-ui text-title text-text">어떻게 아바타를 만들까요?</h1>
-        <p className="text-body-sm text-text-3">하나를 선택하면 변경할 수 없습니다</p>
+        <p className="text-body-sm text-text-3">나중에 튜닝으로 조정할 수 있습니다</p>
       </header>
 
       <fieldset className="flex flex-col gap-3">

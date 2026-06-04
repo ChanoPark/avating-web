@@ -132,3 +132,39 @@ describe('getOnboardingMethod / setOnboardingMethod', () => {
     expect(getOnboardingMethod()).toBeNull();
   });
 });
+
+describe('intro 단계 (와이어프레임 v2 — 이름·설명 step)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("저장된 'intro' 값을 그대로 반환한다", () => {
+    localStorage.setItem(PROGRESS_KEY, 'intro');
+    expect(getOnboardingProgress()).toBe('intro');
+  });
+
+  it('welcome 다음 단계로 intro 를 진행한다', () => {
+    setOnboardingProgress('intro');
+    expect(getOnboardingProgress()).toBe('intro');
+  });
+
+  it('intro 는 welcome 보다 앞 단계다 (역방향 무시)', () => {
+    setOnboardingProgress('intro');
+    setOnboardingProgress('welcome');
+    expect(getOnboardingProgress()).toBe('intro');
+  });
+
+  it('intro 단계에서 method 로 순방향 진행한다', () => {
+    setOnboardingProgress('intro');
+    setOnboardingProgress('method');
+    expect(getOnboardingProgress()).toBe('method');
+  });
+
+  it('welcome → intro → method → creating → complete 전체 순방향 진행', () => {
+    setOnboardingProgress('intro');
+    setOnboardingProgress('method');
+    setOnboardingProgress('creating');
+    setOnboardingProgress('complete');
+    expect(getOnboardingProgress()).toBe('complete');
+  });
+});

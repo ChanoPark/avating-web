@@ -9,6 +9,7 @@ function renderAt(initialRoute: string) {
     <Routes>
       <Route path="/onboarding" element={<OnboardingPage />}>
         <Route path="welcome" element={<div data-testid="step-welcome">welcome</div>} />
+        <Route path="intro" element={<div data-testid="step-intro">intro</div>} />
         <Route path="method" element={<div data-testid="step-method">method</div>} />
         <Route path="survey" element={<div data-testid="step-survey">survey</div>} />
         <Route path="connect" element={<div data-testid="step-connect">connect</div>} />
@@ -20,25 +21,31 @@ function renderAt(initialRoute: string) {
 }
 
 describe('OnboardingPage', () => {
-  it('progressbar 가 렌더되고 aria-valuemax=4 로 설정된다', () => {
+  it('/onboarding/welcome 은 진행바 없는 환영 모멘트다 (progressbar 미표시)', () => {
     renderAt('/onboarding/welcome');
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
+  });
+
+  it('진행바가 표시되는 단계에서는 aria-valuemax=4 로 설정된다', () => {
+    renderAt('/onboarding/intro');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuemax', '4');
   });
 
-  it('/onboarding/welcome 진입 시 aria-valuenow=1 + "시작" 라벨', () => {
-    renderAt('/onboarding/welcome');
+  it('/onboarding/intro 진입 시 aria-valuenow=1 + "아바타 기본 정보" 라벨', () => {
+    renderAt('/onboarding/intro');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '1');
-    expect(bar.getAttribute('aria-valuetext')).toContain('시작');
-    expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
+    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 기본 정보');
+    expect(screen.getByTestId('step-intro')).toBeInTheDocument();
   });
 
-  it('/onboarding/method 진입 시 aria-valuenow=2 + "방법 선택" 라벨', () => {
+  it('/onboarding/method 진입 시 aria-valuenow=2 + "아바타 생성 방법" 라벨', () => {
     renderAt('/onboarding/method');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '2');
-    expect(bar.getAttribute('aria-valuetext')).toContain('방법 선택');
+    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 생성 방법');
     expect(screen.getByTestId('step-method')).toBeInTheDocument();
   });
 
@@ -50,11 +57,11 @@ describe('OnboardingPage', () => {
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  it('/onboarding/connect 진입 시 aria-valuenow=3 + "Bot 대화" 라벨', () => {
+  it('/onboarding/connect 진입 시 aria-valuenow=3 + "ChatGPT Bot 대화" 라벨', () => {
     renderAt('/onboarding/connect');
     const bar = screen.getByRole('progressbar');
     expect(bar).toHaveAttribute('aria-valuenow', '3');
-    expect(bar.getAttribute('aria-valuetext')).toContain('Bot 대화');
+    expect(bar.getAttribute('aria-valuetext')).toContain('ChatGPT Bot 대화');
     expect(screen.getByTestId('step-connect')).toBeInTheDocument();
   });
 

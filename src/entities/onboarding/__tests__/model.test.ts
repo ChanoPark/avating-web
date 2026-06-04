@@ -181,6 +181,14 @@ describe('surveyDraftSchema', () => {
   it('answers 가 없으면 throw 한다', () => {
     expect(() => surveyDraftSchema.parse({ avatarName: '루나' })).toThrow();
   });
+
+  it('expressions(자주 쓰는 표현) 배열을 보존한다', () => {
+    const parsed = surveyDraftSchema.parse({
+      answers: { Q_001: 'Q_001_ANS_1' },
+      expressions: ['그치 그치', '🥲'],
+    });
+    expect(parsed.expressions).toEqual(['그치 그치', '🥲']);
+  });
 });
 
 describe('connectCodeSchema', () => {
