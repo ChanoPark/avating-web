@@ -92,6 +92,11 @@ playwright-report
 test-results
 blob-report
 .nyc_output
+# Playwright E2E 산출물
+reports
+e2e/.auth
+.last-run.json
+playwright/.cache
 
 # ── Storybook
 storybook-static

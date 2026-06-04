@@ -153,6 +153,15 @@ export default tseslint.config(
     },
   },
 
+  // E2E (Playwright) 스펙 — node 런너 + page.evaluate 내부 브라우저 글로벌.
+  // src/** 의 type-checked/boundaries 규칙 밖에 둔다(tsconfig.app 비포함, tsconfig.e2e 로 별도 검증).
+  {
+    files: ['e2e/**/*.ts'],
+    languageOptions: {
+      globals: { ...globals.node, ...globals.browser },
+    },
+  },
+
   // Prettier conflict guard — *반드시 마지막* (다른 룰의 stylistic 규칙을 disable).
   // Prettier 와 ESLint 의 무한 충돌 방지 (code-quality SKILL.md § 3 정합).
   prettierConfig
