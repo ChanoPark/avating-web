@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router';
+import { useLocation, useOutlet } from 'react-router';
 import {
   LayoutGrid,
   Compass,
@@ -67,6 +67,10 @@ function GemBalance() {
 
 export function AppShellLayout() {
   const location = useLocation();
+  // useOutlet() 로 현재 라우트 엘리먼트를 "스냅샷"으로 캡처한다.
+  // <Outlet /> 컴포넌트를 직접 두면 AnimatePresence 가 보존한 exit 중인 래퍼가
+  // 라우트 컨텍스트를 다시 읽어 새 페이지를 그려버려 이중 마운트(깜빡임)가 발생한다.
+  const outlet = useOutlet();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -142,7 +146,7 @@ export function AppShellLayout() {
               className="px-6 py-6 md:px-8 md:py-7"
             >
               <div data-shell-content className="mx-auto w-full max-w-[1280px]">
-                <Outlet />
+                {outlet}
               </div>
             </motion.div>
           </AnimatePresence>
