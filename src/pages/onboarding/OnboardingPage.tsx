@@ -1,5 +1,5 @@
 import { Outlet, useLocation } from 'react-router';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { ProgressBar } from '@shared/ui/ProgressBar/ProgressBar';
 import {
   ONBOARDING_FALLBACK_LABELS,
@@ -38,17 +38,17 @@ export function OnboardingPage() {
         }`}
       >
         <div className="w-full max-w-md">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-            >
-              <Outlet />
-            </motion.div>
-          </AnimatePresence>
+          {/* enter-only 전환: key 변경 시 새 스텝이 즉시 마운트되며 진입 애니메이션만 재생한다.
+              AnimatePresence mode="wait" 의 exit 지연을 제거해 클릭 즉시 목적지가 표시되고,
+              진행바(크롬)와 콘텐츠가 같은 커밋에서 동기화된다. */}
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <Outlet />
+          </motion.div>
         </div>
       </main>
     </div>
