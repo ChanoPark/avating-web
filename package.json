@@ -29,7 +29,7 @@
     "prepare": "husky && chmod +x .claude/hooks/*.sh 2>/dev/null || true",
     "wiki:codemap": "node scripts/wiki-codemap.mjs",
     "wiki:codemap:check": "node scripts/wiki-codemap.mjs --check",
-    "test:scripts": "node --test scripts/"
+    "test:scripts": "node --test 'scripts/**/*.test.mjs'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
