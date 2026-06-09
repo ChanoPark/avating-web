@@ -21,22 +21,19 @@ describe('FilterChip', () => {
     expect(chip).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('active=true 시 brand 토큰 클래스가 적용된다', () => {
+  it('active=true 시 활성 스타일(elevation + focus 보더)이 적용된다', () => {
     render(<FilterChip label="온라인" active onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     const hasActiveStyle =
-      chip.className.includes('text-brand') ||
-      chip.className.includes('bg-brand') ||
-      chip.className.includes('border-brand') ||
-      chip.className.includes('active');
+      chip.className.includes('border-border-focus') && chip.className.includes('bg-bg-elev-2');
     expect(hasActiveStyle).toBe(true);
   });
 
-  it('active=false 시 비활성 스타일(brand 미적용)', () => {
+  it('active=false 시 비활성 스타일(브랜드 채움 미적용)', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     const hasBrandStyle =
-      chip.className.includes('text-brand') || chip.className.includes('bg-brand-soft');
+      chip.className.includes('bg-brand') || chip.className.includes('bg-brand-soft');
     expect(hasBrandStyle).toBe(false);
   });
 

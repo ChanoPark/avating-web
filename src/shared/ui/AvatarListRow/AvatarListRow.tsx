@@ -1,15 +1,8 @@
 import type { AvatarStatus } from '@shared/lib/avatarStatus';
-import { matchRateColor } from '@shared/lib/matchRateColor';
 import { StatusDot } from '@shared/ui/StatusDot';
 import { Tag } from '@shared/ui/Tag';
 import { Button } from '@shared/ui/Button';
 import { cn } from '@shared/lib/cn';
-
-const matchRateColorClass: Record<ReturnType<typeof matchRateColor>, string> = {
-  success: 'text-success',
-  default: 'text-text',
-  warning: 'text-warning',
-};
 
 type AvatarListRowProps = {
   id?: string;
@@ -18,7 +11,6 @@ type AvatarListRowProps = {
   handle: string;
   type: string;
   tags: string[];
-  matchRate: number;
   status: AvatarStatus;
   verified: boolean;
   onRowClick: (id: string) => void;
@@ -32,14 +24,11 @@ export function AvatarListRow({
   handle,
   type,
   tags,
-  matchRate,
   status,
   verified,
   onRowClick,
   onMatchClick,
 }: AvatarListRowProps) {
-  const rateColorClass = matchRateColorClass[matchRateColor(matchRate)];
-
   function handleRowClick() {
     onRowClick(id);
   }
@@ -65,13 +54,13 @@ export function AvatarListRow({
       onKeyDown={handleRowKeyDown}
       className={cn(
         'border-border grid cursor-pointer border-b px-4 py-3 transition-colors',
-        'grid-cols-[1fr_140px_1fr_100px_120px]',
+        'grid-cols-[1fr_140px_1fr_120px]',
         'hover:bg-bg-elev-3 focus-visible:outline-brand focus-visible:outline-2'
       )}
     >
       {/* 아바타 */}
       <div className="flex items-center gap-3">
-        <div className="bg-brand-soft border-brand-border flex h-8 w-8 shrink-0 items-center justify-center rounded-full border">
+        <div className="bg-brand-soft border-brand-border flex h-8 w-8 shrink-0 items-center justify-center rounded-md border">
           <span className="font-ui text-mono-meta text-brand font-semibold uppercase">
             {initials}
           </span>
@@ -94,11 +83,6 @@ export function AvatarListRow({
         {tags.slice(0, 3).map((tag) => (
           <Tag key={tag}>{tag}</Tag>
         ))}
-      </div>
-
-      {/* 호환도 */}
-      <div className={cn('font-ui text-ui flex items-center font-semibold', rateColorClass)}>
-        {matchRate}%
       </div>
 
       {/* 액션 */}

@@ -36,9 +36,9 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
         <div
           role="row"
           className="border-border grid border-b px-4 py-2"
-          style={{ gridTemplateColumns: '1fr 140px 1fr 100px 120px' }}
+          style={{ gridTemplateColumns: '1fr 140px 1fr 120px' }}
         >
-          {['아바타', '유형', '관심사', '호환도', ''].map((h, i) => (
+          {['아바타', '유형', '관심사', ''].map((h, i) => (
             <div
               key={i}
               role="columnheader"
@@ -57,7 +57,6 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
             handle={avatar.handle}
             type={avatar.type}
             tags={avatar.tags}
-            matchRate={avatar.matchRate}
             status={avatar.status}
             verified={avatar.verified}
             onRowClick={onAvatarClick}

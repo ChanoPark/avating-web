@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { Plus } from 'lucide-react';
+import { Plus, Star } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Tag } from '@shared/ui/Tag';
 import { StatusDot } from '@shared/ui/StatusDot';
@@ -74,10 +74,18 @@ function MyAvatarGridContent() {
                 active ? 'bg-brand-soft border-brand-border' : 'bg-bg border-border'
               )}
             >
-              <div className="bg-brand-soft border-brand-border relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border">
+              <div className="bg-brand-soft border-brand-border relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md border">
                 <span className="font-ui text-mono-meta text-brand font-semibold uppercase">
                   {avatar.initials}
                 </span>
+                {active && (
+                  <span
+                    aria-label="대표 아바타"
+                    className="bg-brand absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full"
+                  >
+                    <Star size={10} className="fill-white text-white" aria-hidden="true" />
+                  </span>
+                )}
                 <StatusDot status={avatar.status} className="absolute right-0 bottom-0" />
               </div>
               <div
@@ -89,7 +97,7 @@ function MyAvatarGridContent() {
                 {avatar.name}
               </div>
               <Tag>{avatar.type}</Tag>
-              {active && <Tag variant="brand">활성</Tag>}
+              {active && <Tag variant="brand">대표</Tag>}
             </div>
           );
         })}
