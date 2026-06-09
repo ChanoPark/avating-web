@@ -42,7 +42,7 @@ describe('ServiceIntroPage', () => {
   it('기능 카드 3개가 렌더된다', () => {
     renderPage();
     expect(screen.getByText('아바타 매칭')).toBeInTheDocument();
-    expect(screen.getByText('답답해? 직접 뛰어!')).toBeInTheDocument();
+    expect(screen.getByText('답답하면 직접 개입')).toBeInTheDocument();
     expect(screen.getAllByText('에프터 연결').length).toBeGreaterThanOrEqual(1);
   });
 
@@ -55,9 +55,9 @@ describe('ServiceIntroPage', () => {
     expect(screen.getByText('1.1만')).toBeInTheDocument();
   });
 
-  it('하단 CTA 영역에 "회원가입" primary 와 "로그인" secondary 가 함께 있다', () => {
+  it('히어로 CTA 영역에 "무료로 시작하기" primary 와 "로그인" 이 함께 있다', () => {
     renderPage();
-    expect(screen.getByRole('button', { name: /회원가입/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /무료로 시작하기/i })).toBeInTheDocument();
     const loginButtons = screen.getAllByRole('button', { name: /^로그인$/i });
     expect(loginButtons.length).toBeGreaterThanOrEqual(2);
   });
@@ -70,10 +70,10 @@ describe('ServiceIntroPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/login');
   });
 
-  it('"회원가입" 버튼 클릭 시 /signup 으로 이동한다', async () => {
+  it('"무료로 시작하기" 버튼 클릭 시 /signup 으로 이동한다', async () => {
     const user = userEvent.setup();
     renderPage();
-    await user.click(screen.getByRole('button', { name: /회원가입/i }));
+    await user.click(screen.getByRole('button', { name: /무료로 시작하기/i }));
     expect(mockNavigate).toHaveBeenCalledWith('/signup');
   });
 
