@@ -9,8 +9,9 @@ type InputProps = {
   trailingSlot?: ReactNode;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'children'>;
 
+// Padding-based height (9px 12px) + 13px body text per the design .input spec.
 const base =
-  'h-10 w-full rounded-sm bg-bg px-3 text-body text-text placeholder:text-text-3 ' +
+  'w-full rounded-sm bg-bg px-3 py-[9px] text-[13px] text-text placeholder:text-text-4 ' +
   'transition-colors duration-[var(--duration-fast)] ease-[var(--ease)] ' +
   'border focus:outline-none disabled:cursor-not-allowed disabled:opacity-60 disabled:bg-bg-elev-2';
 
@@ -27,7 +28,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="flex flex-col gap-2">
       {label !== undefined && (
-        <label htmlFor={inputId} className="font-ui text-ui text-text">
+        <label htmlFor={inputId} className="font-ui text-body-sm text-text-2 font-medium">
           {label}
         </label>
       )}
