@@ -129,40 +129,58 @@ describe('AppShellLayout', () => {
     });
   });
 
-  describe('반응형', () => {
-    it('<860px 에서 사이드바 숨김 클래스가 적용된다', () => {
-      Object.defineProperty(window, 'innerWidth', { writable: true, value: 768 });
-      window.dispatchEvent(new Event('resize'));
+  describe('반응형 (웹 비율 · main-dashboard.md §10)', () => {
+    it('고정 레일은 모바일에서 숨고(md 부터 표시) 태블릿 64px·데스크톱 220px 로 리플로우한다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      const isHiddenOrSmall =
-        nav.className.includes('hidden') ||
-        nav.className.includes('sr-only') ||
-        nav.className.includes('max-md:hidden') ||
-        nav.hasAttribute('data-mobile-hidden');
-      expect(isHiddenOrSmall || true).toBe(true);
+      expect(nav.className).toContain('hidden');
+      expect(nav.className).toContain('md:flex');
+      expect(nav.className).toContain('md:w-16');
+      expect(nav.className).toContain('lg:w-[220px]');
+    });
+
+    it('모바일 햄버거 버튼(메뉴 열기)이 헤더에 존재한다', () => {
+      renderWithProviders('/dashboard');
+      const hamburger = screen.getByRole('button', { name: '메뉴 열기' });
+      expect(hamburger).toHaveAttribute('aria-expanded', 'false');
+      expect(hamburger.className).toContain('md:hidden');
+    });
+
+    it('햄버거 클릭 시 드로어가 열린다 (메인 내비게이션 2개)', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+      await user.click(screen.getByRole('button', { name: '메뉴 열기' }));
+      await waitFor(() => {
+        expect(screen.getAllByRole('navigation', { name: '메인 내비게이션' }).length).toBe(2);
+      });
     });
   });
 
-  describe('아이콘-only 사이드바 (와이어프레임 56px)', () => {
-    it('사이드바는 collapsed 모드(data-collapsed="true") 로 렌더된다', () => {
+  describe('라벨 사이드바 (220px · main-dashboard.md 정본)', () => {
+    it('사이드바는 라벨 모드(data-collapsed="false") 로 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      expect(nav).toHaveAttribute('data-collapsed', 'true');
+      expect(nav).toHaveAttribute('data-collapsed', 'false');
     });
 
-    it('사이드바 폭은 w-14(56px) 이다', () => {
+    it('데스크톱 사이드바 폭은 w-[220px] 이다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      expect(nav.className.includes('w-14')).toBe(true);
+      expect(nav.className.includes('w-[220px]')).toBe(true);
     });
 
-    it('사이드바 항목의 가시 라벨 텍스트는 sr-only 처리된다 (대시보드)', () => {
+    it('사이드바 항목 라벨이 데스크톱(lg)에서 표시된다 (lg:not-sr-only)', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       const dashboardLink = within(nav).getByRole('link', { name: /대시보드/ });
       const labelSpan = within(dashboardLink).getByText('대시보드');
-      expect(labelSpan.className.includes('sr-only')).toBe(true);
+      expect(labelSpan.className).toContain('lg:not-sr-only');
+    });
+
+    it('사이드바 상단에 브랜드명 "Avating" 이 표시된다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      expect(within(nav).getByText('Avating')).toBeInTheDocument();
     });
   });
 

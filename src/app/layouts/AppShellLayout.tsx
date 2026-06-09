@@ -1,3 +1,4 @@
+import { Suspense, useEffect, useState } from 'react';
 import { useLocation, useOutlet } from 'react-router';
 import {
   LayoutGrid,
@@ -10,12 +11,15 @@ import {
   Settings,
   Search,
   Bell,
+  Menu,
+  Star,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
 import { useDashboardStats } from '@features/dashboard/api/useDashboardStats';
+import { useMyAvatars } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
-import { Suspense } from 'react';
+import { cn } from '@shared/lib/cn';
 
 // 라우트별 chrome breadcrumb. 단일 출처는 AppShellLayout 의 chrome.
 // 페이지가 데이터 로드 후 동적 세그먼트(아바타 이름 등)를 push 할 수 있도록 store slot 을 우선 사용.
@@ -65,8 +69,131 @@ function GemBalance() {
   );
 }
 
+// 사이드바 하단 사용자 푸터 — 대표(primary) 아바타를 ★ 마커와 함께 표시 (chat8).
+function SidebarUserFooter({ expanded }: { expanded: boolean }) {
+  const { data } = useMyAvatars();
+  const primary = data?.items.find((a) => a.isPrimary) ?? data?.items[0];
+
+  if (!primary) {
+    return <div className="border-border mt-auto border-t" aria-hidden="true" />;
+  }
+
+  return (
+    <div
+      className={cn(
+        'border-border mt-auto flex items-center gap-2.5 border-t px-2.5 py-2.5',
+        expanded ? '' : 'justify-center lg:justify-start'
+      )}
+    >
+      <span className="bg-bg-elev-3 border-border-hi relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full border">
+        <span className="text-text font-mono text-[11px] font-medium uppercase">
+          {primary.initials}
+        </span>
+        <span
+          aria-label="대표 아바타"
+          className="bg-brand absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full"
+        >
+          <Star size={9} className="fill-white text-white" aria-hidden="true" />
+        </span>
+      </span>
+      <div className={cn('min-w-0', expanded ? '' : 'hidden lg:block')}>
+        <div className="font-ui text-body-sm text-text truncate">{primary.name}</div>
+        <div className="text-mono-meta text-text-3 truncate font-mono">대표 아바타</div>
+      </div>
+    </div>
+  );
+}
+
+// 사이드바 본문(브랜드 + 섹션 + 항목 + 푸터). 레일(반응형)과 모바일 드로어(expanded)에서 공유.
+function SidebarBody({
+  expanded,
+  pathname,
+  onNavigate,
+}: {
+  expanded: boolean;
+  pathname: string;
+  onNavigate?: () => void;
+}) {
+  const labelCls = expanded ? '' : 'hidden lg:block';
+  return (
+    <>
+      <div
+        className={cn(
+          'border-border mb-3 flex items-center gap-2.5 border-b px-2 pt-2 pb-4',
+          expanded ? '' : 'justify-center lg:justify-start'
+        )}
+      >
+        <span aria-hidden="true" className="bg-brand h-[22px] w-[22px] shrink-0 rounded-md" />
+        <span
+          className={cn(
+            'font-ui text-text text-[15px] font-semibold tracking-[-0.3px]',
+            expanded ? '' : 'hidden lg:inline'
+          )}
+        >
+          Avating
+        </span>
+      </div>
+
+      <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-2">
+        <p
+          className={cn(
+            'text-text-3 px-2 pt-3 pb-1.5 font-mono text-[10px] tracking-[0.5px] uppercase',
+            labelCls
+          )}
+        >
+          홈
+        </p>
+        <SidebarItem
+          icon={LayoutGrid}
+          label="대시보드"
+          to="/dashboard"
+          active={pathname === '/dashboard'}
+          onClick={onNavigate}
+        />
+        <SidebarItem icon={Compass} label="아바타 탐색" disabled />
+        <SidebarItem icon={Eye} label="관전중" disabled />
+        <SidebarItem icon={Heart} label="매칭" disabled />
+        <SidebarItem icon={MessageCircle} label="실제 대화" disabled />
+
+        <p
+          className={cn(
+            'text-text-3 px-2 pt-3 pb-1.5 font-mono text-[10px] tracking-[0.5px] uppercase',
+            labelCls
+          )}
+        >
+          내 프로필
+        </p>
+        <SidebarItem icon={User} label="내 아바타" disabled />
+        <SidebarItem icon={Gem} label="다이아" disabled />
+        <SidebarItem icon={Settings} label="설정" disabled />
+      </div>
+
+      <SidebarUserFooter expanded={expanded} />
+    </>
+  );
+}
+
 export function AppShellLayout() {
   const location = useLocation();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  // 라우트 변경 시 모바일 드로어 닫기.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
+
+  // Escape 로 드로어 닫기.
+  useEffect(() => {
+    if (!drawerOpen) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setDrawerOpen(false);
+    }
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [drawerOpen]);
+
   // useOutlet() 로 현재 라우트 엘리먼트를 "스냅샷"으로 캡처한다.
   // <Outlet /> 컴포넌트를 직접 두면 AnimatePresence 가 보존한 exit 중인 래퍼가
   // 라우트 컨텍스트를 다시 읽어 새 페이지를 그려버려 이중 마운트(깜빡임)가 발생한다.
@@ -74,42 +201,65 @@ export function AppShellLayout() {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar collapsed>
-        <div
-          className="border-border flex h-14 items-center justify-center border-b"
-          title="Avating"
-        >
-          <span
-            aria-hidden="true"
-            className="font-ui text-heading text-brand font-semibold tracking-tight"
-          >
-            A
-          </span>
-        </div>
-
-        <div className="flex flex-1 flex-col gap-1 overflow-y-auto px-2 py-4">
-          <SidebarItem
-            icon={LayoutGrid}
-            label="대시보드"
-            to="/dashboard"
-            active={location.pathname === '/dashboard'}
-          />
-          <SidebarItem icon={Compass} label="아바타 탐색" disabled />
-          <SidebarItem icon={Eye} label="관전중" disabled />
-          <SidebarItem icon={Heart} label="매칭" disabled />
-          <SidebarItem icon={MessageCircle} label="실제 대화" disabled />
-
-          <div className="border-border my-2 border-t" aria-hidden="true" />
-
-          <SidebarItem icon={User} label="내 아바타" disabled />
-          <SidebarItem icon={Gem} label="다이아" disabled />
-          <SidebarItem icon={Settings} label="설정" disabled />
-        </div>
+      {/* 데스크톱/태블릿 고정 레일 — 모바일(<md)에서는 숨고 햄버거 드로어로 대체 */}
+      <Sidebar responsive>
+        <SidebarBody expanded={false} pathname={location.pathname} />
       </Sidebar>
 
+      {/* 모바일 드로어 */}
+      <AnimatePresence>
+        {drawerOpen && (
+          <div className="fixed inset-0 z-[var(--z-modal)] md:hidden">
+            <motion.div
+              className="absolute inset-0 bg-black/60"
+              onClick={() => {
+                setDrawerOpen(false);
+              }}
+              aria-hidden="true"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.16 }}
+            />
+            <motion.div
+              id="mobile-sidebar"
+              className="absolute inset-y-0 left-0 w-[220px]"
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <Sidebar className="h-full">
+                <SidebarBody
+                  expanded
+                  pathname={location.pathname}
+                  onNavigate={() => {
+                    setDrawerOpen(false);
+                  }}
+                />
+              </Sidebar>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="border-border bg-bg-elev-1 flex h-14 shrink-0 items-center justify-between border-b px-6">
-          <ChromeBreadcrumb pathname={location.pathname} />
+        <header className="border-border bg-bg-elev-1 flex h-[52px] shrink-0 items-center justify-between border-b px-6">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label="메뉴 열기"
+              aria-expanded={drawerOpen}
+              aria-controls="mobile-sidebar"
+              className="text-text-2 hover:text-text md:hidden"
+              onClick={() => {
+                setDrawerOpen(true);
+              }}
+            >
+              <Menu size={20} aria-hidden="true" />
+            </button>
+            <ChromeBreadcrumb pathname={location.pathname} />
+          </div>
           <div className="flex items-center gap-3">
             <button
               type="button"
