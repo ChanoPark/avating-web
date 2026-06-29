@@ -1,6 +1,8 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { MessageSquare } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
@@ -68,7 +70,7 @@ function InboxPanelContent() {
         )}
       </div>
       {items.length === 0 ? (
-        <p className="text-text-3 text-body-sm py-4 text-center">새 메시지가 없습니다</p>
+        <EmptyState icon={MessageSquare} title="새 메시지가 없습니다" />
       ) : (
         <ul className="flex flex-1 flex-col gap-1.5">
           {items.map((item) => (
