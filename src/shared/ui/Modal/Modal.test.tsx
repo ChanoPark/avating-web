@@ -124,7 +124,10 @@ describe('Modal', () => {
       const trigger = screen.getByRole('button', { name: '열기' });
       trigger.focus();
       await user.click(trigger);
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).toBeInTheDocument();
+      // 열림 시 다이얼로그 컨테이너로 포커스 이동 (a11y § 5.1 item 1) — 복귀 단언만으로는 회귀 미포착
+      expect(dialog).toHaveFocus();
 
       await user.keyboard('{Escape}');
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
