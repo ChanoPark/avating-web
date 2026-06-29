@@ -141,7 +141,7 @@ export function SurveyStep() {
   }
 
   // 페이지: [질문 0..N-1, 자주 쓰는 표현(선택)]. 표현 단계가 마지막 = 제출 단계.
-  const totalSteps = questions.length + 1;
+  // 진행 카운터는 질문만 센다(n/6). 표현 단계는 별도 화면으로 카운터 없이 '선택' 태그만 표시 (프로토타입 정본).
   const isExpressionsPage = pageIndex === questions.length;
   const isFirstPage = pageIndex === 0;
   const currentQuestion: SurveyQuestionModel | null = !isExpressionsPage
@@ -215,11 +215,11 @@ export function SurveyStep() {
     void onSubmit();
   };
 
-  const currentStepNumber = pageIndex + 1;
-  const percent = Math.round((currentStepNumber / totalSteps) * 100);
+  const questionCount = questions.length;
+  const percent = isExpressionsPage ? 100 : Math.round(((pageIndex + 1) / questionCount) * 100);
   const headerSubtitle = isExpressionsPage
-    ? `${currentStepNumber} / ${totalSteps} · 자주 쓰는 표현`
-    : `${currentStepNumber} / ${totalSteps} · ${currentQuestion?.title ?? '질문'}`;
+    ? '자주 쓰는 표현'
+    : `${pageIndex + 1} / ${questionCount} · ${currentQuestion?.title ?? '질문'}`;
 
   return (
     <form

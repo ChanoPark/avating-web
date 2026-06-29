@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { MessageSquare, Zap } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import {
@@ -12,7 +14,7 @@ import {
 
 type MethodCardProps = {
   selected: boolean;
-  glyph: string;
+  icon: LucideIcon;
   title: string;
   duration: string;
   description: string;
@@ -23,7 +25,7 @@ type MethodCardProps = {
 
 function MethodCard({
   selected,
-  glyph,
+  icon: Icon,
   title,
   duration,
   description,
@@ -51,13 +53,13 @@ function MethodCard({
       />
       <span
         aria-hidden="true"
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border text-base ${
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${
           selected
             ? 'bg-brand-soft border-brand-border text-brand'
             : 'bg-bg-elev-3 border-border text-text-3'
         }`}
       >
-        {glyph}
+        <Icon size={16} strokeWidth={1.5} />
       </span>
       <div className="flex flex-1 flex-col gap-1">
         <div className="flex items-center gap-2">
@@ -147,7 +149,7 @@ export function MethodSelectStep() {
         <MethodCard
           inputId="method-survey"
           selected={method === 'survey'}
-          glyph="◎"
+          icon={Zap}
           title="성향 설문"
           duration="약 2분"
           description={'6가지 질문으로 성향을 분석합니다.\n빠르고 간단합니다.'}
@@ -159,7 +161,7 @@ export function MethodSelectStep() {
         <MethodCard
           inputId="method-connect"
           selected={method === 'connect'}
-          glyph="◷"
+          icon={MessageSquare}
           title="ChatGPT Bot 연동"
           duration="약 10분"
           description={'Custom GPT와 대화해 더 정밀한\n아바타를 만듭니다.'}
@@ -177,7 +179,7 @@ export function MethodSelectStep() {
             !
           </span>
           <p className="text-body-sm text-text-2">
-            생성된 아바타는 기본적으로 수정할 수 없습니다. 이후 튜닝 기능을 통해 조정할 수 있습니다.
+            생성된 아바타는 기본적으로 수정할 수 없어요. 이후 튜닝 기능으로 스탯을 조정할 수 있어요.
           </p>
         </div>
       </fieldset>

@@ -110,7 +110,7 @@ export function IntroStep() {
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="intro-desc" className="text-body text-text">
-              아바타 설명
+              아바타 설명 <span className="text-text-4 font-normal">· 선택</span>
             </label>
             <span className="text-mono-micro text-text-4 font-mono">
               {descLength}/{DESC_MAX}

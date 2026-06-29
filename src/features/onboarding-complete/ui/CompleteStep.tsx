@@ -195,9 +195,9 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
         </div>
         <div className="flex flex-col gap-1">
           <span className="font-ui text-subheading text-text">{avatar.name}</span>
+          {/* chat7: 레벨(Lv) 태그 제거 — 유형 태그만 노출 */}
           <div className="flex items-center gap-2">
             <Tag>{avatar.type}</Tag>
-            <Tag variant="brand">Lv.{avatar.level}</Tag>
           </div>
         </div>
       </div>
@@ -273,12 +273,17 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
       </div>
 
       {avatar.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {avatar.tags.map((tag) => (
-            <Tag key={tag}>
-              <span data-testid="avatar-tag">{tag}</span>
-            </Tag>
-          ))}
+        <div className="flex flex-col gap-2">
+          <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
+            AFFINITY TAGS
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {avatar.tags.map((tag) => (
+              <Tag key={tag}>
+                <span data-testid="avatar-tag">{tag}</span>
+              </Tag>
+            ))}
+          </div>
         </div>
       )}
 

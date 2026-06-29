@@ -96,7 +96,8 @@ describe('ConnectStep', () => {
 
       await waitFor(() => {
         const timer = screen.getByRole('timer');
-        expect(timer.textContent).toMatch(/^\d{2}:\d{2}$/);
+        // '유효 시간 MM:SS 남음' — MM:SS 포함 여부로 검증
+        expect(timer.textContent).toMatch(/\d{2}:\d{2}/);
       });
     });
 

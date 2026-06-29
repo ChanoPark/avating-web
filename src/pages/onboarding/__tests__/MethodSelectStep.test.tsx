@@ -52,7 +52,7 @@ describe('MethodSelectStep', () => {
 
     it('튜닝 가능 안내 문구가 렌더된다', () => {
       renderWithProviders(<MethodSelectStep />);
-      expect(screen.getByText(/이후 튜닝 기능을 통해 조정할 수 있습니다/)).toBeInTheDocument();
+      expect(screen.getByText(/튜닝 기능으로 스탯을 조정할 수 있어요/)).toBeInTheDocument();
     });
 
     it('이전 / 다음 버튼이 렌더된다', () => {
