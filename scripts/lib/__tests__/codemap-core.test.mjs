@@ -50,10 +50,11 @@ test('collapseToModule maps FSD layers to module nodes', () => {
 test('buildForwardGraph drops type-only edges and external modules', () => {
   const g = buildForwardGraph(FIXTURE_DC);
   assert.deepEqual([...(g.get('login') ?? [])], ['features/auth']);
-  assert.deepEqual(
-    [...(g.get('features/auth') ?? [])].sort(),
-    ['entities/auth', 'shared/api', 'shared/ui']
-  );
+  assert.deepEqual([...(g.get('features/auth') ?? [])].sort(), [
+    'entities/auth',
+    'shared/api',
+    'shared/ui',
+  ]);
   // entities/auth registered as a node even with no outgoing edges.
   assert.ok(g.has('entities/auth'));
   assert.deepEqual([...(g.get('entities/auth') ?? [])], []);

@@ -9,7 +9,8 @@ const REPO = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: '
 const CHECK = process.argv.includes('--check');
 const SCREENS_DIR = join(REPO, '.claude/wiki/screens');
 // 마커 그룹은 개행을 소비하지 않음 → 빈 스캐폴드(start-->\n<!-- codemap:end -->)도 매칭. 교체 시 개행 정규화.
-const MARKER_RE = /(<!-- codemap:start screen=([a-z0-9-]+)[^>]*-->)([\s\S]*?)(<!-- codemap:end -->)/;
+const MARKER_RE =
+  /(<!-- codemap:start screen=([a-z0-9-]+)[^>]*-->)([\s\S]*?)(<!-- codemap:end -->)/;
 
 function listScreens() {
   const base = join(REPO, 'src/pages');
@@ -20,7 +21,15 @@ function listScreens() {
 function runDepcruise() {
   const out = execFileSync(
     'pnpm',
-    ['exec', 'depcruise', '--config', 'dependency-cruiser.config.cjs', '--output-type', 'json', 'src'],
+    [
+      'exec',
+      'depcruise',
+      '--config',
+      'dependency-cruiser.config.cjs',
+      '--output-type',
+      'json',
+      'src',
+    ],
     { cwd: REPO, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }
   );
   return JSON.parse(out);
