@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { loginHandlers, publicKeyHandlers } from '@shared/mocks/handlers/auth';
+import { http, HttpResponse, delay } from 'msw';
 import { LoginForm } from '../ui/LoginForm';
 
 vi.mock('../lib/encryptPassword', () => ({
@@ -85,9 +86,15 @@ describe('LoginForm', () => {
       });
     });
 
-    it('빈 폼 제출 시 네트워크 요청이 발생하지 않는다', async () => {
+    it('빈 폼 제출 시 로그인 네트워크 요청이 발생하지 않는다', async () => {
       const user = userEvent.setup();
-      const requestMade = false;
+      const loginRequests: string[] = [];
+      const onRequest = ({ request }: { request: Request }) => {
+        if (request.method === 'POST' && request.url.includes('/api/auth/login')) {
+          loginRequests.push(request.url);
+        }
+      };
+      server.events.on('request:start', onRequest);
 
       renderWithProviders(<LoginForm />);
       await user.click(screen.getByRole('button', { name: /로그인/i }));
@@ -96,7 +103,8 @@ describe('LoginForm', () => {
         expect(screen.getByText(/이메일을 입력해주세요/)).toBeInTheDocument();
       });
 
-      expect(requestMade).toBe(false);
+      expect(loginRequests).toHaveLength(0);
+      server.events.removeListener('request:start', onRequest);
     });
   });
 
@@ -167,19 +175,24 @@ describe('LoginForm', () => {
 
   describe('제출 중 상태', () => {
     it('제출 중에 버튼이 disabled 상태가 된다', async () => {
-      server.use(publicKeyHandlers.success, loginHandlers.success);
+      const BASE = import.meta.env.VITE_API_BASE_URL as string;
+      server.use(
+        publicKeyHandlers.success,
+        http.post(`${BASE}/api/auth/login`, async () => {
+          await delay('infinite');
+          return HttpResponse.json({ data: {} });
+        })
+      );
       const user = userEvent.setup();
 
       renderWithProviders(<LoginForm />);
 
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/비밀번호/i), 'Password1!');
-
-      const button = screen.getByRole('button', { name: /로그인/i });
-      await user.click(button);
+      await user.click(screen.getByRole('button', { name: /로그인/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /로그인/i })).not.toBeDisabled();
+        expect(screen.getByRole('button', { name: /로그인/i })).toBeDisabled();
       });
     });
   });

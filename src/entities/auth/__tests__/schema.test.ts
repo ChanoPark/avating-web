@@ -61,10 +61,10 @@ describe('signupFormSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  it('닉네임이 31자이면 실패한다', () => {
+  it('닉네임이 13자이면 실패한다', () => {
     const result = signupFormSchema.safeParse({
       ...validBase,
-      nickname: 'a'.repeat(31),
+      nickname: 'a'.repeat(13),
     });
     expect(result.success).toBe(false);
   });
