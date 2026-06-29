@@ -24,13 +24,15 @@ afterEach(() => {
 });
 
 describe('useAvatarDetail', () => {
-  it('성공 시 6축 stats 와 세션 이력을 반환한다', async () => {
+  it('성공 시 6축 stats 와 공개 정보·설명을 반환한다 (세션 이력 미노출)', async () => {
     const { result } = renderHook(() => useAvatarDetail('avatar-1'), { wrapper });
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
     expect(result.current.data?.stats.empathy).toBe(81);
-    expect(result.current.data?.sessionHistory).toHaveLength(2);
+    expect(result.current.data?.publicInfo.region).toBe('서울 서북부');
+    expect(result.current.data?.description.length).toBeGreaterThan(0);
+    expect(result.current.data).not.toHaveProperty('sessionHistory');
   });
 
   it('빈 id 면 호출하지 않는다 (enabled=false 효과)', () => {

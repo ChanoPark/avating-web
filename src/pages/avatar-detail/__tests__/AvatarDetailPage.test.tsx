@@ -30,13 +30,13 @@ afterEach(() => {
 });
 
 describe('AvatarDetailPage', () => {
-  it('와이어프레임의 프로필 헤더 + 스탯 + 세션 이력 영역이 렌더된다', async () => {
+  it('와이어프레임의 프로필 헤더 + 스탯 + 공개 정보 영역이 렌더된다', async () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
     expect(screen.getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '아바타 스탯' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '세션 이력' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '공개 정보' })).toBeInTheDocument();
   });
 
   it('마운트 후 chrome breadcrumb store 에 [홈, 탐색, 아바타이름] 이 push 된다', async () => {
@@ -53,22 +53,17 @@ describe('AvatarDetailPage', () => {
     expect(screen.getByRole('meter', { name: '공감 지수' })).toHaveAttribute('aria-valuenow', '81');
   });
 
-  it('세션 이력 row 가 turn + 결과 Tag + 호감도 를 표시한다', async () => {
+  it('공개 정보 패널이 나이대/지역/직군을 표시하고, 세션 이력(호감도·턴)은 노출하지 않는다', async () => {
     renderPage();
-    await screen.findByRole('heading', { name: '세션 이력' });
-    expect(screen.getByText('TURN 12/12')).toBeInTheDocument();
-    expect(screen.getByText('매칭 성공')).toBeInTheDocument();
-    expect(screen.getByText('호감도 91')).toBeInTheDocument();
-    expect(screen.getByText('TURN 8/12')).toBeInTheDocument();
-    expect(screen.getByText('종료')).toBeInTheDocument();
-    expect(screen.getByText('호감도 62')).toBeInTheDocument();
-  });
-
-  it('관전 CTA 는 v1 에서 disabled + 준비 중 안내를 가진다', async () => {
-    renderPage();
-    const watch = await screen.findByRole('button', { name: '관전 (준비 중)' });
-    expect(watch).toBeDisabled();
-    expect(watch).toHaveAttribute('title', '관전 화면 준비 중');
+    await screen.findByRole('heading', { name: '공개 정보' });
+    expect(screen.getByText('나이대')).toBeInTheDocument();
+    expect(screen.getByText('20대 후반')).toBeInTheDocument();
+    expect(screen.getByText('서울 서북부')).toBeInTheDocument();
+    expect(screen.getByText('콘텐츠 기획')).toBeInTheDocument();
+    // 프라이버시: 상대 아바타 세션 이력 미노출
+    expect(screen.queryByText(/호감도/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/TURN/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '세션 이력' })).not.toBeInTheDocument();
   });
 
   it('"매칭 요청" CTA 클릭 시 MatchRequestModal 이 열린다', async () => {

@@ -4,11 +4,7 @@ import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { Button } from '@shared/ui/Button';
 import { MatchRequestModal } from '@features/match-request';
 import type { PartnerAvatarSummary } from '@features/match-request';
-import {
-  AvatarProfileHeader,
-  AvatarStatsRadar,
-  AvatarSessionHistory,
-} from '@features/avatar-profile';
+import { AvatarProfileHeader, AvatarStatsRadar, AvatarIntroPanel } from '@features/avatar-profile';
 import { useAvatarDetailSuspense } from '@entities/avatar';
 import type { AvatarDetail } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
@@ -64,7 +60,7 @@ function AvatarDetailContent({ id }: { id: string }) {
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <AvatarStatsRadar stats={avatar.stats} />
-        <AvatarSessionHistory items={avatar.sessionHistory} />
+        <AvatarIntroPanel publicInfo={avatar.publicInfo} />
       </div>
       <MatchRequestModal
         open={requestOpen}

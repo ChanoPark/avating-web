@@ -12,6 +12,7 @@ const avatar: AvatarDetail = {
   status: 'online',
   verified: true,
   type: '내향·낭만형',
+  description: '심야의 책방을 좋아하는 낭만가.',
   tags: ['독립서점', '심야 카페'],
   stats: {
     empathy: 1,
@@ -21,11 +22,11 @@ const avatar: AvatarDetail = {
     listening: 1,
     expressiveness: 1,
   },
-  sessionHistory: [],
+  publicInfo: { ageRange: '20대 후반', region: '서울 서북부', job: '콘텐츠 기획' },
 };
 
 describe('AvatarProfileHeader', () => {
-  it('인증/레벨 태그 + 핸들·성향 + 태그 리스트를 모두 표시한다', () => {
+  it('인증 태그 + 핸들·성향 + 설명 + 태그 리스트를 표시하고, 레벨(Lv) 은 노출하지 않는다', () => {
     render(
       <AvatarProfileHeader
         avatar={avatar}
@@ -34,8 +35,10 @@ describe('AvatarProfileHeader', () => {
     );
     expect(screen.getByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
     expect(screen.getByText('인증')).toBeInTheDocument();
-    expect(screen.getByText('Lv.6')).toBeInTheDocument();
+    // chat7: 레벨(Lv.x) 은 전 화면에서 제거됨
+    expect(screen.queryByText(/^Lv\./)).not.toBeInTheDocument();
     expect(screen.getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
+    expect(screen.getByText('심야의 책방을 좋아하는 낭만가.')).toBeInTheDocument();
     expect(screen.getByText('독립서점')).toBeInTheDocument();
     expect(screen.getByText('심야 카페')).toBeInTheDocument();
   });

@@ -3,7 +3,7 @@ import {
   avatarStatusSchema,
   avatarBaseSchema,
   avatarStatsSchema,
-  avatarSessionHistoryItemSchema,
+  avatarPublicInfoSchema,
   avatarDetailSchema,
   AVATAR_STAT_KEYS,
 } from '../model';
@@ -134,32 +134,20 @@ describe('avatarStatsSchema', () => {
   });
 });
 
-describe('avatarSessionHistoryItemSchema', () => {
-  const validItem = {
-    id: 'sess-1',
-    turn: 12,
-    totalTurns: 12,
-    affinity: 91,
-    result: 'matched' as const,
-    endedAt: '2026-04-21T13:21:00.000Z',
-  };
+describe('avatarPublicInfoSchema', () => {
+  const validPublicInfo = { ageRange: '20대 후반', region: '서울 서북부', job: '콘텐츠 기획' };
 
-  it('정상 row 를 파싱한다', () => {
-    expect(avatarSessionHistoryItemSchema.parse(validItem).result).toBe('matched');
+  it('나이대/지역/직군 객체를 파싱한다', () => {
+    expect(avatarPublicInfoSchema.parse(validPublicInfo)).toEqual(validPublicInfo);
   });
 
-  it('result 가 ended / aborted / matched 외이면 실패한다', () => {
-    expect(() =>
-      avatarSessionHistoryItemSchema.parse({ ...validItem, result: 'unknown' })
-    ).toThrow();
+  it('필수 필드가 빈 문자열이면 실패한다', () => {
+    expect(() => avatarPublicInfoSchema.parse({ ...validPublicInfo, region: '' })).toThrow();
   });
 
-  it('affinity 가 100 초과면 실패한다', () => {
-    expect(() => avatarSessionHistoryItemSchema.parse({ ...validItem, affinity: 101 })).toThrow();
-  });
-
-  it('turn 이 음수면 실패한다', () => {
-    expect(() => avatarSessionHistoryItemSchema.parse({ ...validItem, turn: -1 })).toThrow();
+  it('필드 누락 시 실패한다', () => {
+    const { job: _omit, ...without } = validPublicInfo;
+    expect(() => avatarPublicInfoSchema.parse(without)).toThrow();
   });
 });
 
@@ -167,24 +155,34 @@ describe('avatarDetailSchema', () => {
   const validDetail = {
     ...validAvatarBase,
     type: '내향·낭만형',
+    description: '심야의 책방을 좋아하는 낭만가.',
     tags: ['독립서점', '심야 카페'],
     stats: validStats,
-    sessionHistory: [],
+    publicInfo: { ageRange: '20대 후반', region: '서울 서북부', job: '콘텐츠 기획' },
   };
 
-  it('base + type + tags + stats + sessionHistory 를 모두 파싱한다', () => {
+  it('base + type + description + tags + stats + publicInfo 를 모두 파싱한다', () => {
     const parsed = avatarDetailSchema.parse(validDetail);
     expect(parsed.tags).toHaveLength(2);
     expect(parsed.stats.empathy).toBe(81);
-    expect(parsed.sessionHistory).toHaveLength(0);
+    expect(parsed.publicInfo.region).toBe('서울 서북부');
+    expect(parsed.description.length).toBeGreaterThan(0);
+  });
+
+  it('상대 아바타 정보에 세션 이력(호감도·턴) 필드는 포함되지 않는다 (프라이버시)', () => {
+    const parsed = avatarDetailSchema.parse({
+      ...validDetail,
+      sessionHistory: [{ id: 'x', turn: 1, totalTurns: 12, affinity: 50, result: 'ended' }],
+    });
+    expect(parsed).not.toHaveProperty('sessionHistory');
   });
 
   it('type 이 빈 문자열이면 실패한다', () => {
     expect(() => avatarDetailSchema.parse({ ...validDetail, type: '' })).toThrow();
   });
 
-  it('tags 가 누락되면 실패한다', () => {
-    const { tags: _omit, ...without } = validDetail;
+  it('publicInfo 가 누락되면 실패한다', () => {
+    const { publicInfo: _omit, ...without } = validDetail;
     expect(() => avatarDetailSchema.parse(without)).toThrow();
   });
 });

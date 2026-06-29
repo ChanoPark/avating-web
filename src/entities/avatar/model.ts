@@ -48,27 +48,22 @@ export const AVATAR_STAT_LABELS: Record<AvatarStatKey, { short: string; long: st
   expressiveness: { short: '표현', long: '표현력' },
 };
 
-// 세션 이력 row — 와이어 라인 947-958. result 는 wiki/domains/matching 의 종료 조건 3종 정합.
-export const avatarSessionHistoryResultSchema = z.enum(['matched', 'ended', 'aborted']);
-export type AvatarSessionHistoryResult = z.infer<typeof avatarSessionHistoryResultSchema>;
-
-export const avatarSessionHistoryItemSchema = z.object({
-  id: z.string().min(1),
-  turn: z.number().int().min(0),
-  totalTurns: z.number().int().min(1),
-  affinity: z.number().int().min(0).max(100),
-  result: avatarSessionHistoryResultSchema,
-  endedAt: z.string().min(1),
+// 공개 정보 — 상대 아바타 상세에서 노출 가능한 비식별 공개 필드 (나이대/지역/직군).
+// 상대 아바타의 세션 이력(호감도·턴)은 프라이버시 사유로 노출에서 제거됨 (chat2/8/13).
+export const avatarPublicInfoSchema = z.object({
+  ageRange: z.string().min(1),
+  region: z.string().min(1),
+  job: z.string().min(1),
 });
-export type AvatarSessionHistoryItem = z.infer<typeof avatarSessionHistoryItemSchema>;
+export type AvatarPublicInfo = z.infer<typeof avatarPublicInfoSchema>;
 
-// Avatar Detail 응답 — `GET /api/avatars/:id` 본문. base 정보 + 6축 stats + 태그/성향 + 최근 세션 이력 inline.
-// inline 채택 사유: 본 phase 에서 entities/session 신규 박제 회피 (handover §2.5 결정).
+// Avatar Detail 응답 — `GET /api/avatars/:id` 본문. base 정보 + 설명 + 6축 stats + 태그/성향 + 공개 정보.
 export const avatarDetailSchema = avatarBaseSchema.extend({
   type: z.string().min(1),
+  description: z.string(),
   tags: z.array(z.string().min(1)),
   stats: avatarStatsSchema,
-  sessionHistory: z.array(avatarSessionHistoryItemSchema),
+  publicInfo: avatarPublicInfoSchema,
 });
 export type AvatarDetail = z.infer<typeof avatarDetailSchema>;
 

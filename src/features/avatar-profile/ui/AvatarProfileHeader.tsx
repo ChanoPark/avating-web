@@ -11,22 +11,27 @@ type Props = {
 export function AvatarProfileHeader({ avatar, renderCta }: Props) {
   return (
     <header className="border-border bg-bg-elev-1 flex items-start gap-4 rounded-md border p-4">
-      <div
-        aria-hidden="true"
-        className="bg-bg-elev-3 border-border-hi text-text-2 font-ui text-ui flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full border font-medium"
-      >
-        {avatar.initials}
+      {/* 28px 초과 마크는 사각(r-lg) + 상태 점 통합 (06-components AvatarMark) */}
+      <div className="relative flex-shrink-0">
+        <div
+          aria-hidden="true"
+          className="bg-bg-elev-3 border-border-hi text-text-2 font-ui text-ui flex h-12 w-12 items-center justify-center rounded-lg border font-medium"
+        >
+          {avatar.initials}
+        </div>
+        <StatusDot status={avatar.status} className="absolute right-0 bottom-0" />
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="font-ui text-subheading text-text truncate">{avatar.name}</h2>
           {avatar.verified && <Tag variant="success">인증</Tag>}
-          <Tag variant="brand">Lv.{avatar.level}</Tag>
-          <StatusDot status={avatar.status} />
         </div>
         <p className="text-mono-meta text-text-3 mt-1 font-mono">
           {avatar.handle} · {avatar.type}
         </p>
+        {avatar.description.length > 0 && (
+          <p className="text-body-sm text-text-2 mt-2">{avatar.description}</p>
+        )}
         {avatar.tags.length > 0 && (
           <ul className="mt-3 flex flex-wrap gap-1.5">
             {avatar.tags.map((tag) => (
