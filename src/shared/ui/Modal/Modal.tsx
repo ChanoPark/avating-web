@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { AlertTriangle, Check, Info, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
+import { useFocusTrap } from '@shared/lib/useFocusTrap';
 
 type ModalTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
@@ -64,6 +65,10 @@ export function Modal({
   tone = 'neutral',
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const prevFocusRef = useRef<HTMLElement | null>(null);
+
+  // Tab/Shift+Tab 을 다이얼로그 내부로 순환 가두기 (키보드 a11y § 5.1 item 2·3).
+  useFocusTrap(open, dialogRef);
 
   useEffect(() => {
     if (!open) return;
@@ -77,7 +82,14 @@ export function Modal({
   }, [open, onClose]);
 
   useEffect(() => {
-    if (open) dialogRef.current?.focus();
+    if (!open) return undefined;
+    // 열림 직전 포커스를 저장했다가 닫힐 때 트리거로 복귀 (키보드 a11y § 5.1 item 4).
+    const active = document.activeElement;
+    prevFocusRef.current = active instanceof HTMLElement ? active : null;
+    dialogRef.current?.focus();
+    return () => {
+      prevFocusRef.current?.focus();
+    };
   }, [open]);
 
   if (!open) return null;
@@ -93,6 +105,7 @@ export function Modal({
       <button
         type="button"
         aria-label="모달 닫기"
+        tabIndex={-1}
         onClick={onClose}
         className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
         style={{ zIndex: 'var(--z-modal-bg)' }}
