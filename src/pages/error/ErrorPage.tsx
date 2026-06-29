@@ -11,67 +11,68 @@ type ErrorPageProps = {
   variant: ErrorVariant;
   onRetry?: () => void;
   onContact?: () => void;
-  /** server-error variant 전용. 디자인 스펙 §3 — 500 화면의 문의 시 식별자. 다른 variant 에서는 무시된다. */
-  requestId?: string;
-  /**
-   * 호출 측에서 명시할 수 있는 "이전 페이지로 돌아가기 가능" 플래그. 미지정 시 `window.history.length > 1` 로 추정.
-   * 추정값은 SPA 진입 전 외부 히스토리(다른 사이트 → 직접 진입)도 포함하므로, 정확성이 필요한 화면에서는 명시 권장.
-   */
   canGoBack?: boolean;
-  /**
-   * maintenance variant 전용. caller-trusted (라우터/상위에서 직접 주입).
-   * TODO: 서버에서 점검창을 받아오게 되면 z.object 스키마로 추출해 경계 검증.
-   */
   maintenanceWindow?: { startsAt: string; endsAt: string; durationMin: number; brief: string };
-  /** maintenance variant 의 상태 페이지 링크. 미지정 시 기본 STATUS_PAGE_URL 사용. */
   maintenanceStatusUrl?: string;
   /**
-   * forbidden variant 의 CTA 분기 (디자인 스펙 §3: "[로그인] or [이전 페이지]").
+   * forbidden variant 의 CTA 분기.
    * - true(인증됨): 권한 부족 → "이전 페이지" 단독
    * - false(비인증): 로그인 필요 → "로그인" 단독
-   * - undefined(상태 모름): 둘 다 노출 (기존 동작 유지)
+   * - undefined(상태 모름): 둘 다 노출
    */
   isAuthenticated?: boolean;
 };
 
+// chat3 정본: 에러는 코드/페이지별 제목을 노출하지 않는다. 2종 톤 — generic(danger) / auth(brand) —
+// 으로 통일하고 부드러운 "~요" 카피만 보여준다.
+type ErrorTone = 'generic' | 'auth';
+
 type VariantSpec = {
   icon: LucideIcon;
+  tone: ErrorTone;
   title: string;
   description: string;
-  code: number | null;
 };
 
 const VARIANTS: Record<ErrorVariant, VariantSpec> = {
   'not-found': {
     icon: AlertTriangle,
-    title: '페이지를 찾을 수 없습니다',
-    description: '요청한 페이지가 존재하지 않거나 이동되었을 수 있습니다.',
-    code: 404,
+    tone: 'generic',
+    title: '일시적인 문제가 발생했어요',
+    description:
+      '잠깐 문제가 생긴 것 같아요.\n잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.',
   },
   'server-error': {
     icon: AlertTriangle,
-    title: '일시적인 오류가 발생했습니다',
-    description: '잠시 후 다시 시도해주세요. 계속되면 문의해주세요.',
-    code: 500,
+    tone: 'generic',
+    title: '일시적인 문제가 발생했어요',
+    description:
+      '잠깐 문제가 생긴 것 같아요.\n잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.',
   },
   forbidden: {
     icon: Lock,
-    title: '접근 권한이 없습니다',
-    description: '이 페이지를 보려면 로그인이 필요하거나 권한이 필요합니다.',
-    code: 403,
+    tone: 'auth',
+    title: '로그인이 필요해요',
+    description:
+      '이 페이지에 접근하려면 로그인이 필요해요.\n다시 로그인하거나 메인 화면으로 돌아가 주세요.',
   },
   offline: {
     icon: WifiOff,
-    title: '인터넷 연결이 끊겼습니다',
-    description: '연결 상태를 확인하고 다시 시도해주세요.',
-    code: null,
+    tone: 'generic',
+    title: '인터넷 연결이 불안정해요',
+    description: '연결 상태를 확인하고 잠시 후 다시 시도해 주세요.',
   },
   maintenance: {
     icon: Settings,
-    title: '서비스 점검 중입니다',
-    description: '점검 종료 후 다시 이용해주세요.',
-    code: null,
+    tone: 'generic',
+    title: '잠깐 점검 중이에요',
+    description: '점검이 끝나면 다시 이용할 수 있어요.',
   },
+};
+
+const TONE_ICON_BOX: Record<ErrorTone, string> = {
+  generic: 'bg-[rgba(248,81,73,0.08)] border-[rgba(248,81,73,0.2)] text-danger',
+  auth: 'bg-brand-soft border-brand-border text-brand',
 };
 
 const OFFLINE_MAX_RETRIES = 5;
@@ -86,7 +87,6 @@ export function ErrorPage({
   variant,
   onRetry,
   onContact,
-  requestId,
   canGoBack,
   maintenanceWindow,
   maintenanceStatusUrl,
@@ -99,15 +99,12 @@ export function ErrorPage({
   const hasHistory = canGoBack ?? detectHasHistory();
   const showBack = hasHistory;
 
-  // offline 자동 재시도 — 디자인 스펙 §3 준수. TODO: 네트워크 감지(navigator/online 이벤트) 통합 후 onRetry 연결.
-  // 본 PR 시점에서는 호출 경로가 없으나 후속 작업에서 변경 없이 활성화되도록 설계되어 있음.
   const [autoRetryCount, setAutoRetryCount] = useState(0);
   const isOfflineAutoRetry = variant === 'offline' && typeof onRetry === 'function';
   const offlineRetriesExhausted = isOfflineAutoRetry && autoRetryCount >= OFFLINE_MAX_RETRIES;
   const offlineRetrying =
     isOfflineAutoRetry && autoRetryCount > 0 && autoRetryCount < OFFLINE_MAX_RETRIES;
 
-  // onRetry 를 ref 로 안정화 — 의존성에 넣으면 호출 측의 새 함수 인스턴스 마다 인터벌 재시작 됨.
   const onRetryRef = useRef(onRetry);
   useEffect(() => {
     onRetryRef.current = onRetry;
@@ -157,14 +154,42 @@ export function ErrorPage({
     }
   }
 
+  const year = new Date().getFullYear();
+
   return (
-    <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
-      <div role="alert" className="flex max-w-md flex-col items-center text-center">
-        <Icon size={24} className="text-text-3" aria-hidden="true" />
+    <main className="bg-bg text-text relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
+      {/* 브랜드 풀스크린 — 그리드 배경 + 좌상단 로고 + 하단 워드마크 (Avating Error Page 정본) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{
+          backgroundImage:
+            'linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
+          maskImage: 'radial-gradient(circle at center, black, transparent 75%)',
+          WebkitMaskImage: 'radial-gradient(circle at center, black, transparent 75%)',
+        }}
+      />
+      <div className="absolute top-6 left-6 flex items-center gap-2">
+        <span aria-hidden="true" className="bg-brand h-5 w-5 rounded-md" />
+        <span className="font-ui text-subheading text-text tracking-tight">Avating</span>
+      </div>
 
-        <h1 className="text-heading text-text mt-6">{spec.title}</h1>
+      <div
+        role="alert"
+        className="relative z-[1] flex max-w-[480px] flex-col items-center text-center"
+      >
+        <div
+          className={`flex h-14 w-14 items-center justify-center rounded-xl border ${TONE_ICON_BOX[spec.tone]}`}
+        >
+          <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
+        </div>
 
-        <p className="text-body-sm text-text-3 mt-3">{spec.description}</p>
+        <h1 className="font-ui text-title text-text mt-6">{spec.title}</h1>
+
+        <p className="text-text-3 mt-2.5 max-w-[320px] text-[13px] leading-[1.8] whitespace-pre-line">
+          {spec.description}
+        </p>
 
         {variant === 'maintenance' && maintenanceWindow && (
           <div className="text-mono-meta text-text-3 mt-4 font-mono">
@@ -179,14 +204,12 @@ export function ErrorPage({
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
           {variant === 'not-found' && (
             <>
+              <Button onClick={handleHome}>메인 화면으로</Button>
               {showBack && (
-                <Button variant="ghost" onClick={handleBack}>
-                  ← 이전
+                <Button variant="secondary" onClick={handleBack}>
+                  이전
                 </Button>
               )}
-              <Button variant="secondary" onClick={handleHome}>
-                홈으로
-              </Button>
             </>
           )}
 
@@ -205,9 +228,8 @@ export function ErrorPage({
                 showBack ? (
                   <Button onClick={handleBack}>이전 페이지</Button>
                 ) : (
-                  // 인증된 사용자가 히스토리 없이 403 진입한 엣지 케이스 — 사용자가 갇히지 않도록 홈 fallback 노출.
                   <Button variant="secondary" onClick={handleHome}>
-                    홈으로
+                    메인 화면으로
                   </Button>
                 )
               ) : isAuthenticated === false ? (
@@ -255,13 +277,10 @@ export function ErrorPage({
             </a>
           )}
         </div>
+      </div>
 
-        {spec.code !== null && (
-          <div className="text-mono-meta text-text-3 mt-8 font-mono">
-            ERROR_CODE: {spec.code}
-            {variant === 'server-error' && requestId ? ` · REQUEST_ID: ${requestId}` : ''}
-          </div>
-        )}
+      <div className="text-mono-micro text-text-4 absolute bottom-6 font-mono tracking-wider">
+        AVATING · {year}
       </div>
     </main>
   );

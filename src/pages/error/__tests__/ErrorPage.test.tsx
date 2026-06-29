@@ -49,22 +49,21 @@ function renderErrorPage(
 
 describe('ErrorPage', () => {
   describe('variant="not-found" (404)', () => {
-    it('제목, 설명, 에러 코드를 표시한다', () => {
+    it('일반 톤 제목·설명을 표시하고 에러 코드는 노출하지 않는다 (chat3)', () => {
       renderErrorPage('not-found');
       expect(
-        screen.getByRole('heading', { name: '페이지를 찾을 수 없습니다' })
+        screen.getByRole('heading', { name: '일시적인 문제가 발생했어요' })
       ).toBeInTheDocument();
-      expect(
-        screen.getByText(/요청한 페이지가 존재하지 않거나 이동되었을 수 있습니다/)
-      ).toBeInTheDocument();
-      expect(screen.getByText('ERROR_CODE: 404')).toBeInTheDocument();
+      expect(screen.getByText(/잠깐 문제가 생긴 것 같아요/)).toBeInTheDocument();
+      expect(screen.queryByText(/ERROR_CODE/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/404/)).not.toBeInTheDocument();
     });
 
-    it('"홈으로" 버튼 클릭 시 / 로 이동한다', async () => {
+    it('"메인 화면으로" 버튼 클릭 시 / 로 이동한다', async () => {
       const user = userEvent.setup();
       renderErrorPage('not-found');
 
-      await user.click(screen.getByRole('button', { name: '홈으로' }));
+      await user.click(screen.getByRole('button', { name: '메인 화면으로' }));
 
       expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
     });
@@ -102,13 +101,14 @@ describe('ErrorPage', () => {
   });
 
   describe('variant="server-error" (500)', () => {
-    it('제목, 설명, 에러 코드를 표시한다', () => {
+    it('일반 톤 제목·설명을 표시하고 에러 코드는 노출하지 않는다 (chat3)', () => {
       renderErrorPage('server-error');
       expect(
-        screen.getByRole('heading', { name: '일시적인 오류가 발생했습니다' })
+        screen.getByRole('heading', { name: '일시적인 문제가 발생했어요' })
       ).toBeInTheDocument();
-      expect(screen.getByText(/잠시 후 다시 시도해주세요/)).toBeInTheDocument();
-      expect(screen.getByText('ERROR_CODE: 500')).toBeInTheDocument();
+      expect(screen.getByText(/잠깐 문제가 생긴 것 같아요/)).toBeInTheDocument();
+      expect(screen.queryByText(/ERROR_CODE/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/500/)).not.toBeInTheDocument();
     });
 
     it('onRetry 가 주어지면 "다시 시도" 버튼이 핸들러를 실행한다', async () => {
@@ -185,36 +185,15 @@ describe('ErrorPage', () => {
       await user.click(screen.getByRole('button', { name: '문의하기' }));
       expect(onContact).toHaveBeenCalledTimes(1);
     });
-
-    it('requestId 가 주어지면 ERROR_CODE 라인에 함께 표시한다', () => {
-      render(
-        <MemoryRouter>
-          <ErrorPage variant="server-error" requestId="req_abc123" />
-        </MemoryRouter>
-      );
-      expect(screen.getByText(/ERROR_CODE: 500/)).toBeInTheDocument();
-      expect(screen.getByText(/REQUEST_ID: req_abc123/)).toBeInTheDocument();
-    });
-
-    it('server-error 외 variant 에서 requestId 는 무시된다 (디자인 스펙: 500 전용)', () => {
-      render(
-        <MemoryRouter>
-          <ErrorPage variant="not-found" requestId="req_should_not_appear" />
-        </MemoryRouter>
-      );
-      expect(screen.getByText('ERROR_CODE: 404')).toBeInTheDocument();
-      expect(screen.queryByText(/REQUEST_ID/)).not.toBeInTheDocument();
-    });
   });
 
   describe('variant="forbidden" (403)', () => {
-    it('제목, 설명, 에러 코드를 표시한다', () => {
+    it('인증 톤 제목·설명을 표시하고 에러 코드는 노출하지 않는다 (chat3)', () => {
       renderErrorPage('forbidden');
-      expect(screen.getByRole('heading', { name: '접근 권한이 없습니다' })).toBeInTheDocument();
-      expect(
-        screen.getByText(/이 페이지를 보려면 로그인이 필요하거나 권한이 필요합니다/)
-      ).toBeInTheDocument();
-      expect(screen.getByText('ERROR_CODE: 403')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '로그인이 필요해요' })).toBeInTheDocument();
+      expect(screen.getByText(/이 페이지에 접근하려면 로그인이 필요해요/)).toBeInTheDocument();
+      expect(screen.queryByText(/ERROR_CODE/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/403/)).not.toBeInTheDocument();
     });
 
     it('"로그인" 버튼 클릭 시 /login 으로 이동한다', async () => {
@@ -249,11 +228,11 @@ describe('ErrorPage', () => {
       expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
     });
 
-    it('isAuthenticated=true & canGoBack=false 일 때 "홈으로" fallback 이 노출된다 (사용자 갇힘 방지)', () => {
+    it('isAuthenticated=true & canGoBack=false 일 때 "메인 화면으로" fallback 이 노출된다 (사용자 갇힘 방지)', () => {
       renderErrorPage('forbidden', { isAuthenticated: true, canGoBack: false });
       expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: '홈으로' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '메인 화면으로' })).toBeInTheDocument();
     });
   });
 
@@ -264,8 +243,10 @@ describe('ErrorPage', () => {
           <ErrorPage variant="offline" />
         </MemoryRouter>
       );
-      expect(screen.getByRole('heading', { name: '인터넷 연결이 끊겼습니다' })).toBeInTheDocument();
-      expect(screen.getByText(/연결 상태를 확인하고 다시 시도해주세요/)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '인터넷 연결이 불안정해요' })).toBeInTheDocument();
+      expect(
+        screen.getByText(/연결 상태를 확인하고 잠시 후 다시 시도해 주세요/)
+      ).toBeInTheDocument();
     });
 
     it('onRetry 미제공 시에도 "다시 시도" 버튼은 fallback(reload) 으로 노출된다', () => {
@@ -374,7 +355,7 @@ describe('ErrorPage', () => {
           />
         </MemoryRouter>
       );
-      expect(screen.getByRole('heading', { name: '서비스 점검 중입니다' })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '잠깐 점검 중이에요' })).toBeInTheDocument();
       expect(screen.getByText(/2026-05-02 02:00/)).toBeInTheDocument();
       expect(screen.getByText(/약 120분 소요 예정/)).toBeInTheDocument();
       expect(screen.getByText(/데이터베이스 마이그레이션/)).toBeInTheDocument();

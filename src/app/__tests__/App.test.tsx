@@ -36,7 +36,7 @@ describe('App', () => {
     consoleSpy.mockRestore();
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(screen.getByText(/일시적인 오류가 발생했습니다/)).toBeInTheDocument();
+    expect(screen.getByText(/일시적인 문제가 발생했어요/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /다시 시도/ })).toBeInTheDocument();
   });
 });
