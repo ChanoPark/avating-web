@@ -8,19 +8,14 @@ vi.mock('@features/auth/lib/encryptPassword', () => ({
 }));
 
 describe('LoginPage', () => {
-  it('브랜드 패널이 좌측에 렌더된다', () => {
+  it('단일 패널 변형: 브랜드 비주얼(aside)을 렌더하지 않는다', () => {
     renderWithProviders(<LoginPage />);
-    expect(screen.getByRole('complementary', { name: /브랜드/ })).toHaveTextContent(/Avating/);
+    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
   });
 
-  it('브랜드 패널에 "귀찮은 밀당은 아바타가" 헤드카피가 렌더된다', () => {
+  it('제목 "돌아오신 걸 환영합니다" 가 렌더된다', () => {
     renderWithProviders(<LoginPage />);
-    expect(screen.getByText(/귀찮은 밀당은 아바타가/)).toBeInTheDocument();
-  });
-
-  it('로그인 제목이 렌더된다', () => {
-    renderWithProviders(<LoginPage />);
-    expect(screen.getByRole('heading', { name: /로그인/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /돌아오신 걸 환영합니다/ })).toBeInTheDocument();
   });
 
   it('LoginForm이 포함된다 (이메일 input 존재)', () => {
