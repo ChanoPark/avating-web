@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -76,6 +77,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
   const passwordValue = watch('password');
   const strength = useMemo(() => computePasswordStrength(passwordValue), [passwordValue]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (values: SignupFormValues) => {
     // termsAgreed / marketingOptIn 은 서버 payload 비포함 — 와이어프레임 미명세 + 사용자 결정
@@ -182,7 +184,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.nickname ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
             {...register('nickname')}
           />
-          {errors.nickname?.message && (
+          {errors.nickname?.message ? (
             <p
               id="signup-nickname-error"
               role="alert"
@@ -190,6 +192,8 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
             >
               ✕ {errors.nickname.message}
             </p>
+          ) : (
+            <p className="text-mono-meta text-text-3 mt-1 font-mono">영문, 숫자, 한글 · 2–12자</p>
           )}
         </div>
 
@@ -197,29 +201,52 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <label htmlFor="signup-password" className="font-ui text-ui text-text mb-2 block">
             비밀번호
           </label>
-          <input
-            id="signup-password"
-            type="password"
-            autoComplete="new-password"
-            aria-invalid={errors.password ? true : undefined}
-            aria-describedby={
-              errors.password ? 'signup-password-error' : 'signup-password-strength'
-            }
-            placeholder="••••••••"
-            className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
-            {...register('password')}
-          />
+          <div className="relative">
+            <input
+              id="signup-password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              aria-invalid={errors.password ? true : undefined}
+              aria-describedby={
+                errors.password ? 'signup-password-error' : 'signup-password-strength'
+              }
+              placeholder="••••••••"
+              className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 pr-10 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
+              {...register('password')}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setShowPassword((v) => !v);
+              }}
+              aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+              className="text-text-3 hover:text-text absolute inset-y-0 right-3 flex items-center"
+            >
+              {showPassword ? (
+                <EyeOff size={16} strokeWidth={1.5} aria-hidden="true" />
+              ) : (
+                <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
+              )}
+            </button>
+          </div>
           <div id="signup-password-strength" className="mt-2 flex items-center gap-2">
-            <div className="bg-bg-elev-3 relative h-1 flex-1 overflow-hidden rounded-sm">
-              <div
-                role="progressbar"
-                aria-valuemin={0}
-                aria-valuemax={4}
-                aria-valuenow={strength.score}
-                aria-label="비밀번호 강도"
-                className={`h-full ${STRENGTH_COLORS[strength.score]} transition-[width] duration-[var(--duration-base)] ease-[var(--ease)]`}
-                style={{ width: `${(strength.score / 4) * 100}%` }}
-              />
+            {/* 4단계 분절 막대 (signup.md §5 결정4) */}
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={4}
+              aria-valuenow={strength.score}
+              aria-label="비밀번호 강도"
+              className="flex flex-1 gap-1"
+            >
+              {[1, 2, 3, 4].map((seg) => (
+                <span
+                  key={seg}
+                  className={`h-1 flex-1 rounded-sm transition-colors duration-[var(--duration-base)] ease-[var(--ease)] ${
+                    seg <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-bg-elev-3'
+                  }`}
+                />
+              ))}
             </div>
             <span
               aria-live="polite"
@@ -250,7 +277,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               {...register('termsAgreed')}
             />
             <label htmlFor="signup-terms">
-              만 19세 이상이며 약관에 동의 <span className="text-danger">*</span>
+              만 15세 이상이며 약관에 동의 <span className="text-danger">*</span>
             </label>
           </div>
           {errors.termsAgreed?.message && (

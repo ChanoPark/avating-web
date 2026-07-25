@@ -27,6 +27,8 @@ const config: KnipConfig = {
     '@tailwindcss/postcss',
     // Tailwind v4 엔진. @tailwindcss/postcss 의 peer — knip 정적 미검출
     'tailwindcss',
+    // CLI 전용 (pnpm exec depcruise) — 코드맵 생성 스크립트가 spawn, knip 정적 미검출
+    'dependency-cruiser',
   ],
   // Phase 3 전환 정책: 사전 존재 unused exports/types 는 warn (게이트 비차단),
   // 신규 unused files / unlisted dependencies / duplicates 는 error (차단).

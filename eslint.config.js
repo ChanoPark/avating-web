@@ -153,6 +153,15 @@ export default tseslint.config(
     },
   },
 
+  // Node 도구 스크립트 (wiki codemap 생성기 등) — node:test 러너, fs/process/console 사용.
+  // src/** 의 type-checked/boundaries 규칙 밖. structuredClone 등 Node 글로벌 필요.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
+
   // E2E (Playwright) 스펙 — node 런너 + page.evaluate 내부 브라우저 글로벌.
   // src/** 의 type-checked/boundaries 규칙 밖에 둔다(tsconfig.app 비포함, tsconfig.e2e 로 별도 검증).
   {

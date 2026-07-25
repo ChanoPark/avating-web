@@ -38,11 +38,12 @@ describe('SignupPage', () => {
     expect(screen.getByText(/귀찮은 밀당은 아바타가/)).toBeInTheDocument();
   });
 
-  it('브랜드 패널에 3종 피처 체크리스트가 렌더된다', () => {
+  it('브랜드 패널에 chat5 셀링포인트 체크리스트가 렌더된다', () => {
     renderWithProviders(<SignupPage />);
     expect(screen.getByText('책임 없는 도파민')).toBeInTheDocument();
-    expect(screen.getByText('답답하면 훈수 한 스푼')).toBeInTheDocument();
+    expect(screen.getByText('답답한 아바타를 소개팅 고수로 성장시키기')).toBeInTheDocument();
     expect(screen.getByText('나답게 움직이는 AI 생성')).toBeInTheDocument();
+    expect(screen.getByText(/실제 소개팅까지 이어지는 기회/)).toBeInTheDocument();
   });
 
   it('계정 만들기 제목이 폼 패널에 렌더된다', () => {

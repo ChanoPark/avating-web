@@ -51,4 +51,14 @@ describe('Sidebar', () => {
     const nav = screen.getByRole('navigation');
     expect(nav.className.includes('w-[220px]')).toBe(true);
   });
+
+  it('responsive 시 모바일 숨김 + 태블릿 64px + 데스크톱 220px 로 리플로우한다', () => {
+    render(<Sidebar responsive>항목</Sidebar>);
+    const nav = screen.getByRole('navigation');
+    expect(nav).toHaveAttribute('data-sidebar-mode', 'responsive');
+    expect(nav.className).toContain('hidden');
+    expect(nav.className).toContain('md:flex');
+    expect(nav.className).toContain('md:w-16');
+    expect(nav.className).toContain('lg:w-[220px]');
+  });
 });

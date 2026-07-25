@@ -28,6 +28,10 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
 
+  --color-tag-brand-fg: var(--tag-brand-fg);
+  --color-tag-success-fg: var(--tag-success-fg);
+  --color-tag-warning-fg: var(--tag-warning-fg);
+
   --font-sans: var(--font-text);
   --font-ui: var(--font-ui);
   --font-mono: var(--font-mono);

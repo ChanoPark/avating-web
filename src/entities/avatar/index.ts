@@ -2,8 +2,7 @@ export {
   avatarStatusSchema,
   avatarBaseSchema,
   avatarStatsSchema,
-  avatarSessionHistoryItemSchema,
-  avatarSessionHistoryResultSchema,
+  avatarPublicInfoSchema,
   avatarDetailSchema,
   apiResponseAvatarDetail,
   AVATAR_STAT_KEYS,
@@ -13,8 +12,7 @@ export type {
   AvatarStatus,
   AvatarBase,
   AvatarStats,
-  AvatarSessionHistoryItem,
-  AvatarSessionHistoryResult,
+  AvatarPublicInfo,
   AvatarDetail,
 } from './model';
 export { useMyAvatars, useMyAvatarsSuspense } from './api/useMyAvatars';

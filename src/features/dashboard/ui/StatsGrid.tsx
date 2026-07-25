@@ -8,7 +8,7 @@ import type { DashboardStats } from '@entities/dashboard';
 
 function StatsSkeleton() {
   return (
-    <div className="border-border bg-bg-elev-2 animate-pulse rounded-md border p-5">
+    <div className="border-border bg-bg-elev-2 animate-pulse rounded-md border px-4 py-3.5">
       <div className="bg-bg-elev-3 h-3 w-16 rounded" />
     </div>
   );
@@ -16,7 +16,7 @@ function StatsSkeleton() {
 
 function StatsFallback({ resetErrorBoundary }: FallbackProps) {
   return (
-    <div className="border-border bg-bg-elev-2 rounded-md border p-5">
+    <div className="border-border bg-bg-elev-2 rounded-md border px-4 py-3.5">
       <div className="text-text-3 text-mono-meta font-mono">—</div>
       <button
         type="button"
@@ -80,8 +80,9 @@ const CARD_CONFIGS: CardConfig[] = [
     Icon: Zap,
     getValue: (s) => String(s.interventionsThisWeek),
     getDelta: (s) => ({
+      // 다이아 사용량은 부정 신호가 아닌 단순 메타 → 중립색 (design-v2 §04)
       text: `-${s.gemsUsed} 다이아 사용`,
-      tone: 'negative',
+      tone: 'neutral',
     }),
     getAriaLabel: (s) => `이번 주 훈수 ${s.interventionsThisWeek}회, ${s.gemsUsed} 다이아 사용`,
   },
@@ -102,7 +103,7 @@ function SingleStatCard({ config }: { config: CardConfig }) {
 
 export function StatsGrid() {
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
       {CARD_CONFIGS.map((config) => (
         <ErrorBoundary key={config.label} fallbackRender={(props) => <StatsFallback {...props} />}>
           <Suspense fallback={<StatsSkeleton />}>

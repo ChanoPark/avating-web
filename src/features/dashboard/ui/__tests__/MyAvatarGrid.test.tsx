@@ -90,7 +90,7 @@ describe('MyAvatarGrid', () => {
   });
 
   describe('아바타 카드', () => {
-    it('isPrimary=true 아바타에 "활성" Tag 가 표시된다', async () => {
+    it('isPrimary=true 아바타에 "대표" Tag 와 ★ 마커가 표시된다', async () => {
       server.use(
         myAvatarsHandler([
           {
@@ -106,8 +106,10 @@ describe('MyAvatarGrid', () => {
       );
       renderWithProviders(<MyAvatarGrid />);
       await waitFor(() => {
-        expect(screen.getByText(/^활성$/)).toBeInTheDocument();
+        expect(screen.getByText(/^대표$/)).toBeInTheDocument();
       });
+      // chat8: 대표 아바타에는 ★ 마커가 붙는다
+      expect(screen.getByLabelText('대표 아바타')).toBeInTheDocument();
     });
 
     it('이니셜·이름·유형이 모두 렌더된다', async () => {

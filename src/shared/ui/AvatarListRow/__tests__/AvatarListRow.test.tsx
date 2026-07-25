@@ -9,7 +9,6 @@ const defaultProps = {
   handle: '@moonlit',
   type: '내향 · 낭만형',
   tags: ['서촌', '카페투어'],
-  matchRate: 87,
   status: 'online' as const,
   verified: false,
   onRowClick: vi.fn(),
@@ -45,25 +44,10 @@ describe('AvatarListRow', () => {
     });
   });
 
-  describe('matchRate 색상', () => {
-    it('matchRate 87 (>= 85) → text-success 클래스', () => {
-      render(<AvatarListRow {...defaultProps} matchRate={87} />);
-      const rateText = screen.getByText(/87/);
-      expect(rateText.className).toContain('text-success');
-    });
-
-    it('matchRate 75 (70-84) → default 텍스트 스타일', () => {
-      render(<AvatarListRow {...defaultProps} matchRate={75} />);
-      const rateText = screen.getByText(/75/);
-      const className = rateText.className;
-      expect(className).not.toContain('text-success');
-      expect(className).not.toContain('text-warning');
-    });
-
-    it('matchRate 65 (< 70) → text-warning 클래스', () => {
-      render(<AvatarListRow {...defaultProps} matchRate={65} />);
-      const rateText = screen.getByText(/65/);
-      expect(rateText.className).toContain('text-warning');
+  describe('호환도 비표기 (chat13 reversal)', () => {
+    it('호환도(%) 셀이 렌더되지 않는다', () => {
+      render(<AvatarListRow {...defaultProps} />);
+      expect(screen.queryByText(/%/)).not.toBeInTheDocument();
     });
   });
 

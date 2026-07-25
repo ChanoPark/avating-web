@@ -29,13 +29,16 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
     window.location.href = SUPPORT_EMAIL_HREF;
   }
 
+  // chat3 정본: 코드/스택 비노출, 부드러운 "~요" 카피 + danger 톤 아이콘 컨테이너.
   return (
     <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
-      <div role="alert" className="flex max-w-md flex-col items-center text-center">
-        <AlertTriangle size={24} className="text-text-3" aria-hidden="true" />
-        <h1 className="text-heading text-text mt-6">일시적인 오류가 발생했습니다</h1>
-        <p className="text-body-sm text-text-3 mt-3">
-          잠시 후 다시 시도해주세요. 계속되면 문의해주세요.
+      <div role="alert" className="flex max-w-[480px] flex-col items-center text-center">
+        <div className="text-danger flex h-14 w-14 items-center justify-center rounded-xl border border-[rgba(248,81,73,0.2)] bg-[rgba(248,81,73,0.08)]">
+          <AlertTriangle size={24} strokeWidth={1.5} aria-hidden="true" />
+        </div>
+        <h1 className="font-ui text-title text-text mt-6">일시적인 문제가 발생했어요</h1>
+        <p className="text-text-3 mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
+          잠깐 문제가 생긴 것 같아요. 잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
           <Button onClick={handleRetry}>다시 시도</Button>
@@ -43,8 +46,6 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
             문의하기
           </Button>
         </div>
-        {/* HTTP 코드는 아니나, 글로벌 ErrorBoundary 가 내부 런타임 오류를 일관 표기하기 위해 500 으로 고정 (디자인 스펙 §3 500 화면 재사용). */}
-        <div className="text-mono-meta text-text-3 mt-8 font-mono">ERROR_CODE: 500</div>
       </div>
     </main>
   );

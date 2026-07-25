@@ -37,13 +37,11 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
     });
   });
 
-  it('제목, 설명, 에러 코드를 표시한다', () => {
+  it('일반 톤 제목·설명을 표시하고 에러 코드는 노출하지 않는다 (chat3)', () => {
     render(<AppFallback />);
-    expect(
-      screen.getByRole('heading', { name: '일시적인 오류가 발생했습니다' })
-    ).toBeInTheDocument();
-    expect(screen.getByText(/잠시 후 다시 시도해주세요/)).toBeInTheDocument();
-    expect(screen.getByText('ERROR_CODE: 500')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '일시적인 문제가 발생했어요' })).toBeInTheDocument();
+    expect(screen.getByText(/잠깐 문제가 생긴 것 같아요/)).toBeInTheDocument();
+    expect(screen.queryByText(/ERROR_CODE/)).not.toBeInTheDocument();
   });
 
   it('main 랜드마크와 alert 컨테이너가 분리되어 있고 alert 에 aria-live 가 중복 지정되지 않는다', () => {
@@ -128,7 +126,7 @@ describe('AppFallback (RouterProvider 외부 글로벌 에러 fallback)', () => 
         );
 
         expect(
-          screen.getByRole('heading', { name: '일시적인 오류가 발생했습니다' })
+          screen.getByRole('heading', { name: '일시적인 문제가 발생했어요' })
         ).toBeInTheDocument();
         expect(
           consoleSpy.mock.calls.some(

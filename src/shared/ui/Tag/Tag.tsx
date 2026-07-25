@@ -4,11 +4,11 @@ import { cn } from '@shared/lib/cn';
 type TagVariant = 'default' | 'brand' | 'success' | 'warning' | 'danger';
 
 const variants: Record<TagVariant, string> = {
-  default: 'bg-bg-elev-3 border-border text-text-2',
-  brand: 'bg-brand-soft border-brand-border text-brand',
-  success: 'bg-[rgba(63,185,80,0.1)] border-[rgba(63,185,80,0.3)] text-success',
-  warning: 'bg-[rgba(210,153,34,0.1)] border-[rgba(210,153,34,0.3)] text-warning',
-  danger: 'bg-[rgba(248,81,73,0.1)] border-[rgba(248,81,73,0.3)] text-danger',
+  default: 'bg-bg-elev-2 border-border text-text-2',
+  brand: 'bg-brand-soft border-brand-border text-tag-brand-fg',
+  success: 'bg-[rgba(63,185,80,0.1)] border-[rgba(63,185,80,0.2)] text-tag-success-fg',
+  warning: 'bg-[rgba(210,153,34,0.1)] border-[rgba(210,153,34,0.2)] text-tag-warning-fg',
+  danger: 'bg-[rgba(248,81,73,0.1)] border-[rgba(248,81,73,0.2)] text-danger',
 };
 
 export function Tag({

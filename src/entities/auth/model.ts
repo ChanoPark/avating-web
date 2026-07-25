@@ -27,7 +27,7 @@ export const nicknameSchema = z
   .trim()
   .min(1, '닉네임을 입력해주세요')
   .min(2, '2자 이상 입력해주세요')
-  .max(30, '30자 이하로 입력해주세요');
+  .max(12, '12자 이하로 입력해주세요');
 
 export const loginFormSchema = z.object({
   email: emailSchema,

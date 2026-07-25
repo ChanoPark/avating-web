@@ -24,6 +24,7 @@ const baseAvatar: AvatarDetail = {
   status: 'online',
   verified: true,
   type: '내향·낭만형',
+  description: '심야의 책방을 좋아하는 낭만가. 천천히 듣고, 문장으로 마음을 건넵니다.',
   tags: ['독립서점', '심야 카페', '영화'],
   stats: {
     empathy: 81,
@@ -33,24 +34,11 @@ const baseAvatar: AvatarDetail = {
     listening: 74,
     expressiveness: 60,
   },
-  sessionHistory: [
-    {
-      id: 'session-1',
-      turn: 12,
-      totalTurns: 12,
-      affinity: 91,
-      result: 'matched',
-      endedAt: '2026-04-21T13:21:00.000Z',
-    },
-    {
-      id: 'session-2',
-      turn: 8,
-      totalTurns: 12,
-      affinity: 62,
-      result: 'ended',
-      endedAt: '2026-04-18T14:02:00.000Z',
-    },
-  ],
+  publicInfo: {
+    ageRange: '20대 후반',
+    region: '서울 서북부',
+    job: '콘텐츠 기획',
+  },
 };
 
 export const avatarDetailHandlers = [

@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
+import { ArrowUpRight } from 'lucide-react';
 import { onboardingKeys, getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import { useIssueConnectCode } from '../api/useIssueConnectCode';
 import { useConnectStatus } from '../api/useConnectStatus';
 import { formatCountdown, isExpired } from '../lib/countdown';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { Button } from '@shared/ui/Button/Button';
+
+// Avating Custom GPT 진입점. 실제 GPT URL 은 배포 시 env 로 주입 예정 (현재는 ChatGPT 홈).
+const AVATING_GPT_URL = 'https://chatgpt.com';
 
 export function ConnectStep() {
   const navigate = useNavigate();
@@ -110,6 +114,16 @@ export function ConnectStep() {
     issueCode();
   };
 
+  // chat17: 'GPT로 이동'(secondary, 새 탭) 좌측 / '생성된 결과 확인'(primary) 우측.
+  const handleOpenGpt = () => {
+    window.open(AVATING_GPT_URL, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleViewResult = () => {
+    setOnboardingProgress('complete');
+    void navigate('/onboarding/complete');
+  };
+
   if (guardFailed) return null;
 
   const showReissueCta = localExpired || statusData?.status === 'expired';
@@ -143,69 +157,42 @@ export function ConnectStep() {
     );
   }
 
-  const steps = [
-    { n: '01', text: 'Avating Bot과 자유롭게 대화합니다' },
-    { n: '02', text: '대화 분석 후 아바타 스탯이 자동 생성됩니다' },
-    { n: '03', text: '결과를 확인하고 확정합니다' },
+  const connectSteps = [
+    { n: '01', text: 'ChatGPT에서 Avating GPT를 검색해 시작합니다' },
+    { n: '02', text: '위 ONE-TIME CODE를 붙여넣어 계정을 연결합니다' },
+    { n: '03', text: 'Avating GPT와 약 10분간 자유롭게 대화합니다' },
+    { n: '04', text: '대화가 끝나면 자동으로 다음 단계로 전환됩니다' },
   ];
 
   return (
     <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6">
       <header className="flex flex-col gap-1">
         <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-          STEP 3 / 4 · ChatGPT Bot 대화
+          STEP 3 / 4 · ChatGPT Bot 연동
         </span>
-        <h1 className="font-ui text-title text-text">ChatGPT Bot과 대화해보세요</h1>
+        <h1 className="font-ui text-title text-text">Avating GPT와 연결</h1>
       </header>
 
       <div className="bg-brand-soft border-brand-border flex flex-col gap-2 rounded-md border p-4">
         <p className="text-body text-text">
-          ChatGPT Bot과 대화해서, 나와 비슷한 아바타를 생성해보세요.
+          Avating GPT와 대화하면, 나와 비슷한 아바타가 만들어져요.
         </p>
         <p className="text-body-sm text-text-2">
-          대화 내용을 바탕으로 당신과 딱 맞는 아바타를 생성해드립니다.
-        </p>
-      </div>
-
-      <ol className="flex flex-col gap-2">
-        {steps.map((s) => (
-          <li key={s.n} className="text-body-sm text-text-2 flex items-center gap-3">
-            <span
-              aria-hidden="true"
-              className="bg-bg-elev-2 border-border-hi text-text-3 text-mono-meta flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border font-mono"
-            >
-              {s.n}
-            </span>
-            {s.text}
-          </li>
-        ))}
-      </ol>
-
-      <div
-        role="note"
-        className="border-border bg-bg-elev-2 flex items-start gap-2 rounded-sm border p-3"
-      >
-        <span className="text-warning mt-px text-base" aria-hidden="true">
-          !
-        </span>
-        <p className="text-body-sm text-text-2">
-          약 10분 소요 · 대화가 길수록 더 정확한 아바타가 생성됩니다
+          대화가 길고 솔직할수록 더 정확한 아바타가 생성됩니다.
         </p>
       </div>
 
       {connectCode && (
         <div className="border-border bg-bg-elev-2 flex flex-col items-center gap-4 rounded-md border p-6">
           <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-            연결 코드
+            ONE-TIME CODE
           </span>
-          <div className="text-text font-mono text-2xl tracking-[4px]" aria-label="연결 코드">
+          <div className="text-text font-mono text-2xl tracking-[4px]" aria-label="ONE-TIME CODE">
             {connectCode.connectCode}
           </div>
-
           <span role="timer" aria-live="polite" className="text-mono-meta text-text-3 font-mono">
-            {countdownDisplay}
+            유효 시간 {countdownDisplay} 남음
           </span>
-
           <div className="flex gap-3">
             <Button
               type="button"
@@ -217,19 +204,54 @@ export function ConnectStep() {
             >
               {copySuccess ? '복사됨' : '복사'}
             </Button>
-
             {showReissueCta && (
               <Button type="button" variant="ghost" size="sm" onClick={handleReissue}>
                 재발급
               </Button>
             )}
           </div>
-
-          <p className="text-mono-meta text-text-3 font-mono">
-            연결 후 자동으로 다음 단계로 이동합니다
-          </p>
         </div>
       )}
+
+      <section className="flex flex-col gap-3">
+        <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
+          연결 방법
+        </span>
+        <ol className="flex flex-col gap-2">
+          {connectSteps.map((s) => (
+            <li key={s.n} className="text-body-sm text-text-2 flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="bg-bg-elev-2 border-border-hi text-text-3 text-mono-meta flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border font-mono"
+              >
+                {s.n}
+              </span>
+              {s.text}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <div className="flex flex-col gap-3">
+        {!showReissueCta && (
+          <div className="text-mono-meta text-text-3 flex items-center gap-2 font-mono">
+            <span
+              aria-hidden="true"
+              className="bg-success h-1.5 w-1.5 rounded-full motion-safe:animate-pulse"
+            />
+            연결 대기 중… 연결되면 자동으로 다음 단계로 이동해요
+          </div>
+        )}
+        <div className="flex gap-3">
+          <Button type="button" variant="secondary" className="flex-1" onClick={handleOpenGpt}>
+            GPT로 이동
+            <ArrowUpRight size={16} strokeWidth={1.5} aria-hidden="true" />
+          </Button>
+          <Button type="button" variant="primary" className="flex-1" onClick={handleViewResult}>
+            생성된 결과 확인
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

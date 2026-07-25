@@ -120,18 +120,18 @@ describe('SignupForm', () => {
       });
     });
 
-    it('닉네임 31자 입력 시 "30자 이하로 입력해주세요" 에러가 표시된다', async () => {
+    it('닉네임 13자 입력 시 "12자 이하로 입력해주세요" 에러가 표시된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
-      await user.type(screen.getByLabelText(/닉네임/i), 'a'.repeat(31));
+      await user.type(screen.getByLabelText(/닉네임/i), 'a'.repeat(13));
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
       await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/30자 이하로 입력해주세요/)).toBeInTheDocument();
+        expect(screen.getByText(/12자 이하로 입력해주세요/)).toBeInTheDocument();
       });
     });
   });
