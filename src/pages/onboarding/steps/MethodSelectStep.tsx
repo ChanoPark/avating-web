@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { MessageSquare, Zap } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
-import { Tag } from '@shared/ui/Tag/Tag';
+import { cn } from '@shared/lib/cn';
 import {
   getOnboardingMethod,
   getOnboardingProgress,
@@ -11,36 +10,27 @@ import {
   setOnboardingProgress,
   type OnboardingMethod,
 } from '@entities/onboarding';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '../ui/WizardShell';
 
 type MethodCardProps = {
   selected: boolean;
-  icon: LucideIcon;
   title: string;
-  duration: string;
+  meta: string;
   description: string;
-  tag?: string;
   onSelect: () => void;
   inputId: string;
 };
 
-function MethodCard({
-  selected,
-  icon: Icon,
-  title,
-  duration,
-  description,
-  tag,
-  onSelect,
-  inputId,
-}: MethodCardProps) {
+// v2.1 Breaking — 선택 상태는 틴트 채움이 아니라 흰 서피스 + `border-primary` 다.
+function MethodCard({ selected, title, meta, description, onSelect, inputId }: MethodCardProps) {
   return (
     <label
       htmlFor={inputId}
-      className={`relative flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors focus-within:shadow-[var(--focus-ring)] ${
-        selected
-          ? 'border-brand-border bg-brand-soft'
-          : 'border-border bg-bg-elev-2 hover:border-border-hi'
-      }`}
+      className={cn(
+        'bg-surface flex cursor-pointer items-start gap-3 rounded-md border p-3.5',
+        'ease-brand transition-colors duration-[var(--dur-fast)] focus-within:shadow-[var(--focus-ring)]',
+        selected ? 'border-primary' : 'border-hairline hover:border-hairline-input'
+      )}
     >
       <input
         type="radio"
@@ -53,35 +43,21 @@ function MethodCard({
       />
       <span
         aria-hidden="true"
-        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${
-          selected
-            ? 'bg-brand-soft border-brand-border text-brand'
-            : 'bg-bg-elev-3 border-border text-text-3'
-        }`}
+        className={cn(
+          'mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
+          selected ? 'border-primary' : 'border-hairline-input'
+        )}
       >
-        <Icon size={16} strokeWidth={1.5} />
+        {selected && <span className="bg-primary block h-2 w-2 rounded-full" />}
       </span>
-      <div className="flex flex-1 flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <span className={`font-ui text-subheading ${selected ? 'text-brand' : 'text-text'}`}>
+      <span className="flex flex-1 flex-col gap-1">
+        <span className="flex items-center gap-2">
+          <span className={cn('text-body-sm font-medium', selected ? 'text-primary' : 'text-ink')}>
             {title}
           </span>
-          <span className="text-mono-meta text-text-3 font-mono">{duration}</span>
-        </div>
-        <p className="text-body-sm text-text-2 whitespace-pre-line">{description}</p>
-        {tag !== undefined && (
-          <div className="mt-1">
-            <Tag variant="brand">{tag}</Tag>
-          </div>
-        )}
-      </div>
-      <span
-        aria-hidden="true"
-        className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
-          selected ? 'border-brand bg-brand' : 'border-border-hi'
-        }`}
-      >
-        {selected && <span className="bg-bg block h-1.5 w-1.5 rounded-full" />}
+          <span className="text-micro text-ink-mute tnum">{meta}</span>
+        </span>
+        <span className="text-caption text-ink-secondary">{description}</span>
       </span>
     </label>
   );
@@ -97,7 +73,7 @@ export function MethodSelectStep() {
       void navigate('/onboarding/welcome', { replace: true });
       return;
     }
-    // 와이어프레임 v2: 이름·설명(intro) 미완료 상태에서 method 직접 진입 시 Step 1 로 되돌린다.
+    // 이름·설명(intro) 미완료 상태에서 method 직접 진입 시 Step 1 로 되돌린다.
     if (progress === 'intro') {
       void navigate('/onboarding/intro', { replace: true });
       return;
@@ -134,64 +110,58 @@ export function MethodSelectStep() {
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-6 py-6">
-      <header className="flex flex-col gap-1">
-        <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-          STEP 2 / 4 · 아바타 생성 방법
-        </span>
-        <h1 className="font-ui text-title text-text">어떻게 아바타를 만들까요?</h1>
-        <p className="text-body-sm text-text-3">나중에 튜닝으로 조정할 수 있습니다</p>
-      </header>
-
-      <fieldset className="flex flex-col gap-3">
-        <legend className="sr-only">아바타 생성 방법 선택</legend>
-
-        <MethodCard
-          inputId="method-survey"
-          selected={method === 'survey'}
-          icon={Zap}
-          title="성향 설문"
-          duration="약 2분"
-          description={'6가지 질문으로 성향을 분석합니다.\n빠르고 간단합니다.'}
-          onSelect={() => {
-            setMethod('survey');
-          }}
-        />
-
-        <MethodCard
-          inputId="method-connect"
-          selected={method === 'connect'}
-          icon={MessageSquare}
-          title="ChatGPT Bot 연동"
-          duration="약 10분"
-          description={'Custom GPT와 대화해 더 정밀한\n아바타를 만듭니다.'}
-          tag="정확도 높음"
-          onSelect={() => {
-            setMethod('connect');
-          }}
-        />
-
-        <div
-          role="note"
-          className="border-border bg-bg-elev-2 flex items-start gap-2 rounded-sm border p-3"
-        >
-          <span className="text-warning mt-px text-base" aria-hidden="true">
-            !
-          </span>
-          <p className="text-body-sm text-text-2">
-            생성된 아바타는 기본적으로 수정할 수 없어요. 이후 튜닝 기능으로 스탯을 조정할 수 있어요.
+    <>
+      <div className={WIZARD_BODY}>
+        <div className={WIZARD_HEAD}>
+          <h1 className="text-heading-lg text-ink">어떻게 아바타를 만들까요?</h1>
+          <p className="text-body-sm text-ink-mute">
+            선택한 방법으로 성향을 분석해요. 이후 튜닝으로 조정할 수 있습니다.
           </p>
         </div>
-      </fieldset>
 
-      <div className="mt-2 flex items-center justify-between">
-        <Button type="button" variant="ghost" size="sm" onClick={handlePrev}>
-          ← 이전
+        <fieldset className="flex flex-col gap-2.5">
+          <legend className="sr-only">아바타 생성 방법 선택</legend>
+
+          <MethodCard
+            inputId="method-survey"
+            selected={method === 'survey'}
+            title="성향 설문"
+            meta="약 2분"
+            description="6가지 질문으로 성향을 분석합니다. 빠르고 간단해요."
+            onSelect={() => {
+              setMethod('survey');
+            }}
+          />
+
+          <MethodCard
+            inputId="method-connect"
+            selected={method === 'connect'}
+            title="ChatGPT Bot 연동"
+            meta="약 10분"
+            description="Custom GPT와 대화해 더 정밀한 아바타를 만듭니다."
+            onSelect={() => {
+              setMethod('connect');
+            }}
+          />
+        </fieldset>
+
+        {/* 배너 — padding 11px 13px, fontSize 13, 아이콘 16px. */}
+        <p className="text-caption text-warning bg-warning-wash flex items-start gap-2 rounded-md px-3.25 py-2.75">
+          <CircleAlert size={16} strokeWidth={1.5} aria-hidden="true" className="mt-px shrink-0" />
+          생성된 아바타의 스탯은 직접 수정할 수 없어요. 이후 튜닝 기능으로 다듬습니다.
+        </p>
+      </div>
+
+      <div className={WIZARD_ACTIONS}>
+        <Button type="button" variant="ghost" onClick={handlePrev}>
+          <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
+          이전
         </Button>
         <Button type="button" onClick={handleNext}>
-          다음 →
+          다음
+          <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
       </div>
-    </div>
+    </>
   );
 }

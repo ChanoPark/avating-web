@@ -17,6 +17,20 @@ describe('ExpressionsField (자주 쓰는 표현 chip 입력)', () => {
     expect(screen.getByRole('button', { name: '😄 추가' })).toBeInTheDocument();
   });
 
+  it('칩 카운터가 "n / 10" 으로 렌더된다', () => {
+    render(<Harness initial={['그치 그치']} />);
+    expect(screen.getByText('1 / 10')).toBeInTheDocument();
+  });
+
+  it('"추가" 칩을 누르면 입력 필드로 포커스가 이동한다', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.click(screen.getByRole('button', { name: '추가' }));
+
+    expect(screen.getByLabelText('자주 쓰는 표현 입력')).toHaveFocus();
+  });
+
   it('입력 후 Enter 로 칩이 추가된다', async () => {
     const user = userEvent.setup();
     render(<Harness />);

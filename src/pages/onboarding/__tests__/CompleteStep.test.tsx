@@ -52,23 +52,24 @@ describe('CompleteStep (Avatar Confirm)', () => {
   });
 
   describe('와이어프레임 헤더 (읽기 전용 확인)', () => {
-    it('STEP 4 / 4 · 아바타 확인 라벨과 "✓ 생성 완료" 태그가 렌더된다', async () => {
+    it('"생성 완료" 배지가 렌더되고 STEP 라벨은 없다 (진행 표시는 레일 담당)', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(screen.getByText(/STEP 4 \/ 4 · 아바타 확인/)).toBeInTheDocument();
+        expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
       });
-      expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
+      expect(screen.queryByText(/STEP 4 \/ 4/)).not.toBeInTheDocument();
     });
 
-    it('"생성된 아바타입니다" 제목이 렌더된다', async () => {
+    it('"이렇게 생성됐어요" 제목과 서브 카피가 렌더된다', async () => {
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
         expect(
-          screen.getByRole('heading', { level: 1, name: /생성된 아바타입니다/ })
+          screen.getByRole('heading', { level: 1, name: /이렇게 생성됐어요/ })
         ).toBeInTheDocument();
       });
+      expect(screen.getByText('내용을 확인한 뒤 완료를 눌러 주세요.')).toBeInTheDocument();
     });
 
     it('기본(읽기 전용) 화면에는 튜닝 카운터가 보이지 않는다', async () => {

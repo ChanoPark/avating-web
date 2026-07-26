@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { Route, Routes } from 'react-router';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { OnboardingPage } from '../OnboardingPage';
@@ -20,56 +20,98 @@ function renderAt(initialRoute: string) {
   );
 }
 
-describe('OnboardingPage', () => {
-  it('/onboarding/welcome 은 진행바 없는 환영 모멘트다 (progressbar 미표시)', () => {
+function rail() {
+  return screen.getByRole('navigation', { name: '온보딩 단계' });
+}
+
+// 디자인 시스템 v2.1: 진행 상태는 상단 진행바가 아니라 좌측 스텝 레일이 전담한다.
+describe('OnboardingPage (WizardShell)', () => {
+  it('/onboarding/welcome 은 레일 없는 플랫 환영 모멘트다', () => {
     renderAt('/onboarding/welcome');
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.queryByRole('navigation', { name: '온보딩 단계' })).not.toBeInTheDocument();
     expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
   });
 
-  it('진행바가 표시되는 단계에서는 aria-valuemax=4 로 설정된다', () => {
+  it('레일이 표시되는 단계에서는 스텝 4개가 고정 라벨로 렌더된다', () => {
     renderAt('/onboarding/intro');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuemax', '4');
+    const items = within(rail()).getAllByRole('listitem');
+    expect(items).toHaveLength(4);
+    // 텍스트는 [순번 마커][라벨][sr-only 상태] 순으로 이어진다.
+    expect(items.map((li) => li.textContent)).toEqual([
+      '1아바타 기본 정보진행 중',
+      '2생성 방법 선택예정',
+      '3성향 설문예정',
+      '4아바타 확인예정',
+    ]);
   });
 
-  it('/onboarding/intro 진입 시 aria-valuenow=1 + "아바타 기본 정보" 라벨', () => {
+  it('/onboarding/intro 진입 시 1번째 스텝이 현재 단계다', () => {
     renderAt('/onboarding/intro');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuenow', '1');
-    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 기본 정보');
+    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      '아바타 기본 정보'
+    );
     expect(screen.getByTestId('step-intro')).toBeInTheDocument();
   });
 
-  it('/onboarding/method 진입 시 aria-valuenow=2 + "아바타 생성 방법" 라벨', () => {
+  it('/onboarding/method 진입 시 2번째 스텝이 현재 단계이고 1번째는 완료다', () => {
     renderAt('/onboarding/method');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuenow', '2');
-    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 생성 방법');
+    const items = within(rail()).getAllByRole('listitem');
+    expect(items[0]).toHaveTextContent('완료');
+    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      '생성 방법 선택'
+    );
     expect(screen.getByTestId('step-method')).toBeInTheDocument();
   });
 
-  it('/onboarding/survey 진입 시 aria-valuenow=3 + "성향 설문" 라벨', () => {
+  it('/onboarding/survey 진입 시 3번째 스텝이 현재 단계다', () => {
     renderAt('/onboarding/survey');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuenow', '3');
-    expect(bar.getAttribute('aria-valuetext')).toContain('성향 설문');
+    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      '성향 설문'
+    );
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  it('/onboarding/connect 진입 시 aria-valuenow=3 + "ChatGPT Bot 대화" 라벨', () => {
+  it('/onboarding/connect 도 3번째 스텝을 공유한다 (설문/Bot 연동 동일 단계)', () => {
     renderAt('/onboarding/connect');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuenow', '3');
-    expect(bar.getAttribute('aria-valuetext')).toContain('ChatGPT Bot 대화');
+    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      '성향 설문'
+    );
     expect(screen.getByTestId('step-connect')).toBeInTheDocument();
   });
 
-  it('/onboarding/complete 진입 시 aria-valuenow=4 + "아바타 확인" 라벨', () => {
+  it('/onboarding/complete 진입 시 4번째 스텝이 현재 단계다', () => {
     renderAt('/onboarding/complete');
-    const bar = screen.getByRole('progressbar');
-    expect(bar).toHaveAttribute('aria-valuenow', '4');
-    expect(bar.getAttribute('aria-valuetext')).toContain('아바타 확인');
+    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
+      '아바타 확인'
+    );
     expect(screen.getByTestId('step-complete')).toBeInTheDocument();
+  });
+
+  describe('레일 하단 각주', () => {
+    it('/onboarding/intro 에는 수정 가능 안내 각주가 붙는다', () => {
+      renderAt('/onboarding/intro');
+      expect(
+        within(rail()).getByText('이름과 설명은 나중에 프로필에서 수정할 수 있어요.')
+      ).toBeInTheDocument();
+    });
+
+    it('/onboarding/connect 에는 소요 시간 각주가 붙는다', () => {
+      renderAt('/onboarding/connect');
+      expect(
+        within(rail()).getByText('약 10분 소요 · 대화가 길수록 아바타가 정확해집니다.')
+      ).toBeInTheDocument();
+    });
+
+    it('/onboarding/complete 에는 튜닝 안내 각주가 붙는다', () => {
+      renderAt('/onboarding/complete');
+      expect(
+        within(rail()).getByText('확정 이후 스탯은 튜닝 기능으로만 조정할 수 있어요.')
+      ).toBeInTheDocument();
+    });
+
+    it('/onboarding/method 에는 각주가 없다', () => {
+      renderAt('/onboarding/method');
+      expect(within(rail()).queryByText(/각주|소요|수정할 수 있어요/)).not.toBeInTheDocument();
+    });
   });
 });

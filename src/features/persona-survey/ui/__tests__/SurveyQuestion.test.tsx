@@ -66,18 +66,21 @@ describe('SurveyQuestion', () => {
     expect(onChange).toHaveBeenCalledWith('ANS_1');
   });
 
-  it('fieldset 에 border-border 클래스가 적용된다', () => {
+  it('선택된 선택지는 틴트 채움 없이 border-primary 로만 구분된다 (v2.1)', () => {
     render(
       <SurveyQuestion
         name="Q_001"
         question="질문"
         options={OPTIONS}
-        value={undefined}
+        value="ANS_2"
         onChange={vi.fn()}
       />
     );
-    const fieldset = screen.getByRole('group');
-    expect(fieldset).toHaveClass('border-border');
-    expect(fieldset).not.toHaveClass('border-danger');
+    const selectedCard = screen.getByRole('radio', { name: /두 번째 선택지/ }).closest('label');
+    const plainCard = screen.getByRole('radio', { name: /첫 번째 선택지/ }).closest('label');
+
+    expect(selectedCard).toHaveClass('border-primary');
+    expect(selectedCard).not.toHaveClass('bg-primary-wash');
+    expect(plainCard).toHaveClass('border-hairline');
   });
 });

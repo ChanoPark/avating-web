@@ -21,36 +21,40 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
   });
 
   describe('렌더링', () => {
-    it('브랜드 마크 "Av" 가 렌더된다', () => {
-      renderWithProviders(<WelcomeStep />);
-      expect(screen.getByText('Av')).toBeInTheDocument();
-    });
-
-    it('환영 헤딩 "이제 아바타를 만들 차례예요" 가 렌더된다', () => {
+    it('환영 헤딩과 서브 카피가 렌더된다', () => {
       renderWithProviders(<WelcomeStep />);
       expect(
         screen.getByRole('heading', { level: 1, name: /이제 아바타를 만들 차례예요/ })
       ).toBeInTheDocument();
+      expect(
+        screen.getByText('내 성향을 분석해 아바타를 만들고, 첫 번째 매칭을 시작할 수 있어요.')
+      ).toBeInTheDocument();
     });
 
-    it('소요 시간 힌트(성향 설문 약 2분 / 아바타 확인 약 1분)가 렌더된다', () => {
+    it('앞으로 할 일 4단계 체크리스트가 렌더된다 (전부 미완료)', () => {
       renderWithProviders(<WelcomeStep />);
-      expect(screen.getByText('성향 설문')).toBeInTheDocument();
-      expect(screen.getByText('약 2분')).toBeInTheDocument();
-      expect(screen.getByText('아바타 확인')).toBeInTheDocument();
-      expect(screen.getByText('약 1분')).toBeInTheDocument();
+      expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+        '1기본 정보 입력',
+        '2생성 방법 선택',
+        '3성향 설문 6문항',
+        '4아바타 확인',
+      ]);
     });
 
-    it('v1 단계 미리보기 리스트가 더 이상 렌더되지 않는다', () => {
+    it('소요 시간 안내 "약 2분 소요" 가 렌더된다', () => {
       renderWithProviders(<WelcomeStep />);
-      expect(screen.queryByText(/STEP 1 \/ 4 · 시작/)).not.toBeInTheDocument();
-      expect(screen.queryAllByRole('listitem')).toHaveLength(0);
+      expect(screen.getByText('약 2분 소요')).toBeInTheDocument();
     });
 
-    it('"아바타 만들기" 기본 CTA 와 "Bot 연동" 보조 링크가 렌더된다', () => {
+    it('v1 단계 라벨(STEP n / 4)은 렌더되지 않는다 — 진행 표시는 레일이 담당한다', () => {
+      renderWithProviders(<WelcomeStep />);
+      expect(screen.queryByText(/STEP \d \/ 4/)).not.toBeInTheDocument();
+    });
+
+    it('"아바타 만들기" 기본 CTA 와 "ChatGPT Bot 연동" 보조 링크가 렌더된다', () => {
       renderWithProviders(<WelcomeStep />);
       expect(screen.getByRole('button', { name: /아바타 만들기/ })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /Bot 연동/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'ChatGPT Bot 연동' })).toBeInTheDocument();
     });
   });
 
