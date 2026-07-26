@@ -20,12 +20,17 @@ test.describe('공개 라우트 스모크', () => {
 
   test('로그인(/login) 페이지가 폼 헤딩과 함께 렌더된다', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.getByRole('heading', { name: '로그인' })).toBeVisible();
+    // 와이어프레임 v2 `ScreenSignin` 의 확정 카피.
+    await expect(page.getByRole('heading', { name: '다시 만나서 반가워요' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
   });
 
   test('알 수 없는 경로는 404 not-found 로 떨어진다', async ({ page }) => {
     await page.goto('/this-route-does-not-exist');
-    await expect(page.getByRole('heading', { name: '페이지를 찾을 수 없습니다' })).toBeVisible();
-    await expect(page.getByText('ERROR_CODE: 404')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '일시적인 문제가 발생했어요' })).toBeVisible();
+    // 제목은 server-error 와 공유하므로 CTA 조합으로 variant 를 구별한다.
+    // not-found 는 "메인 화면으로" 단독, server-error 는 "다시 시도" + "문의하기".
+    await expect(page.getByRole('button', { name: '메인 화면으로' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '다시 시도' })).toHaveCount(0);
   });
 });
