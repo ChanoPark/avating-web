@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
 import { createElement } from 'react';
 import { server } from '@shared/mocks/server';
-import { loginHandlers, publicKeyHandlers } from '@shared/mocks/handlers/auth';
+import { loginHandlers, publicKeyHandlers, MOCK_PUBLIC_KEY } from '@shared/mocks/handlers/auth';
 import { useAuthStore } from '@entities/auth/store';
 import { useLogin } from '../api/useLogin';
 
@@ -106,6 +106,6 @@ describe('useLogin', () => {
       expect(result.current.isSuccess).toBe(true);
     });
 
-    expect(encryptPassword).toHaveBeenCalledWith('Password1!', 'mock-rsa-public-key');
+    expect(encryptPassword).toHaveBeenCalledWith('Password1!', MOCK_PUBLIC_KEY);
   });
 });

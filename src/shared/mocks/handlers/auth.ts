@@ -11,9 +11,23 @@ export const mockTokenResponse = {
   },
 };
 
+/** 테스트·개발 전용 RSA-2048 **공개**키 (SPKI DER base64). 비밀값이 아니다 —
+ *  대응하는 개인키는 어디에도 없고, mock 서버는 복호화하지 않는다.
+ *
+ *  유효한 키여야 하는 이유: `encryptPassword` 가 이 값을 PEM 헤더로 감싸
+ *  `forge.pki.publicKeyFromPem` 에 넘긴다. 형식이 깨져 있으면 `EncryptionError`
+ *  가 나면서 **브라우저에서 로그인 자체가 불가능**해지고, 그 여파로 인증 게이트
+ *  화면(`/dashboard` · `/avatars/:id` · `/onboarding/*`)의 시각 검증이 전부 막힌다. */
+export const MOCK_PUBLIC_KEY =
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7o3Lt5Os/s0RJxfWQh5uXwyHLwPPN84q/6RebAD6aCFz' +
+  'NupPuqqiK2eAVSpz4rbR3tkfngulif9AL0CS9oVszjdIB5HSaIw3euj9iP0HZCmzrJdeAtCSc5QPkKVmirVM5Yvd' +
+  'COKUIxu5hGY7kWf7h8IWMqRpglCklwhnq8Qk/9xp/kvHJZXc7R26INtRDM5ABOPw4pU7AM8RifQIJKgQrKTPxxGT' +
+  'MzZ/lXrVUdPgoFWNa7GwM2kYuJw9RB4vNHYm5occ744u3CtEpcokXWd0b+h6yziK0CnuiptSRkfV5zvAKgJ/KEY6' +
+  'oWeWxrzM7/NRKzUe5pzE+fgxuPy7o4NbMQIDAQAB';
+
 export const mockPublicKeyResponse = {
   data: {
-    publicKey: 'mock-rsa-public-key',
+    publicKey: MOCK_PUBLIC_KEY,
   },
 };
 
