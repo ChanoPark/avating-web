@@ -122,6 +122,26 @@ describe('Toast', () => {
     vi.useRealTimers();
   });
 
+  // 톤 신호는 좌측 3px 레일 + wash 배지다. v1 의 `border-l-brand`/하드코딩 rgba 는
+  // v2 토큰에 존재하지 않아 아무 색도 만들지 못했다.
+  it.each([
+    ['info', 'border-l-primary', 'bg-primary-wash'],
+    ['success', 'border-l-success', 'bg-success-wash'],
+    ['warning', 'border-l-warning', 'bg-warning-wash'],
+    ['error', 'border-l-danger', 'bg-danger-wash'],
+  ] as const)('variant="%s" 이면 %s 레일과 %s 배지를 쓴다', (variant, railClass, badgeClass) => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant, title: '톤 확인', durationMs: 0 });
+    });
+    const toast = screen.getByText('톤 확인').closest('[role="status"]');
+    expect(toast?.className).toContain(railClass);
+    const badge = toast?.querySelector('span');
+    expect(badge?.className).toContain(badgeClass);
+    // 틴트 채움에 같은 색 테두리를 겹치지 않는다.
+    expect(badge?.className).not.toContain('border-primary');
+  });
+
   it('최대 3개까지만 노출하고 4번째부터는 가장 오래된 토스트를 제거한다', () => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {

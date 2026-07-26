@@ -21,12 +21,13 @@ export function Sidebar({
 
   // responsive 는 모바일(<md)에서 숨김 → 햄버거 드로어로 대체. display 를 모드 클래스에 포함해
   // 베이스의 flex 와 hidden 이 충돌하지 않게 한다.
+  // 펼친 폭 232px 는 LAYOUT-NUMBERS § AppShell 의 고정값이다 (w-58 = 14.5rem).
   const layoutClass =
     mode === 'responsive'
-      ? 'hidden md:flex md:w-16 lg:w-[220px]'
+      ? 'hidden md:flex md:w-16 lg:w-58'
       : mode === 'collapsed'
         ? 'flex w-14'
-        : 'flex w-[220px]';
+        : 'flex w-58';
 
   return (
     <SidebarContextProvider value={ctx}>
@@ -35,7 +36,8 @@ export function Sidebar({
         data-collapsed={collapsed}
         data-sidebar-mode={mode}
         className={cn(
-          'border-border bg-bg h-full shrink-0 flex-col border-r',
+          // 사이드바는 흰 서피스 + 우측 1px hairline (LAYOUT-NUMBERS § AppShell).
+          'border-hairline bg-surface h-full shrink-0 flex-col border-r',
           layoutClass,
           className
         )}

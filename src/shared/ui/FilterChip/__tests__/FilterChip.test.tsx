@@ -21,19 +21,46 @@ describe('FilterChip', () => {
     expect(chip).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('active=true 시 활성 스타일(elevation + focus 보더)이 적용된다', () => {
+  // `.av-chip--on{background:var(--surface);border-color:var(--primary);
+  //  color:var(--primary-press);box-shadow:inset 0 0 0 1px var(--primary)}`
+  it('active=true 시 흰 서피스 + 파란 테두리 + inset 링이 적용된다 (틴트 채움 아님)', () => {
     render(<FilterChip label="온라인" active onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
-    const hasActiveStyle =
-      chip.className.includes('border-border-focus') && chip.className.includes('bg-bg-elev-2');
-    expect(hasActiveStyle).toBe(true);
+    expect(chip.className).toContain('bg-surface');
+    expect(chip.className).toContain('border-primary');
+    expect(chip.className).toContain('text-primary-press');
+    expect(chip.className).toContain('shadow-[inset_0_0_0_1px_var(--primary)]');
+  });
+
+  // `.av-chip{height:30px;padding:0 12px;border-radius:pill;font-size:13px;font-weight:500}`
+  it('높이 30px · pill · 13px 미디엄 타입을 갖는다', () => {
+    render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
+    const chip = screen.getByRole('button', { name: '온라인' });
+    expect(chip.className).toContain('h-7.5');
+    expect(chip.className).toContain('rounded-pill');
+    expect(chip.className).toContain('text-caption');
+    expect(chip.className).toContain('font-medium');
+  });
+
+  it('비활성도 흰 서피스 + hairline 테두리를 유지한다', () => {
+    render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
+    const chip = screen.getByRole('button', { name: '온라인' });
+    expect(chip.className).toContain('bg-surface');
+    expect(chip.className).toContain('border-hairline');
+  });
+
+  it('focus-visible 포커스 링을 갖는다', () => {
+    render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
+    expect(screen.getByRole('button', { name: '온라인' }).className).toContain(
+      'focus-visible:shadow-focus'
+    );
   });
 
   it('active=false 시 비활성 스타일(브랜드 채움 미적용)', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     const hasBrandStyle =
-      chip.className.includes('bg-brand') || chip.className.includes('bg-brand-soft');
+      chip.className.includes('bg-primary') || chip.className.includes('bg-primary-wash');
     expect(hasBrandStyle).toBe(false);
   });
 

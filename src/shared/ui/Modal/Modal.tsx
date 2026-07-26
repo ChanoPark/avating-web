@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ReactNode } from 'react';
-import { AlertTriangle, Check, Info, X } from 'lucide-react';
+import { Check, CircleAlert, Info, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
@@ -14,44 +14,20 @@ type ModalProps = {
   title: string;
   description?: ReactNode;
   children?: ReactNode;
+  /** 액션 바 내용 — 상단 hairline 이 그어진 좌우 배치 영역에 들어간다. */
   footer?: ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  /** 시맨틱 톤 — 비-neutral 은 상단 2px 액센트 레일 + 헤더 글리프 배지를 표시 (Modal Toast System 정본). */
+  /** 액션 바 아래 가운데 정렬 각주. */
+  footnote?: ReactNode;
+  /** 시맨틱 톤 — 비-neutral 은 헤더 배지 행에 톤 배지를 표시한다. */
   tone?: ModalTone;
-  labelledById?: string;
 };
 
-const sizes: Record<NonNullable<ModalProps['size']>, string> = {
-  sm: 'max-w-[360px]',
-  md: 'max-w-[420px]',
-  lg: 'max-w-[480px]',
-  xl: 'max-w-[560px]',
-};
-
-const TONE_CONFIG: Record<
-  Exclude<ModalTone, 'neutral'>,
-  { rail: string; badge: string; icon: LucideIcon }
-> = {
-  info: {
-    rail: 'border-t-brand',
-    badge: 'bg-brand-soft border-brand-border text-brand',
-    icon: Info,
-  },
-  success: {
-    rail: 'border-t-success',
-    badge: 'border-[rgba(63,185,80,0.35)] bg-[rgba(63,185,80,0.1)] text-success',
-    icon: Check,
-  },
-  warning: {
-    rail: 'border-t-warning',
-    badge: 'border-[rgba(210,153,34,0.35)] bg-[rgba(210,153,34,0.1)] text-warning',
-    icon: AlertTriangle,
-  },
-  danger: {
-    rail: 'border-t-danger',
-    badge: 'border-[rgba(248,81,73,0.35)] bg-[rgba(248,81,73,0.1)] text-danger',
-    icon: X,
-  },
+// components.css `.av-badge--*` — 톤 배지는 wash 배경 + 시맨틱 텍스트, 테두리는 투명.
+const TONE_CONFIG: Record<Exclude<ModalTone, 'neutral'>, { badge: string; icon: LucideIcon }> = {
+  info: { badge: 'bg-primary-wash text-primary-press', icon: Info },
+  success: { badge: 'bg-success-wash text-success', icon: Check },
+  warning: { badge: 'bg-warning-wash text-warning', icon: CircleAlert },
+  danger: { badge: 'bg-danger-wash text-danger', icon: X },
 };
 
 export function Modal({
@@ -61,7 +37,7 @@ export function Modal({
   description,
   children,
   footer,
-  size = 'md',
+  footnote,
   tone = 'neutral',
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -110,41 +86,63 @@ export function Modal({
         className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
+      {/* Sheet — 폭 560 · radius 16 · hairline · shadow-float (LAYOUT-NUMBERS § Sheet). */}
       <div
         ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className={cn(
-          'border-border bg-bg-elev-1 shadow-3 relative w-full rounded-xl border p-6',
-          toneCfg && `border-t-2 ${toneCfg.rail}`,
-          sizes[size]
-        )}
+        className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        <div className="flex items-start gap-3">
-          {toneCfg && ToneIcon && (
-            <span
-              aria-hidden="true"
-              className={cn(
-                'flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border',
-                toneCfg.badge
-              )}
-            >
-              <ToneIcon size={20} strokeWidth={1.5} />
-            </span>
-          )}
-          <div className="min-w-0 flex-1">
-            <h2 className="font-ui text-heading text-text">{title}</h2>
-            {description !== undefined && (
-              <p className="text-body-sm text-text-2 mt-1">{description}</p>
+        {/* 헤더 행 — padding 18px 24px 0, 좌 배지 행 / 우 닫기 아이콘 16px */}
+        <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
+          <div className="flex items-center gap-2">
+            {toneCfg && ToneIcon && (
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'rounded-pill inline-flex h-5.5 items-center justify-center border border-transparent px-2.25',
+                  toneCfg.badge
+                )}
+              >
+                <ToneIcon size={12} strokeWidth={1.5} />
+              </span>
             )}
           </div>
+          <button
+            type="button"
+            aria-label="닫기"
+            onClick={onClose}
+            className="text-ink-faint hover:text-ink -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
+          >
+            <X size={16} strokeWidth={1.5} aria-hidden="true" />
+          </button>
         </div>
-        {children !== undefined && <div className="mt-4">{children}</div>}
+
+        {/* 타이틀 블록 — padding 14px 24px 0, gap 6 */}
+        <div
+          className={cn('flex flex-col gap-1.5 px-6 pt-3.5', children === undefined && 'pb-4.5')}
+        >
+          <h2 className="text-heading-md text-ink">{title}</h2>
+          {description !== undefined && <p className="text-body-sm text-ink-mute">{description}</p>}
+        </div>
+
+        {/* 본문 — padding 18px 24px, gap 12 */}
+        {children !== undefined && (
+          <div className="flex flex-col gap-3 px-6 py-4.5">{children}</div>
+        )}
+
+        {/* 액션 바 — padding 16px 24px, 상단 hairline, 좌우 배치 */}
         {footer !== undefined && (
-          <div className="mt-6 flex items-center justify-end gap-2">{footer}</div>
+          <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
+            {footer}
+          </div>
+        )}
+
+        {footnote !== undefined && (
+          <p className="text-micro text-ink-mute px-6 pb-4 text-center">{footnote}</p>
         )}
       </div>
     </div>,
