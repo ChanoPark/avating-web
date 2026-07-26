@@ -42,7 +42,7 @@ export default defineConfig(({ mode }) => {
           'src/**/*.d.ts',
           'src/main.tsx',
           'src/test/**',
-          'src/mocks/**',
+          'src/shared/mocks/**',
         ],
       },
     },
