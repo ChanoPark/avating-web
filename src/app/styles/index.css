@@ -123,10 +123,12 @@
   --text-display-md--letter-spacing: var(--ls-display-md);
   --text-display-md--font-weight: var(--fw-thin);
 
+  /* heading-lg 만 regular(400) 다 — css/type.css `.t-heading-lg` 기준.
+     md·sm 은 medium(500). INDEX.md 우선순위상 type.css 가 정본이다. */
   --text-heading-lg: var(--fs-heading-lg);
   --text-heading-lg--line-height: var(--lh-heading-lg);
   --text-heading-lg--letter-spacing: var(--ls-heading-lg);
-  --text-heading-lg--font-weight: var(--fw-medium);
+  --text-heading-lg--font-weight: var(--fw-regular);
 
   --text-heading-md: var(--fs-heading-md);
   --text-heading-md--line-height: var(--lh-heading-md);
@@ -244,13 +246,15 @@
     height: 100%;
   }
 
+  /* `html` 에 font-size 를 주지 않는다. 1rem 을 15px 로 바꾸면 Tailwind 의
+     `--spacing: .25rem` 이 3.75px 가 되어 **간격·크기 유틸 전체가 6.25% 축소된다**
+     (사이드바 232→217.5 · 버튼 40→37.5 · 모달 560→525 실측). 사용자의 브라우저
+     글꼴 크기 설정도 함께 무시된다. 본문 크기는 body 에 준다. */
   html {
     color-scheme: light;
     background-color: var(--canvas);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -264,6 +268,8 @@
     margin: 0;
     background-color: var(--canvas);
     color: var(--ink);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
   }
 
   /* 포커스 링은 그림자만 건다. `border-color` 를 함께 바꾸면 ghost 버튼·테두리 없는

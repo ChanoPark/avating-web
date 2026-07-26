@@ -180,7 +180,7 @@ export function ConnectStep() {
     <>
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
-          <span className="text-micro-cap text-ink-mute">ChatGPT Bot 연동</span>
+          <span className="text-micro-cap text-ink-mute uppercase">ChatGPT Bot 연동</span>
           <h1 className="text-heading-lg text-ink">ChatGPT Bot과 대화해 보세요</h1>
           <p className="text-body-sm text-ink-mute">
             대화 내용을 바탕으로 당신과 닮은 아바타를 만들어 드려요.
@@ -189,7 +189,7 @@ export function ConnectStep() {
 
         {connectCode && (
           <div className="bg-canvas-soft flex flex-col items-center gap-3 rounded-lg p-5">
-            <span className="text-micro-cap text-ink-mute">ONE-TIME CODE</span>
+            <span className="text-micro-cap text-ink-mute uppercase">ONE-TIME CODE</span>
             <div
               className="text-display-md text-ink tnum tracking-[0.2em]"
               aria-label="ONE-TIME CODE"

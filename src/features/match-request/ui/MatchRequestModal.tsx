@@ -325,10 +325,12 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 aria-describedby={errors.greeting !== undefined ? greetingErrorId : greetingHelpId}
                 {...register('greeting')}
                 className={cn(
-                  'bg-canvas text-caption text-ink w-full resize-none rounded-sm border px-3 py-2.25',
-                  'ease-brand transition-colors duration-[var(--dur-fast)]',
+                  // forms.css `.av-textarea` — 흰 서피스 · 15px · lh 1.55
+                  // · min-height 92 · resize: vertical.
+                  'bg-surface text-body text-ink min-h-23 w-full resize-y rounded-sm border px-3 py-2.25 leading-[1.55]',
+                  'ease-brand transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
                   errors.greeting ? 'border-danger' : 'border-hairline-input',
-                  'focus:border-primary focus:outline-none'
+                  'focus:border-primary focus:shadow-focus focus:outline-none'
                 )}
               />
               {errors.greeting?.message ? (

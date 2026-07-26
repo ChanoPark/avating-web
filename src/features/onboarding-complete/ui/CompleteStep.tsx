@@ -354,7 +354,9 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
             className="border-hairline bg-surface shadow-float relative mx-auto w-full max-w-[560px] rounded-xl border p-6"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-micro-cap text-primary">{STAT_LABEL[activeStat]} 재조정</span>
+              <span className="text-micro-cap text-primary uppercase">
+                {STAT_LABEL[activeStat]} 재조정
+              </span>
               <button
                 type="button"
                 aria-label="다이얼로그 닫기"

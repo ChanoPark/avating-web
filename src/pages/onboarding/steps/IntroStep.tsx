@@ -21,9 +21,10 @@ const introFormSchema = z.object({
 });
 type IntroFormValues = z.infer<typeof introFormSchema>;
 
-// 입력 웰은 흰 카드 위에서 canvas 로 한 단계 내려앉는다 (shared/ui Input 과 같은 계약).
+// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · lh 1.4
+// · padding 9px 12px · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
 const FIELD_INPUT =
-  'bg-canvas text-caption text-ink placeholder:text-ink-mute w-full rounded-sm border px-3 py-2.25 outline-none transition-colors duration-[var(--dur-fast)] ease-brand focus-visible:shadow-focus';
+  'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] outline-none transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
 
 export function IntroStep() {
   const navigate = useNavigate();

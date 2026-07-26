@@ -16,8 +16,12 @@ type ButtonProps = {
 
 // components.css `.av-btn` — pill · 고정 높이 · line-height 1 · weight 500.
 // 밴드당 채워진 파란 CTA 는 하나만 (primary 는 아껴 쓴다).
+// 테두리 **색**은 base 가 아니라 variant 가 갖는다. `cn` 은 tailwind-merge 가 아니라
+// 단순 join 이라 base 의 `border-transparent` 와 variant 의 `border-primary` 가 함께
+// 남고, 승자를 스타일시트 방출 순서가 정한다 — 실제로 secondary 의 파란 테두리가
+// 사라져 ghost 처럼 보이고 있었다. 폭(`border`)만 공유한다.
 const base = cn(
-  'inline-flex items-center justify-center rounded-pill border border-transparent',
+  'inline-flex items-center justify-center rounded-pill border',
   'cursor-pointer leading-none font-medium whitespace-nowrap select-none',
   'transition-[background-color,border-color,color,transform,filter]',
   'duration-[var(--dur-fast)] ease-brand',
@@ -28,12 +32,13 @@ const base = cn(
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    'bg-primary text-on-primary enabled:hover:bg-primary-hover enabled:active:bg-primary-press',
+    'border-transparent bg-primary text-on-primary enabled:hover:bg-primary-hover enabled:active:bg-primary-press',
   // 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
-  secondary: 'bg-surface text-primary border-primary enabled:hover:bg-primary-wash',
-  ghost: 'bg-transparent text-ink-secondary enabled:hover:bg-canvas-soft enabled:hover:text-ink',
-  dark: 'bg-brand-dark text-white enabled:hover:brightness-[1.14]',
-  danger: 'bg-danger text-white enabled:hover:brightness-[1.06]',
+  secondary: 'border-primary bg-surface text-primary enabled:hover:bg-primary-wash',
+  ghost:
+    'border-transparent bg-transparent text-ink-secondary enabled:hover:bg-canvas-soft enabled:hover:text-ink',
+  dark: 'border-transparent bg-brand-dark text-white enabled:hover:brightness-[1.14]',
+  danger: 'border-transparent bg-danger text-white enabled:hover:brightness-[1.06]',
 };
 
 const sizes: Record<ButtonSize, string> = {

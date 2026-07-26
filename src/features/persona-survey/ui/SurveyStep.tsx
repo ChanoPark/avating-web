@@ -253,7 +253,9 @@ export function SurveyStep() {
         <div className={WIZARD_HEAD}>
           {isExpressionsPage ? (
             <>
-              <span className="text-micro-cap text-ink-mute">자주 쓰는 표현 · 선택 문항</span>
+              <span className="text-micro-cap text-ink-mute uppercase">
+                자주 쓰는 표현 · 선택 문항
+              </span>
               <h1 className="text-heading-lg text-ink">평소 자주 쓰는 말투를 알려주세요</h1>
               <p className="text-body-sm text-ink-mute">아바타가 더 나답게 말할 수 있어요.</p>
             </>

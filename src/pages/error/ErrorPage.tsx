@@ -280,7 +280,9 @@ export function ErrorPage({
         </div>
       </div>
 
-      <div className="text-micro-cap text-ink-mute tnum absolute bottom-6">AVATING · {year}</div>
+      <div className="text-micro-cap text-ink-mute tnum absolute bottom-6 uppercase">
+        AVATING · {year}
+      </div>
     </main>
   );
 }

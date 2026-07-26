@@ -112,7 +112,7 @@ export function ExpressionsField({ value, onChange }: Props) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-micro-cap text-ink-mute">자주 쓰이는 표현</span>
+        <span className="text-micro-cap text-ink-mute uppercase">자주 쓰이는 표현</span>
         <div className="flex flex-wrap gap-1.5">
           {SUGGESTED_EXPRESSIONS.map((expr) => {
             const selected = value.includes(expr);
@@ -141,7 +141,7 @@ export function ExpressionsField({ value, onChange }: Props) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-micro-cap text-ink-mute">자주 쓰는 이모지</span>
+        <span className="text-micro-cap text-ink-mute uppercase">자주 쓰는 이모지</span>
         <div className="flex flex-wrap gap-1.5">
           {SUGGESTED_EMOJIS.map((emoji) => {
             const selected = value.includes(emoji);
