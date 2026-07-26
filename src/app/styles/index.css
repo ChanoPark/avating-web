@@ -1,90 +1,167 @@
-@import './tokens.css';
+/* Avating 디자인 시스템 v2 — 라이트 베이스 (흰 서피스 + 회색 캔버스 + hairline).
+   tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다.
+   출처: .claude/design/2026-07-26-wireframe-v2/tokens/ */
+@import './avating/tokens/colors.css';
+@import './avating/tokens/typography.css';
+@import './avating/tokens/spacing.css';
+@import './avating/tokens/radius.css';
+@import './avating/tokens/effects.css';
 @import 'tailwindcss';
 
-/* Map design tokens into the Tailwind 4 theme layer so utilities like
-   `bg-bg-elev-1`, `text-text-2`, `rounded-sm`, `font-mono`, etc.
-   resolve to our design tokens. */
+/* z-index 스케일 — **핸드오프에 없는 앱 자체 관심사다.**
+   v2 토큰은 시각 값(색·타입·간격·반경·효과)만 다루고 레이어 순서를 정의하지 않는다.
+   다크 시절 `tokens.css` 에 있던 값을 그대로 옮겨 왔다 — 이걸 빼면 `var(--z-modal)`
+   을 참조하는 9곳(Modal · Toast · MatchRequestModal · AppShellLayout · CompleteStep)의
+   `z-index` 가 `auto` 로 계산돼 모달·토스트 스태킹이 무너진다. */
+:root {
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-bg: 40;
+  --z-modal: 50;
+  --z-popover: 60;
+  --z-toast: 70;
+  --z-tooltip: 80;
+}
+
+/* 토큰을 Tailwind 4 theme 레이어에 노출해 `bg-surface`, `text-ink-mute`,
+   `border-hairline`, `rounded-lg`, `shadow-card` 같은 유틸로 쓸 수 있게 한다.
+   여기서 새 값을 만들지 않는다 — 전부 tokens/ 의 변수를 가리킬 뿐이다. */
 @theme {
-  --color-bg: var(--bg);
-  --color-bg-elev-1: var(--bg-elev-1);
-  --color-bg-elev-2: var(--bg-elev-2);
-  --color-bg-elev-3: var(--bg-elev-3);
+  /* ── 서피스 ── */
+  --color-surface: var(--surface);
+  --color-surface-inset: var(--surface-inset);
+  --color-canvas: var(--canvas);
+  --color-canvas-soft: var(--canvas-soft);
+  --color-canvas-cream: var(--canvas-cream);
 
-  --color-border: var(--border);
-  --color-border-hi: var(--border-hi);
-  --color-border-focus: var(--border-focus);
+  /* ── 선 ── */
+  --color-hairline: var(--hairline);
+  --color-hairline-input: var(--hairline-input);
 
-  --color-text: var(--text);
-  --color-text-2: var(--text-2);
-  --color-text-3: var(--text-3);
-  --color-text-4: var(--text-4);
+  /* ── 잉크 (ink-faint 는 장식 전용 — 본문·placeholder 금지) ── */
+  --color-ink: var(--ink);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-mute: var(--ink-mute);
+  --color-ink-faint: var(--ink-faint);
 
-  --color-brand: var(--brand);
-  --color-brand-hover: var(--brand-hover);
-  --color-brand-soft: var(--brand-soft);
-  --color-brand-border: var(--brand-border);
+  /* ── 브랜드 · 단일 CTA 색 ── */
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-press: var(--primary-press);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-subdued: var(--primary-subdued);
+  --color-primary-wash: var(--primary-wash);
+  --color-on-primary: var(--on-primary);
+  --color-brand-dark: var(--brand-dark);
+  --color-link: var(--link);
 
+  /* ── 액센트 (데이터 시리즈·희소 라벨 전용) ── */
+  --color-accent-ruby: var(--accent-ruby);
+  --color-accent-magenta: var(--accent-magenta);
+  --color-accent-magenta-wash: var(--accent-magenta-wash);
+
+  /* ── 상태 · 긍정=파랑 · 주의=앰버 · 위험=빨강 (초록·보라 없음) ── */
   --color-success: var(--success);
+  --color-success-wash: var(--success-wash);
   --color-warning: var(--warning);
+  --color-warning-wash: var(--warning-wash);
   --color-danger: var(--danger);
+  --color-danger-wash: var(--danger-wash);
 
-  --color-tag-brand-fg: var(--tag-brand-fg);
-  --color-tag-success-fg: var(--tag-success-fg);
-  --color-tag-warning-fg: var(--tag-warning-fg);
+  /* ── 폰트 · Pretendard 단독 (mono 없음 — v2.0 Breaking) ──
+     `--font-sans` 는 tokens/typography.css 가 :root 에 정의한다. 여기서 다시
+     선언하면 `--font-sans: var(--font-sans)` 자기참조로 무효화된다. 그렇다고
+     두지도 못하는 이유는 Tailwind 기본 theme 의 `--font-sans: ui-sans-serif…`
+     가 토큰 파일보다 **뒤에** 방출되어 Pretendard 를 덮어쓰기 때문이다.
+     그래서 기본 font 네임스페이스를 통째로 비우고 토큰만 남긴다. */
+  --font-*: initial;
+  --default-font-family: var(--font-sans);
 
-  --font-sans: var(--font-text);
-  --font-ui: var(--font-ui);
-  --font-mono: var(--font-mono);
+  /* ── 반경 ── */
+  --radius-xs: var(--r-xs);
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-pill: var(--r-pill);
 
-  --radius-sm: var(--radius-sm);
-  --radius-md: var(--radius-md);
-  --radius-lg: var(--radius-lg);
-  --radius-xl: var(--radius-xl);
-
+  /* ── 그림자 · 컬러 그림자 금지 ── */
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
   --shadow-3: var(--shadow-3);
+  --shadow-card: var(--shadow-card);
+  --shadow-lift: var(--shadow-lift);
+  --shadow-float: var(--shadow-float);
+  --shadow-glow: var(--shadow-glow);
   --shadow-focus: var(--focus-ring);
 
+  /* ── 모션 ── */
+  --ease-brand: var(--ease);
+  --ease-brand-out: var(--ease-out);
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
 
-  --text-display: 2rem;
-  --text-display--line-height: 1.15;
-  --text-display--letter-spacing: -0.0625em;
-  --text-display--font-weight: 600;
+  /* ── 타입 스케일 · tokens/typography.css 의 role 별 값 ──
+     display 티어의 weight 300 이 브랜드 시그니처다. */
+  --text-display-xxl: var(--fs-display-xxl);
+  --text-display-xxl--line-height: var(--lh-display-xxl);
+  --text-display-xxl--letter-spacing: var(--ls-display-xxl);
+  --text-display-xxl--font-weight: var(--fw-thin);
 
-  --text-title: 1.5rem;
-  --text-title--line-height: 1.3;
-  --text-title--letter-spacing: -0.021em;
-  --text-title--font-weight: 600;
+  --text-display-xl: var(--fs-display-xl);
+  --text-display-xl--line-height: var(--lh-display-xl);
+  --text-display-xl--letter-spacing: var(--ls-display-xl);
+  --text-display-xl--font-weight: var(--fw-thin);
 
-  --text-heading: 1rem;
-  --text-heading--line-height: 1.4;
-  --text-heading--letter-spacing: -0.0125em;
-  --text-heading--font-weight: 600;
+  --text-display-lg: var(--fs-display-lg);
+  --text-display-lg--line-height: var(--lh-display-lg);
+  --text-display-lg--letter-spacing: var(--ls-display-lg);
+  --text-display-lg--font-weight: var(--fw-thin);
 
-  --text-subheading: 0.875rem;
-  --text-subheading--line-height: 1.4;
-  --text-subheading--letter-spacing: -0.007em;
-  --text-subheading--font-weight: 500;
+  --text-display-md: var(--fs-display-md);
+  --text-display-md--line-height: var(--lh-display-md);
+  --text-display-md--letter-spacing: var(--ls-display-md);
+  --text-display-md--font-weight: var(--fw-thin);
 
-  --text-ui: 0.8125rem;
-  --text-ui--line-height: 1.5;
-  --text-ui--letter-spacing: -0.007em;
-  --text-ui--font-weight: 500;
+  --text-heading-lg: var(--fs-heading-lg);
+  --text-heading-lg--line-height: var(--lh-heading-lg);
+  --text-heading-lg--letter-spacing: var(--ls-heading-lg);
+  --text-heading-lg--font-weight: var(--fw-medium);
 
-  --text-body: 0.875rem;
-  --text-body--line-height: 1.5;
+  --text-heading-md: var(--fs-heading-md);
+  --text-heading-md--line-height: var(--lh-heading-md);
+  --text-heading-md--letter-spacing: var(--ls-heading-md);
+  --text-heading-md--font-weight: var(--fw-medium);
 
-  --text-body-sm: 0.75rem;
-  --text-body-sm--line-height: 1.5;
+  --text-heading-sm: var(--fs-heading-sm);
+  --text-heading-sm--line-height: var(--lh-heading-sm);
+  --text-heading-sm--letter-spacing: var(--ls-heading-sm);
+  --text-heading-sm--font-weight: var(--fw-medium);
 
-  --text-mono-meta: 0.6875rem;
-  --text-mono-meta--line-height: 1.4;
+  --text-body-lg: var(--fs-body-lg);
+  --text-body-lg--line-height: var(--lh-body-lg);
+  --text-body-lg--letter-spacing: var(--ls-body-lg);
 
-  --text-mono-micro: 0.625rem;
-  --text-mono-micro--line-height: 1.4;
-  --text-mono-micro--letter-spacing: 0.05em;
+  --text-body: var(--fs-body);
+  --text-body--line-height: var(--lh-body);
+  --text-body--letter-spacing: var(--ls-body);
+
+  --text-body-sm: var(--fs-body-sm);
+  --text-body-sm--line-height: var(--lh-body-sm);
+  --text-body-sm--letter-spacing: var(--ls-body-sm);
+
+  --text-caption: var(--fs-caption);
+  --text-caption--line-height: var(--lh-caption);
+  --text-caption--letter-spacing: var(--ls-caption);
+
+  --text-micro: var(--fs-micro);
+  --text-micro--line-height: var(--lh-micro);
+  --text-micro--letter-spacing: var(--ls-micro);
+
+  --text-micro-cap: var(--fs-micro-cap);
+  --text-micro-cap--line-height: var(--lh-micro-cap);
+  --text-micro-cap--letter-spacing: var(--ls-micro-cap);
+  --text-micro-cap--font-weight: var(--fw-semibold);
 }
 
 @keyframes shimmer {
@@ -168,27 +245,39 @@
   }
 
   html {
-    color-scheme: dark;
-    background-color: var(--bg);
-    color: var(--text);
-    font-family: var(--font-text);
+    color-scheme: light;
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* 한국어 필수 — 어절 중간에서 끊기는 것을 막는다 (v2.0). */
+    word-break: keep-all;
+    /* Pretendard 가 이미 제공하는 weight 를 브라우저가 합성하지 않게 한다. */
+    font-synthesis: none;
   }
 
   body {
     margin: 0;
-    background-color: var(--bg);
-    color: var(--text);
+    background-color: var(--canvas);
+    color: var(--ink);
   }
 
+  /* 포커스 링은 그림자만 건다. `border-color` 를 함께 바꾸면 ghost 버튼·테두리 없는
+     요소가 포커스 시 난데없이 파란 테두리를 얻는다 — components.css 의
+     `.av-btn:focus-visible{outline:none;box-shadow:var(--focus-ring)}` 계약과도 어긋난다.
+     입력처럼 포커스 시 테두리도 바뀌어야 하는 요소는 각자 `focus:border-primary` 를 건다. */
   *:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
-    border-color: var(--border-focus);
   }
+}
 
-  /* Mono + UI fonts utility already exposed via @theme; keep headings
-     structural (no visual weight changes here). */
+/* 금액·스탯·카운트·시각에 쓰는 tabular numerals.
+   와이어프레임의 `tnum` 클래스와 같은 계약이다. */
+@utility tnum {
+  font-variant-numeric: tabular-nums;
 }

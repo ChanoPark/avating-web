@@ -1,1 +1,0 @@
-export { AvatarListRow } from './AvatarListRow';

@@ -1,0 +1,82 @@
+/* ═══ Avating · Color tokens — LIGHT BASE (white + gray) ═════════════════
+   1. RAW palette  — literal hex (never used directly in UI).
+   2. SEMANTIC     — role tokens components reference (var(--canvas)…).
+   Near-white gray canvas, pure-white cards, hairline gray dividers, near
+   black ink. One blue carries actions; color appears only in state and data. */
+:root {
+  /* ── RAW · Brand blue (the single CTA color) ── */
+  --c-indigo: #1d7afc; /* primary surface & CTA — bright azure */
+  --c-indigo-deep: #1667dc; /* hover, gradient mid-stop */
+  --c-indigo-press: #1155b8; /* press + text-on-wash */
+  --c-indigo-soft: #6db4fd; /* decorative light blue */
+  --c-indigo-subdued: #d3e7fe; /* pale fill — soft tag bg */
+  --c-indigo-wash: #eaf3ff; /* faintest blue surface */
+  --c-navy-900: #191c22; /* inverted surface — dark band, tooltip */
+
+  /* ── RAW · Chromatic accents — sparing ── */
+  --c-magenta: #b8348c; /* second accent — data series, rare label */
+  --c-magenta-wash: #fbeef6;
+  --c-ruby: #dd3546; /* critical + chart accent */
+  --c-ruby-wash: #fdedee;
+  --c-lemon: #a97511; /* caution */
+  --c-lemon-wash: #fdf4e3;
+  --c-cream: #f6f1e7; /* warm interlude band */
+
+  /* ── RAW · Ink & surfaces (light gray ramp) ── */
+  --c-ink: #15171b; /* near-black headings & body */
+  --c-ink-2: #3d424b; /* secondary copy */
+  --c-ink-mute: #6c7178; /* muted — helper copy */
+  --c-ink-faint: #9ba0a8; /* faint. DECORATION ONLY: dividers, axis
+                                     labels, disabled glyphs, status dots.
+                                     Never body copy or placeholders. */
+  --c-white: #ffffff;
+  --c-canvas: #f6f7f8; /* default content surface — gray base */
+  --c-canvas-soft: #f0f1f3; /* inset well, one step below surface */
+  --c-surface: #ffffff; /* card / chrome, the raised plane */
+  --c-hairline: #e6e7eb; /* 1px divider on cards and tables */
+  --c-hairline-input: #d7d9de;
+
+  /* ── RAW · State tones — positive = blue · caution = amber · critical = red ── */
+  --c-success: #1d7afc;
+  --c-success-wash: #eaf3ff;
+  --c-warning: #a97511;
+  --c-warning-wash: #fdf4e3;
+  --c-danger: #dd3546;
+  --c-danger-wash: #fdedee;
+
+  /* ═══ SEMANTIC ═══ */
+  --primary: var(--c-indigo);
+  --primary-hover: var(--c-indigo-deep);
+  --primary-press: var(--c-indigo-press);
+  --primary-soft: var(--c-indigo-soft);
+  --primary-subdued: var(--c-indigo-subdued);
+  --primary-wash: var(--c-indigo-wash);
+  --on-primary: var(--c-white);
+  --brand-dark: var(--c-navy-900);
+  --accent-ruby: var(--c-ruby);
+  --accent-magenta: var(--c-magenta);
+  --accent-magenta-wash: var(--c-magenta-wash);
+  --link: var(--c-indigo);
+
+  --canvas: var(--c-canvas);
+  --canvas-soft: var(--c-canvas-soft);
+  --canvas-cream: var(--c-cream);
+  --surface: var(--c-surface);
+  --surface-inset: var(--c-canvas-soft);
+  --hairline: var(--c-hairline);
+  --hairline-input: var(--c-hairline-input);
+
+  --ink: var(--c-ink);
+  --ink-secondary: var(--c-ink-2);
+  --ink-mute: var(--c-ink-mute);
+  --ink-faint: var(--c-ink-faint);
+
+  --success: var(--c-success);
+  --success-wash: var(--c-success-wash);
+  --warning: var(--c-warning);
+  --warning-wash: var(--c-warning-wash);
+  --danger: var(--c-danger);
+  --danger-wash: var(--c-danger-wash);
+
+  --focus-ring: 0 0 0 3px rgba(29, 122, 252, 0.24);
+}
