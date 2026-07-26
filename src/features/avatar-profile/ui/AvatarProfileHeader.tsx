@@ -1,48 +1,53 @@
+import { Shield } from 'lucide-react';
+import { Badge } from '@shared/ui/Badge';
 import { Tag } from '@shared/ui/Tag';
-import { StatusDot } from '@shared/ui/StatusDot';
 import type { AvatarDetail } from '@entities/avatar';
 
 type Props = {
   avatar: AvatarDetail;
-  // 매칭 요청 CTA — props 로 위임해 caller 가 모달 트리거 + busy 가드 처리.
-  renderCta: () => React.ReactNode;
 };
 
-export function AvatarProfileHeader({ avatar, renderCta }: Props) {
+// wf-s2-core `ScreenAvatarDetail` 좌 상단 카드 — 이미지 56(r 12) + 이름 t-heading-sm + 인증 배지 /
+// 핸들·성향 caption mute / 소개문 body-sm secondary / 관심사 neutral 태그.
+// 매칭 요청 CTA 는 우측 featured 카드가 가진다 (화면당 채워진 파란 CTA 는 하나).
+export function AvatarProfileHeader({ avatar }: Props) {
   return (
-    <header className="border-border bg-bg-elev-1 flex items-start gap-4 rounded-md border p-4">
-      {/* 28px 초과 마크는 사각(r-lg) + 상태 점 통합 (06-components AvatarMark) */}
-      <div className="relative flex-shrink-0">
-        <div
+    <header className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
+      <div className="flex items-start gap-3">
+        {/* 아바타 사각 56 — radius = size × 0.24, tone=wash */}
+        <span
           aria-hidden="true"
-          className="bg-bg-elev-3 border-border-hi text-text-2 font-ui text-ui flex h-12 w-12 items-center justify-center rounded-lg border font-medium"
+          className="bg-primary-wash text-primary text-heading-sm flex h-14 w-14 shrink-0 items-center justify-center rounded-xl font-semibold uppercase"
         >
           {avatar.initials}
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-1.75">
+            <h2 className="text-heading-sm text-ink truncate">{avatar.name}</h2>
+            {avatar.verified && (
+              <Badge variant="brand">
+                <Shield size={11} strokeWidth={1.5} aria-hidden="true" />
+                인증
+              </Badge>
+            )}
+          </div>
+          <p className="text-caption text-ink-mute">
+            {avatar.handle} · {avatar.type}
+          </p>
         </div>
-        <StatusDot status={avatar.status} className="absolute right-0 bottom-0" />
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="font-ui text-subheading text-text truncate">{avatar.name}</h2>
-          {avatar.verified && <Tag variant="success">인증</Tag>}
-        </div>
-        <p className="text-mono-meta text-text-3 mt-1 font-mono">
-          {avatar.handle} · {avatar.type}
-        </p>
-        {avatar.description.length > 0 && (
-          <p className="text-body-sm text-text-2 mt-2">{avatar.description}</p>
-        )}
-        {avatar.tags.length > 0 && (
-          <ul className="mt-3 flex flex-wrap gap-1.5">
-            {avatar.tags.map((tag) => (
-              <li key={tag}>
-                <Tag>{tag}</Tag>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      <div className="flex-shrink-0">{renderCta()}</div>
+      {avatar.description.length > 0 && (
+        <p className="text-body-sm text-ink-secondary text-pretty">{avatar.description}</p>
+      )}
+      {avatar.tags.length > 0 && (
+        <ul className="flex flex-wrap gap-1.5">
+          {avatar.tags.map((tag) => (
+            <li key={tag}>
+              <Tag variant="neutral">{tag}</Tag>
+            </li>
+          ))}
+        </ul>
+      )}
     </header>
   );
 }

@@ -27,12 +27,7 @@ const avatar: AvatarDetail = {
 
 describe('AvatarProfileHeader', () => {
   it('인증 태그 + 핸들·성향 + 설명 + 태그 리스트를 표시하고, 레벨(Lv) 은 노출하지 않는다', () => {
-    render(
-      <AvatarProfileHeader
-        avatar={avatar}
-        renderCta={() => <button type="button">매칭 요청</button>}
-      />
-    );
+    render(<AvatarProfileHeader avatar={avatar} />);
     expect(screen.getByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
     expect(screen.getByText('인증')).toBeInTheDocument();
     // chat7: 레벨(Lv.x) 은 전 화면에서 제거됨
@@ -44,27 +39,19 @@ describe('AvatarProfileHeader', () => {
   });
 
   it('verified=false 인 경우 "인증" 태그는 노출되지 않는다', () => {
-    render(
-      <AvatarProfileHeader
-        avatar={{ ...avatar, verified: false }}
-        renderCta={() => <button type="button">x</button>}
-      />
-    );
+    render(<AvatarProfileHeader avatar={{ ...avatar, verified: false }} />);
     expect(screen.queryByText('인증')).not.toBeInTheDocument();
   });
 
-  it('renderCta 콜백 결과가 헤더에 렌더된다', () => {
-    render(
-      <AvatarProfileHeader
-        avatar={avatar}
-        renderCta={() => <button type="button">매칭 요청</button>}
-      />
-    );
-    expect(screen.getByRole('button', { name: '매칭 요청' })).toBeInTheDocument();
+  // 정본(wf-s2-core ScreenAvatarDetail)에서 채워진 파란 CTA 는 우측 featured 카드 하나뿐이다.
+  // 프로필 헤더는 어떤 버튼도 갖지 않는다.
+  it('헤더에는 CTA 버튼이 없다', () => {
+    render(<AvatarProfileHeader avatar={avatar} />);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('tags 가 빈 배열이면 리스트가 노출되지 않는다', () => {
-    render(<AvatarProfileHeader avatar={{ ...avatar, tags: [] }} renderCta={() => null} />);
+    render(<AvatarProfileHeader avatar={{ ...avatar, tags: [] }} />);
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
 });

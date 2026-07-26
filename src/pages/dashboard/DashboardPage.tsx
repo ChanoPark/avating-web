@@ -26,28 +26,33 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="flex flex-col gap-7">
-      <StatsGrid />
-
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <MyAvatarGrid />
-        <InboxPanel />
-      </div>
-
-      <div>
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-ui text-heading text-text">추천 아바타</h2>
-          <FilterChips filter={filter} onFilterChange={setFilter} />
+    // wf-s2-core `ScreenDashboard` — 본문 세로 gap 14.
+    <div className="flex flex-col gap-3.5">
+      {/* 상단 행: 좌 내 아바타 카드 폭 300 고정 / 우 flex 1 */}
+      <div className="flex flex-col items-stretch gap-3.5 lg:flex-row">
+        <div className="lg:w-75 lg:shrink-0">
+          <MyAvatarGrid />
         </div>
-
-        <div className="border-border bg-bg-elev-2 overflow-hidden rounded-md border">
-          <AvatarList
-            filter={filter}
-            onAvatarClick={handleAvatarClick}
-            onResetFilter={handleResetFilter}
-          />
+        <div className="flex min-w-0 flex-1 flex-col gap-3.5">
+          <StatsGrid />
+          <InboxPanel />
         </div>
       </div>
+
+      {/* 하단: 추천 아바타 제목 + 부제 / 우측 필터 */}
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-heading-sm text-ink">추천 아바타</h2>
+          <span className="text-micro text-ink-mute">내 아바타 성향과 결이 비슷한 순서예요</span>
+        </div>
+        <FilterChips filter={filter} onFilterChange={setFilter} />
+      </div>
+
+      <AvatarList
+        filter={filter}
+        onAvatarClick={handleAvatarClick}
+        onResetFilter={handleResetFilter}
+      />
     </div>
   );
 }

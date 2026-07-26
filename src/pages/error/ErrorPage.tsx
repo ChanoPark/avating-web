@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { AlertTriangle, Lock, Settings, WifiOff } from 'lucide-react';
+import { ArrowRight, CircleAlert, Lock, Settings, WifiOff } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
@@ -36,14 +36,14 @@ type VariantSpec = {
 
 const VARIANTS: Record<ErrorVariant, VariantSpec> = {
   'not-found': {
-    icon: AlertTriangle,
+    icon: CircleAlert,
     tone: 'generic',
     title: '일시적인 문제가 발생했어요',
     description:
       '잠깐 문제가 생긴 것 같아요.\n잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.',
   },
   'server-error': {
-    icon: AlertTriangle,
+    icon: CircleAlert,
     tone: 'generic',
     title: '일시적인 문제가 발생했어요',
     description:
@@ -70,9 +70,10 @@ const VARIANTS: Record<ErrorVariant, VariantSpec> = {
   },
 };
 
+// 톤은 테두리와 아이콘 색이 나른다 — 틴트 채움 + 같은 색 테두리는 금지다.
 const TONE_ICON_BOX: Record<ErrorTone, string> = {
-  generic: 'bg-[rgba(248,81,73,0.08)] border-[rgba(248,81,73,0.2)] text-danger',
-  auth: 'bg-brand-soft border-brand-border text-brand',
+  generic: 'bg-surface border-danger text-danger',
+  auth: 'bg-surface border-primary text-primary',
 };
 
 const OFFLINE_MAX_RETRIES = 5;
@@ -157,47 +158,46 @@ export function ErrorPage({
   const year = new Date().getFullYear();
 
   return (
-    <main className="bg-bg text-text relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
+    <main className="bg-canvas text-ink relative flex min-h-screen items-center justify-center overflow-hidden px-6 py-12">
       {/* 브랜드 풀스크린 — 그리드 배경 + 좌상단 로고 + 하단 워드마크 (Avating Error Page 정본) */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-[0.35]"
         style={{
+          // `--border` 는 v2 토큰에 없다 (v1 잔재). 1px 격자선은 `--hairline` 이다.
           backgroundImage:
-            'linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px)',
+            'linear-gradient(to right, var(--hairline) 1px, transparent 1px), linear-gradient(to bottom, var(--hairline) 1px, transparent 1px)',
           backgroundSize: '40px 40px',
           maskImage: 'radial-gradient(circle at center, black, transparent 75%)',
           WebkitMaskImage: 'radial-gradient(circle at center, black, transparent 75%)',
         }}
       />
       <div className="absolute top-6 left-6 flex items-center gap-2">
-        <span aria-hidden="true" className="bg-brand h-5 w-5 rounded-md" />
-        <span className="font-ui text-subheading text-text tracking-tight">Avating</span>
+        <span aria-hidden="true" className="bg-primary h-5 w-5 rounded-md" />
+        <span className="text-body-sm text-ink tracking-tight">Avating</span>
       </div>
 
-      <div
-        role="alert"
-        className="relative z-[1] flex max-w-[480px] flex-col items-center text-center"
-      >
+      <div role="alert" className="relative z-[1] flex max-w-120 flex-col items-center text-center">
         <div
           className={`flex h-14 w-14 items-center justify-center rounded-xl border ${TONE_ICON_BOX[spec.tone]}`}
         >
           <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
         </div>
 
-        <h1 className="font-ui text-title text-text mt-6">{spec.title}</h1>
+        {/* 헤드 블록 — 타이틀 t-heading-lg + 서브 t-body-sm t-mute (LAYOUT-NUMBERS § 헤드 블록 공통) */}
+        <h1 className="text-heading-lg text-ink mt-6">{spec.title}</h1>
 
-        <p className="text-text-3 mt-2.5 max-w-[320px] text-[13px] leading-[1.8] whitespace-pre-line">
+        <p className="text-body-sm text-ink-mute mt-1.5 max-w-80 text-pretty whitespace-pre-line">
           {spec.description}
         </p>
 
         {variant === 'maintenance' && maintenanceWindow && (
-          <div className="text-mono-meta text-text-3 mt-4 font-mono">
-            <div>
+          <div className="text-micro text-ink-mute mt-4">
+            <div className="tnum">
               {maintenanceWindow.startsAt} - {maintenanceWindow.endsAt}
             </div>
-            <div className="mt-1">약 {maintenanceWindow.durationMin}분 소요 예정</div>
-            <div className="text-text-2 mt-2">점검 내용: {maintenanceWindow.brief}</div>
+            <div className="tnum mt-1">약 {maintenanceWindow.durationMin}분 소요 예정</div>
+            <div className="text-ink-secondary mt-2">점검 내용: {maintenanceWindow.brief}</div>
           </div>
         )}
 
@@ -250,12 +250,12 @@ export function ErrorPage({
           {variant === 'offline' && (
             <>
               {offlineRetrying ? (
-                <span className="text-mono-meta text-text-3 font-mono">
+                <span className="text-micro text-ink-mute tnum">
                   재연결 시도 중... ({autoRetryCount}/{OFFLINE_MAX_RETRIES})
                 </span>
               ) : offlineRetriesExhausted ? (
                 <div className="flex flex-col items-center gap-3">
-                  <span className="text-body-sm text-danger">
+                  <span className="text-caption text-danger">
                     연결 실패. 네트워크 상태를 확인해주세요.
                   </span>
                   <Button onClick={handleReload}>새로고침</Button>
@@ -271,17 +271,16 @@ export function ErrorPage({
               href={maintenanceStatusUrl ?? STATUS_PAGE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ui text-brand hover:text-brand-hover font-ui underline-offset-2 hover:underline"
+              className="text-caption text-primary hover:text-primary-hover inline-flex items-center gap-1 font-medium"
             >
-              상태 페이지<span aria-hidden="true"> →</span>
+              상태 페이지
+              <ArrowRight size={13} strokeWidth={1.5} aria-hidden="true" />
             </a>
           )}
         </div>
       </div>
 
-      <div className="text-mono-micro text-text-4 absolute bottom-6 font-mono tracking-wider">
-        AVATING · {year}
-      </div>
+      <div className="text-micro-cap text-ink-mute tnum absolute bottom-6">AVATING · {year}</div>
     </main>
   );
 }

@@ -1,26 +1,30 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { FallbackProps } from 'react-error-boundary';
-import { Send, Heart, Sparkles, Zap } from 'lucide-react';
+import { Send, Heart, Users, Diamond } from 'lucide-react';
 import { StatsCard } from '@shared/ui/StatsCard';
+import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
+// StatCard 와 같은 상자 규격 — padding 14, radius `--r-lg`, hairline + shadow-card.
+const STAT_BOX = 'border-hairline bg-surface shadow-card rounded-lg border p-3.5';
+
 function StatsSkeleton() {
   return (
-    <div className="border-border bg-bg-elev-2 animate-pulse rounded-md border px-4 py-3.5">
-      <div className="bg-bg-elev-3 h-3 w-16 rounded" />
+    <div className={cn(STAT_BOX, 'animate-pulse')}>
+      <div className="bg-canvas-soft h-3 w-16 rounded" />
     </div>
   );
 }
 
 function StatsFallback({ resetErrorBoundary }: FallbackProps) {
   return (
-    <div className="border-border bg-bg-elev-2 rounded-md border px-4 py-3.5">
-      <div className="text-text-3 text-mono-meta font-mono">—</div>
+    <div className={STAT_BOX}>
+      <div className="text-ink-mute text-micro">—</div>
       <button
         type="button"
-        className="text-body-sm text-brand mt-2 underline"
+        className="text-caption text-primary hover:text-primary-hover mt-2 cursor-pointer font-medium"
         onClick={resetErrorBoundary}
       >
         재시도
@@ -66,8 +70,9 @@ const CARD_CONFIGS: CardConfig[] = [
       `평균 호감도 ${s.avgAffinity}점, ${s.avgAffinityDelta >= 0 ? `+${s.avgAffinityDelta}pt` : `${s.avgAffinityDelta}pt`}`,
   },
   {
+    // 정본 4번째 슬롯은 `연결 성사`(Users) — 같은 지표를 도메인 용어(에프터 연결)로 부른다.
     label: '에프터 연결',
-    Icon: Sparkles,
+    Icon: Users,
     getValue: (s) => String(s.matches),
     getDelta: (s) => ({
       text: `매칭 성공률 ${s.matchRate.toFixed(1)}%`,
@@ -76,15 +81,15 @@ const CARD_CONFIGS: CardConfig[] = [
     getAriaLabel: (s) => `에프터 연결 ${s.matches}건, 매칭 성공률 ${s.matchRate.toFixed(1)}%`,
   },
   {
-    label: '이번 주 훈수',
-    Icon: Zap,
-    getValue: (s) => String(s.interventionsThisWeek),
+    label: '잔여 다이아',
+    Icon: Diamond,
+    getValue: (s) => String(s.gemsBalance),
     getDelta: (s) => ({
       // 다이아 사용량은 부정 신호가 아닌 단순 메타 → 중립색 (design-v2 §04)
-      text: `-${s.gemsUsed} 다이아 사용`,
+      text: `-${s.gemsUsed} 이번 주 사용`,
       tone: 'neutral',
     }),
-    getAriaLabel: (s) => `이번 주 훈수 ${s.interventionsThisWeek}회, ${s.gemsUsed} 다이아 사용`,
+    getAriaLabel: (s) => `잔여 다이아 ${s.gemsBalance}개, 이번 주 ${s.gemsUsed} 사용`,
   },
 ];
 
@@ -103,7 +108,8 @@ function SingleStatCard({ config }: { config: CardConfig }) {
 
 export function StatsGrid() {
   return (
-    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+    // 정본: StatCard 4열 그리드 gap 12 (wf-s2-core ScreenDashboard)
+    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
       {CARD_CONFIGS.map((config) => (
         <ErrorBoundary key={config.label} fallbackRender={(props) => <StatsFallback {...props} />}>
           <Suspense fallback={<StatsSkeleton />}>

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { AvatarStatsRadar } from '../ui/AvatarStatsRadar';
+import { AvatarStatsPanel } from '../ui/AvatarStatsPanel';
 
 const stats = {
   empathy: 81,
@@ -11,22 +11,28 @@ const stats = {
   expressiveness: 60,
 };
 
-describe('AvatarStatsRadar', () => {
-  it('HexRadar 와 6개의 Meter 가 렌더된다', () => {
-    render(<AvatarStatsRadar stats={stats} />);
-    expect(screen.getByRole('img', { name: '아바타 스탯 레이더' })).toBeInTheDocument();
+describe('AvatarStatsPanel', () => {
+  // 정본(wf-s2-core ScreenAvatarDetail)의 `아바타 스탯` 카드는 StatBar 행만 쌓는다 — 레이더는 없다.
+  it('6개의 StatBar(Meter) 가 렌더되고 레이더는 없다', () => {
+    render(<AvatarStatsPanel stats={stats} />);
     expect(screen.getAllByRole('meter')).toHaveLength(6);
+    expect(screen.queryByRole('img', { name: '아바타 스탯 레이더' })).not.toBeInTheDocument();
   });
 
   it('각 stat 의 값이 Meter aria-valuenow + 우측 라벨로 노출된다', () => {
-    render(<AvatarStatsRadar stats={stats} />);
+    render(<AvatarStatsPanel stats={stats} />);
     expect(screen.getByRole('meter', { name: '공감 지수' })).toHaveAttribute('aria-valuenow', '81');
     expect(screen.getByRole('meter', { name: '적극성' })).toHaveAttribute('aria-valuenow', '52');
     expect(screen.getByRole('meter', { name: '표현력' })).toHaveAttribute('aria-valuenow', '60');
   });
 
+  it('값 숫자는 tabular-nums 로 렌더된다', () => {
+    render(<AvatarStatsPanel stats={stats} />);
+    expect(screen.getByText('81')).toHaveClass('tnum');
+  });
+
   it('섹션 heading 이 "아바타 스탯" 으로 노출된다', () => {
-    render(<AvatarStatsRadar stats={stats} />);
+    render(<AvatarStatsPanel stats={stats} />);
     expect(screen.getByRole('heading', { name: '아바타 스탯' })).toBeInTheDocument();
   });
 });

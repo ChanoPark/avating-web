@@ -1,48 +1,55 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { Plus, Star } from 'lucide-react';
-import { Button } from '@shared/ui/Button';
-import { Tag } from '@shared/ui/Tag';
-import { StatusDot } from '@shared/ui/StatusDot';
+import { Badge } from '@shared/ui/Badge';
 import { useMyAvatarsSuspense } from '@entities/avatar';
-import { cn } from '@shared/lib/cn';
+import type { MyAvatar } from '@entities/match-request';
+import type { AvatarStatus } from '@entities/avatar';
 
-const GRID_SLOTS = 3;
+// wf-s2-core `ScreenDashboard` 좌측 카드 — 폭 300 고정은 페이지가 준다.
+// 카드 규격: hairline + shadow-card + radius `--r-lg`, padding 14.
+const CARD_CLASS =
+  'border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4';
 
-function HeaderCta({ isFull }: { isFull: boolean }) {
+// 정본은 `활성` success 배지(dot) 하나만 보여준다. 나머지 두 상태는 같은 배지 문법을
+// 유지하되 색만 바꾼다 — 카피는 이미 쓰이던 표현(`매칭 중` / `오프라인`)을 그대로 쓴다.
+const STATUS_BADGE: Record<
+  AvatarStatus,
+  { label: string; variant: 'success' | 'warning' | 'neutral' }
+> = {
+  online: { label: '활성', variant: 'success' },
+  busy: { label: '매칭 중', variant: 'warning' },
+  offline: { label: '오프라인', variant: 'neutral' },
+};
+
+function CardHeader({ action }: { action?: React.ReactNode }) {
   return (
-    <Button variant="ghost" size="sm" aria-label={isFull ? '더보기' : '아바타 추가하기'}>
-      {isFull ? '더보기' : '추가하기 +'}
-    </Button>
+    <div className="flex items-center justify-between gap-2">
+      <h2 className="text-caption text-ink font-medium">내 아바타</h2>
+      {action}
+    </div>
   );
 }
 
 function MyAvatarGridSkeleton() {
   return (
-    <section aria-label="내 아바타" className="border-border bg-bg-elev-2 rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="bg-bg-elev-3 h-4 w-16 animate-pulse rounded" />
-        <div className="bg-bg-elev-3 h-6 w-20 animate-pulse rounded" />
+    <section aria-label="내 아바타" className={CARD_CLASS}>
+      <div className="flex items-center justify-between">
+        <div className="bg-canvas-soft h-4 w-16 animate-pulse rounded" />
+        <div className="bg-canvas-soft h-4 w-14 animate-pulse rounded" />
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {Array.from({ length: GRID_SLOTS }).map((_, i) => (
-          <div key={i} className="bg-bg-elev-3 h-24 animate-pulse rounded-md" />
-        ))}
-      </div>
+      <div className="bg-canvas-soft h-11 animate-pulse rounded-[11px]" />
     </section>
   );
 }
 
 function MyAvatarGridFallback({ resetErrorBoundary }: FallbackProps) {
   return (
-    <section aria-label="내 아바타" className="border-border bg-bg-elev-2 rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-ui text-ui text-text">내 아바타</h2>
-      </div>
-      <div className="text-text-3 text-mono-meta font-mono">불러올 수 없음</div>
+    <section aria-label="내 아바타" className={CARD_CLASS}>
+      <CardHeader />
+      <div className="text-ink-mute text-micro">불러올 수 없음</div>
       <button
         type="button"
-        className="text-body-sm text-brand mt-2 underline"
+        className="text-caption text-primary hover:text-primary-hover cursor-pointer self-start font-medium"
         onClick={resetErrorBoundary}
       >
         재시도
@@ -51,67 +58,72 @@ function MyAvatarGridFallback({ resetErrorBoundary }: FallbackProps) {
   );
 }
 
+function EmptyAvatarBody() {
+  return (
+    <p className="text-caption text-ink-mute">
+      아직 아바타가 없어요. 아바타를 만들면 여기에서 상태를 확인할 수 있어요.
+    </p>
+  );
+}
+
+function AvatarSummary({ avatar }: { avatar: MyAvatar }) {
+  const status = STATUS_BADGE[avatar.status];
+  return (
+    <div className="flex items-center gap-2.75">
+      {/* 아바타 사각 44 — radius = size × 0.24, tone=wash */}
+      <span
+        aria-hidden="true"
+        className="bg-primary-wash text-primary text-body-sm flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] font-semibold uppercase"
+      >
+        {avatar.initials}
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col gap-0.75">
+        <span className="flex items-center gap-1.5">
+          <span className="text-caption text-ink truncate font-medium">{avatar.name}</span>
+          <Badge variant={status.variant} dot>
+            {status.label}
+          </Badge>
+        </span>
+        <span className="text-micro text-ink-mute truncate">{avatar.type}</span>
+      </span>
+    </div>
+  );
+}
+
 function MyAvatarGridContent() {
   const { items } = useMyAvatarsSuspense();
-  const isFull = items.length >= GRID_SLOTS;
-  const emptySlotCount = Math.max(0, GRID_SLOTS - items.length);
+  // 정본 카드는 대표 아바타 한 명을 보여준다. 대표 지정이 없으면 첫 아바타로 대체한다.
+  const primary = items.find((a) => a.isPrimary) ?? items[0];
+  const busyCount = items.filter((a) => a.busy).length;
 
   return (
-    <section aria-label="내 아바타" className="border-border bg-bg-elev-2 rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-ui text-ui text-text">내 아바타</h2>
-        <HeaderCta isFull={isFull} />
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {items.slice(0, GRID_SLOTS).map((avatar) => {
-          const active = avatar.isPrimary;
-          return (
-            <div
-              key={avatar.id}
-              data-active={active}
-              className={cn(
-                'flex flex-col items-center gap-1.5 rounded-md border p-2',
-                active ? 'bg-brand-soft border-brand-border' : 'bg-bg border-border'
-              )}
-            >
-              <div className="bg-brand-soft border-brand-border relative flex h-10 w-10 shrink-0 items-center justify-center rounded-md border">
-                <span className="font-ui text-mono-meta text-brand font-semibold uppercase">
-                  {avatar.initials}
-                </span>
-                {active && (
-                  <span
-                    aria-label="대표 아바타"
-                    className="bg-brand absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full"
-                  >
-                    <Star size={10} className="fill-white text-white" aria-hidden="true" />
-                  </span>
-                )}
-                <StatusDot status={avatar.status} className="absolute right-0 bottom-0" />
-              </div>
-              <div
-                className={cn(
-                  'font-ui text-mono-meta truncate text-center',
-                  active ? 'text-brand' : 'text-text'
-                )}
-              >
-                {avatar.name}
-              </div>
-              <Tag>{avatar.type}</Tag>
-              {active && <Tag variant="brand">대표</Tag>}
-            </div>
-          );
-        })}
-        {Array.from({ length: emptySlotCount }).map((_, i) => (
-          <div
-            key={`empty-${i}`}
-            data-empty-slot="true"
-            className="border-border bg-bg flex min-h-[96px] flex-col items-center justify-center gap-1 rounded-md border border-dashed"
+    <section aria-label="내 아바타" className={CARD_CLASS}>
+      <CardHeader
+        action={
+          <button
+            type="button"
+            aria-label="아바타 추가하기"
+            // 정본 링크 fontSize 12 — micro(11)/caption(13) 사이의 지정 값이다.
+            className="text-primary hover:text-primary-hover cursor-pointer text-[12px] font-medium"
           >
-            <Plus size={18} className="text-text-4" aria-hidden="true" />
-            <span className="text-mono-meta text-text-4 font-mono">새 아바타</span>
+            추가하기
+          </button>
+        }
+      />
+      {primary === undefined ? (
+        <EmptyAvatarBody />
+      ) : (
+        <>
+          <AvatarSummary avatar={primary} />
+          <hr className="border-hairline border-t" />
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-micro text-ink-mute">진행 중 매칭</span>
+            <span className="text-caption text-ink tnum">
+              {busyCount} / {items.length}
+            </span>
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </section>
   );
 }
