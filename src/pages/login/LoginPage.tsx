@@ -1,5 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router';
 import { LoginForm } from '@features/auth/ui/LoginForm';
+import { AuthLayout, type AuthAsideItem } from '@features/auth/ui/AuthLayout';
 
 // 오픈 리다이렉트 방지: AuthGuard 가 심은 redirect 파라미터를 그대로 navigate 에 넘기되,
 // 동일 출처 절대 경로(`/path`)만 허용한다. `//evil.com`(프로토콜-상대)·절대 URL 은 차단.
@@ -11,29 +12,31 @@ function resolveRedirect(redirect: string | null): string {
   return '/dashboard';
 }
 
+// 정본 `ScreenSignin` 의 AuthAside 3항목.
+const ASIDE_ITEMS: readonly AuthAsideItem[] = [
+  { title: '진행 중인 매칭', description: '관전 이어보기' },
+  { title: '받은 요청', description: '수락·거절 대기 3건' },
+  { title: '내 아바타', description: '스탯 다듬기' },
+];
+
 export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = resolveRedirect(searchParams.get('redirect'));
 
-  // signin.md §3/§6: Auth Split 의 단일 패널 변형 — 브랜드 비주얼 생략, 폼만 중앙 정렬(520px).
+  // 정본 v2 `ScreenSignin`: 좌 폼 페인 + 우 AuthAside 340 의 2단 구성.
   return (
-    <div className="bg-bg text-text flex min-h-screen items-center justify-center px-4 py-8">
-      <section
-        aria-labelledby="login-heading"
-        className="border-border bg-bg-elev-1 shadow-2 w-full max-w-[520px] rounded-xl border p-8 md:p-10"
-      >
-        <h1 id="login-heading" className="font-ui text-title text-text">
-          돌아오신 걸 환영합니다
-        </h1>
-        <div className="mt-6">
-          <LoginForm
-            onSuccess={() => {
-              void navigate(redirectTo);
-            }}
-          />
-        </div>
-      </section>
-    </div>
+    <AuthLayout
+      headingId="login-heading"
+      title="다시 만나서 반가워요"
+      subtitle="아바타의 대화가 기다리고 있어요."
+      asideItems={ASIDE_ITEMS}
+    >
+      <LoginForm
+        onSuccess={() => {
+          void navigate(redirectTo);
+        }}
+      />
+    </AuthLayout>
   );
 }

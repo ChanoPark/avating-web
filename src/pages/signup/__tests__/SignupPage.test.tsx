@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -28,27 +28,50 @@ describe('SignupPage', () => {
     vi.clearAllMocks();
   });
 
-  it('Avating 브랜드 패널이 좌측에 렌더된다', () => {
+  it('2단 구성: 우측 AuthAside(complementary)를 렌더한다', () => {
     renderWithProviders(<SignupPage />);
-    expect(screen.getByRole('complementary', { name: /브랜드/ })).toHaveTextContent(/Avating/);
+    expect(screen.getByRole('complementary', { name: /이용 안내/ })).toBeInTheDocument();
   });
 
-  it('브랜드 패널에 "귀찮은 밀당은 아바타가" 헤드카피가 렌더된다', () => {
+  it('AuthAside 에 HOW IT WORKS eyebrow 와 정본 3항목이 렌더된다', () => {
     renderWithProviders(<SignupPage />);
-    expect(screen.getByText(/귀찮은 밀당은 아바타가/)).toBeInTheDocument();
+    const aside = screen.getByRole('complementary', { name: /이용 안내/ });
+
+    expect(within(aside).getByText('HOW IT WORKS')).toBeInTheDocument();
+    expect(within(aside).getByText('아바타 생성')).toBeInTheDocument();
+    expect(within(aside).getByText('설문 6문항 또는 Bot 연동')).toBeInTheDocument();
+    expect(within(aside).getByText('시뮬레이션 관전')).toBeInTheDocument();
+    expect(within(aside).getByText('아바타끼리 대화, 훈수로 개입')).toBeInTheDocument();
+    expect(within(aside).getByText('에프터 연결')).toBeInTheDocument();
+    expect(within(aside).getByText('호감도 75 이상이면 실제 채팅')).toBeInTheDocument();
   });
 
-  it('브랜드 패널에 chat5 셀링포인트 체크리스트가 렌더된다', () => {
+  it('AuthAside 하단에 본인 인증 안내 Note 가 렌더된다', () => {
     renderWithProviders(<SignupPage />);
-    expect(screen.getByText('책임 없는 도파민')).toBeInTheDocument();
-    expect(screen.getByText('답답한 아바타를 소개팅 고수로 성장시키기')).toBeInTheDocument();
-    expect(screen.getByText('나답게 움직이는 AI 생성')).toBeInTheDocument();
-    expect(screen.getByText(/실제 소개팅까지 이어지는 기회/)).toBeInTheDocument();
+    const aside = screen.getByRole('complementary', { name: /이용 안내/ });
+    expect(
+      within(aside).getByText(/가입 시 본인 인증은 받지 않습니다 — 실제 연결 시점에만 1회 진행/)
+    ).toBeInTheDocument();
   });
 
-  it('계정 만들기 제목이 폼 패널에 렌더된다', () => {
+  it('폼 카드 아래에 온보딩 이동 각주가 렌더된다', () => {
+    renderWithProviders(<SignupPage />);
+    expect(
+      screen.getByText('가입하면 아바타 생성 온보딩으로 바로 이동합니다.')
+    ).toBeInTheDocument();
+  });
+
+  it('계정 만들기 제목과 서브카피가 폼 카드에 렌더된다', () => {
     renderWithProviders(<SignupPage />);
     expect(screen.getByRole('heading', { name: /계정 만들기/i })).toBeInTheDocument();
+    expect(
+      screen.getByText('2분이면 아바타를 만들고 첫 매칭을 시작할 수 있어요.')
+    ).toBeInTheDocument();
+  });
+
+  it('폼 카드 상단에 Avating 로고가 렌더된다', () => {
+    renderWithProviders(<SignupPage />);
+    expect(screen.getByText('Avating')).toBeInTheDocument();
   });
 
   it('SignupForm 의 onSuccess 발생 시 /onboarding 으로 이동한다', async () => {
