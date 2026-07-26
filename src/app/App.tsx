@@ -31,13 +31,13 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
 
   // chat3 정본: 코드/스택 비노출, 부드러운 "~요" 카피 + danger 톤 아이콘 컨테이너.
   return (
-    <main className="bg-bg text-text flex min-h-screen items-center justify-center px-6 py-12">
+    <main className="bg-canvas text-ink flex min-h-screen items-center justify-center px-6 py-12">
       <div role="alert" className="flex max-w-[480px] flex-col items-center text-center">
         <div className="text-danger flex h-14 w-14 items-center justify-center rounded-xl border border-[rgba(248,81,73,0.2)] bg-[rgba(248,81,73,0.08)]">
           <AlertTriangle size={24} strokeWidth={1.5} aria-hidden="true" />
         </div>
-        <h1 className="font-ui text-title text-text mt-6">일시적인 문제가 발생했어요</h1>
-        <p className="text-text-3 mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
+        <h1 className="text-heading-lg text-ink mt-6">일시적인 문제가 발생했어요</h1>
+        <p className="text-ink-mute mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
           잠깐 문제가 생긴 것 같아요. 잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
