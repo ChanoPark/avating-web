@@ -52,8 +52,10 @@ const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
 
 // 폼 입력 계약은 shared/ui/Input 의 base 와 같다 — caption(13px) · radius `--r-sm` ·
 // padding 9px 12px · placeholder 는 `--ink-mute`(`--ink-faint` 금지).
+// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · padding 9px 12px
+// · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
 const inputBase =
-  'bg-canvas text-caption text-ink placeholder:text-ink-mute w-full rounded-sm border px-3 py-2.25 transition-colors duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus';
+  'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
 
 // 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 aria-label (레포 공통 관례).
 const oauthButton =
