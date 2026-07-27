@@ -2,14 +2,15 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
+import { ONBOARDING_FALLBACK_LABELS } from '@entities/onboarding';
 
 // 디자인 시스템 v2.1 WizardShell — Stripe Checkout 식 2단 구조.
 // 정본: .claude/design/2026-07-26-wireframe-v2/LAYOUT-NUMBERS.md § WizardShell.
 // 좌측 스텝 레일이 화면에서 유일한 틴트면이고, 우측 폼 페인은 흰 배경 위에 카드를 띄운다.
 // 진행 상태는 레일이 전담한다 — 카드 아이브로우의 `STEP n / 4` 중복 표기는 v2.1 에서 제거됐다.
 
-/** 레일 라벨 4개 고정 (wf-s1-entry.jsx 의 `Page steps` 매핑). */
-const RAIL_LABELS = ['아바타 기본 정보', '생성 방법 선택', '성향 설문', '아바타 확인'] as const;
+/** 레일 라벨은 entity 가 단일 출처다 (정본 `wf/wf-kit.jsx` 의 `ONB_STEPS`). */
+const RAIL_LABELS = ONBOARDING_FALLBACK_LABELS;
 
 type StepState = 'done' | 'current' | 'upcoming';
 
