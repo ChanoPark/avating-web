@@ -14,10 +14,11 @@ export function AvatarProfileHeader({ avatar }: Props) {
   return (
     <header className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-start gap-3">
-        {/* 아바타 사각 56 — radius = size × 0.24, tone=wash */}
+        {/* 아바타 사각 56 · radius 12 — 정본 wf-s2-core.jsx:107 `<Ph h={56} w={56} r={12} />`.
+            `--r-lg`(12) = `rounded-lg`. tone=wash (`--primary-wash` + `--primary`, 테두리 없음). */}
         <span
           aria-hidden="true"
-          className="bg-primary-wash text-primary text-heading-sm flex h-14 w-14 shrink-0 items-center justify-center rounded-xl font-semibold uppercase"
+          className="bg-primary-wash text-primary text-heading-sm flex h-14 w-14 shrink-0 items-center justify-center rounded-lg font-semibold uppercase"
         >
           {avatar.initials}
         </span>

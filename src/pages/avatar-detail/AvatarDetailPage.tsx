@@ -81,10 +81,65 @@ function AvatarDetailContent({ id }: { id: string }) {
   );
 }
 
+/** 카드 크롬 — Card 와 같은 규격(hairline + shadow-card + `--r-lg`). */
+const SKELETON_CARD = 'border-hairline bg-surface shadow-card rounded-lg border p-4';
+
+/**
+ * 로딩 스켈레톤은 최종 렌더와 **같은 2열 골격**을 유지해야 한다. 한 줄 텍스트로 두면
+ * 데이터 도착 시 전체 레이아웃이 밀려 CLS 가 발생한다 (호감도 임계값을 다루는
+ * 매칭 화면이라 특히 민감하다). 열 폭·카드 개수·행 수를 본문과 맞춘다.
+ */
 function LoadingFallback() {
   return (
-    <div className="text-ink-mute text-caption" aria-busy="true" aria-live="polite">
-      아바타 정보를 불러오는 중…
+    <div
+      className="flex animate-pulse flex-col items-stretch gap-3.5 lg:flex-row"
+      aria-busy="true"
+      aria-live="polite"
+    >
+      <span className="sr-only">아바타 정보를 불러오는 중…</span>
+
+      {/* 좌: 프로필 헤더 + 스탯 패널 */}
+      <div className="flex min-w-0 flex-1 flex-col gap-3.5">
+        <div className={SKELETON_CARD}>
+          <div className="flex items-start gap-4">
+            <div className="bg-canvas-soft h-14 w-14 shrink-0 rounded-lg" />
+            <div className="flex min-w-0 flex-1 flex-col gap-2">
+              <div className="bg-canvas-soft h-4 w-40 rounded" />
+              <div className="bg-canvas-soft h-3 w-56 rounded" />
+              <div className="bg-canvas-soft mt-1 h-3 w-full rounded" />
+            </div>
+          </div>
+        </div>
+        <div className={SKELETON_CARD}>
+          <div className="bg-canvas-soft h-3 w-20 rounded" />
+          <div className="mt-3 flex flex-col gap-2.5">
+            {Array.from({ length: 6 }, (_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                {/* 라벨 폭 72 — LAYOUT-NUMBERS § 카드·데이터 부품 StatBar. `w-18` = 4 × 18. */}
+                <div className="bg-canvas-soft h-3 w-18 shrink-0 rounded" />
+                <div className="bg-canvas-soft h-1.5 flex-1 rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 우: 매칭 패널 + 공개 정보 + ghost 액션 (정본 260 고정) */}
+      <div className="flex flex-col gap-3.5 lg:w-65 lg:shrink-0">
+        <div className={SKELETON_CARD}>
+          <div className="bg-canvas-soft rounded-pill h-9 w-full" />
+          <div className="bg-canvas-soft mx-auto mt-2.5 h-3 w-24 rounded" />
+        </div>
+        <div className={SKELETON_CARD}>
+          <div className="bg-canvas-soft h-3 w-16 rounded" />
+          <div className="mt-3 flex flex-col gap-3">
+            {Array.from({ length: 3 }, (_, i) => (
+              <div key={i} className="bg-canvas-soft h-3 w-full rounded" />
+            ))}
+          </div>
+        </div>
+        <div className="bg-canvas-soft rounded-pill h-10 w-full" />
+      </div>
     </div>
   );
 }
