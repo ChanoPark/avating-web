@@ -155,9 +155,10 @@ export function ServiceIntroPage() {
       </main>
 
       {/* 푸터 — 정본 wf/wf-s1-entry.jsx:34 `height: 60, padding '0 64px'`,
-          상단 1px hairline, bg-surface */}
-      <footer className="border-hairline bg-surface flex h-[60px] shrink-0 items-center justify-between gap-4 border-t px-6 lg:px-16">
-        <Logo size={16} />
+          상단 1px hairline, bg-surface.
+          정본은 좌측에 `<Logo size={16} />` 을 두지만 사용자 지시로 제거했다
+          (상단 바 로고와 중복). 링크는 우측 정렬을 유지한다. */}
+      <footer className="border-hairline bg-surface flex h-[60px] shrink-0 items-center justify-end gap-4 border-t px-6 lg:px-16">
         <div className="text-ink-mute flex items-center gap-4 text-[12px]">
           {FOOTER_ITEMS.map((item) => (
             <span key={item}>{item}</span>

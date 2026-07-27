@@ -153,13 +153,20 @@ describe('ServiceIntroPage', () => {
   });
 
   describe('푸터', () => {
-    it('로고와 이용약관·개인정보·문의가 렌더된다', () => {
+    it('이용약관·개인정보·문의가 렌더된다', () => {
       renderPage();
       const footer = screen.getByRole('contentinfo');
-      expect(footer).toHaveTextContent('Avating');
       expect(within(footer).getByText('이용약관')).toBeInTheDocument();
       expect(within(footer).getByText('개인정보')).toBeInTheDocument();
       expect(within(footer).getByText('문의')).toBeInTheDocument();
+    });
+
+    // 사용자 지시로 푸터 로고를 제거했다 (상단 바 로고와 중복). 정본
+    // wf-s1-entry.jsx:34 은 좌측에 `<Logo size={16} />` 을 두므로 의도적 divergence 다.
+    it('로고를 렌더하지 않는다', () => {
+      renderPage();
+      const footer = screen.getByRole('contentinfo');
+      expect(footer).not.toHaveTextContent('Avating');
     });
   });
 
