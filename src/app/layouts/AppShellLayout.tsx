@@ -287,7 +287,11 @@ export function AppShellLayout() {
               transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
               className="p-7"
             >
-              <div data-shell-content className="mx-auto flex w-full max-w-[1280px] flex-col gap-4">
+              {/* 본문 max-width 를 두지 않는다. LAYOUT-NUMBERS § AppShell 은
+                  "넓은 뷰포트: 사이드바는 232px 고정, 본문이 늘어납니다" 로 규정하고
+                  본문 폭 상한은 정하지 않는다. 우측 사이드 카드(260~272)가 고정폭이고
+                  가운데 열만 신축하는 방식이라 상한이 필요 없다. */}
+              <div data-shell-content className="flex w-full flex-col gap-4">
                 {outlet}
               </div>
             </motion.div>

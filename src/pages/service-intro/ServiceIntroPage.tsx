@@ -120,6 +120,7 @@ export function ServiceIntroPage() {
 
           {/* 제품 목업 — 흰 서피스 + hairline + radius 14 + padding 10 + shadow-lift */}
           <div className="border-hairline bg-surface shadow-lift w-full min-w-0 rounded-[14px] border p-2.5 lg:flex-1">
+            {/* 목업 높이 330 — 정본 wf/wf-s1-entry.jsx:16 `<Ph … h={330} r={8} />` */}
             <div
               aria-hidden="true"
               className="bg-canvas-soft text-ink-mute text-caption flex h-[330px] items-center justify-center rounded-md"
@@ -153,7 +154,8 @@ export function ServiceIntroPage() {
         </section>
       </main>
 
-      {/* 푸터 — height 60, padding 0 64px, 상단 hairline, bg-surface */}
+      {/* 푸터 — 정본 wf/wf-s1-entry.jsx:34 `height: 60, padding '0 64px'`,
+          상단 1px hairline, bg-surface */}
       <footer className="border-hairline bg-surface flex h-[60px] shrink-0 items-center justify-between gap-4 border-t px-6 lg:px-16">
         <Logo size={16} />
         <div className="text-ink-mute flex items-center gap-4 text-[12px]">

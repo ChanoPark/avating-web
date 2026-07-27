@@ -10,7 +10,7 @@ import {
   setOnboardingProgress,
   type OnboardingMethod,
 } from '@entities/onboarding';
-import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '../ui/WizardShell';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
 type MethodCardProps = {
   selected: boolean;

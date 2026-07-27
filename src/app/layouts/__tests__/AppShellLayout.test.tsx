@@ -286,19 +286,23 @@ describe('AppShellLayout', () => {
     });
   });
 
-  describe('메인 콘텐츠 폭 (웹 비율)', () => {
-    it('메인 영역 안 콘텐츠 컨테이너에 max-w-[1280px] 가 적용된다', () => {
+  describe('메인 콘텐츠 폭', () => {
+    // LAYOUT-NUMBERS § AppShell: "넓은 뷰포트: 사이드바는 232px 고정, 본문이 늘어납니다."
+    // 정본은 본문 폭 상한을 규정하지 않는다 — 우측 사이드 카드(260~272)가 고정폭이고
+    // 가운데 열만 신축하는 방식이라 상한이 필요 없다.
+    it('콘텐츠 컨테이너에 폭 상한을 두지 않는다', () => {
       renderWithProviders('/dashboard');
       const outlet = screen.getByTestId('outlet-content');
       const container = outlet.closest('[data-shell-content]');
-      expect(container?.className.includes('max-w-[1280px]')).toBe(true);
+      expect(container?.className).toContain('w-full');
+      expect(container?.className).not.toMatch(/\bmax-w-/);
     });
 
-    it('메인 영역 안 콘텐츠 컨테이너에 mx-auto 가 적용된다 (가운데 정렬)', () => {
+    it('콘텐츠 컨테이너를 가운데로 몰지 않는다 (좌측 정렬로 신축)', () => {
       renderWithProviders('/dashboard');
       const outlet = screen.getByTestId('outlet-content');
       const container = outlet.closest('[data-shell-content]');
-      expect(container?.className.includes('mx-auto')).toBe(true);
+      expect(container?.className).not.toContain('mx-auto');
     });
   });
 

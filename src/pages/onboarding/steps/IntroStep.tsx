@@ -8,9 +8,9 @@ import { Button } from '@shared/ui/Button/Button';
 import { cn } from '@shared/lib/cn';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import { loadDraft, saveDraft } from '@features/persona-survey/lib/draftStorage';
-import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '../ui/WizardShell';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// S-02-02 Step 1 — 표시용 입력 제한(이름 16자 / 설명 80자).
+// S-02-02 Step 1 — 표시용 입력 제한. 정본 wf/wf-s1-entry.jsx 의 `count="0 / 20"`·`"0 / 120"`.
 // 백엔드 제출 계약(avatarCreateFromSurveyRequestSchema: 이름 50 / 설명 200)의 부분집합이라 항상 유효하다.
 const NAME_MAX = 20;
 const DESC_MAX = 120;

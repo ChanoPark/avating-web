@@ -11,19 +11,6 @@ import { cn } from '@shared/lib/cn';
 /** 레일 라벨 4개 고정 (wf-s1-entry.jsx 의 `Page steps` 매핑). */
 const RAIL_LABELS = ['아바타 기본 정보', '생성 방법 선택', '성향 설문', '아바타 확인'] as const;
 
-/** 폼 카드 본문 — padding `34px 44px 28px`, gap 18. */
-export const WIZARD_BODY = 'flex flex-col gap-[18px] px-11 pt-[34px] pb-7';
-
-/** 레일 없는 플랫 형태(S-02-01) 본문 — padding `38px 44px 30px`, gap 18. */
-export const WIZARD_BODY_FLAT = 'flex flex-col gap-[18px] px-11 pt-[38px] pb-[30px]';
-
-/** 액션 바 — padding `16px 44px`, 상단 1px hairline, `--canvas-soft`. */
-export const WIZARD_ACTIONS =
-  'border-hairline bg-canvas-soft flex items-center justify-between gap-3 border-t px-11 py-4';
-
-/** 헤드 블록 — gap 7 (Eyebrow + 제목 + 서브). */
-export const WIZARD_HEAD = 'flex flex-col gap-[7px]';
-
 type StepState = 'done' | 'current' | 'upcoming';
 
 const STEP_STATE_LABEL: Record<StepState, string> = {

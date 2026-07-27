@@ -4,7 +4,7 @@ import { Button } from '@shared/ui/Button/Button';
 import { Card } from '@shared/ui/Card/Card';
 import { cn } from '@shared/lib/cn';
 import { setOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
-import { WIZARD_ACTIONS, WIZARD_BODY_FLAT, WIZARD_HEAD } from '../ui/WizardShell';
+import { WIZARD_ACTIONS, WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard';
 
 // S-02-01 환영 — 레일 없는 플랫 형태. 앞으로 할 일 4단계를 체크리스트로 보여주기만 하고
 // 진행 표시는 하지 않는다 (다음 화면부터 레일이 담당한다).

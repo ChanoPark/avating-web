@@ -16,14 +16,9 @@ import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
 import { ExpressionsField } from './ExpressionsField';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
 // WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
-// features → pages 방향 의존을 eslint-plugin-boundaries 가 막아 상수를 공유하지 못하고 복제한다.
-// 정본 수치는 LAYOUT-NUMBERS.md § WizardShell.
-const WIZARD_BODY = 'flex flex-col gap-[18px] px-11 pt-[34px] pb-7';
-const WIZARD_ACTIONS =
-  'border-hairline bg-canvas-soft flex items-center justify-between gap-3 border-t px-11 py-4';
-const WIZARD_HEAD = 'flex flex-col gap-[7px]';
 
 export function SurveyStep() {
   const navigate = useNavigate();
