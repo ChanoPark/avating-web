@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { Badge } from '@shared/ui/Badge';
+import { cn } from '@shared/lib/cn';
 import { useMyAvatarsSuspense } from '@entities/avatar';
 import type { MyAvatar } from '@entities/match-request';
 import type { AvatarStatus } from '@entities/avatar';
@@ -30,14 +31,21 @@ function CardHeader({ action }: { action?: React.ReactNode }) {
   );
 }
 
+// 실제 콘텐츠와 같은 4단(헤더 / 아바타 행 / divider / `진행 중 매칭` 행)을 세운다.
+// 앞의 두 단만 두면 로드 후 카드가 divider + 한 행만큼 늘어나 CLS 가 생긴다.
 function MyAvatarGridSkeleton() {
   return (
-    <section aria-label="내 아바타" className={CARD_CLASS}>
+    <section aria-label="내 아바타" className={cn(CARD_CLASS, 'animate-pulse')}>
       <div className="flex items-center justify-between">
-        <div className="bg-canvas-soft h-4 w-16 animate-pulse rounded" />
-        <div className="bg-canvas-soft h-4 w-14 animate-pulse rounded" />
+        <div className="bg-canvas-soft h-4 w-16 rounded" />
+        <div className="bg-canvas-soft h-4 w-14 rounded" />
       </div>
-      <div className="bg-canvas-soft h-11 animate-pulse rounded-[11px]" />
+      <div className="bg-canvas-soft h-11 rounded-[11px]" />
+      <hr className="border-hairline border-t" />
+      <div className="flex items-center justify-between">
+        <div className="bg-canvas-soft h-3 w-20 rounded" />
+        <div className="bg-canvas-soft h-3 w-8 rounded" />
+      </div>
     </section>
   );
 }

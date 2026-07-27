@@ -33,7 +33,9 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
   return (
     <main className="bg-canvas text-ink flex min-h-screen items-center justify-center px-6 py-12">
       <div role="alert" className="flex max-w-[480px] flex-col items-center text-center">
-        <div className="text-danger flex h-14 w-14 items-center justify-center rounded-xl border border-[rgba(248,81,73,0.2)] bg-[rgba(248,81,73,0.08)]">
+        {/* v1 다크 테마의 danger 하드코딩(`rgba(248,81,73,*)` = #F85149)이 남아 있었다.
+            v2 `--danger` 는 #dd3546 이라 색조가 어긋난다 — 토큰으로 이행한다. */}
+        <div className="text-danger bg-danger-wash border-danger/20 flex h-14 w-14 items-center justify-center rounded-xl border">
           <AlertTriangle size={24} strokeWidth={1.5} aria-hidden="true" />
         </div>
         <h1 className="text-heading-lg text-ink mt-6">일시적인 문제가 발생했어요</h1>

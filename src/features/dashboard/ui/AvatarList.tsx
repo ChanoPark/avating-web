@@ -81,16 +81,49 @@ function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
   );
 }
 
+/**
+ * 로딩 스켈레톤은 실제 4열 카드 그리드와 같은 골격을 세운다. 한 줄 텍스트로 두면
+ * 데이터 도착 시 대시보드 하단이 카드 높이만큼 통째로 밀려 CLS 가 발생한다.
+ * 카드 내부 3단(아바타 행 / 태그 행 / 호감도+버튼 행)을 AvatarCard 와 맞춘다.
+ */
+function AvatarListSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      aria-live="polite"
+      className="grid animate-pulse grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
+    >
+      <span className="sr-only">추천 아바타를 불러오는 중…</span>
+      {Array.from({ length: 4 }, (_, i) => (
+        <div
+          key={i}
+          className="border-hairline bg-surface shadow-card flex flex-col gap-2.5 rounded-lg border p-3.5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="bg-canvas-soft h-10 w-10 shrink-0 rounded-[10px]" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="bg-canvas-soft h-3 w-24 rounded" />
+              <div className="bg-canvas-soft h-2.75 w-32 rounded" />
+            </div>
+          </div>
+          <div className="flex gap-1.25">
+            <div className="bg-canvas-soft rounded-pill h-5 w-14" />
+            <div className="bg-canvas-soft rounded-pill h-5 w-16" />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="bg-canvas-soft h-3 w-20 rounded" />
+            <div className="bg-canvas-soft rounded-pill h-8 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AvatarList({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
   return (
     <ErrorBoundary fallback={<AvatarListFallback onResetFilter={onResetFilter} />}>
-      <Suspense
-        fallback={
-          <div className={cn(PANEL_CLASS, 'text-ink-mute text-caption py-12 text-center')}>
-            로딩 중…
-          </div>
-        }
-      >
+      <Suspense fallback={<AvatarListSkeleton />}>
         <AvatarListContent
           filter={filter}
           onAvatarClick={onAvatarClick}

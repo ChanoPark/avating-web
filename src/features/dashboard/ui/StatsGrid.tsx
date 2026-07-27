@@ -10,10 +10,17 @@ import type { DashboardStats } from '@entities/dashboard';
 // StatCard 와 같은 상자 규격 — padding 14, radius `--r-lg`, hairline + shadow-card.
 const STAT_BOX = 'border-hairline bg-surface shadow-card rounded-lg border p-3.5';
 
+// StatsCard 와 같은 3단 구조(아이콘+라벨 행 / 26px value / delta 행)를 그대로 세운다.
+// 라인 하나만 두면 데이터 도착 시 카드가 눈에 띄게 늘어나 CLS 가 생긴다.
 function StatsSkeleton() {
   return (
-    <div className={cn(STAT_BOX, 'animate-pulse')}>
-      <div className="bg-canvas-soft h-3 w-16 rounded" />
+    <div className={cn(STAT_BOX, 'flex animate-pulse flex-col gap-1')}>
+      <div className="flex items-center gap-2">
+        <div className="bg-canvas-soft h-3.25 w-3.25 shrink-0 rounded" />
+        <div className="bg-canvas-soft h-2.5 w-16 rounded" />
+      </div>
+      <div className="bg-canvas-soft h-6.5 w-20 rounded" />
+      <div className="bg-canvas-soft h-2.75 w-24 rounded" />
     </div>
   );
 }
