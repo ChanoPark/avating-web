@@ -1,5 +1,5 @@
-import { Tag } from '@shared/ui/Tag';
-import { StatusDot } from '@shared/ui/StatusDot';
+import { Shield } from 'lucide-react';
+import { Badge } from '@shared/ui/Badge';
 import type { AvatarStatus } from '@entities/avatar';
 
 export type PartnerAvatarSummary = {
@@ -9,44 +9,43 @@ export type PartnerAvatarSummary = {
   type: string;
   verified: boolean;
   status: AvatarStatus;
-  tags: readonly string[];
 };
 
 type Props = {
   partner: PartnerAvatarSummary;
 };
 
+// wf-s3-request `ScreenMatchRequestSend` 의 상대 카드 — 이미지 44(r 11) + 이름 + 인증 배지 /
+// 핸들·성향 micro / 우측 온라인 배지. 관심사 태그는 정본에 없다 (상세 화면에서 본다).
 export function PartnerAvatarCard({ partner }: Props) {
   return (
-    <div className="bg-bg-elev-2 border-border flex items-center gap-3 rounded-md border p-3">
+    <div className="border-hairline bg-surface shadow-card flex items-center gap-2.75 rounded-lg border p-3.5">
+      {/* 아바타 사각 — radius = size × 0.24, tone=wash (wash 배경 + primary 텍스트, 테두리 없음) */}
       <div
         aria-hidden="true"
-        className="bg-bg-elev-3 border-border-hi text-text-2 font-ui text-ui flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full border font-medium"
+        className="bg-primary-wash text-primary text-body-sm flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] font-semibold uppercase"
       >
         {partner.initials}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <span className="font-ui text-subheading text-text truncate">{partner.name}</span>
-          {partner.verified && <Tag variant="success">인증</Tag>}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.75">
+        <div className="flex items-center gap-1.5">
+          <span className="text-caption text-ink truncate font-medium">{partner.name}</span>
+          {partner.verified && (
+            <Badge variant="brand">
+              <Shield size={11} strokeWidth={1.5} aria-hidden="true" />
+              인증
+            </Badge>
+          )}
         </div>
-        <p className="text-mono-meta text-text-3 mt-0.5 font-mono">
+        <span className="text-micro text-ink-mute truncate">
           {partner.handle} · {partner.type}
-        </p>
-        {partner.tags.length > 0 && (
-          <ul className="mt-2 flex flex-wrap gap-1.5">
-            {partner.tags.map((tag) => (
-              <li key={tag}>
-                <Tag>{tag}</Tag>
-              </li>
-            ))}
-          </ul>
-        )}
+        </span>
       </div>
-      <div className="flex flex-col items-end gap-1">
-        <StatusDot status={partner.status} />
-        {partner.status === 'online' && <Tag variant="success">온라인</Tag>}
-      </div>
+      {partner.status === 'online' && (
+        <Badge variant="success" dot className="shrink-0">
+          온라인
+        </Badge>
+      )}
     </div>
   );
 }

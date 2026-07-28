@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { AlertTriangle, Check, Info, X } from 'lucide-react';
+import { Check, CircleAlert, Info, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
 import {
@@ -11,26 +11,27 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-// 좌측 3px 레일(톤 시그널) — Avating Modal Toast System 정본.
+// 좌측 3px 레일(톤 시그널). v1 의 `border-l-brand` 는 `--color-brand` 가 없어
+// 아무 스타일도 만들지 못하던 죽은 클래스였다 — v2 시맨틱 토큰으로 교체.
 const variantRail: Record<ToastVariant, string> = {
-  info: 'border-l-brand',
+  info: 'border-l-primary',
   success: 'border-l-success',
   warning: 'border-l-warning',
   error: 'border-l-danger',
 };
 
-// 시맨틱 글리프 배지 (20px 원형, semantic-soft 채움 + semantic 보더).
+// 시맨틱 배지 (20px 원형). 틴트 채움에 같은 색 테두리를 겹치지 않는다 — wash 배경만.
 const variantBadge: Record<ToastVariant, string> = {
-  info: 'bg-brand-soft border-brand-border text-brand',
-  success: 'border-[rgba(63,185,80,0.35)] bg-[rgba(63,185,80,0.1)] text-success',
-  warning: 'border-[rgba(210,153,34,0.35)] bg-[rgba(210,153,34,0.1)] text-warning',
-  error: 'border-[rgba(248,81,73,0.35)] bg-[rgba(248,81,73,0.1)] text-danger',
+  info: 'bg-primary-wash text-primary-press',
+  success: 'bg-success-wash text-success',
+  warning: 'bg-warning-wash text-warning',
+  error: 'bg-danger-wash text-danger',
 };
 
 const variantIcon: Record<ToastVariant, LucideIcon> = {
   info: Info,
   success: Check,
-  warning: AlertTriangle,
+  warning: CircleAlert,
   error: X,
 };
 
@@ -65,23 +66,23 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         setPaused(false);
       }}
       className={cn(
-        'shadow-3 bg-bg-elev-1 border-border pointer-events-auto w-[340px] rounded-[10px] border border-l-[3px] px-3.5 py-3',
+        'shadow-3 bg-surface border-hairline pointer-events-auto w-85 rounded-md border border-l-[3px] px-3.5 py-3',
         variantRail[toast.variant]
       )}
     >
       <div className="flex items-start gap-2.5">
         <span
           className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full border',
+            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
             variantBadge[toast.variant]
           )}
         >
-          <Icon size={12} strokeWidth={2} aria-hidden="true" />
+          <Icon size={12} strokeWidth={1.5} aria-hidden="true" />
         </span>
         <div className="flex-1">
-          <div className="font-ui text-ui text-text">{toast.title}</div>
+          <div className="text-caption text-ink font-medium">{toast.title}</div>
           {toast.description !== undefined && (
-            <div className="text-body-sm text-text-2 mt-0.5">{toast.description}</div>
+            <div className="text-caption text-ink-secondary mt-0.5">{toast.description}</div>
           )}
         </div>
         <button
@@ -90,7 +91,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
             onDismiss(toast.id);
           }}
           aria-label="알림 닫기"
-          className="text-text-3 hover:text-text transition-colors"
+          className="text-ink-mute hover:text-ink cursor-pointer transition-colors"
         >
           <X size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>

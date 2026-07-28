@@ -46,11 +46,13 @@ describe('AvatarDetailPage', () => {
     });
   });
 
-  it('HexRadar 와 6개의 Meter 가 렌더된다 (6축 스탯)', async () => {
+  // 정본(wf-s2-core ScreenAvatarDetail)의 `아바타 스탯` 카드는 StatBar 행만 쌓는다 — 레이더는 없다.
+  it('6개의 StatBar(Meter) 가 렌더된다 (6축 스탯)', async () => {
     renderPage();
-    await screen.findByRole('img', { name: '아바타 스탯 레이더' });
+    await screen.findByRole('heading', { name: '아바타 스탯' });
     expect(screen.getAllByRole('meter')).toHaveLength(6);
     expect(screen.getByRole('meter', { name: '공감 지수' })).toHaveAttribute('aria-valuenow', '81');
+    expect(screen.queryByRole('img', { name: '아바타 스탯 레이더' })).not.toBeInTheDocument();
   });
 
   it('공개 정보 패널이 나이대/지역/직군을 표시하고, 세션 이력(호감도·턴)은 노출하지 않는다', async () => {
@@ -66,10 +68,11 @@ describe('AvatarDetailPage', () => {
     expect(screen.queryByRole('heading', { name: '세션 이력' })).not.toBeInTheDocument();
   });
 
-  it('"매칭 요청" CTA 클릭 시 MatchRequestModal 이 열린다', async () => {
+  // 정본: 이 화면의 채워진 파란 CTA 는 우측 featured 카드의 `매칭 요청 보내기` 하나뿐이다.
+  it('"매칭 요청 보내기" CTA 클릭 시 MatchRequestModal 이 열린다', async () => {
     const user = userEvent.setup();
     renderPage();
-    const trigger = await screen.findByRole('button', { name: '매칭 요청' });
+    const trigger = await screen.findByRole('button', { name: /매칭 요청 보내기/ });
     expect(trigger).toHaveAttribute('aria-haspopup', 'dialog');
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
 
@@ -84,10 +87,20 @@ describe('AvatarDetailPage', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
   });
 
+  it('본문에서 채워진 파란 CTA 는 한 개뿐이다', async () => {
+    renderPage();
+    await screen.findByRole('heading', { name: 'Moonlit Narrator' });
+    const filled = screen
+      .getAllByRole('button')
+      .filter((btn) => btn.className.includes('bg-primary'));
+    expect(filled).toHaveLength(1);
+    expect(filled[0]).toHaveAccessibleName(/매칭 요청 보내기/);
+  });
+
   it('busy 상태 아바타는 매칭 요청 CTA 가 disabled 처리된다', async () => {
     setAvatarDetailScenario('busy');
     renderPage();
-    const cta = await screen.findByRole('button', { name: '매칭 요청' });
+    const cta = await screen.findByRole('button', { name: /매칭 요청 보내기/ });
     expect(cta).toBeDisabled();
     expect(cta).toHaveAttribute('title', '이미 매칭 중인 아바타입니다');
   });

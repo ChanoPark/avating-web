@@ -1,16 +1,22 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router';
+import { Check, SquarePen, X } from 'lucide-react';
+import { Badge } from '@shared/ui/Badge/Badge';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { HexRadar } from '@shared/ui/HexRadar/HexRadar';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
+import { cn } from '@shared/lib/cn';
 import { clearOnboardingProgress, getOnboardingProgress } from '@entities/onboarding';
 import type { GeneratedAvatar } from '@entities/onboarding';
 import { isApiError } from '@shared/lib/errors';
 import { useGeneratedAvatar } from '../api/useGeneratedAvatar';
 import { useCompleteOnboarding } from '../api/useCompleteOnboarding';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
+
+// WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
 
 const MAX_TUNE = 3;
 
@@ -75,6 +81,23 @@ function clampStat(value: number): number {
   return Math.min(100, Math.max(10, value));
 }
 
+// StatBar — 라벨 폭 72, 값 tnum (LAYOUT-NUMBERS § 카드 · 데이터 부품).
+function StatBarRow({ label, value, testId }: { label: string; value: number; testId: string }) {
+  return (
+    <>
+      <span className="text-caption text-ink-mute w-[72px] shrink-0 text-left">{label}</span>
+      <span className="bg-canvas-soft relative h-1.5 flex-1 overflow-hidden rounded-full">
+        <span
+          data-testid={testId}
+          className="bg-primary block h-full rounded-full"
+          style={{ width: `${value}%` }}
+        />
+      </span>
+      <span className="text-caption text-ink-secondary tnum w-7 text-right">{value}</span>
+    </>
+  );
+}
+
 type AvatarContentInnerProps = {
   avatar: GeneratedAvatar;
   onStart: () => void;
@@ -83,7 +106,7 @@ type AvatarContentInnerProps = {
 
 function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerProps) {
   const toast = useToast();
-  // 와이어프레임 v2: 기본은 읽기 전용 확인. "스탯 다듬기" 진입 시에만 튜닝 가능.
+  // 기본은 읽기 전용 확인. "스탯 다듬기" 진입 시에만 튜닝 가능.
   const [tuning, setTuning] = useState(false);
   const [stats, setStats] = useState(avatar.stats);
   const [tuneCount, setTuneCount] = useState(0);
@@ -144,187 +167,168 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6">
-      <header className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-            STEP 4 / 4 · 아바타 확인
-          </span>
-          {tuning ? (
+    <>
+      <div className={WIZARD_BODY}>
+        <div className="flex items-start justify-between gap-3">
+          <div className={WIZARD_HEAD}>
+            <h1 className="text-heading-lg text-ink">
+              {tuning ? '스탯 다듬기' : '이렇게 생성됐어요'}
+            </h1>
+            <p className="text-body-sm text-ink-mute">
+              {tuning
+                ? '마음에 안 드는 스탯을 눌러 재조정해보세요.'
+                : '내용을 확인한 뒤 완료를 눌러 주세요.'}
+            </p>
+          </div>
+          {tuning && (
             <div
-              className="flex items-center gap-1.5"
+              className="flex shrink-0 items-center gap-1.5"
               aria-label={`튜닝 ${tuneCount} / ${MAX_TUNE}`}
             >
               {Array.from({ length: MAX_TUNE }).map((_, i) => (
                 <span
                   key={i}
                   aria-hidden="true"
-                  className={`border-border-hi h-1.5 w-1.5 rounded-full border ${
-                    i < tuneCount ? 'bg-brand' : 'bg-bg-elev-3'
-                  }`}
+                  className={cn(
+                    'border-hairline-input h-1.5 w-1.5 rounded-full border',
+                    i < tuneCount ? 'bg-primary' : 'bg-canvas-soft'
+                  )}
                 />
               ))}
               <span
-                className={`text-mono-meta font-mono ${
-                  tuneCount >= MAX_TUNE ? 'text-danger' : 'text-text-3'
-                }`}
+                className={cn(
+                  'text-micro tnum',
+                  tuneCount >= MAX_TUNE ? 'text-danger' : 'text-ink-mute'
+                )}
               >
                 {tuneCount}/{MAX_TUNE}
               </span>
             </div>
-          ) : (
-            <Tag variant="success">✓ 생성 완료</Tag>
           )}
         </div>
-        <h1 className="font-ui text-title text-text">
-          {tuning ? '스탯 다듬기' : '생성된 아바타입니다'}
-        </h1>
-        <p className="text-body-sm text-text-2">
-          {tuning
-            ? '마음에 안 드는 스탯을 눌러 재조정해보세요.'
-            : '아래 정보를 확인한 뒤 완료 버튼을 눌러주세요.'}
-        </p>
-      </header>
 
-      <div className="border-border bg-bg-elev-2 flex items-center gap-3 rounded-md border p-4">
-        <div
-          aria-hidden="true"
-          className="bg-bg-elev-3 border-border-hi text-text-2 font-ui flex h-12 w-12 shrink-0 items-center justify-center rounded-md border text-base font-semibold"
-        >
-          {avatar.initials}
-        </div>
-        <div className="flex flex-col gap-1">
-          <span className="font-ui text-subheading text-text">{avatar.name}</span>
-          {/* chat7: 레벨(Lv) 태그 제거 — 유형 태그만 노출 */}
-          <div className="flex items-center gap-2">
-            <Tag>{avatar.type}</Tag>
+        {/* 생성 결과 카드 — 아바타 46 + 이름 + 배지 + 성향 · divider · 스탯 (S-02-07). */}
+        <div className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="bg-primary-wash text-primary flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[11px] text-[15.64px] font-semibold"
+            >
+              {avatar.initials}
+            </span>
+            <div className="flex flex-col gap-[3px]">
+              <div className="flex items-center gap-[7px]">
+                <span className="text-heading-sm text-ink">{avatar.name}</span>
+                <Badge variant="success">
+                  <Check size={11} strokeWidth={1.5} aria-hidden="true" />
+                  생성 완료
+                </Badge>
+              </div>
+              <span className="text-caption text-ink-mute">{avatar.type}</span>
+            </div>
+          </div>
+
+          <hr className="border-hairline w-full border-0 border-t" />
+
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <HexRadar stats={radarValues} labels={[...RADAR_LABELS]} size={140} />
+            <ul className="flex w-full flex-1 flex-col gap-2">
+              {STAT_ORDER.map((key) => {
+                const v = stats[key];
+                if (!tuning) {
+                  return (
+                    <li key={key} className="flex items-center gap-2 px-2">
+                      <StatBarRow
+                        label={STAT_LABEL[key]}
+                        value={v}
+                        testId={`stat-bar-fill-${key}`}
+                      />
+                    </li>
+                  );
+                }
+
+                const isActive = activeStat === key;
+                const disabled = tuneCount >= MAX_TUNE;
+                return (
+                  <li key={key}>
+                    <button
+                      type="button"
+                      ref={(el) => {
+                        if (el) statButtonRefs.current.set(key, el);
+                        else statButtonRefs.current.delete(key);
+                      }}
+                      onClick={() => {
+                        handleStatClick(key);
+                      }}
+                      aria-disabled={disabled}
+                      aria-label={`${STAT_LABEL[key]} 스탯 ${v}${
+                        disabled ? '(튜닝 한도 초과)' : '- 클릭해 재조정'
+                      }`}
+                      className={cn(
+                        'flex w-full items-center gap-2 rounded-sm border px-2 py-1 text-left transition-colors duration-[var(--dur-fast)]',
+                        isActive ? 'border-primary' : 'hover:bg-canvas-soft border-transparent',
+                        disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
+                      )}
+                    >
+                      <StatBarRow
+                        label={STAT_LABEL[key]}
+                        value={v}
+                        testId={`stat-bar-fill-${key}`}
+                      />
+                      <SquarePen
+                        size={13}
+                        strokeWidth={1.5}
+                        aria-hidden="true"
+                        className="text-ink-mute shrink-0"
+                      />
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </div>
         </div>
-      </div>
 
-      <div className="border-border bg-bg-elev-2 grid grid-cols-[140px_1fr] items-center gap-4 rounded-md border p-4">
-        <div className="flex items-center justify-center">
-          <HexRadar stats={radarValues} labels={[...RADAR_LABELS]} size={140} />
-        </div>
-        <ul className="flex flex-col gap-1.5">
-          {STAT_ORDER.map((key) => {
-            const v = stats[key];
-            if (!tuning) {
-              // 읽기 전용 스탯 바
-              return (
-                <li key={key} className="flex items-center gap-2 px-2 py-1">
-                  <span className="text-mono-meta text-text-3 w-10 font-mono">
-                    {STAT_LABEL[key]}
-                  </span>
-                  <span className="bg-bg-elev-3 relative h-1 flex-1 overflow-hidden rounded-sm">
-                    <span
-                      data-testid={`stat-bar-fill-${key}`}
-                      className="bg-brand block h-full"
-                      style={{ width: `${v}%` }}
-                    />
-                  </span>
-                  <span className="text-mono-meta text-text-2 w-6 text-right font-mono">{v}</span>
-                </li>
-              );
-            }
-
-            const isActive = activeStat === key;
-            const disabled = tuneCount >= MAX_TUNE;
-            return (
-              <li key={key}>
-                <button
-                  type="button"
-                  ref={(el) => {
-                    if (el) statButtonRefs.current.set(key, el);
-                    else statButtonRefs.current.delete(key);
-                  }}
-                  onClick={() => {
-                    handleStatClick(key);
-                  }}
-                  aria-disabled={disabled}
-                  aria-label={`${STAT_LABEL[key]} 스탯 ${v}${
-                    disabled ? ' (튜닝 한도 초과)' : ' - 클릭해 재조정'
-                  }`}
-                  className={`group flex w-full items-center gap-2 rounded-sm border px-2 py-1 text-left transition-colors ${
-                    isActive
-                      ? 'border-brand-border bg-brand-soft'
-                      : 'hover:bg-bg-elev-3 border-transparent'
-                  } ${disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'}`}
-                >
-                  <span className="text-mono-meta text-text-3 w-10 font-mono">
-                    {STAT_LABEL[key]}
-                  </span>
-                  <span className="bg-bg-elev-3 relative h-1 flex-1 overflow-hidden rounded-sm">
-                    <span
-                      data-testid={`stat-bar-fill-${key}`}
-                      className="bg-brand block h-full"
-                      style={{ width: `${v}%` }}
-                    />
-                  </span>
-                  <span className="text-mono-meta text-text-2 w-6 text-right font-mono">{v}</span>
-                  <span aria-hidden="true" className="text-text-4 text-xs">
-                    ✎
-                  </span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
-
-      {avatar.tags.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-            AFFINITY TAGS
-          </span>
+        {avatar.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {avatar.tags.map((tag) => (
-              <Tag key={tag}>
+              <Tag key={tag} variant="neutral">
                 <span data-testid="avatar-tag">{tag}</span>
               </Tag>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {tuning ? (
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            setTuning(false);
-          }}
-          className="w-full"
-        >
-          확인으로 돌아가기
-        </Button>
-      ) : (
-        <div className="flex flex-col gap-2">
-          <Button
-            type="button"
-            variant="primary"
-            onClick={onStart}
-            disabled={isPending}
-            className="w-full"
-          >
-            완료
-          </Button>
+      <div className={WIZARD_ACTIONS}>
+        {tuning ? (
           <Button
             type="button"
             variant="ghost"
             onClick={() => {
-              setTuning(true);
+              setTuning(false);
             }}
-            className="w-full"
           >
-            스탯 다듬기
+            확인으로 돌아가기
           </Button>
-        </div>
-      )}
-
-      <p className="text-mono-meta text-text-3 text-center font-mono">
-        확정 이후 스탯은 튜닝 기능을 통해 조정할 수 있습니다
-      </p>
+        ) : (
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setTuning(true);
+              }}
+            >
+              스탯 다듬기
+            </Button>
+            <Button type="button" onClick={onStart} disabled={isPending}>
+              완료
+              <Check size={16} strokeWidth={1.5} aria-hidden="true" />
+            </Button>
+          </>
+        )}
+      </div>
 
       {tuning && activeStat !== null && (
         <div className="fixed inset-0 z-[var(--z-modal)] flex items-end px-4 pb-4">
@@ -342,24 +346,24 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
             role="dialog"
             aria-modal="true"
             aria-labelledby="tune-survey-title"
-            className="border-border-hi bg-bg-elev-1 relative mx-auto w-full max-w-[480px] rounded-md border p-5"
+            className="border-hairline bg-surface shadow-float relative mx-auto w-full max-w-[560px] rounded-xl border p-6"
           >
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-mono-meta text-brand font-mono">
+              <span className="text-micro-cap text-primary uppercase">
                 {STAT_LABEL[activeStat]} 재조정
               </span>
               <button
                 type="button"
                 aria-label="다이얼로그 닫기"
-                className="text-text-3 hover:text-text"
+                className="text-ink-mute hover:text-ink cursor-pointer"
                 onClick={() => {
                   closeDialog(true);
                 }}
               >
-                ✕
+                <X size={16} strokeWidth={1.5} aria-hidden="true" />
               </button>
             </div>
-            <p id="tune-survey-title" className="font-ui text-subheading text-text mb-3">
+            <p id="tune-survey-title" className="text-body-sm text-ink mb-3">
               {TUNE_SURVEY[activeStat].question}
             </p>
             <div className="flex flex-col gap-2">
@@ -371,7 +375,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
                   onClick={() => {
                     handleAnswer(oi);
                   }}
-                  className="border-border bg-bg-elev-2 text-body text-text hover:border-border-hi rounded-sm border px-3 py-2 text-left"
+                  className="border-hairline bg-surface text-caption text-ink hover:border-primary cursor-pointer rounded-md border px-3 py-2 text-left transition-colors duration-[var(--dur-fast)]"
                 >
                   {opt}
                 </button>
@@ -380,7 +384,7 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -414,8 +418,8 @@ function AvatarContent() {
 
 function ErrorFallback() {
   return (
-    <div role="alert" className="flex flex-col items-center gap-4 py-8">
-      <p className="text-text-2">오류가 발생했습니다. 다시 시도해주세요.</p>
+    <div role="alert" className={WIZARD_BODY}>
+      <p className="text-body-sm text-ink-secondary">오류가 발생했습니다. 다시 시도해주세요.</p>
     </div>
   );
 }
@@ -435,8 +439,8 @@ export function CompleteStep() {
     <ErrorBoundary FallbackComponent={ErrorFallback}>
       <Suspense
         fallback={
-          <div className="flex justify-center py-8">
-            <span className="text-text-2">아바타 데이터를 불러오는 중...</span>
+          <div className={WIZARD_BODY}>
+            <p className="text-body-sm text-ink-secondary">아바타 데이터를 불러오는 중...</p>
           </div>
         }
       >

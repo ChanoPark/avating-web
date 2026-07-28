@@ -1,160 +1,170 @@
 import { useNavigate } from 'react-router';
-import { ArrowRight, Heart, Users, Zap } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Card } from '@shared/ui/Card';
-import { MonoLabel } from '@shared/ui/Label';
 import { Tag } from '@shared/ui/Tag';
-import { cn } from '@shared/lib/cn';
 
-type Feature = {
-  icon: LucideIcon;
+type Step = {
   title: string;
   body: string;
 };
 
-type Metric = {
-  value: string;
-  label: string;
-};
-
-const FEATURES: readonly Feature[] = [
-  {
-    icon: Users,
-    title: '아바타 매칭',
-    body: '내 성향을 학습한 AI 아바타가 다른 아바타와 먼저 대화해요.',
-  },
-  {
-    icon: Zap,
-    title: '답답하면 직접 개입',
-    body: '결정적인 순간엔 프롬프트를 직접 넣어 대화에 끼어들 수 있어요.',
-  },
-  {
-    icon: Heart,
-    title: '에프터 연결',
-    body: '서로의 마음이 맞으면 진짜 사용자끼리 대화를 이어가요.',
-  },
+// 정본 `ScreenServiceIntro` 의 HOW IT WORKS 3카드.
+const STEPS: readonly Step[] = [
+  { title: '아바타를 만들어요', body: '설문 6문항 또는 ChatGPT Bot 연동' },
+  { title: '아바타끼리 대화해요', body: '관전하며 훈수로 개입' },
+  { title: '호감도가 넘으면 연결', body: '양측 수락 시 실제 채팅 개설' },
 ];
 
-const METRICS: readonly Metric[] = [
-  { value: '4.2만+', label: '누적 매칭' },
-  { value: '68%', label: '평균 호감도' },
-  { value: '1.1만', label: '에프터 연결' },
-];
+// 아직 화면이 없는 마케팅 내비·푸터 항목은 링크를 만들지 않고 비대화형 텍스트로 둔다
+// (죽은 링크에 포커스가 잡히지 않게 — AppShellLayout 의 비활성 내비와 같은 판단).
+const NAV_ITEMS = ['서비스 소개', '작동 방식', '요금'] as const;
+const FOOTER_ITEMS = ['이용약관', '개인정보', '문의'] as const;
+
+const HOW_IT_WORKS_ID = 'how-it-works';
+
+// 로고 마크 = 정사각 size, radius = size × 0.28, `--primary` 채움.
+// 워드마크 = size × 0.78, weight 500, letterSpacing -0.4px (LAYOUT-NUMBERS § 카드 · 데이터 부품).
+function Logo({ size }: { size: number }) {
+  return (
+    <span className="flex shrink-0 items-center gap-2">
+      <span
+        aria-hidden="true"
+        className="bg-primary shrink-0"
+        style={{ width: size, height: size, borderRadius: size * 0.28 }}
+      />
+      <span className="text-ink font-medium tracking-[-0.4px]" style={{ fontSize: size * 0.78 }}>
+        Avating
+      </span>
+    </span>
+  );
+}
 
 export function ServiceIntroPage() {
   const navigate = useNavigate();
 
+  // 아직 별도 라우트가 없는 "작동 방식" 은 같은 화면의 HOW IT WORKS 밴드로만 이동시킨다.
+  const scrollToHowItWorks = () => {
+    document.getElementById(HOW_IT_WORKS_ID)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
-    <div className="bg-bg text-text flex min-h-screen flex-col">
-      <header className="border-border bg-bg-elev-1 sticky top-0 z-[var(--z-sticky)] border-b">
-        <div className="mx-auto flex h-14 max-w-[1152px] items-center justify-between px-8">
-          <span className="font-ui text-heading text-text flex items-center gap-2.5 tracking-tight">
-            <span aria-hidden="true" className="bg-brand h-[22px] w-[22px] rounded-md" />
-            Avating
-          </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              void navigate('/login');
-            }}
-          >
-            로그인
-          </Button>
-        </div>
-      </header>
+    <div className="bg-canvas text-ink flex min-h-screen flex-col">
+      {/* 히어로 밴드 — `--grad-brand`(흰→#f1f3f6) 는 이 화면에서만 허용된다. */}
+      <div className="bg-[image:var(--grad-brand)]">
+        {/* 마케팅 상단 바 — height 68, padding 0 64px, 하단 hairline */}
+        <header className="border-hairline flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
+          <Logo size={19} />
 
-      <main className="flex-1">
-        <section className="mx-auto max-w-[1152px] px-8 py-16">
-          {/* Hero — copy + product preview */}
-          <div className="grid grid-cols-1 items-center gap-9 md:grid-cols-[1.05fr_0.95fr]">
-            <div className="flex flex-col items-start">
-              <Tag variant="brand" className="mb-5">
-                BETA · 인터랙티브 소셜 게임
-              </Tag>
-              <h1 className="font-ui text-display text-text">
-                귀찮은 밀당은 아바타가,
-                <br />
-                결정은 당신이.
-              </h1>
-              <p className="font-ui text-body text-text-2 mt-4 max-w-[480px]">
-                AI 아바타를 소개팅에 매칭하고, 관전하고, 결정적인 순간에만 개입하세요. 내 성향을
-                닮은 아바타가 먼저 대화를 시작합니다.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Button
-                  size="lg"
-                  onClick={() => {
-                    void navigate('/signup');
-                  }}
-                >
-                  무료로 시작하기
-                  <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="lg"
-                  onClick={() => {
-                    void navigate('/login');
-                  }}
-                >
-                  로그인
-                </Button>
-              </div>
-              <div className="text-mono-meta text-text-3 mt-5 flex items-center gap-2 font-mono">
-                <span
-                  aria-hidden="true"
-                  className="bg-success h-1.5 w-1.5 rounded-full motion-safe:animate-pulse"
-                />
-                가입 후 2분이면 첫 아바타가 완성돼요
-              </div>
-            </div>
+          <div className="text-body-sm hidden items-center gap-[18px] lg:flex">
+            {NAV_ITEMS.map((item, index) => (
+              <span key={item} className={index === 0 ? 'text-ink' : 'text-ink-mute'}>
+                {item}
+              </span>
+            ))}
+          </div>
 
-            <div className="flex justify-center">
-              <div
-                aria-hidden="true"
-                className="border-border-hi bg-bg-elev-1 shadow-2 flex aspect-[4/3] w-full max-w-[520px] flex-col overflow-hidden rounded-xl"
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                void navigate('/login');
+              }}
+            >
+              로그인
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                void navigate('/signup');
+              }}
+            >
+              회원가입
+            </Button>
+          </div>
+        </header>
+
+        {/* 히어로 — padding 64px 64px 78px, gap 56, 좌 flex 0 0 44% / 우 flex 1 */}
+        <div className="flex flex-col items-center gap-14 px-6 pt-16 pb-19.5 lg:flex-row lg:px-16">
+          <div className="flex w-full min-w-0 flex-col gap-5 lg:flex-[0_0_44%]">
+            <Tag className="self-start">BETA · 인터랙티브 소셜 게임</Tag>
+
+            <h1 className="text-display-lg text-ink text-balance">
+              귀찮은 밀당은 아바타가,
+              <br />
+              결정은 당신이.
+            </h1>
+
+            <p className="text-body text-ink-mute text-pretty">
+              나를 닮은 AI 아바타가 먼저 대화를 나눕니다. 당신은 관전하다가 결정적인 순간에만
+              개입하면 돼요.
+            </p>
+
+            <div className="mt-1 flex flex-wrap gap-2.5">
+              <Button
+                onClick={() => {
+                  void navigate('/signup');
+                }}
               >
-                <div className="border-border bg-bg flex h-9 shrink-0 items-center gap-1.5 border-b px-3.5">
-                  <span className="bg-bg-elev-3 h-2 w-2 rounded-full" />
-                  <span className="bg-bg-elev-3 h-2 w-2 rounded-full" />
-                  <span className="bg-bg-elev-3 h-2 w-2 rounded-full" />
-                </div>
-                <div className="text-text-4 text-body-sm flex flex-1 items-center justify-center text-center font-mono leading-relaxed tracking-wide">
-                  매칭 관전 화면
-                </div>
-              </div>
+                무료로 시작하기
+                <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
+              </Button>
+              <Button variant="ghost" onClick={scrollToHowItWorks}>
+                작동 방식 보기
+                <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
+              </Button>
             </div>
           </div>
 
-          {/* Features */}
-          <div className="mt-12 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {FEATURES.map((feature) => (
-              <Card key={feature.title} className="p-[22px]">
-                <div className="bg-brand-soft border-brand-border text-brand mb-4 flex h-[42px] w-[42px] items-center justify-center rounded-md border">
-                  <feature.icon size={20} strokeWidth={1.5} aria-hidden="true" />
-                </div>
-                <div className="font-ui text-heading text-text">{feature.title}</div>
-                <p className="text-body-sm text-text-2 mt-2">{feature.body}</p>
+          {/* 제품 목업 — 흰 서피스 + hairline + radius 14 + padding 10 + shadow-lift */}
+          <div className="border-hairline bg-surface shadow-lift w-full min-w-0 rounded-[14px] border p-2.5 lg:flex-1">
+            {/* 목업 높이 330 — 정본 wf/wf-s1-entry.jsx:16 `<Ph … h={330} r={8} />` */}
+            <div
+              aria-hidden="true"
+              className="bg-canvas-soft text-ink-mute text-caption flex h-[330px] items-center justify-center rounded-md"
+            >
+              시뮬레이션 관전 화면
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main className="flex flex-1 flex-col">
+        {/* HOW IT WORKS — padding 40px 64px 36px, gap 18 */}
+        <section
+          id={HOW_IT_WORKS_ID}
+          aria-labelledby="how-it-works-eyebrow"
+          className="flex flex-col gap-4.5 px-6 pt-10 pb-9 lg:px-16"
+        >
+          <h2 id="how-it-works-eyebrow" className="text-micro-cap text-ink-mute uppercase">
+            HOW IT WORKS
+          </h2>
+
+          <div className="grid gap-4.5 md:grid-cols-3">
+            {STEPS.map((step, index) => (
+              <Card key={step.title} className="flex flex-col gap-1.5 p-4.5">
+                <span className="text-micro-cap text-primary tnum uppercase">{`0${String(index + 1)}`}</span>
+                <div className="text-heading-sm text-ink">{step.title}</div>
+                <p className="text-caption text-ink-mute tnum text-pretty">{step.body}</p>
               </Card>
             ))}
           </div>
-
-          {/* Stats */}
-          <Card className="mt-6 flex px-7 py-6">
-            {METRICS.map((metric, i) => (
-              <div
-                key={metric.label}
-                className={cn('flex-1 text-center', i > 0 && 'border-border border-l')}
-              >
-                <div className="font-ui text-title text-text">{metric.value}</div>
-                <MonoLabel className="mt-1">{metric.label}</MonoLabel>
-              </div>
-            ))}
-          </Card>
         </section>
       </main>
+
+      {/* 푸터 — 정본 wf/wf-s1-entry.jsx:34 `height: 60, padding '0 64px'`,
+          상단 1px hairline, bg-surface.
+          정본은 좌측에 `<Logo size={16} />` 을 두지만 사용자 지시로 제거했다
+          (상단 바 로고와 중복). 링크는 우측 정렬을 유지한다. */}
+      <footer className="border-hairline bg-surface flex h-[60px] shrink-0 items-center justify-end gap-4 border-t px-6 lg:px-16">
+        <div className="text-ink-mute flex items-center gap-4 text-[12px]">
+          {FOOTER_ITEMS.map((item) => (
+            <span key={item}>{item}</span>
+          ))}
+        </div>
+      </footer>
     </div>
   );
 }

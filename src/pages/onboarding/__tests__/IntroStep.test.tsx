@@ -22,12 +22,13 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
   });
 
   describe('렌더링', () => {
-    it('STEP 1 / 4 · 아바타 기본 정보 라벨과 제목이 렌더된다', () => {
+    it('제목과 서브 카피가 렌더된다 (STEP 라벨은 레일이 담당해 카드에 없다)', () => {
       renderWithProviders(<IntroStep />);
-      expect(screen.getByText(/STEP 1 \/ 4 · 아바타 기본 정보/)).toBeInTheDocument();
       expect(
         screen.getByRole('heading', { level: 1, name: /아바타의 이름과 설명을 알려주세요/ })
       ).toBeInTheDocument();
+      expect(screen.getByText('설문 전에 아바타를 어떻게 부를지 정해요.')).toBeInTheDocument();
+      expect(screen.queryByText(/STEP 1 \/ 4/)).not.toBeInTheDocument();
     });
 
     it('이름 입력과 설명 입력이 렌더된다', () => {
@@ -36,17 +37,15 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.getByLabelText(/아바타 설명/)).toBeInTheDocument();
     });
 
-    it('이름·설명 글자수 카운터가 0/16, 0/80 으로 시작한다', () => {
+    it('이름·설명 글자수 카운터가 0 / 20, 0 / 120 으로 시작한다', () => {
       renderWithProviders(<IntroStep />);
-      expect(screen.getByText('0/16')).toBeInTheDocument();
-      expect(screen.getByText('0/80')).toBeInTheDocument();
+      expect(screen.getByText('0 / 20')).toBeInTheDocument();
+      expect(screen.getByText('0 / 120')).toBeInTheDocument();
     });
 
-    it('나중에 수정 가능 안내가 렌더된다', () => {
+    it('설명 필드에 도움말이 붙는다', () => {
       renderWithProviders(<IntroStep />);
-      expect(
-        screen.getByText(/이름과 설명은 나중에 프로필에서 수정할 수 있습니다/)
-      ).toBeInTheDocument();
+      expect(screen.getByText('상대 아바타가 첫인상으로 참고합니다')).toBeInTheDocument();
     });
 
     it('이전 / 다음 버튼이 렌더된다', () => {
@@ -61,7 +60,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       const user = userEvent.setup();
       renderWithProviders(<IntroStep />);
       await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
-      expect(screen.getByText('7/16')).toBeInTheDocument();
+      expect(screen.getByText('7 / 20')).toBeInTheDocument();
     });
 
     it('이름이 비어 있으면 다음 클릭 시 검증 에러(메시지·aria-invalid·border-danger)를 보이고 이동하지 않는다', async () => {

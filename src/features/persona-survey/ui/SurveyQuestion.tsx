@@ -1,3 +1,5 @@
+import { cn } from '@shared/lib/cn';
+
 type SurveyOption = {
   answerId: string;
   text: string;
@@ -11,35 +13,48 @@ type SurveyQuestionProps = {
   name: string;
 };
 
+// S-02-04 선택지 — 질문 문장은 카드 헤드(h1)가 맡고, 여기서는 legend 를 sr-only 로 두어
+// 라디오 그룹의 접근성 이름만 유지한다. 선택 상태는 틴트 채움이 아니라 `border-primary` 다 (v2.1 Breaking).
 export function SurveyQuestion({ question, options, value, onChange, name }: SurveyQuestionProps) {
   return (
-    <fieldset className="border-border rounded-md border p-4">
-      <legend className="text-body text-text px-1">{question}</legend>
-      <div className="mt-3 flex flex-col gap-2">
-        {options.map((opt) => (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="sr-only">{question}</legend>
+      {options.map((opt) => {
+        const selected = value === opt.answerId;
+        return (
           <label
             key={opt.answerId}
-            className={[
-              'flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2.5 transition-colors focus-within:shadow-[var(--focus-ring)]',
-              value === opt.answerId
-                ? 'border-brand bg-brand-soft'
-                : 'border-border hover:border-border-hi',
-            ].join(' ')}
+            className={cn(
+              'bg-surface shadow-card flex cursor-pointer items-center gap-3 rounded-lg border p-3',
+              'ease-brand transition-colors duration-[var(--dur-fast)] focus-within:shadow-[var(--focus-ring)]',
+              selected ? 'border-primary' : 'border-hairline hover:border-hairline-input'
+            )}
           >
             <input
               type="radio"
               name={name}
               value={opt.answerId}
-              checked={value === opt.answerId}
+              checked={selected}
               onChange={() => {
                 onChange(opt.answerId);
               }}
               className="sr-only"
             />
-            <span className="text-body-sm text-text">{opt.text}</span>
+            <span
+              aria-hidden="true"
+              className={cn(
+                'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
+                selected ? 'border-primary' : 'border-hairline-input'
+              )}
+            >
+              {selected && <span className="bg-primary block h-2 w-2 rounded-full" />}
+            </span>
+            <span className={cn('text-caption', selected ? 'text-ink' : 'text-ink-secondary')}>
+              {opt.text}
+            </span>
           </label>
-        ))}
-      </div>
+        );
+      })}
     </fieldset>
   );
 }

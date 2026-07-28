@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ZodError } from 'zod';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import {
   avatarCreateFromSurveyRequestSchema,
@@ -10,12 +11,14 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
-import { Tag } from '@shared/ui/Tag/Tag';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
 import { ExpressionsField } from './ExpressionsField';
+import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
+
+// WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
 
 export function SurveyStep() {
   const navigate = useNavigate();
@@ -36,7 +39,7 @@ export function SurveyStep() {
     refetch,
   } = useSurveyQuestions({ enabled: !guardFailed });
 
-  // 와이어프레임 v2 단계 순서: welcome → intro → method → (creating)survey/connect → complete.
+  // 단계 순서: welcome → intro → method → (creating)survey/connect → complete.
   useEffect(() => {
     if (!guardFailed) return;
     if (onboardingProgress === 'welcome') {
@@ -115,33 +118,34 @@ export function SurveyStep() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-body text-text-2">질문을 불러오는 중...</p>
+      <div className={WIZARD_BODY}>
+        <p className="text-body-sm text-ink-secondary">질문을 불러오는 중...</p>
       </div>
     );
   }
 
   if (isError || !questions) {
     return (
-      <div className="flex flex-col items-center justify-center gap-4 py-16">
-        <p className="text-body text-danger" role="alert">
+      <div className={WIZARD_BODY}>
+        <p className="text-body-sm text-danger" role="alert">
           질문을 불러오지 못했습니다. 다시 시도해주세요.
         </p>
-        <Button
-          type="button"
-          variant="secondary"
-          onClick={() => {
-            void refetch();
-          }}
-        >
-          다시 시도
-        </Button>
+        <div>
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => {
+              void refetch();
+            }}
+          >
+            다시 시도
+          </Button>
+        </div>
       </div>
     );
   }
 
   // 페이지: [질문 0..N-1, 자주 쓰는 표현(선택)]. 표현 단계가 마지막 = 제출 단계.
-  // 진행 카운터는 질문만 센다(n/6). 표현 단계는 별도 화면으로 카운터 없이 '선택' 태그만 표시 (프로토타입 정본).
   const isExpressionsPage = pageIndex === questions.length;
   const isFirstPage = pageIndex === 0;
   const currentQuestion: SurveyQuestionModel | null = !isExpressionsPage
@@ -215,11 +219,15 @@ export function SurveyStep() {
     void onSubmit();
   };
 
-  const questionCount = questions.length;
-  const percent = isExpressionsPage ? 100 : Math.round(((pageIndex + 1) / questionCount) * 100);
-  const headerSubtitle = isExpressionsPage
-    ? '자주 쓰는 표현'
-    : `${pageIndex + 1} / ${questionCount} · ${currentQuestion?.title ?? '질문'}`;
+  // 진행률은 질문 N개 + 표현 1개를 합친 페이지 수로 센다 (표현 단계가 정본의 마지막 '선택 문항').
+  const totalPages = questions.length + 1;
+  const pageNumber = pageIndex + 1;
+  const percent = Math.round((pageNumber / totalPages) * 100);
+  // 정본의 `3 / 6 · 대화 스타일` 은 문항 카테고리를 함께 적지만, 질문 모델에 사람이 읽을
+  // 카테고리 필드가 없어(primaryType 은 서버 enum 코드) 표현 단계에만 부제를 붙인다.
+  const progressLabel = isExpressionsPage
+    ? `${pageNumber} / ${totalPages} · 선택 문항`
+    : `${pageNumber} / ${totalPages}`;
 
   return (
     <form
@@ -227,24 +235,33 @@ export function SurveyStep() {
         void onSubmit(e);
       }}
       noValidate
-      className="mx-auto flex w-full max-w-[480px] flex-col gap-5 py-6"
+      className="flex flex-col"
     >
-      <p role="status" aria-live="polite" className="sr-only">
-        {isExpressionsPage
-          ? '자주 쓰는 표현 입력 (선택)'
-          : `질문 ${pageIndex + 1} / ${questions.length}`}
-      </p>
+      <div className={WIZARD_BODY}>
+        {/* 낭독 문구는 눈에 보이는 진행 카운터와 같은 분모(질문 + 표현 단계)를 쓴다. */}
+        <p role="status" aria-live="polite" className="sr-only">
+          {isExpressionsPage
+            ? `자주 쓰는 표현 입력 (선택) ${progressLabel}`
+            : `질문 ${progressLabel}`}
+        </p>
 
-      <header className="flex flex-col gap-2">
-        <span className="text-mono-micro text-text-3 font-mono tracking-wider uppercase">
-          STEP 3 / 4 · 성향 설문
-        </span>
+        <div className={WIZARD_HEAD}>
+          {isExpressionsPage ? (
+            <>
+              <span className="text-micro-cap text-ink-mute uppercase">
+                자주 쓰는 표현 · 선택 문항
+              </span>
+              <h1 className="text-heading-lg text-ink">평소 자주 쓰는 말투를 알려주세요</h1>
+              <p className="text-body-sm text-ink-mute">아바타가 더 나답게 말할 수 있어요.</p>
+            </>
+          ) : (
+            <h1 className="text-heading-lg text-ink">{currentQuestion?.title ?? '질문'}</h1>
+          )}
+        </div>
+
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <span className="font-ui text-subheading text-text">{headerSubtitle}</span>
-            {isExpressionsPage && <Tag>선택</Tag>}
-          </div>
-          <span className="text-mono-meta text-brand font-mono">{percent}%</span>
+          <span className="text-caption text-ink-mute tnum">{progressLabel}</span>
+          <span className="text-caption text-primary tnum">{percent}%</span>
         </div>
         <div
           role="progressbar"
@@ -252,62 +269,65 @@ export function SurveyStep() {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={percent}
-          className="bg-bg-elev-3 h-1 w-full overflow-hidden rounded-sm"
+          className="bg-canvas-soft h-1 w-full overflow-hidden rounded-full"
         >
           <div
-            className="bg-brand h-full rounded-sm transition-[width] duration-[var(--duration-base)] ease-[var(--ease)]"
+            className="bg-primary ease-brand h-full rounded-full transition-[width] duration-[var(--dur)]"
             style={{ width: `${percent}%` }}
           />
         </div>
-      </header>
 
-      {isExpressionsPage ? (
-        <div className="flex flex-col gap-3">
-          <p className="text-body-sm text-text-2">
-            아바타가 더 나답게 말할 수 있도록, 평소 자주 쓰는 말투·표현·이모지를 알려주세요.
-          </p>
-          <p className="text-mono-micro text-text-3 font-mono">예) 그치 그치, ~인 듯, 🥲✨</p>
+        {isExpressionsPage ? (
           <ExpressionsField value={expressions} onChange={persistExpressions} />
-        </div>
-      ) : currentQuestion ? (
-        <SurveyQuestion
-          name={currentQuestion.id}
-          question={currentQuestion.title}
-          options={currentQuestion.answers}
-          value={getCurrentAnswerId(currentQuestion.id)}
-          onChange={(answerId) => {
-            handleAnswer(currentQuestion, answerId);
-          }}
-        />
-      ) : null}
+        ) : currentQuestion ? (
+          <SurveyQuestion
+            name={currentQuestion.id}
+            question={currentQuestion.title}
+            options={currentQuestion.answers}
+            value={getCurrentAnswerId(currentQuestion.id)}
+            onChange={(answerId) => {
+              handleAnswer(currentQuestion, answerId);
+            }}
+          />
+        ) : null}
 
-      {submitError && (
-        <p
-          role="alert"
-          className="text-body-sm text-danger border-danger rounded-sm border px-3 py-2"
-        >
-          {submitError}
-        </p>
-      )}
+        {submitError && (
+          <p
+            role="alert"
+            className="text-caption text-danger border-danger rounded-sm border px-3 py-2"
+          >
+            {submitError}
+          </p>
+        )}
+      </div>
 
-      <div className="flex gap-3">
+      <div className={WIZARD_ACTIONS}>
         {!isFirstPage && (
-          <Button type="button" variant="secondary" onClick={handlePrev}>
+          <Button type="button" variant="ghost" onClick={handlePrev}>
+            <ArrowLeft size={16} strokeWidth={1.5} aria-hidden="true" />
             이전
           </Button>
         )}
+        {/* 첫 페이지엔 '이전' 이 없어 좌측 슬롯이 비므로 우측 그룹을 ml-auto 로 밀어 둔다. */}
         {isExpressionsPage ? (
-          <>
-            <Button type="button" variant="secondary" disabled={isSubmitting} onClick={handleSkip}>
+          <div className="ml-auto flex items-center gap-2">
+            <Button type="button" variant="ghost" disabled={isSubmitting} onClick={handleSkip}>
               건너뛰기
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="flex-1">
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? '생성 중...' : '아바타 생성'}
+              <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
             </Button>
-          </>
+          </div>
         ) : (
-          <Button type="button" disabled={!currentAnswered} onClick={handleNext} className="flex-1">
+          <Button
+            type="button"
+            disabled={!currentAnswered}
+            onClick={handleNext}
+            className="ml-auto"
+          >
             다음
+            <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
           </Button>
         )}
       </div>

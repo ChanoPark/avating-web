@@ -61,6 +61,27 @@ describe('LoginForm', () => {
       expect(resetBtn).toBeDisabled();
       expect(resetBtn).toHaveAttribute('title', '비밀번호 찾기 (준비 중)');
     });
+
+    it('"로그인 상태 유지" 체크박스가 준비 중 상태(disabled)로 렌더된다', () => {
+      renderWithProviders(<LoginForm />);
+      const remember = screen.getByRole('checkbox', { name: /로그인 상태 유지/ });
+      expect(remember).toBeInTheDocument();
+      expect(remember).toBeDisabled();
+    });
+
+    it('비밀번호 placeholder 가 정본 문안이다', () => {
+      renderWithProviders(<LoginForm />);
+      expect(screen.getByLabelText(/비밀번호/i)).toHaveAttribute('placeholder', '비밀번호 입력');
+    });
+
+    it('제출 버튼이 block(w-full) 이고 화살표 아이콘을 갖는다', () => {
+      const { container } = renderWithProviders(<LoginForm />);
+      const submit = screen.getByRole('button', { name: /로그인/i });
+      expect(submit).toHaveClass('w-full');
+      expect(submit.querySelector('svg')).not.toBeNull();
+      // 문자 글리프(→ ✕)를 쓰지 않는다 — 라인 아이콘만
+      expect(container.textContent ?? '').not.toMatch(/[→✕✓]/);
+    });
   });
 
   describe('빈 폼 제출 유효성 검증', () => {
@@ -170,6 +191,27 @@ describe('LoginForm', () => {
         const alerts = screen.getAllByRole('alert');
         expect(alerts.length).toBeGreaterThan(0);
       });
+    });
+
+    it('폼 전체 실패는 상단 배너 하나로만 알리고 아이콘은 라인 아이콘이다', async () => {
+      server.use(publicKeyHandlers.success, loginHandlers.notFound);
+      const user = userEvent.setup();
+
+      const { container } = renderWithProviders(<LoginForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
+      await user.type(screen.getByLabelText(/비밀번호/i), 'Password1!');
+      await user.click(screen.getByRole('button', { name: /로그인/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/이메일 또는 비밀번호가 올바르지 않습니다/)).toBeInTheDocument();
+      });
+
+      // 배너는 1개, 필드 인라인 에러로 중복 표시하지 않는다
+      expect(screen.getAllByRole('alert')).toHaveLength(1);
+      const banner = screen.getAllByRole('alert')[0]!;
+      expect(banner.querySelector('svg')).not.toBeNull();
+      expect(container.textContent ?? '').not.toMatch(/[→✕✓]/);
     });
   });
 

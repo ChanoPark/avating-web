@@ -8,9 +8,21 @@ describe('Card', () => {
     expect(screen.getByText('카드 콘텐츠')).toBeInTheDocument();
   });
 
-  it('elevation=2 prop을 수용한다', () => {
-    const { container } = render(<Card elevation={2}>엘리베이션 2</Card>);
-    expect(container.firstChild).toBeTruthy();
+  // 흰 서피스 + hairline + shadow-card + radius 12 가 기본 카드 계약이다.
+  it('기본 카드는 흰 서피스 + hairline + shadow-card + rounded-lg 다', () => {
+    const { container } = render(<Card>기본</Card>);
+    const card = container.firstChild as HTMLElement;
+    expect(card.className).toContain('bg-surface');
+    expect(card.className).toContain('border-hairline');
+    expect(card.className).toContain('shadow-card');
+    expect(card.className).toContain('rounded-lg');
+  });
+
+  it('featured=true 면 파란 테두리로 강조한다 (틴트 채움 없음)', () => {
+    const { container } = render(<Card featured>강조 카드</Card>);
+    const card = container.firstChild as HTMLElement;
+    expect(card.className).toContain('border-primary');
+    expect(card.className).not.toContain('bg-primary');
   });
 
   it('className prop이 적용된다', () => {

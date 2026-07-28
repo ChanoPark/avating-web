@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { server } from '@shared/mocks/server';
-import { publicKeyHandlers } from '@shared/mocks/handlers/auth';
+import { publicKeyHandlers, MOCK_PUBLIC_KEY } from '@shared/mocks/handlers/auth';
 import { usePublicKey, fetchPublicKey, ensurePublicKey } from '../publicKey';
 
 function createWrapper() {
@@ -21,7 +21,7 @@ describe('fetchPublicKey', () => {
   it('정상 응답 시 publicKey 문자열을 반환한다', async () => {
     server.use(publicKeyHandlers.success);
     const key = await fetchPublicKey();
-    expect(key).toBe('mock-rsa-public-key');
+    expect(key).toBe(MOCK_PUBLIC_KEY);
   });
 
   it('서버 오류 시 에러를 throw 한다', async () => {
@@ -40,7 +40,7 @@ describe('ensurePublicKey', () => {
       defaultOptions: { queries: { retry: false } },
     });
     const key = await ensurePublicKey(queryClient);
-    expect(key).toBe('mock-rsa-public-key');
+    expect(key).toBe(MOCK_PUBLIC_KEY);
   });
 
   it('두 번 호출 시 캐시에서 반환하고 네트워크 요청은 1회만 발생한다', async () => {
@@ -73,7 +73,7 @@ describe('usePublicKey', () => {
       expect(result.current.data).toBeDefined();
     });
 
-    expect(result.current.data).toBe('mock-rsa-public-key');
+    expect(result.current.data).toBe(MOCK_PUBLIC_KEY);
   });
 
   it('서버 오류 시 isError 가 true 가 된다', async () => {

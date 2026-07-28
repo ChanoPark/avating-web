@@ -11,6 +11,8 @@ type Props = {
   'aria-describedby'?: string | undefined;
 };
 
+// wf-s3-request 의 RadioCard — 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 +
+// 1px inset 링이다 (`Card featured`, FilterChip `--on` 과 같은 계약).
 export function MyAvatarRadioGroup({
   avatars,
   value,
@@ -38,10 +40,12 @@ export function MyAvatarRadioGroup({
             key={avatar.id}
             htmlFor={inputId}
             className={cn(
-              'focus-within:ring-brand flex cursor-pointer items-center gap-3 rounded-sm border px-3 py-2 transition-colors focus-within:ring-2',
+              'bg-surface flex cursor-pointer items-center gap-2.75 rounded-lg border p-3',
+              'ease-brand transition-colors duration-[var(--dur-fast)]',
+              'focus-within:shadow-focus',
               checked
-                ? 'border-brand-border bg-brand-soft'
-                : 'border-border bg-bg-elev-2 hover:border-border-hi',
+                ? 'border-primary shadow-[inset_0_0_0_1px_var(--primary)]'
+                : 'border-hairline hover:border-primary',
               disabled && 'cursor-not-allowed opacity-50'
             )}
           >
@@ -60,35 +64,27 @@ export function MyAvatarRadioGroup({
             <span
               aria-hidden="true"
               className={cn(
-                'relative flex h-3 w-3 flex-shrink-0 items-center justify-center rounded-full border',
-                checked ? 'border-brand bg-brand' : 'border-border bg-transparent'
+                'relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
+                checked ? 'border-primary bg-primary' : 'border-hairline-input bg-transparent'
               )}
             >
-              {checked && <span className="bg-bg h-1.5 w-1.5 rounded-full" />}
+              {checked && <span className="bg-surface h-1.5 w-1.5 rounded-full" />}
             </span>
+            {/* 아바타 사각 — radius = size × 0.24, tone=wash */}
             <span
               aria-hidden="true"
-              className="bg-bg-elev-3 border-border-hi text-text-2 font-ui text-body-sm flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border font-medium"
+              className="bg-primary-wash text-primary text-micro flex h-7 w-7 shrink-0 items-center justify-center rounded-sm font-semibold uppercase"
             >
               {avatar.initials}
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
-                <span className="font-ui text-ui text-text truncate">{avatar.name}</span>
-                {avatar.isPrimary && (
-                  <Tag variant="brand" className="text-mono-micro">
-                    대표
-                  </Tag>
-                )}
-                {avatar.busy && (
-                  <Tag variant="warning" className="text-mono-micro">
-                    매칭 중
-                  </Tag>
-                )}
+                <span className="text-caption text-ink truncate font-medium">{avatar.name}</span>
+                {/* 정본 RadioCard 의 meta 는 배지가 아니라 중립 태그다 (`av-tag av-tag--neutral`). */}
+                {avatar.isPrimary && <Tag variant="neutral">대표</Tag>}
+                {avatar.busy && <Tag variant="neutral">매칭 중</Tag>}
               </span>
-              <span className="text-mono-meta text-text-3 mt-0.5 block font-mono">
-                {avatar.type}
-              </span>
+              <span className="text-micro text-ink-mute mt-0.5 block truncate">{avatar.type}</span>
             </span>
           </label>
         );

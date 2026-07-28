@@ -11,7 +11,7 @@ type MeterProps = {
 };
 
 const toneClass = {
-  brand: 'bg-brand',
+  brand: 'bg-primary',
   success: 'bg-success',
   warning: 'bg-warning',
   danger: 'bg-danger',
@@ -26,7 +26,7 @@ export function Meter({ value, label, tone = 'brand', className }: MeterProps) {
       aria-valuemax={100}
       aria-valuenow={clamped}
       aria-label={label}
-      className={cn('bg-bg-elev-3 h-1.5 w-full overflow-hidden rounded-full', className)}
+      className={cn('bg-canvas-soft h-1.5 w-full overflow-hidden rounded-full', className)}
     >
       <div
         className={cn('h-full rounded-full', toneClass[tone])}

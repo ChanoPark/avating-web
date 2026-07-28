@@ -14,7 +14,7 @@ async function fillValidForm(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
   await user.type(screen.getByLabelText(/닉네임/i), '아바팅유저');
   await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-  await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+  await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
 }
 
 describe('SignupForm', () => {
@@ -56,7 +56,7 @@ describe('SignupForm', () => {
 
     it('약관 동의 체크박스가 렌더된다', () => {
       renderWithProviders(<SignupForm />);
-      expect(screen.getByRole('checkbox', { name: /약관에 동의/ })).toBeInTheDocument();
+      expect(screen.getByRole('checkbox', { name: /동의합니다/ })).toBeInTheDocument();
     });
 
     it('알림 수신 체크박스가 렌더된다 (선택)', () => {
@@ -69,9 +69,9 @@ describe('SignupForm', () => {
       expect(screen.getByRole('button', { name: /계정 만들기/ })).toBeInTheDocument();
     });
 
-    it('"본인 인증은 실제 매칭 시점에 진행됩니다" 안내가 렌더된다', () => {
+    it('본인 인증 안내는 폼이 아니라 AuthAside 로 옮겨졌다 (SignupPage 가 렌더)', () => {
       renderWithProviders(<SignupForm />);
-      expect(screen.getByText(/본인 인증은 실제 매칭 시점에 진행됩니다/)).toBeInTheDocument();
+      expect(screen.queryByText(/본인 인증/)).not.toBeInTheDocument();
     });
 
     it('로그인 링크가 렌더되고 /login href를 가진다', () => {
@@ -81,12 +81,40 @@ describe('SignupForm', () => {
       expect(link).toHaveAttribute('href', '/login');
     });
 
-    it('"로그인" 텍스트에 브랜드 컬러·hover 클래스가 적용된다', () => {
+    it('"로그인" 링크에 브랜드 컬러·hover 클래스가 적용된다', () => {
       renderWithProviders(<SignupForm />);
       const link = screen.getByRole('link', { name: /로그인/i });
-      const brandSpan = link.querySelector('span');
-      expect(brandSpan).toHaveClass('text-brand');
-      expect(brandSpan).toHaveClass('group-hover:text-brand-hover');
+      expect(link).toHaveClass('text-primary');
+      expect(link).toHaveClass('hover:text-primary-hover');
+    });
+
+    it('필드 순서가 정본대로 이메일 → 비밀번호 → 닉네임 이다', () => {
+      const { container } = renderWithProviders(<SignupForm />);
+      const ids = [...container.querySelectorAll('input[id^="signup-"]')].map((el) => el.id);
+      expect(ids.slice(0, 3)).toEqual(['signup-email', 'signup-password', 'signup-nickname']);
+    });
+
+    it('필드 placeholder·help 가 정본 문안이다', () => {
+      renderWithProviders(<SignupForm />);
+      expect(screen.getByLabelText(/이메일/i)).toHaveAttribute('placeholder', 'you@example.com');
+      expect(screen.getByLabelText(/^비밀번호$/i)).toHaveAttribute(
+        'placeholder',
+        '8자 이상, 숫자·영문 포함'
+      );
+      expect(screen.getByLabelText(/닉네임/i)).toHaveAttribute(
+        'placeholder',
+        '아바타 프로필에 표시됩니다'
+      );
+      expect(screen.getByText('영문·숫자를 섞어 8자 이상 입력해 주세요')).toBeInTheDocument();
+    });
+
+    it('제출 버튼이 block(w-full) 이고 화살표 아이콘을 갖는다', () => {
+      const { container } = renderWithProviders(<SignupForm />);
+      const submit = screen.getByRole('button', { name: /계정 만들기/ });
+      expect(submit).toHaveClass('w-full');
+      expect(submit.querySelector('svg')).not.toBeNull();
+      // 문자 글리프(→ ✕)를 쓰지 않는다 — 라인 아이콘만
+      expect(container.textContent ?? '').not.toMatch(/[→✕✓]/);
     });
   });
 
@@ -97,7 +125,7 @@ describe('SignupForm', () => {
 
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -112,7 +140,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '나');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -127,7 +155,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), 'a'.repeat(13));
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -146,7 +174,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
-      const termsCheckbox = screen.getByRole('checkbox', { name: /약관에 동의/ });
+      const termsCheckbox = screen.getByRole('checkbox', { name: /동의합니다/ });
 
       await waitFor(() => {
         // 단언 1: 에러 메시지 텍스트
@@ -172,7 +200,7 @@ describe('SignupForm', () => {
 
       await fillValidForm(user);
       // 한 번 체크해제 → 제출 → 에러
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -180,7 +208,7 @@ describe('SignupForm', () => {
       });
 
       // 다시 체크 → 즉시 에러 사라짐
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
 
       await waitFor(() => {
         expect(screen.queryByText(/약관에 동의해주세요/)).not.toBeInTheDocument();
@@ -262,10 +290,13 @@ describe('SignupForm', () => {
   });
 
   describe('비밀번호 input aria-describedby 전환', () => {
-    it('에러 없을 때는 강도 컨테이너를 가리킨다 (signup-password-strength)', () => {
+    it('에러 없을 때는 help + 강도 컨테이너를 가리킨다', () => {
       renderWithProviders(<SignupForm />);
       const passwordInput = screen.getByLabelText(/^비밀번호$/i);
-      expect(passwordInput).toHaveAttribute('aria-describedby', 'signup-password-strength');
+      expect(passwordInput).toHaveAttribute(
+        'aria-describedby',
+        'signup-password-help signup-password-strength'
+      );
     });
 
     it('비밀번호 유효성 에러 발생 시 에러 id 를 가리킨다 (signup-password-error)', async () => {
@@ -305,7 +336,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'existing@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '새유저');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -322,7 +353,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '이미있는닉네임');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
@@ -373,7 +404,7 @@ describe('SignupForm', () => {
       await user.type(screen.getByLabelText(/이메일/i), 'newuser@avating.com');
       await user.type(screen.getByLabelText(/닉네임/i), '새유저');
       await user.type(screen.getByLabelText(/^비밀번호$/i), 'Password1!');
-      await user.click(screen.getByRole('checkbox', { name: /약관에 동의/ }));
+      await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {

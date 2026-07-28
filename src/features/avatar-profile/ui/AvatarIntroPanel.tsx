@@ -10,28 +10,26 @@ const PUBLIC_INFO_ROWS: { key: keyof AvatarPublicInfo; label: string }[] = [
   { key: 'job', label: '직군' },
 ];
 
-// 상대 아바타 상세의 우측 패널. 세션 이력(호감도·턴) 노출은 프라이버시 사유로 제거되고
-// 비식별 공개 정보(나이대/지역/직군)로 대체됨 (chat2/8/13).
+// wf-s2-core `ScreenAvatarDetail` 우측 `공개 정보` PropertyList — 행 13px, padding `9px 0`,
+// 행 사이 hairline (LAYOUT-NUMBERS § PropertyList 행). 세션 이력(호감도·턴) 노출은
+// 프라이버시 사유로 제거되고 비식별 공개 정보로 대체됨 (chat2/8/13).
 export function AvatarIntroPanel({ publicInfo }: Props) {
   return (
     <section
       aria-labelledby="avatar-public-info-heading"
-      className="border-border bg-bg-elev-1 flex flex-col rounded-md border p-4"
+      className="border-hairline bg-surface shadow-card flex flex-col rounded-lg border p-4"
     >
-      <h3
-        id="avatar-public-info-heading"
-        className="text-mono-micro text-text-3 font-mono uppercase"
-      >
+      <h3 id="avatar-public-info-heading" className="text-caption text-ink font-medium">
         공개 정보
       </h3>
-      <dl className="mt-3 flex flex-col gap-2">
+      <dl className="mt-1 flex flex-col">
         {PUBLIC_INFO_ROWS.map((row) => (
           <div
             key={row.key}
-            className="border-border flex items-center justify-between border-b pb-2 last:border-0 last:pb-0"
+            className="border-hairline text-caption flex items-center justify-between gap-2 border-b py-2.25 last:border-0"
           >
-            <dt className="text-body-sm text-text-3">{row.label}</dt>
-            <dd className="text-body-sm text-text">{publicInfo[row.key]}</dd>
+            <dt className="text-ink-mute">{row.label}</dt>
+            <dd className="text-ink truncate text-right">{publicInfo[row.key]}</dd>
           </div>
         ))}
       </dl>

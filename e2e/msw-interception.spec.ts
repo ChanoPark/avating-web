@@ -1,5 +1,12 @@
 import { test, expect } from '@playwright/test';
 
+const MOCK_PUBLIC_KEY =
+  'MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA7o3Lt5Os/s0RJxfWQh5uXwyHLwPPN84q/6RebAD6aCFz' +
+  'NupPuqqiK2eAVSpz4rbR3tkfngulif9AL0CS9oVszjdIB5HSaIw3euj9iP0HZCmzrJdeAtCSc5QPkKVmirVM5Yvd' +
+  'COKUIxu5hGY7kWf7h8IWMqRpglCklwhnq8Qk/9xp/kvHJZXc7R26INtRDM5ABOPw4pU7AM8RifQIJKgQrKTPxxGT' +
+  'MzZ/lXrVUdPgoFWNa7GwM2kYuJw9RB4vNHYm5occ744u3CtEpcokXWd0b+h6yziK0CnuiptSRkfV5zvAKgJ/KEY6' +
+  'oWeWxrzM7/NRKzUe5pzE+fgxuPy7o4NbMQIDAQAB';
+
 /**
  * Hermetic 환경 증명 — 빌드된 번들에서 MSW 워커가 실제로 요청을 가로채는지 검증.
  *
@@ -27,7 +34,10 @@ test.describe('MSW 모킹 환경 (hermetic)', () => {
     });
 
     expect(result.status).toBe(200);
-    // 모킹 핸들러(src/shared/mocks/handlers/auth.ts)의 고정 응답.
-    expect(result.body).toMatchObject({ data: { publicKey: 'mock-rsa-public-key' } });
+    // 모킹 핸들러(src/shared/mocks/handlers/auth.ts `MOCK_PUBLIC_KEY`)의 고정 응답.
+    // e2e 스펙은 자기완결이라 리터럴을 복제한다 — src 를 임포트하면
+    // tsconfig.e2e.json 에 vite/client 타입이 없어 import.meta.env 에서 깨진다.
+    // 핸들러의 키를 바꾸면 여기도 같이 바꿔야 한다.
+    expect(result.body).toMatchObject({ data: { publicKey: MOCK_PUBLIC_KEY } });
   });
 });

@@ -6,6 +6,8 @@ type FilterChipProps = {
   onToggle: (label: string) => void;
 };
 
+// components.css `.av-chip` + `.av-chip--selectable`/`--on`.
+// 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + 1px inset 링이다.
 export function FilterChip({ label, active, onToggle }: FilterChipProps) {
   return (
     <button
@@ -15,11 +17,12 @@ export function FilterChip({ label, active, onToggle }: FilterChipProps) {
         onToggle(label);
       }}
       className={cn(
-        'font-ui text-body-sm inline-flex h-7 items-center rounded-sm border px-3 transition-colors',
-        'duration-[var(--duration-fast)] ease-[var(--ease)]',
+        'bg-surface text-caption rounded-pill inline-flex h-7.5 items-center gap-1.5 border px-3 font-medium',
+        'ease-brand transition-colors duration-[var(--dur-fast)]',
+        'focus-visible:shadow-focus focus-visible:outline-none',
         active
-          ? 'border-border-focus bg-bg-elev-2 text-text'
-          : 'border-border-hi text-text-2 hover:border-border-focus hover:bg-bg-elev-2 hover:text-text bg-transparent'
+          ? 'border-primary text-primary-press shadow-[inset_0_0_0_1px_var(--primary)]'
+          : 'border-hairline text-ink-secondary hover:border-primary hover:text-ink'
       )}
     >
       {label}

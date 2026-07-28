@@ -15,7 +15,10 @@ export const avatarBaseSchema = z.object({
 export type AvatarBase = z.infer<typeof avatarBaseSchema>;
 
 // 6축 스탯 — domains/avatar §5.3 (handover) 와 generatedAvatarStatsSchema (onboarding) 와 정합.
-// 0–100 정수. 와이어프레임 Avatar Detail (ScreenAvatarDetail) 의 HexRadar + ProgressBar 행에서 사용.
+// 0–100 정수. 아바타 상세(S-03-03) 의 스탯바에서 사용.
+// NOTE: 와이어프레임 v2 는 5종(적극성·공감·유머·깊이·속도)을 규정하지만 여기는 6축이다.
+// 사용자가 5종 고정을 확정했으나 wiki domains/avatar §5.3 · 온보딩 스키마와 물려 있어
+// 함께 옮겨야 한다 — 계획서의 spec-divergence #4 참조.
 export const AVATAR_STAT_KEYS = [
   'empathy',
   'proactivity',

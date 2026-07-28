@@ -36,7 +36,9 @@ describe('StatsGrid', () => {
     expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
     expect(screen.getByText('평균 호감도')).toBeInTheDocument();
     expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-    expect(screen.getByText('이번 주 훈수')).toBeInTheDocument();
+    // 정본 4번째 슬롯은 `잔여 다이아`(Diamond) — gemsBalance 는 이미 파싱되던 필드다.
+    expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
+    expect(screen.getByLabelText(/잔여 다이아 1240개/)).toBeInTheDocument();
   });
 
   it('/api/dashboard/stats 를 단 1번만 호출한다 (single fetch + select 패턴)', async () => {
@@ -143,6 +145,6 @@ describe('StatsGrid', () => {
     });
 
     const deltaEl = screen.getByText(/\+0 지난주 대비/);
-    expect(deltaEl).toHaveClass('text-text-3');
+    expect(deltaEl).toHaveClass('text-ink-mute');
   });
 });

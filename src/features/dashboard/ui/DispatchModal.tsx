@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { Modal } from '@shared/ui/Modal';
 import { Button } from '@shared/ui/Button';
 import { useToast } from '@shared/ui/Toast';
@@ -51,32 +52,36 @@ export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchM
       onClose={handleClose}
       title="매칭 확인"
       description={`${avatarName} 아바타와 매칭을 시작할까요?`}
+      // 액션 바는 좌우 배치 — 좌 ghost 취소 / 우 채워진 파란 CTA 하나 (LAYOUT-NUMBERS § Sheet).
       footer={
-        <div className="flex w-full flex-col gap-3">
-          {inlineError !== null && (
-            <div className="text-body-sm text-danger">
-              {inlineError}
-              <button
-                type="button"
-                className="text-brand ml-2 underline"
-                onClick={() => {
-                  onClose();
-                }}
-              >
-                충전
-              </button>
-            </div>
-          )}
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" size="sm" onClick={handleClose} disabled={isPending}>
-              취소
-            </Button>
-            <Button size="sm" onClick={handleConfirm} disabled={isPending}>
-              {isPending ? '요청 중…' : '매칭하기'}
-            </Button>
-          </div>
-        </div>
+        <>
+          <Button variant="ghost" onClick={handleClose} disabled={isPending}>
+            취소
+          </Button>
+          <Button onClick={handleConfirm} disabled={isPending}>
+            {isPending ? '요청 중…' : '매칭하기'}
+            {!isPending && <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />}
+          </Button>
+        </>
       }
-    />
+    >
+      {inlineError !== null ? (
+        <div
+          role="alert"
+          className="border-danger bg-surface text-caption text-ink flex items-center justify-between gap-2 rounded-lg border p-3"
+        >
+          <span>{inlineError}</span>
+          <button
+            type="button"
+            className="text-primary hover:text-primary-hover cursor-pointer font-medium"
+            onClick={() => {
+              onClose();
+            }}
+          >
+            충전
+          </button>
+        </div>
+      ) : undefined}
+    </Modal>
   );
 }

@@ -17,9 +17,11 @@ type EmptyStateProps = {
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <Icon size={24} strokeWidth={1.5} className="text-text-3" aria-hidden="true" />
-      <p className="font-ui text-subheading text-text-2 mt-3">{title}</p>
-      {description !== undefined && <p className="text-body-sm text-text-3 mt-1">{description}</p>}
+      <Icon size={24} strokeWidth={1.5} className="text-ink-mute" aria-hidden="true" />
+      <p className="text-body-sm text-ink-secondary mt-3">{title}</p>
+      {description !== undefined && (
+        <p className="text-caption text-ink-mute mt-1">{description}</p>
+      )}
       {action && (
         <Button variant="ghost" size="sm" className="mt-4" onClick={action.onClick}>
           {action.label}

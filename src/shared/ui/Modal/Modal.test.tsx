@@ -85,12 +85,13 @@ describe('Modal', () => {
           body
         </Modal>
       );
-      const cancel = screen.getByRole('button', { name: '취소' });
+      // Sheet 의 첫 포커스 가능 요소는 헤더 행의 닫기 아이콘이다 (LAYOUT-NUMBERS § Sheet).
+      const close = screen.getByRole('button', { name: '닫기' });
       const confirm = screen.getByRole('button', { name: '확인' });
 
       confirm.focus();
       await user.tab(); // 마지막 → 처음 순환
-      expect(cancel).toHaveFocus();
+      expect(close).toHaveFocus();
 
       await user.tab({ shift: true }); // 처음 → 마지막 역방향
       expect(confirm).toHaveFocus();
@@ -135,28 +136,31 @@ describe('Modal', () => {
     });
   });
 
-  describe('시맨틱 톤 (Modal Toast System 정본)', () => {
-    // 비-neutral 톤은 상단 2px 액센트 레일 + 헤더 글리프 배지를 렌더한다.
+  describe('시맨틱 톤 (components.css `.av-badge--*`)', () => {
+    // v2 Sheet 는 상단 액센트 레일을 두지 않는다. 톤 신호는 헤더 배지 행으로 옮겼고,
+    // 배지 색은 wash 배경 + 시맨틱 텍스트 + 투명 테두리다.
+    // (v1 의 `border-t-brand` 는 `--color-brand` 가 없어 아무 스타일도 만들지 않던 죽은 클래스였다.)
     it.each([
-      ['info', 'border-t-brand'],
-      ['success', 'border-t-success'],
-      ['warning', 'border-t-warning'],
-      ['danger', 'border-t-danger'],
-    ] as const)('tone="%s" 이면 상단 레일(%s)과 톤 아이콘 배지를 렌더한다', (tone, railClass) => {
+      ['info', 'bg-primary-wash'],
+      ['success', 'bg-success-wash'],
+      ['warning', 'bg-warning-wash'],
+      ['danger', 'bg-danger-wash'],
+    ] as const)('tone="%s" 이면 헤더에 %s 톤 배지를 렌더한다', (tone, washClass) => {
       render(
         <Modal open onClose={() => undefined} title="확인" tone={tone}>
           body
         </Modal>
       );
       const dialog = screen.getByRole('dialog');
-      expect(dialog).toHaveClass('border-t-2', railClass);
-      // 배지(aria-hidden span) 안에 톤 아이콘(svg)이 렌더된다.
       const badge = dialog.querySelector('span[aria-hidden="true"]');
       expect(badge).not.toBeNull();
+      expect(badge?.className).toContain(washClass);
+      expect(badge?.className).toContain('border-transparent');
+      // 배지 안에는 문자 글리프가 아니라 라인 아이콘이 들어간다.
       expect(badge?.querySelector('svg')).not.toBeNull();
     });
 
-    it('tone 기본값(neutral)은 액센트 레일/배지를 렌더하지 않는다', () => {
+    it('tone 기본값(neutral)은 톤 배지를 렌더하지 않는다', () => {
       render(
         <Modal open onClose={() => undefined} title="단순 확인">
           body
@@ -165,6 +169,66 @@ describe('Modal', () => {
       const dialog = screen.getByRole('dialog');
       expect(dialog).not.toHaveClass('border-t-2');
       expect(dialog.querySelector('span[aria-hidden="true"]')).toBeNull();
+    });
+  });
+
+  describe('Sheet 규격 (LAYOUT-NUMBERS § Sheet)', () => {
+    it('폭 560 · radius 16 · hairline · shadow-float 를 갖는다', () => {
+      render(
+        <Modal open onClose={() => undefined} title="규격">
+          body
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.className).toContain('max-w-140');
+      expect(dialog.className).toContain('rounded-xl');
+      expect(dialog.className).toContain('border-hairline');
+      expect(dialog.className).toContain('shadow-float');
+    });
+
+    it('헤더 행의 닫기 아이콘을 누르면 onClose 가 호출된다', async () => {
+      const user = userEvent.setup();
+      const onClose = vi.fn();
+      render(
+        <Modal open onClose={onClose} title="닫기 아이콘">
+          body
+        </Modal>
+      );
+      await user.click(screen.getByRole('button', { name: '닫기' }));
+      expect(onClose).toHaveBeenCalledOnce();
+    });
+
+    it('액션 바는 상단 hairline 으로 본문과 분리된다', () => {
+      render(
+        <Modal
+          open
+          onClose={() => undefined}
+          title="액션 바"
+          footer={<button type="button">확인</button>}
+        >
+          body
+        </Modal>
+      );
+      const bar = screen.getByRole('button', { name: '확인' }).parentElement;
+      expect(bar?.className).toContain('border-t');
+      expect(bar?.className).toContain('border-hairline');
+    });
+
+    it('footnote 는 가운데 정렬 각주로 렌더된다', () => {
+      render(
+        <Modal
+          open
+          onClose={() => undefined}
+          title="각주"
+          footer={<button type="button">확인</button>}
+          footnote="다이아 30개가 차감됩니다."
+        >
+          body
+        </Modal>
+      );
+      const note = screen.getByText('다이아 30개가 차감됩니다.');
+      expect(note.className).toContain('text-micro');
+      expect(note.className).toContain('text-center');
     });
   });
 });

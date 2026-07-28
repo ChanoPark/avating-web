@@ -47,16 +47,38 @@ describe('StatsCard', () => {
       expect(delta.className).toContain('text-danger');
     });
 
-    it('delta.tone="neutral" 시 text-text-3 클래스가 적용된다', () => {
+    it('delta.tone="neutral" 시 text-ink-mute 클래스가 적용된다', () => {
       render(<StatsCard {...defaultProps} delta={{ text: '매칭 성공률 6.4%', tone: 'neutral' }} />);
       const delta = screen.getByText('매칭 성공률 6.4%');
-      expect(delta.className).toContain('text-text-3');
+      expect(delta.className).toContain('text-ink-mute');
     });
 
     it('delta 가 있을 때 delta 텍스트가 렌더된다', () => {
       render(<StatsCard {...defaultProps} delta={{ text: '+3.2pt', tone: 'positive' }} />);
       expect(screen.getByText('+3.2pt')).toBeInTheDocument();
     });
+  });
+
+  // LAYOUT-NUMBERS § 카드·데이터 부품 — "StatCard … value fontSize 26" = `--fs-display-md`.
+  it('value 는 26px display 타입 + tabular-nums 로 렌더된다', () => {
+    render(<StatsCard {...defaultProps} />);
+    const value = screen.getByText('47');
+    expect(value.className).toContain('text-display-md');
+    expect(value.className).toContain('tnum');
+  });
+
+  it('delta 숫자도 tabular-nums 를 쓴다', () => {
+    render(<StatsCard {...defaultProps} delta={{ text: '+8 지난주 대비', tone: 'positive' }} />);
+    expect(screen.getByText('+8 지난주 대비').className).toContain('tnum');
+  });
+
+  it('카드 크롬은 흰 서피스 + hairline + shadow-card + rounded-lg 다', () => {
+    render(<StatsCard {...defaultProps} />);
+    const card = screen.getByLabelText(defaultProps.ariaLabel);
+    expect(card.className).toContain('bg-surface');
+    expect(card.className).toContain('border-hairline');
+    expect(card.className).toContain('shadow-card');
+    expect(card.className).toContain('rounded-lg');
   });
 
   it('icon 이 렌더된다 (aria-hidden 으로 처리)', () => {

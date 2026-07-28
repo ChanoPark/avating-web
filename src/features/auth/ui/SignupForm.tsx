@@ -2,7 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { useMemo, useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, CircleAlert, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -35,7 +35,7 @@ function computePasswordStrength(password: string): {
 }
 
 const STRENGTH_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'bg-bg-elev-3',
+  0: 'bg-canvas-soft',
   1: 'bg-danger',
   2: 'bg-warning',
   3: 'bg-success',
@@ -43,12 +43,23 @@ const STRENGTH_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
 };
 
 const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'text-text-3',
+  0: 'text-ink-mute',
   1: 'text-danger',
   2: 'text-warning',
   3: 'text-success',
   4: 'text-success',
 };
+
+// 폼 입력 계약은 shared/ui/Input 의 base 와 같다 — caption(13px) · radius `--r-sm` ·
+// padding 9px 12px · placeholder 는 `--ink-mute`(`--ink-faint` 금지).
+// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · padding 9px 12px
+// · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
+const inputBase =
+  'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
+
+// 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 aria-label (레포 공통 관례).
+const oauthButton =
+  'bg-surface border-hairline-input text-ink-secondary text-body-sm rounded-pill flex h-10 items-center justify-center border disabled:cursor-not-allowed disabled:opacity-70';
 
 export function SignupForm({ onSuccess }: SignupFormProps) {
   const {
@@ -109,14 +120,21 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       }}
       noValidate
     >
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
+        {/* 폼 전체 실패는 상단 배너 하나로만 알린다 — 필드 오류는 각 필드 아래 인라인. */}
         {errors.root?.message && (
           <div
             role="alert"
             aria-live="polite"
-            className="text-danger text-body-sm border-danger/30 bg-danger/5 rounded-sm border px-3 py-2"
+            className="text-danger text-caption bg-danger-wash flex items-start gap-1.5 rounded-sm px-3 py-2"
           >
-            ✕ {errors.root.message}
+            <CircleAlert
+              size={13}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              className="mt-0.5 shrink-0"
+            />
+            {errors.root.message}
           </div>
         )}
 
@@ -124,7 +142,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className={oauthButton}
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
@@ -132,185 +150,207 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <button
             type="button"
             disabled
-            className="bg-bg-elev-2 border-border-hi text-text-2 text-ui font-ui flex h-9 items-center justify-center rounded-sm border disabled:cursor-not-allowed disabled:opacity-70"
+            className={oauthButton}
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
           </button>
         </div>
 
-        <div className="flex items-center gap-2" aria-hidden="true">
-          <span className="bg-border h-px flex-1" />
-          <span className="text-mono-meta text-text-3 font-mono">OR</span>
-          <span className="bg-border h-px flex-1" />
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <span className="bg-hairline h-px flex-1" />
+          <span className="text-micro text-ink-mute">OR</span>
+          <span className="bg-hairline h-px flex-1" />
         </div>
 
-        <div>
-          <label htmlFor="signup-email" className="font-ui text-ui text-text mb-2 block">
-            이메일
-          </label>
-          <input
-            id="signup-email"
-            type="email"
-            autoComplete="email"
-            placeholder="you@example.com"
-            aria-invalid={errors.email ? true : undefined}
-            aria-describedby={errors.email ? 'signup-email-error' : undefined}
-            className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.email ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
-            {...register('email')}
-          />
-          {errors.email?.message && (
-            <p
-              id="signup-email-error"
-              role="alert"
-              className="text-mono-meta text-danger mt-1 font-mono"
-            >
-              ✕ {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="signup-nickname" className="font-ui text-ui text-text mb-2 block">
-            닉네임
-          </label>
-          <input
-            id="signup-nickname"
-            type="text"
-            autoComplete="nickname"
-            placeholder="서비스에서 사용할 닉네임"
-            aria-invalid={errors.nickname ? true : undefined}
-            aria-describedby={errors.nickname ? 'signup-nickname-error' : undefined}
-            className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 ${errors.nickname ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
-            {...register('nickname')}
-          />
-          {errors.nickname?.message ? (
-            <p
-              id="signup-nickname-error"
-              role="alert"
-              className="text-mono-meta text-danger mt-1 font-mono"
-            >
-              ✕ {errors.nickname.message}
-            </p>
-          ) : (
-            <p className="text-mono-meta text-text-3 mt-1 font-mono">영문, 숫자, 한글 · 2–12자</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="signup-password" className="font-ui text-ui text-text mb-2 block">
-            비밀번호
-          </label>
-          <div className="relative">
-            <input
-              id="signup-password"
-              type={showPassword ? 'text' : 'password'}
-              autoComplete="new-password"
-              aria-invalid={errors.password ? true : undefined}
-              aria-describedby={
-                errors.password ? 'signup-password-error' : 'signup-password-strength'
-              }
-              placeholder="••••••••"
-              className={`bg-bg text-body text-text placeholder:text-text-3 h-10 w-full rounded-sm border px-3 pr-10 ${errors.password ? 'border-danger' : 'border-border-hi'} focus:border-brand focus:outline-none`}
-              {...register('password')}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                setShowPassword((v) => !v);
-              }}
-              aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-              className="text-text-3 hover:text-text absolute inset-y-0 right-3 flex items-center"
-            >
-              {showPassword ? (
-                <EyeOff size={16} strokeWidth={1.5} aria-hidden="true" />
-              ) : (
-                <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
-              )}
-            </button>
-          </div>
-          <div id="signup-password-strength" className="mt-2 flex items-center gap-2">
-            {/* 4단계 분절 막대 (signup.md §5 결정4) */}
-            <div
-              role="progressbar"
-              aria-valuemin={0}
-              aria-valuemax={4}
-              aria-valuenow={strength.score}
-              aria-label="비밀번호 강도"
-              className="flex flex-1 gap-1"
-            >
-              {[1, 2, 3, 4].map((seg) => (
-                <span
-                  key={seg}
-                  className={`h-1 flex-1 rounded-sm transition-colors duration-[var(--duration-base)] ease-[var(--ease)] ${
-                    seg <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-bg-elev-3'
-                  }`}
-                />
-              ))}
-            </div>
-            <span
-              aria-live="polite"
-              className={`text-mono-meta font-mono ${STRENGTH_TEXT_COLORS[strength.score]}`}
-            >
-              {strength.label}
-            </span>
-          </div>
-          {errors.password?.message && (
-            <p
-              id="signup-password-error"
-              role="alert"
-              className="text-mono-meta text-danger mt-1 font-mono"
-            >
-              ✕ {errors.password.message}
-            </p>
-          )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <div className="text-body-sm text-text-2 flex items-center gap-2">
-            <input
-              id="signup-terms"
-              type="checkbox"
-              aria-invalid={errors.termsAgreed ? true : undefined}
-              aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
-              className={`accent-brand h-4 w-4 rounded-sm border ${errors.termsAgreed ? 'border-danger outline-danger outline outline-1' : 'border-border-hi'}`}
-              {...register('termsAgreed')}
-            />
-            <label htmlFor="signup-terms">
-              만 15세 이상이며 약관에 동의 <span className="text-danger">*</span>
+        {/* 필드 그룹 — 정본 Col gap 14, 순서는 이메일 → 비밀번호 → 닉네임 */}
+        <div className="flex flex-col gap-3.5">
+          <div className="flex flex-col gap-2">
+            <label htmlFor="signup-email" className="text-caption text-ink-secondary font-medium">
+              이메일
             </label>
-          </div>
-          {errors.termsAgreed?.message && (
-            <p
-              id="signup-terms-error"
-              role="alert"
-              className="text-mono-meta text-danger ml-6 font-mono"
-            >
-              ✕ {errors.termsAgreed.message}
-            </p>
-          )}
-          <div className="text-body-sm text-text-2 flex items-center gap-2">
             <input
-              id="signup-marketing"
-              type="checkbox"
-              className="border-border-hi accent-brand h-4 w-4 rounded-sm border"
-              {...register('marketingOptIn')}
+              id="signup-email"
+              type="email"
+              autoComplete="email"
+              placeholder="you@example.com"
+              aria-invalid={errors.email ? true : undefined}
+              aria-describedby={errors.email ? 'signup-email-error' : undefined}
+              className={`${inputBase} ${errors.email ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+              {...register('email')}
             />
-            <label htmlFor="signup-marketing">알림 수신 (선택)</label>
+            {errors.email?.message && (
+              <p
+                id="signup-email-error"
+                role="alert"
+                className="text-micro text-danger flex items-center gap-1"
+              >
+                <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+                {errors.email.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="signup-password"
+              className="text-caption text-ink-secondary font-medium"
+            >
+              비밀번호
+            </label>
+            <div className="relative">
+              <input
+                id="signup-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                aria-invalid={errors.password ? true : undefined}
+                aria-describedby={
+                  errors.password
+                    ? 'signup-password-error'
+                    : 'signup-password-help signup-password-strength'
+                }
+                placeholder="8자 이상, 숫자·영문 포함"
+                className={`${inputBase} pr-10 ${errors.password ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+                {...register('password')}
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPassword((v) => !v);
+                }}
+                aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
+                className="text-ink-mute hover:text-ink absolute inset-y-0 right-3 flex items-center"
+              >
+                {showPassword ? (
+                  <EyeOff size={16} strokeWidth={1.5} aria-hidden="true" />
+                ) : (
+                  <Eye size={16} strokeWidth={1.5} aria-hidden="true" />
+                )}
+              </button>
+            </div>
+            <div id="signup-password-strength" className="flex items-center gap-2">
+              {/* 4단계 분절 막대 (signup.md §5 결정4) */}
+              <div
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={4}
+                aria-valuenow={strength.score}
+                aria-label="비밀번호 강도"
+                className="flex flex-1 gap-1"
+              >
+                {[1, 2, 3, 4].map((seg) => (
+                  <span
+                    key={seg}
+                    className={`ease-brand h-1 flex-1 rounded-sm transition-colors duration-[var(--dur)] ${
+                      seg <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-canvas-soft'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span
+                aria-live="polite"
+                className={`text-micro tnum ${STRENGTH_TEXT_COLORS[strength.score]}`}
+              >
+                {strength.label}
+              </span>
+            </div>
+            {errors.password?.message ? (
+              <p
+                id="signup-password-error"
+                role="alert"
+                className="text-micro text-danger flex items-center gap-1"
+              >
+                <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+                {errors.password.message}
+              </p>
+            ) : (
+              <p id="signup-password-help" className="text-micro text-ink-mute tnum">
+                영문·숫자를 섞어 8자 이상 입력해 주세요
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <label
+              htmlFor="signup-nickname"
+              className="text-caption text-ink-secondary font-medium"
+            >
+              닉네임
+            </label>
+            <input
+              id="signup-nickname"
+              type="text"
+              autoComplete="nickname"
+              placeholder="아바타 프로필에 표시됩니다"
+              aria-invalid={errors.nickname ? true : undefined}
+              aria-describedby={errors.nickname ? 'signup-nickname-error' : 'signup-nickname-help'}
+              className={`${inputBase} ${errors.nickname ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+              {...register('nickname')}
+            />
+            {errors.nickname?.message ? (
+              <p
+                id="signup-nickname-error"
+                role="alert"
+                className="text-micro text-danger flex items-center gap-1"
+              >
+                <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+                {errors.nickname.message}
+              </p>
+            ) : (
+              <p id="signup-nickname-help" className="text-micro text-ink-mute tnum">
+                영문, 숫자, 한글 · 2–12자
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <div className="text-caption text-ink-secondary flex items-center gap-2">
+              <input
+                id="signup-terms"
+                type="checkbox"
+                aria-invalid={errors.termsAgreed ? true : undefined}
+                aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
+                className={`accent-primary h-4 w-4 shrink-0 rounded-sm border ${errors.termsAgreed ? 'border-danger outline-danger outline outline-1' : 'border-hairline-input'}`}
+                {...register('termsAgreed')}
+              />
+              <label htmlFor="signup-terms" className="tnum">
+                만 15세 이상이며 이용약관 및 개인정보 처리방침에 동의합니다{' '}
+                <span className="text-danger">*</span>
+              </label>
+            </div>
+            {errors.termsAgreed?.message && (
+              <p
+                id="signup-terms-error"
+                role="alert"
+                className="text-micro text-danger ml-6 flex items-center gap-1"
+              >
+                <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+                {errors.termsAgreed.message}
+              </p>
+            )}
+            <div className="text-caption text-ink-secondary flex items-center gap-2">
+              <input
+                id="signup-marketing"
+                type="checkbox"
+                className="border-hairline-input accent-primary h-4 w-4 shrink-0 rounded-sm border"
+                {...register('marketingOptIn')}
+              />
+              <label htmlFor="signup-marketing">알림 수신 (선택)</label>
+            </div>
           </div>
         </div>
 
-        <Button type="submit" variant="primary" disabled={isLoading} aria-busy={isLoading}>
-          {isLoading ? '가입 중...' : '계정 만들기 →'}
+        <Button type="submit" variant="primary" block disabled={isLoading} aria-busy={isLoading}>
+          {isLoading ? '가입 중...' : '계정 만들기'}
+          <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
 
-        <p className="text-mono-meta text-text-3 font-mono">
-          본인 인증은 실제 매칭 시점에 진행됩니다
-        </p>
-
-        <Link to="/login" className="group text-body-sm text-text-2 hover:text-text mx-auto w-fit">
-          이미 계정? <span className="text-brand group-hover:text-brand-hover">로그인</span>
-        </Link>
+        <div className="text-caption flex items-center justify-center gap-1.5">
+          <span className="text-ink-mute">이미 계정이 있나요?</span>
+          <Link to="/login" className="text-primary hover:text-primary-hover font-medium">
+            로그인
+          </Link>
+        </div>
       </div>
     </form>
   );

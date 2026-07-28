@@ -109,7 +109,8 @@ describe('DashboardPage 통합 시나리오', () => {
       });
       expect(screen.getByText('평균 호감도')).toBeInTheDocument();
       expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-      expect(screen.getByText('이번 주 훈수')).toBeInTheDocument();
+      // 정본 4번째 슬롯은 `잔여 다이아`(Diamond)
+      expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
     });
 
     it('인증 상태에서 추천 아바타 리스트가 렌더된다', async () => {

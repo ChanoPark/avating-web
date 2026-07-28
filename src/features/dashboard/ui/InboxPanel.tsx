@@ -1,10 +1,13 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { MessageSquare } from 'lucide-react';
-import { Button } from '@shared/ui/Button';
+import { Bell, MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
+
+// wf-s2-core `ScreenDashboard` 우측 하단 `알림` 카드 — 카드 규격은 좌측 내 아바타 카드와 같다.
+const CARD_CLASS =
+  'border-hairline bg-surface shadow-card flex flex-col gap-2 rounded-lg border p-4';
 
 function formatRelativeTime(occurredAt: string): string {
   const occurred = new Date(occurredAt);
@@ -19,29 +22,54 @@ function formatRelativeTime(occurredAt: string): string {
   return `${diffDay}일 전`;
 }
 
+function CardHeader({
+  unreadCount = 0,
+  action,
+}: {
+  unreadCount?: number;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-caption text-ink font-medium">알림</h2>
+        {unreadCount > 0 && (
+          // 카운트 배지 문법 — LAYOUT-NUMBERS § 내비 카운트 배지 (brand wash, height 18, 11px, tnum)
+          <span
+            aria-label={`읽지 않은 알림 ${unreadCount}개`}
+            className="bg-primary-wash text-primary-press rounded-pill text-micro tnum inline-flex h-4.5 items-center px-1.75 font-medium"
+          >
+            {unreadCount}
+          </span>
+        )}
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function InboxPanelSkeleton() {
   return (
-    <section aria-label="메시지함" className="border-border bg-bg-elev-2 rounded-md border p-4">
-      <div className="mb-3 flex items-center justify-between">
-        <div className="bg-bg-elev-3 h-4 w-16 animate-pulse rounded" />
+    <section aria-label="알림" className={CARD_CLASS}>
+      <div className="flex items-center justify-between">
+        <div className="bg-canvas-soft h-4 w-12 animate-pulse rounded" />
+        <div className="bg-canvas-soft h-4 w-14 animate-pulse rounded" />
       </div>
-      <div className="flex flex-col gap-2">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="bg-bg-elev-3 h-10 animate-pulse rounded" />
-        ))}
-      </div>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="bg-canvas-soft h-12 animate-pulse rounded-md" />
+      ))}
     </section>
   );
 }
 
 function InboxPanelFallback({ resetErrorBoundary }: FallbackProps) {
   return (
-    <section aria-label="메시지함" className="border-border bg-bg-elev-2 rounded-md border p-4">
-      <h2 className="font-ui text-ui text-text mb-3">메시지함</h2>
-      <div className="text-text-3 text-mono-meta font-mono">불러올 수 없음</div>
+    <section aria-label="알림" className={CARD_CLASS}>
+      <CardHeader />
+      <div className="text-ink-mute text-micro">불러올 수 없음</div>
       <button
         type="button"
-        className="text-body-sm text-brand mt-2 underline"
+        className="text-caption text-primary hover:text-primary-hover cursor-pointer self-start font-medium"
         onClick={resetErrorBoundary}
       >
         재시도
@@ -54,65 +82,51 @@ function InboxPanelContent() {
   const { items, unreadCount } = useInboxSuspense();
 
   return (
-    <section
-      aria-label="메시지함"
-      className="border-border bg-bg-elev-2 flex flex-col rounded-md border p-4"
-    >
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="font-ui text-ui text-text">메시지함</h2>
-        {unreadCount > 0 && (
-          <span
-            aria-label={`읽지 않은 메시지 ${unreadCount}개`}
-            className="bg-brand text-mono-meta inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 font-mono font-semibold text-white"
+    <section aria-label="알림" className={CARD_CLASS}>
+      <CardHeader
+        unreadCount={unreadCount}
+        action={
+          <button
+            type="button"
+            // 정본 링크 fontSize 12 — micro(11)/caption(13) 사이의 지정 값이다.
+            className="text-primary hover:text-primary-hover cursor-pointer text-[12px] font-medium"
           >
-            {unreadCount}
-          </span>
-        )}
-      </div>
+            전체 보기
+          </button>
+        }
+      />
       {items.length === 0 ? (
-        <EmptyState icon={MessageSquare} title="새 메시지가 없습니다" />
+        <EmptyState icon={MessageSquare} title="새 알림이 없습니다" />
       ) : (
         <ul className="flex flex-1 flex-col gap-1.5">
           {items.map((item) => (
             <li
               key={item.id}
               data-unread={!item.read}
+              // 읽지 않음 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
               className={cn(
-                'flex items-start gap-2 rounded-sm border p-2',
-                item.read
-                  ? 'border-transparent bg-transparent'
-                  : 'bg-brand-soft border-brand-border/40'
+                'flex items-center gap-2.5 rounded-md border px-3 py-2.5',
+                item.read ? 'border-transparent bg-transparent' : 'border-primary bg-surface'
               )}
             >
-              <div className="bg-brand-soft border-brand-border flex h-7 w-7 shrink-0 items-center justify-center rounded-full border">
-                <span className="font-ui text-mono-meta text-brand font-semibold uppercase">
-                  {item.sender.initials}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="font-ui text-mono-meta text-text font-medium">
-                    {item.sender.name}
-                  </span>
-                  <span className="text-mono-meta text-text-3 font-mono">
-                    {formatRelativeTime(item.occurredAt)}
-                  </span>
-                </div>
-                <p className="text-text-2 text-mono-meta truncate font-mono">{item.message}</p>
-              </div>
-              {!item.read && (
-                <span
-                  aria-hidden="true"
-                  className="bg-brand mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
-                />
-              )}
+              {/* 알림 아이콘 상자 28 · radius 8 */}
+              <span
+                aria-hidden="true"
+                className="bg-canvas text-ink-mute flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
+              >
+                <Bell size={14} strokeWidth={1.5} />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="text-caption text-ink block truncate">{item.message}</span>
+                <span className="text-micro text-ink-mute block truncate">{item.sender.name}</span>
+              </span>
+              <span className="text-micro text-ink-mute tnum shrink-0">
+                {formatRelativeTime(item.occurredAt)}
+              </span>
             </li>
           ))}
         </ul>
       )}
-      <Button variant="ghost" size="sm" className="mt-3 w-full justify-center">
-        전체 보기
-      </Button>
     </section>
   );
 }

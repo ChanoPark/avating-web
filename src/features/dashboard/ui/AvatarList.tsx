@@ -3,9 +3,10 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Compass } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { AvatarListRow } from '@shared/ui/AvatarListRow';
+import { cn } from '@shared/lib/cn';
 import type { RecommendedAvatarFilter } from '@entities/dashboard';
 import { useRecommendedAvatars } from '../api/useRecommendedAvatars';
+import { AvatarCard } from './AvatarCard';
 import { DispatchModal } from './DispatchModal';
 
 type AvatarListProps = {
@@ -16,57 +17,44 @@ type AvatarListProps = {
 
 type ModalState = { open: false } | { open: true; avatarId: string; avatarName: string };
 
+// 그리드가 아닌 상태(빈 목록 · 오류 · 로딩)는 카드 한 장 위에 얹는다.
+const PANEL_CLASS = 'border-hairline bg-surface shadow-card rounded-lg border';
+
 function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
   const { items: avatars } = useRecommendedAvatars(filter);
   const [modal, setModal] = useState<ModalState>({ open: false });
 
   if (avatars.length === 0) {
     return (
-      <EmptyState
-        icon={Compass}
-        title="추천 아바타 없음"
-        description="필터를 조정하거나 잠시 후 다시 확인해주세요"
-        action={{ label: '필터 초기화', onClick: onResetFilter }}
-      />
+      <div className={PANEL_CLASS}>
+        <EmptyState
+          icon={Compass}
+          title="추천 아바타 없음"
+          description="필터를 조정하거나 잠시 후 다시 확인해주세요"
+          action={{ label: '필터 초기화', onClick: onResetFilter }}
+        />
+      </div>
     );
   }
 
   return (
     <>
-      <div role="table" aria-label="추천 아바타 목록">
-        <div
-          role="row"
-          className="border-border grid border-b px-4 py-2"
-          style={{ gridTemplateColumns: '1fr 140px 1fr 120px' }}
-        >
-          {['아바타', '유형', '관심사', ''].map((h, i) => (
-            <div
-              key={i}
-              role="columnheader"
-              className="text-mono-micro text-text-3 font-mono uppercase"
-            >
-              {h}
-            </div>
-          ))}
-        </div>
+      {/* 4열 카드 그리드 gap 12 (wf-s2-core ScreenDashboard). 세그먼트 `표` 뷰는 미설계라 1차 제외. */}
+      <ul
+        aria-label="추천 아바타 목록"
+        className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
+      >
         {avatars.map((avatar) => (
-          <AvatarListRow
+          <AvatarCard
             key={avatar.id}
-            id={avatar.id}
-            initials={avatar.initials}
-            name={avatar.name}
-            handle={avatar.handle}
-            type={avatar.type}
-            tags={avatar.tags}
-            status={avatar.status}
-            verified={avatar.verified}
-            onRowClick={onAvatarClick}
-            onMatchClick={(id) => {
+            avatar={avatar}
+            onOpen={onAvatarClick}
+            onMatch={(id) => {
               setModal({ open: true, avatarId: id, avatarName: avatar.name });
             }}
           />
         ))}
-      </div>
+      </ul>
 
       {modal.open && (
         <DispatchModal
@@ -84,8 +72,8 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
 
 function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="text-body-sm text-text-2">목록을 불러오지 못했어요.</div>
+    <div className={cn(PANEL_CLASS, 'flex flex-col items-center justify-center py-12 text-center')}>
+      <div className="text-body-sm text-ink-secondary">목록을 불러오지 못했어요.</div>
       <Button variant="ghost" size="sm" className="mt-4" onClick={onResetFilter}>
         필터 초기화
       </Button>
@@ -93,12 +81,49 @@ function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
   );
 }
 
+/**
+ * 로딩 스켈레톤은 실제 4열 카드 그리드와 같은 골격을 세운다. 한 줄 텍스트로 두면
+ * 데이터 도착 시 대시보드 하단이 카드 높이만큼 통째로 밀려 CLS 가 발생한다.
+ * 카드 내부 3단(아바타 행 / 태그 행 / 호감도+버튼 행)을 AvatarCard 와 맞춘다.
+ */
+function AvatarListSkeleton() {
+  return (
+    <div
+      aria-busy="true"
+      aria-live="polite"
+      className="grid animate-pulse grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
+    >
+      <span className="sr-only">추천 아바타를 불러오는 중…</span>
+      {Array.from({ length: 4 }, (_, i) => (
+        <div
+          key={i}
+          className="border-hairline bg-surface shadow-card flex flex-col gap-2.5 rounded-lg border p-3.5"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="bg-canvas-soft h-10 w-10 shrink-0 rounded-[10px]" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="bg-canvas-soft h-3 w-24 rounded" />
+              <div className="bg-canvas-soft h-2.75 w-32 rounded" />
+            </div>
+          </div>
+          <div className="flex gap-1.25">
+            <div className="bg-canvas-soft rounded-pill h-5 w-14" />
+            <div className="bg-canvas-soft rounded-pill h-5 w-16" />
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <div className="bg-canvas-soft h-3 w-20 rounded" />
+            <div className="bg-canvas-soft rounded-pill h-8 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function AvatarList({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
   return (
     <ErrorBoundary fallback={<AvatarListFallback onResetFilter={onResetFilter} />}>
-      <Suspense
-        fallback={<div className="text-text-3 text-body-sm py-8 text-center">로딩 중…</div>}
-      >
+      <Suspense fallback={<AvatarListSkeleton />}>
         <AvatarListContent
           filter={filter}
           onAvatarClick={onAvatarClick}

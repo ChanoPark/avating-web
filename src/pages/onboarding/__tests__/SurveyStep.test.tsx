@@ -94,11 +94,22 @@ describe('SurveyStep', () => {
   });
 
   describe('와이어프레임 헤더', () => {
-    it('"STEP 3 / 4 · 성향 설문" 라벨이 렌더된다', async () => {
+    it('질문 문장이 카드 제목(h1)으로 렌더되고 STEP 라벨은 없다 (진행 표시는 레일 담당)', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await waitFor(() => {
-        expect(screen.getByText(/STEP 3 \/ 4 · 성향 설문/)).toBeInTheDocument();
+        expect(screen.getByRole('heading', { level: 1, name: MOCK_Q1_TITLE })).toBeInTheDocument();
       });
+      expect(screen.queryByText(/STEP 3 \/ 4/)).not.toBeInTheDocument();
+    });
+
+    it('진행 카운터가 "현재 페이지 / 전체 페이지" 로 렌더된다 (표현 단계 포함)', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+      // mock 질문 2개 + 표현 단계 1개 = 3페이지.
+      expect(screen.getByText('1 / 3')).toBeInTheDocument();
+      expect(screen.getByText('33%')).toBeInTheDocument();
     });
 
     it('설문 진행률 progressbar 가 렌더된다 (aria-valuemax=100)', async () => {
@@ -194,7 +205,8 @@ describe('SurveyStep', () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await goToExpressionsPage(user);
       expect(screen.getByLabelText('자주 쓰는 표현 입력')).toBeInTheDocument();
-      expect(screen.getByText('선택')).toBeInTheDocument();
+      expect(screen.getByText('자주 쓰는 표현 · 선택 문항')).toBeInTheDocument();
+      expect(screen.getByText('3 / 3 · 선택 문항')).toBeInTheDocument();
     });
 
     it('선택 단계이므로 표현 미입력이어도 "아바타 생성" 버튼이 활성화된다', async () => {

@@ -19,7 +19,6 @@ const partner: PartnerAvatarSummary = {
   type: '내향·낭만형',
   verified: true,
   status: 'online',
-  tags: ['독립서점', '심야 카페'],
 };
 
 function defaultProps(overrides: Partial<Parameters<typeof MatchRequestModal>[0]> = {}) {
@@ -46,7 +45,7 @@ describe('MatchRequestModal', () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       expect(await screen.findByRole('dialog')).toBeInTheDocument();
       expect(
-        screen.getByRole('heading', { name: /이 아바타에게 소개팅을 요청합니다/ })
+        screen.getByRole('heading', { name: /이 아바타에게 소개팅을 요청할까요\?/ })
       ).toBeInTheDocument();
     });
 
@@ -55,17 +54,39 @@ describe('MatchRequestModal', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    it('상대 아바타 카드가 표시된다 (이름·태그·인증)', async () => {
+    // 정본(wf-s3-request ScreenMatchRequestSend)의 상대 카드는 이름·인증 배지·핸들·성향·온라인만
+    // 보여준다. 관심사 태그는 상세 화면 몫이다.
+    it('상대 아바타 카드가 표시된다 (이름·인증·핸들·성향·온라인)', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
       expect(within(dialog).getByText('Moonlit Narrator')).toBeInTheDocument();
       expect(within(dialog).getByText('인증')).toBeInTheDocument();
-      expect(within(dialog).getByText('독립서점')).toBeInTheDocument();
+      expect(within(dialog).getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
+      // 온라인은 `av-badge--success` + `av-badge__dot` 이다 — 장식 점까지 확인한다.
+      const onlineDot = within(dialog).getByText('온라인').firstElementChild;
+      expect(onlineDot).toHaveAttribute('aria-hidden', 'true');
+      expect(onlineDot?.className).toContain('rounded-full');
     });
 
-    it('비용 안내 ◇ 30 이 표시된다', async () => {
+    // `◇` 는 Pretendard 에 없어 자간이 깨진다 — Diamond 아이콘 + tnum 숫자로 표기한다.
+    it('요청 비용이 다이아 수치로 표시되고 ◇ 문자 글리프를 쓰지 않는다', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
-      expect(await screen.findByText(/◇ 30/)).toBeInTheDocument();
+      const dialog = await screen.findByRole('dialog');
+      expect(within(dialog).getByText('요청 비용')).toBeInTheDocument();
+      expect(within(dialog).getByText('30')).toHaveClass('tnum');
+      expect(within(dialog).getByText('상대가 수락할 때만 차감돼요')).toBeInTheDocument();
+      expect(dialog.textContent).not.toContain('◇');
+    });
+
+    it('Sheet 규격(560 · radius 16 · shadow-float)과 각주가 적용된다', async () => {
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const dialog = await screen.findByRole('dialog');
+      expect(dialog).toHaveClass('max-w-140');
+      expect(dialog).toHaveClass('rounded-xl');
+      expect(dialog).toHaveClass('shadow-float');
+      expect(
+        within(dialog).getByText('24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.')
+      ).toBeInTheDocument();
     });
 
     it('내 아바타 라디오 그룹이 로드되고 첫 항목이 기본 선택된다', async () => {
@@ -161,7 +182,7 @@ describe('MatchRequestModal', () => {
       expect(onClose).toHaveBeenCalledOnce();
     });
 
-    it('우측 상단 ✕ 버튼 클릭 시 onClose 가 호출된다', async () => {
+    it('우측 상단 닫기(X 아이콘) 버튼 클릭 시 onClose 가 호출된다', async () => {
       const onClose = vi.fn();
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
@@ -219,7 +240,7 @@ describe('MatchRequestModal', () => {
       const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
       await user.type(textarea, '안녕하세요!');
       expect(textarea).toHaveValue('안녕하세요!');
-      expect(screen.getByText(/6\/100/)).toBeInTheDocument();
+      expect(screen.getByText(/6 \/ 100/)).toBeInTheDocument();
     });
 
     it('빈 인사말로도 요청을 보낼 수 있다 (greeting 은 optional)', async () => {
@@ -314,7 +335,7 @@ describe('MatchRequestModal', () => {
       const textarea = screen.getByLabelText(/아바타가 건넬 첫 인사/);
       await user.type(textarea, 'a'.repeat(101));
       await waitFor(() => {
-        expect(screen.getByText(/101\/100/).className).toMatch(/text-danger/);
+        expect(screen.getByText(/101 \/ 100/).className).toMatch(/text-danger/);
       });
       expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
     });

@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
+import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -20,6 +21,10 @@ import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
 import { InlineErrorPanel, type InlineErrorKind } from './InlineErrorPanel';
+import { CreditAmount } from './CreditAmount';
+
+// 상태 안내 패널 — 흰 서피스 + hairline. 톤은 테두리가 아니라 텍스트 색이 나른다.
+const NOTICE_CLASS = 'text-caption border-hairline bg-surface rounded-lg border p-3';
 
 type InlineError = { kind: InlineErrorKind };
 
@@ -36,6 +41,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const descriptionId = useId();
   const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
+  const greetingHelpId = useId();
   const costNoteId = useId();
   const inlineErrorId = useId();
 
@@ -200,182 +206,176 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="border-border bg-bg-elev-1 shadow-2 relative flex w-full max-w-[440px] flex-col gap-4 rounded-xl border p-6 focus:outline-none"
+        className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border focus:outline-none"
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        <div className="flex items-center justify-between">
-          <Tag variant="brand">매칭 요청</Tag>
+        {/* 헤더 행 — padding 18px 24px 0, 좌 배지 행 / 우 닫기 아이콘 16px (LAYOUT-NUMBERS § Sheet) */}
+        <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
+          <Tag>MATCH REQUEST</Tag>
           <button
             type="button"
             aria-label="닫기"
             onClick={() => {
               if (!isPending) onClose();
             }}
-            className="text-text-3 hover:text-text text-body-sm"
+            className="text-ink-faint hover:text-ink -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
           >
-            ✕
+            <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
-        <div>
-          <h2 id={titleId} className="font-ui text-heading text-text">
-            이 아바타에게 소개팅을 요청합니다
+        {/* 타이틀 블록 — padding 14px 24px 0, gap 6 */}
+        <div className="flex flex-col gap-1.5 px-6 pt-3.5">
+          <h2 id={titleId} className="text-heading-md text-ink">
+            이 아바타에게 소개팅을 요청할까요?
           </h2>
-          <p id={descriptionId} className="text-body-sm text-text-2 mt-1">
-            요청을 받은 사용자가 수락하면 두 아바타가 채팅을 시작해요
+          <p id={descriptionId} className="text-body-sm text-ink-mute">
+            요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
           </p>
         </div>
-
-        <PartnerAvatarCard partner={partner} />
 
         <form
           onSubmit={(e) => {
             void handleSubmit(onSubmit)(e);
           }}
           noValidate
-          className="flex flex-col gap-4"
         >
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-mono-meta text-text-2 font-mono uppercase">
-                요청에 사용할 내 아바타
-              </span>
-              <span className="text-mono-meta text-text-3 font-mono uppercase">1개 선택</span>
-            </div>
-            {avatarsLoading ? (
-              <p role="status" aria-live="polite" className="text-body-sm text-text-3">
-                아바타 목록 불러오는 중…
-              </p>
-            ) : avatarsError ? (
-              <div
-                role="alert"
-                className="text-body-sm text-danger border-border bg-bg-elev-2 flex flex-col gap-2 rounded-sm border p-3"
-              >
-                <span>아바타 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void refetchAvatars();
-                  }}
-                  className="text-mono-meta text-brand self-start font-mono uppercase"
-                >
-                  다시 시도
-                </button>
+          {/* 본문 — padding 18px 24px, gap 12 */}
+          <div className="flex flex-col gap-3 px-6 py-4.5">
+            <PartnerAvatarCard partner={partner} />
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-caption text-ink-secondary font-medium">
+                  요청에 사용할 내 아바타
+                </span>
+                <span className="text-micro text-ink-mute">1개 선택</span>
               </div>
-            ) : hasNoAvatars ? (
-              <p
-                role="status"
-                aria-live="polite"
-                className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
-              >
-                아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
-              </p>
-            ) : allBusy ? (
-              <p
-                role="status"
-                aria-live="polite"
-                className="text-body-sm text-warning border-border bg-bg-elev-2 rounded-sm border p-3"
-              >
-                현재 매칭에 사용할 수 있는 아바타가 없어요. 매칭 중인 아바타가 끝나면 다시
-                시도해주세요.
-              </p>
-            ) : (
-              <>
-                <input type="hidden" {...register('requesterAvatarId')} />
-                <MyAvatarRadioGroup
-                  avatars={myAvatars}
-                  value={requesterAvatarId}
-                  onChange={(next) => {
-                    setValue('requesterAvatarId', next, { shouldValidate: true });
-                  }}
-                  aria-invalid={errors.requesterAvatarId !== undefined ? true : undefined}
-                  aria-describedby={
-                    errors.requesterAvatarId !== undefined ? requesterAvatarErrorId : undefined
-                  }
-                />
-                {errors.requesterAvatarId?.message && (
-                  <p
-                    id={requesterAvatarErrorId}
-                    role="alert"
-                    className="text-mono-meta text-danger mt-2 font-mono"
+              {avatarsLoading ? (
+                <p role="status" aria-live="polite" className="text-caption text-ink-mute">
+                  아바타 목록 불러오는 중…
+                </p>
+              ) : avatarsError ? (
+                <div role="alert" className={cn(NOTICE_CLASS, 'text-danger flex flex-col gap-2')}>
+                  <span>아바타 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void refetchAvatars();
+                    }}
+                    className="text-micro text-primary hover:text-primary-hover cursor-pointer self-start font-medium"
                   >
-                    {errors.requesterAvatarId.message}
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-
-          <div>
-            <div className="mb-2 flex items-center justify-between">
-              <label
-                htmlFor="match-request-greeting"
-                className="text-mono-meta text-text-2 font-mono uppercase"
-              >
-                아바타가 건넬 첫 인사 (선택)
-              </label>
-              <span
-                className={cn(
-                  'text-mono-meta font-mono uppercase',
-                  isGreetingOverLimit ? 'text-danger' : 'text-text-3'
-                )}
-              >
-                {greetingLength}/{MATCH_REQUEST_GREETING_MAX}
-              </span>
-            </div>
-            <textarea
-              id="match-request-greeting"
-              rows={3}
-              maxLength={MATCH_REQUEST_GREETING_HARD_LIMIT}
-              placeholder="비워두면 아바타가 자율적으로 인사를 시작합니다"
-              aria-invalid={errors.greeting !== undefined ? true : undefined}
-              aria-describedby={errors.greeting !== undefined ? greetingErrorId : undefined}
-              {...register('greeting')}
-              className={cn(
-                'bg-bg-elev-2 text-body-sm text-text w-full resize-none rounded-sm border px-3 py-2',
-                errors.greeting ? 'border-danger' : 'border-border-hi',
-                'focus:border-brand focus:outline-none'
+                    다시 시도
+                  </button>
+                </div>
+              ) : hasNoAvatars ? (
+                <p role="status" aria-live="polite" className={cn(NOTICE_CLASS, 'text-warning')}>
+                  아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
+                </p>
+              ) : allBusy ? (
+                <p role="status" aria-live="polite" className={cn(NOTICE_CLASS, 'text-warning')}>
+                  현재 매칭에 사용할 수 있는 아바타가 없어요. 매칭 중인 아바타가 끝나면 다시
+                  시도해주세요.
+                </p>
+              ) : (
+                <>
+                  <input type="hidden" {...register('requesterAvatarId')} />
+                  <MyAvatarRadioGroup
+                    avatars={myAvatars}
+                    value={requesterAvatarId}
+                    onChange={(next) => {
+                      setValue('requesterAvatarId', next, { shouldValidate: true });
+                    }}
+                    aria-invalid={errors.requesterAvatarId !== undefined ? true : undefined}
+                    aria-describedby={
+                      errors.requesterAvatarId !== undefined ? requesterAvatarErrorId : undefined
+                    }
+                  />
+                  {errors.requesterAvatarId?.message && (
+                    <p id={requesterAvatarErrorId} role="alert" className="text-micro text-danger">
+                      {errors.requesterAvatarId.message}
+                    </p>
+                  )}
+                </>
               )}
-            />
-            {errors.greeting?.message && (
-              <p
-                id={greetingErrorId}
-                role="alert"
-                className="text-mono-meta text-danger mt-1 font-mono"
-              >
-                {errors.greeting.message}
-              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-2">
+                <label
+                  htmlFor="match-request-greeting"
+                  className="text-caption text-ink-secondary font-medium"
+                >
+                  아바타가 건넬 첫 인사
+                </label>
+                <span
+                  className={cn(
+                    'text-micro tnum',
+                    isGreetingOverLimit ? 'text-danger' : 'text-ink-mute'
+                  )}
+                >
+                  {greetingLength} / {MATCH_REQUEST_GREETING_MAX}
+                </span>
+              </div>
+              <textarea
+                id="match-request-greeting"
+                rows={3}
+                maxLength={MATCH_REQUEST_GREETING_HARD_LIMIT}
+                aria-invalid={errors.greeting !== undefined ? true : undefined}
+                aria-describedby={errors.greeting !== undefined ? greetingErrorId : greetingHelpId}
+                {...register('greeting')}
+                className={cn(
+                  // forms.css `.av-textarea` — 흰 서피스 · 15px · lh 1.55
+                  // · min-height 92 · resize: vertical.
+                  'bg-surface text-body text-ink min-h-23 w-full resize-y rounded-sm border px-3 py-2.25 leading-[1.55]',
+                  'ease-brand transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
+                  errors.greeting ? 'border-danger' : 'border-hairline-input',
+                  'focus:border-primary focus:shadow-focus focus:outline-none'
+                )}
+              />
+              {errors.greeting?.message ? (
+                <p id={greetingErrorId} role="alert" className="text-micro text-danger">
+                  {errors.greeting.message}
+                </p>
+              ) : (
+                <p id={greetingHelpId} className="text-micro text-ink-mute">
+                  비워 두면 아바타가 알아서 인사를 시작합니다
+                </p>
+              )}
+            </div>
+
+            {inlineError !== null && (
+              <InlineErrorPanel
+                id={inlineErrorId}
+                kind={inlineError.kind}
+                retryDisabled={isLoading}
+                onRetry={() => {
+                  void handleSubmit(onSubmit)();
+                }}
+              />
             )}
+
+            {/* 요청 비용 — soft 카드 (흰 서피스 위 회색 캔버스면) */}
+            <div
+              id={costNoteId}
+              className="bg-canvas border-hairline flex items-center justify-between gap-3 rounded-lg border p-3"
+            >
+              <span className="flex flex-col gap-0.5">
+                <span className="text-caption text-ink font-medium">요청 비용</span>
+                <span className="text-micro text-ink-mute">상대가 수락할 때만 차감돼요</span>
+              </span>
+              <CreditAmount
+                amount={MATCH_REQUEST_COST_GEMS}
+                className="text-body text-ink font-medium"
+              />
+            </div>
           </div>
 
-          {inlineError !== null && (
-            <InlineErrorPanel
-              id={inlineErrorId}
-              kind={inlineError.kind}
-              retryDisabled={isLoading}
-              onRetry={() => {
-                void handleSubmit(onSubmit)();
-              }}
-            />
-          )}
-
-          <div
-            id={costNoteId}
-            className="bg-bg border-border-hi flex items-center justify-between rounded-sm border px-3 py-2"
-          >
-            <span className="text-body-sm text-text-2">
-              매칭 요청 비용 · 상대 수락 시 채팅 시작
-            </span>
-            <span className="font-ui text-subheading text-brand font-medium">
-              ◇ {MATCH_REQUEST_COST_GEMS}
-            </span>
-          </div>
-
-          <div className="flex gap-2">
+          {/* 액션 바 — padding 16px 24px, 상단 hairline, 좌우 배치 */}
+          <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
             <Button
               type="button"
-              variant="secondary"
-              className="flex-1"
+              variant="ghost"
               disabled={isLoading}
               onClick={() => {
                 if (!isPending) onClose();
@@ -386,7 +386,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             <Button
               type="submit"
               variant="primary"
-              className="flex-[2]"
               disabled={submitDisabled}
               aria-busy={isLoading}
               aria-describedby={[
@@ -398,10 +397,15 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 .filter((id): id is string => id !== null)
                 .join(' ')}
             >
-              {isLoading ? '요청 보내는 중…' : '요청 보내기 →'}
+              {isLoading ? '요청 보내는 중…' : '요청 보내기'}
+              {!isLoading && <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />}
             </Button>
           </div>
         </form>
+
+        <p className="text-micro text-ink-mute px-6 pb-4 text-center">
+          24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.
+        </p>
       </div>
     </div>,
     document.body

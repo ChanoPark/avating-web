@@ -50,7 +50,8 @@ describe('MyAvatarGrid', () => {
       });
     });
 
-    it('아바타가 3개 이상일 때는 "더보기" 버튼이 렌더된다', async () => {
+    // 정본(wf-s2-core ScreenDashboard) 카드 헤더의 액션은 `추가하기` 링크 하나뿐이다.
+    it('아바타가 3개여도 액션은 "추가하기" 하나뿐이다', async () => {
       server.use(
         myAvatarsHandler([
           {
@@ -84,13 +85,47 @@ describe('MyAvatarGrid', () => {
       );
       renderWithProviders(<MyAvatarGrid />);
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: /더보기/ })).toBeInTheDocument();
+        expect(screen.getByText('avatar-a')).toBeInTheDocument();
       });
+      const buttons = screen.getAllByRole('button');
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0]).toHaveAccessibleName(/추가하기/);
     });
   });
 
-  describe('아바타 카드', () => {
-    it('isPrimary=true 아바타에 "대표" Tag 와 ★ 마커가 표시된다', async () => {
+  describe('아바타 요약', () => {
+    // 정본 카드는 대표 아바타 한 명만 보여준다 (폭 300 고정).
+    it('대표 아바타 한 명만 요약으로 노출된다', async () => {
+      server.use(
+        myAvatarsHandler([
+          {
+            ...baseAvatar,
+            id: 'b',
+            initials: 'BB',
+            name: 'avatar-b',
+            handle: '@b',
+            type: '외향·낭만형',
+            isPrimary: false,
+          },
+          {
+            ...baseAvatar,
+            id: 'a',
+            initials: 'HW',
+            name: 'hyunwoo',
+            handle: '@hw',
+            type: '내향·분석형',
+            isPrimary: true,
+          },
+        ])
+      );
+      renderWithProviders(<MyAvatarGrid />);
+      await waitFor(() => {
+        expect(screen.getByText('hyunwoo')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('avatar-b')).not.toBeInTheDocument();
+    });
+
+    it('online 아바타에 "활성" 배지가 붙는다', async () => {
       server.use(
         myAvatarsHandler([
           {
@@ -106,10 +141,44 @@ describe('MyAvatarGrid', () => {
       );
       renderWithProviders(<MyAvatarGrid />);
       await waitFor(() => {
-        expect(screen.getByText(/^대표$/)).toBeInTheDocument();
+        expect(screen.getByText('활성')).toBeInTheDocument();
       });
-      // chat8: 대표 아바타에는 ★ 마커가 붙는다
-      expect(screen.getByLabelText('대표 아바타')).toBeInTheDocument();
+      // 정본 wf-s2-core `ScreenDashboard` 는 `av-badge--success` + `av-badge__dot` 이다.
+      // 라벨만 보면 dot 유실을 놓치므로 장식 점의 존재까지 단언한다.
+      const dot = screen.getByText('활성').firstElementChild;
+      expect(dot).toHaveAttribute('aria-hidden', 'true');
+      expect(dot?.className).toContain('rounded-full');
+    });
+
+    it('진행 중 매칭이 "매칭 중 아바타 수 / 전체 아바타 수" 로 tnum 표기된다', async () => {
+      server.use(
+        myAvatarsHandler([
+          {
+            ...baseAvatar,
+            id: 'a',
+            initials: 'HW',
+            name: 'hyunwoo',
+            handle: '@hw',
+            type: '내향·분석형',
+            isPrimary: true,
+            busy: true,
+          },
+          {
+            ...baseAvatar,
+            id: 'b',
+            initials: 'BB',
+            name: 'avatar-b',
+            handle: '@b',
+            type: '외향·낭만형',
+            isPrimary: false,
+          },
+        ])
+      );
+      renderWithProviders(<MyAvatarGrid />);
+      await waitFor(() => {
+        expect(screen.getByText('진행 중 매칭')).toBeInTheDocument();
+      });
+      expect(screen.getByText('1 / 2')).toHaveClass('tnum');
     });
 
     it('이니셜·이름·유형이 모두 렌더된다', async () => {
@@ -135,76 +204,14 @@ describe('MyAvatarGrid', () => {
     });
   });
 
-  describe('빈 슬롯', () => {
-    it('아바타가 0개일 때 dashed 빈 슬롯 3개가 렌더된다', async () => {
+  describe('빈 상태', () => {
+    it('아바타가 0개면 안내 문구만 노출되고 진행 중 매칭 행은 없다', async () => {
       server.use(myAvatarsHandler([]));
-      const { container } = renderWithProviders(<MyAvatarGrid />);
+      renderWithProviders(<MyAvatarGrid />);
       await waitFor(() => {
-        const slots = container.querySelectorAll('[data-empty-slot="true"]');
-        expect(slots.length).toBe(3);
+        expect(screen.getByText(/아직 아바타가 없어요/)).toBeInTheDocument();
       });
-    });
-
-    it('아바타가 1개일 때 빈 슬롯 2개가 렌더된다', async () => {
-      server.use(
-        myAvatarsHandler([
-          {
-            ...baseAvatar,
-            id: 'a',
-            initials: 'AA',
-            name: 'avatar-a',
-            handle: '@a',
-            type: '내향·분석형',
-            isPrimary: true,
-          },
-        ])
-      );
-      const { container } = renderWithProviders(<MyAvatarGrid />);
-      await waitFor(() => {
-        const slots = container.querySelectorAll('[data-empty-slot="true"]');
-        expect(slots.length).toBe(2);
-      });
-    });
-
-    it('아바타가 3개 이상이면 빈 슬롯이 없다', async () => {
-      server.use(
-        myAvatarsHandler([
-          {
-            ...baseAvatar,
-            id: 'a',
-            initials: 'AA',
-            name: 'avatar-a',
-            handle: '@a',
-            type: '내향·분석형',
-            isPrimary: true,
-          },
-          {
-            ...baseAvatar,
-            id: 'b',
-            initials: 'BB',
-            name: 'avatar-b',
-            handle: '@b',
-            type: '외향·낭만형',
-            isPrimary: false,
-          },
-          {
-            ...baseAvatar,
-            id: 'c',
-            initials: 'CC',
-            name: 'avatar-c',
-            handle: '@c',
-            type: '외향·분석형',
-            isPrimary: false,
-          },
-        ])
-      );
-      const { container } = renderWithProviders(<MyAvatarGrid />);
-      await waitFor(() => {
-        // 데이터 로드 후
-        expect(screen.getByText('avatar-a')).toBeInTheDocument();
-      });
-      const slots = container.querySelectorAll('[data-empty-slot="true"]');
-      expect(slots.length).toBe(0);
+      expect(screen.queryByText('진행 중 매칭')).not.toBeInTheDocument();
     });
   });
 });

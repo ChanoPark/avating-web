@@ -19,9 +19,12 @@ describe('MethodSelectStep', () => {
   });
 
   describe('렌더링', () => {
-    it('STEP 2 / 4 · 아바타 생성 방법 라벨이 렌더된다', () => {
+    it('서브 카피가 렌더되고 STEP 라벨은 카드에 없다 (진행 표시는 레일 담당)', () => {
       renderWithProviders(<MethodSelectStep />);
-      expect(screen.getByText(/STEP 2 \/ 4 · 아바타 생성 방법/)).toBeInTheDocument();
+      expect(
+        screen.getByText('선택한 방법으로 성향을 분석해요. 이후 튜닝으로 조정할 수 있습니다.')
+      ).toBeInTheDocument();
+      expect(screen.queryByText(/STEP 2 \/ 4/)).not.toBeInTheDocument();
     });
 
     it('제목 "어떻게 아바타를 만들까요?" 가 렌더된다', () => {
@@ -50,9 +53,13 @@ describe('MethodSelectStep', () => {
       expect(screen.getByRole('radio', { name: /성향 설문/ })).not.toBeChecked();
     });
 
-    it('튜닝 가능 안내 문구가 렌더된다', () => {
+    it('스탯 직접 수정 불가 경고 배너가 렌더된다', () => {
       renderWithProviders(<MethodSelectStep />);
-      expect(screen.getByText(/튜닝 기능으로 스탯을 조정할 수 있어요/)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /생성된 아바타의 스탯은 직접 수정할 수 없어요\. 이후 튜닝 기능으로 다듬습니다\./
+        )
+      ).toBeInTheDocument();
     });
 
     it('이전 / 다음 버튼이 렌더된다', () => {
