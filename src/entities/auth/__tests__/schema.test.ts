@@ -77,6 +77,30 @@ describe('signupFormSchema', () => {
     expect(result.success).toBe(false);
   });
 
+  // 서버 정책(api-guide §2.2 / AUTH_422_001·422_002): 8~128자 + 영문자·숫자·특수문자를
+  // "각 1개 이상" 전부 요구한다. 4종 중 3종 방식은 대문자+소문자+숫자 조합을 통과시켜
+  // 서버에서만 422 로 튕기는 불일치를 만든다.
+  it('특수문자가 없으면 실패한다 (대소문자+숫자 조합)', () => {
+    const result = signupFormSchema.safeParse({ ...validBase, password: 'Abcd1234' });
+    expect(result.success).toBe(false);
+  });
+
+  it('숫자가 없으면 실패한다', () => {
+    const result = signupFormSchema.safeParse({ ...validBase, password: 'Abcdefg!' });
+    expect(result.success).toBe(false);
+  });
+
+  it('영문자가 없으면 실패한다', () => {
+    const result = signupFormSchema.safeParse({ ...validBase, password: '12345678!' });
+    expect(result.success).toBe(false);
+  });
+
+  it('128자는 통과하고 129자는 실패한다 (서버 상한과 일치)', () => {
+    const filler = (len: number) => `Aa1!${'x'.repeat(len - 4)}`;
+    expect(signupFormSchema.safeParse({ ...validBase, password: filler(128) }).success).toBe(true);
+    expect(signupFormSchema.safeParse({ ...validBase, password: filler(129) }).success).toBe(false);
+  });
+
   it('약관 미동의이면 termsAgreed 에러를 반환한다', () => {
     const result = signupFormSchema.safeParse({
       ...validBase,

@@ -209,7 +209,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                     ? 'signup-password-error'
                     : 'signup-password-help signup-password-strength'
                 }
-                placeholder="8자 이상, 숫자·영문 포함"
+                placeholder="8자 이상, 영문·숫자·특수문자 포함"
                 className={`${inputBase} pr-10 ${errors.password ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
                 {...register('password')}
               />
@@ -265,7 +265,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               </p>
             ) : (
               <p id="signup-password-help" className="text-micro text-ink-mute tnum">
-                영문·숫자를 섞어 8자 이상 입력해 주세요
+                영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요
               </p>
             )}
           </div>
