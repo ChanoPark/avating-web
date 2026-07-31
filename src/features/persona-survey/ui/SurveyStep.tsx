@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
-import { useForm } from 'react-hook-form';
+import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ZodError } from 'zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
@@ -194,6 +194,15 @@ export function SurveyStep() {
     });
   };
 
+  // 이름·설명은 IntroStep 에서만 입력받는데 서버 제출 계약상 둘 다 필수라 이 폼의 resolver 도 필수로 본다.
+  // 이 화면에는 두 필드의 입력이 없어 RHF 가 붙인 필드 에러가 어디에도 보이지 않는다 —
+  // 그대로 두면 제출 버튼이 말없이 아무것도 안 하므로, Step 1 로 돌아가라고 알려준다.
+  const onInvalid = (errors: FieldErrors<AvatarCreateFromSurveyRequest>) => {
+    if (errors.avatarName ?? errors.description) {
+      setSubmitError('아바타 이름과 설명이 필요해요. 1단계로 돌아가 입력해주세요.');
+    }
+  };
+
   const onSubmit = form.handleSubmit(async (data) => {
     setSubmitError(null);
     try {
@@ -211,7 +220,7 @@ export function SurveyStep() {
       const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
       setSubmitError(message);
     }
-  });
+  }, onInvalid);
 
   const handleSkip = () => {
     // 표현 단계 건너뛰기 — 표현을 비우고 제출한다.

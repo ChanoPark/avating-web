@@ -17,7 +17,9 @@ const DESC_MAX = 120;
 
 const introFormSchema = z.object({
   avatarName: z.string().trim().min(1, '아바타 이름을 입력해주세요').max(NAME_MAX),
-  description: z.string().max(DESC_MAX),
+  // 서버 SurveyAvatarCreateRequest 에서 description 은 필수다. 설명 입력이 있는 화면은 여기뿐이라
+  // (SurveyStep 은 draft 값을 그대로 실어 보낸다) 여기서 못 받으면 제출 시점에 사용자가 고칠 방법이 없다.
+  description: z.string().trim().min(1, '아바타 설명을 입력해주세요').max(DESC_MAX),
 });
 type IntroFormValues = z.infer<typeof introFormSchema>;
 
@@ -134,13 +136,31 @@ export function IntroStep() {
               rows={3}
               maxLength={DESC_MAX}
               placeholder="아바타를 한두 문장으로 소개해 주세요"
-              aria-describedby="intro-desc-help"
-              className={cn(FIELD_INPUT, 'border-hairline-input focus:border-primary resize-none')}
+              aria-invalid={errors.description ? true : undefined}
+              aria-describedby={errors.description ? 'intro-desc-error' : 'intro-desc-help'}
+              className={cn(
+                FIELD_INPUT,
+                'resize-none',
+                errors.description
+                  ? 'border-danger focus:border-danger'
+                  : 'border-hairline-input focus:border-primary'
+              )}
               {...register('description')}
             />
-            <p id="intro-desc-help" className="text-micro text-ink-mute">
-              상대 아바타가 첫인상으로 참고합니다
-            </p>
+            {errors.description?.message ? (
+              <p
+                id="intro-desc-error"
+                role="alert"
+                className="text-micro text-danger flex items-center gap-1"
+              >
+                <CircleAlert size={12} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+                {errors.description.message}
+              </p>
+            ) : (
+              <p id="intro-desc-help" className="text-micro text-ink-mute">
+                상대 아바타가 첫인상으로 참고합니다
+              </p>
+            )}
           </div>
         </div>
       </div>
