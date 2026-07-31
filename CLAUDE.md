@@ -1,10 +1,8 @@
 # 아바팅(Avating) Web
 
-AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양측의 **코치**(실제 사용자)가 실제 소개팅까지 이어지는 서비스. 실사용자 매칭이 작동하는 실서비스이므로 성능·관측성·보안·배포 안정성을 항상 우선한다.
+AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양측의 코치(실제 사용자)가 실제 소개팅까지 이어지는 서비스. 실사용자 매칭이 작동하는 실서비스이므로 성능·관측성·보안·배포 안정성을 항상 우선한다.
 
 도메인 용어는 [wiki/domains/glossary.md](.claude/wiki/domains/glossary.md) 에 정리돼 있다. 여기 없는 말을 새로 만들지 않는다.
-
-> **용어 정정 (2026-07-26)**: 실제 사용자를 가리키는 말은 **코치**다. wiki 와 `.claude/docs/` 여러 곳에 남아 있는 "본캐"는 쓰지 않는 표현이므로 순차 정정 대상이다.
 
 ## 작업 전에 어디를 보나
 
@@ -13,14 +11,18 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 | 지금 코드가 무엇을 하고 있나 (도메인·플로우·엔티티·API·UI·ADR) | [.claude/wiki/index.md](.claude/wiki/index.md) — sub-agent 는 작업 직전 wiki-maintainer QUERY |
 | 앞으로 어떻게 할 것인가 (사람이 검수한 기능 명세)              | `docs/spec/`, `.claude/docs/`                                                                 |
 | 스택별 규칙과 안티패턴                                         | [.claude/skills/README.md](.claude/skills/README.md) — 해당 영역 수정 전                      |
+| 서버 API 계약 (엔드포인트·필드·에러코드)                       | `.claude/api/openapi.yaml` · `api-guide.md`                                                   |
+
+서버 API 계약의 정본은 `.claude/api/` 다. `entities/*/model.ts` 의 Zod 는 여기서 파생하고, `pre-commit-contract.sh` 가 경로·메서드 drift 를 커밋에서 막는다. 자주 틀리는 두 가지:
+
+- **날짜**: 서버는 `OffsetDateTime` 을 `2026-07-27T12:00:00+09:00` 로 직렬화한다. Zod `.datetime()` 기본값은 `Z` 만 받으므로 `.datetime({ offset: true })` 여야 실서버 응답이 파싱된다 (api-guide §1.3).
+- **null**: Jackson `NON_NULL` 이라 값이 null 인 필드는 **키 자체가 응답에서 사라진다**. `nextCursor` 는 optional 로 선언하고 페이지 분기는 `hasNext` 로 한다 (api-guide §1.2).
 
 ---
 
 ## 코드를 판단하는 기준
 
 과설계를 피하고, 고칠 곳만 외과적으로 고치고, 가정을 드러내고, 확인 가능한 완료 기준을 세운다. [karpathy-guidelines](.claude/skills/karpathy-guidelines/SKILL.md) 가 코드를 쓰고 고치고 리뷰하는 모든 순간의 기준선이다.
-
-예외는 wiki 와 컨텍스트 인프라 작업뿐이다. 이 영역에서는 일관성과 토큰 효율이 단순함보다 앞선다(ADR-001 § 5). 기능 코드는 기준선 그대로다.
 
 ---
 
@@ -37,7 +39,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
   - `entities/` — auth · avatar · onboarding · dashboard · inbox · match-request (각 `model.ts` 의 Zod 가 타입의 출발점)
   - `shared/` — ui · api · lib · config · mocks
 - **MSW 는 `src/shared/mocks/`** 에 있다 (`browser.ts` · `server.ts` · `handlers/<domain>.ts`). `src/mocks/` 는 옛 경로다. 이 위치가 문서에 없던 탓에 `knip.config.ts` 와 `vitest.config.ts` 가 한동안 죽은 경로를 들고 있었다.
-- **경로 별칭**: `@/`(src), `@app/`, `@pages/`, `@features/`, `@entities/`, `@shared/` — `tsconfig.app.json`, `tsconfig.e2e.json`, `vite.config.ts`, `vitest.config.ts` 네 곳이 같이 움직인다.
+- **경로 별칭**: `@/`(src), `@app/`, `@pages/`, `@features/`, `@entities/`, `@shared/` — 정의처는 `tsconfig.app.json`, `tsconfig.e2e.json`, `vitest.config.ts` 세 곳이다. `vite.config.ts` 는 `vite-tsconfig-paths` 로 tsconfig 에서 파생받으므로 alias 블록을 따로 두지 않는다.
 - **레이아웃은 디자인 확정 후에만** 손댄다. 섹션 구조·그리드·컬럼·배경 등 시각 구성이 대상이고, 이벤트 핸들러나 `select-none` 같은 동작 수정은 해당 없다.
 
 ---
@@ -62,7 +64,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 | 스크립트 테스트  | `pnpm test:scripts`                                                       | `node --test scripts/**`                           |
 | 프리뷰           | `pnpm preview`                                                            | 포트 4173                                          |
 
-의존성 추가는 사용자 승인을 받고 `pnpm add`. `--no-verify` 로 훅을 넘기지 않는다.
+의존성 추가는 사용자 승인을 받고 `pnpm add`.
 
 ---
 
@@ -82,8 +84,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 - `tsc --noEmit` strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` + `noImplicitOverride`.
 - ESLint `--max-warnings=0`, Prettier `--check`, Vitest 커버리지 80% 이상.
 - Playwright 는 chromium 과 webkit 둘 다 (iOS Safari 호환 확인용).
-- 성능 목표는 LCP 2.5s · CLS 0.1 · INP 200ms 미만인데, **재는 도구가 없다.** `size-limit` 과 Lighthouse CI 둘 다 설치돼 있지 않다(2026-07-26 확인). 도입 전까지 성능과 번들 크기는 눈으로 판단한다.
-- pre-commit 훅은 `lint-staged` → `pnpm typecheck` → `pnpm exec knip` 순으로 돌고 knip 에서 걸리면 커밋이 막힌다. `commit-msg` 와 `pre-push` 훅은 없어서 **커밋 메시지 형식은 도구가 검사하지 않는다.**
+- 성능 목표는 LCP 2.5s · CLS 0.1 · INP 200ms 미만인데, **재는 도구가 없다.** `size-limit` 과 Lighthouse CI 둘 다 설치돼 있지 않다. 도입 전까지 성능과 번들 크기는 눈으로 판단한다.
 
 안티패턴과 세부 체크리스트는 각 [SKILL.md](.claude/skills/README.md) 에 있다.
 
@@ -116,12 +117,15 @@ wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md)
 
 ## 커밋과 PR
 
-브랜치 규칙, PR 리뷰 게이트, 커밋 전 diff 리뷰, API 계약 검사는 **훅이 실제로 막는다** — 문서를 읽지 않아도 걸린다. 정책 본문은 [git-flow-public-repo](.claude/skills/git-flow-public-repo/SKILL.md) 에 있고, 커밋 타입 목록도 그쪽 § 2.2 에 있다(여기 옮겨 적으면 어긋난다 — 실제로 8개 대 11개로 갈렸던 적이 있다).
+정책 본문은 [git-flow-public-repo](.claude/skills/git-flow-public-repo/SKILL.md) 에 있고, 커밋 타입 목록도 그쪽 § 2.2 에 있다(여기 옮겨 적으면 어긋난다 — 실제로 8개 대 11개로 갈렸던 적이 있다).
 
-훅이 잡지 못해서 지켜야 하는 것들:
+지켜야 하는 것들 — 괄호 안이 이걸 실제로 막는 게이트다:
 
-- **AI 는 커밋을 자동으로 하지 않는다.** 매번 사용자 승인을 받는다. 세션 한정으로 자동 진행을 허락받은 경우만 예외이고 다음 세션으로 넘어가지 않는다.
-- **PR base 는 `develop`** 이다. `main` 은 릴리스용.
-- AI 가 만든 PR 에는 GitHub `AI` 라벨을 붙이고, 본문 맨 위에 AI 생성임을 인용 블록으로 밝힌다. 본문은 `git diff develop...HEAD` 전체를 근거로 요약하고 테스트 계획 체크리스트를 넣는다.
-- 커밋 메시지는 한글 Conventional Commits, AI 커밋이면 본문에 `Committer: AI` trailer 를 단다.
-- API Key·비밀번호·개인키는 절대 커밋하지 않는다. 의심되면 커밋을 멈춘다. `.env.example` 에는 키만 적고(`KEY=`) 값은 비운다.
+- **AI 는 커밋을 자동으로 하지 않는다.** 매번 사용자 승인을 받는다. 세션 한정 자동 진행 허가만 예외이고 다음 세션으로 넘어가지 않는다 (`commit-approval-gate.sh` 가 `ask` 를 돌려준다. 세션 허가는 `touch /tmp/claude-commit-autoapprove-<session_id>`).
+- **`git commit --no-verify` 는 쓰지 않는다** (같은 훅이 `deny`).
+- **코드 수정은 gitflow 브랜치에서만 한다.** 보호 브랜치 직접 수정·prefix 위반·뒤처진 로컬 `develop` 은 git 명령이 아니라 **모든 Edit/Write 를 거부한다** (`gitflow-branch-gate.sh`, develop 검사는 세션당 1회). develop 이 뒤처졌으면 `git fetch origin develop:develop` 로 로컬 ref 만 fast-forward 한다 — 훅이 안내하는 `checkout develop && pull` 은 작업 트리가 더러우면 못 쓴다.
+- **PR 은 `--base develop --label AI` 로 만든다.** 본문은 `.claude/templates/pr-body.md` 형식이어야 하고, 첫 줄 AI 생성 인용 블록·`## Test Plan` 체크리스트가 없거나 `--fill`/`--web` 이면 거부된다. 라벨을 사후에 `gh pr edit` 로 붙이는 건 인정되지 않는다 (`pre-pr-gate.sh` — 리뷰 토큰을 소비하기 전에 형식부터 본다).
+- 커밋 메시지는 한글 Conventional Commits, AI 커밋이면 본문에 `Committer: AI` trailer. API Key·비밀번호·개인키는 절대 커밋하지 않는다 (둘 다 `git commit` agent 훅이 검사한다 — **LLM 판정이라 결정론적이지 않다**. 의심되면 스스로 멈춘다).
+- PR 본문은 `git diff develop...HEAD` 전체를 근거로 요약한다. `.env.example` 에는 키만 적고(`KEY=`) 값은 비운다. **이 둘은 어떤 훅도 검사하지 않는다.**
+
+훅은 전부 `.claude/hooks/` 에 있고 이 디렉터리는 gitignore 대상이라 저장소를 클론한 사람에게 따라가지 않는다. 훅을 고쳤으면 `bash .claude/hooks/tests/run.sh` 로 회귀 케이스를 돌린다.
