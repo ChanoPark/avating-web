@@ -28,9 +28,10 @@ export type SurveyAnswerRequest = z.infer<typeof surveyAnswerRequestSchema>;
 
 export const avatarCreateFromSurveyRequestSchema = z.object({
   avatarName: z.string().min(1).max(50),
-  // UI에서 선택 항목이나 백엔드는 빈 문자열(empty string)을 허용 — optional()이 아닌 이유:
-  // 필드 자체를 누락하면 백엔드 직렬화 계약 위반, 빈 문자열은 명시적 "미입력" 의사 표현.
-  description: z.string().max(200),
+  // 필수다. openapi.yaml 의 SurveyAvatarCreateRequest.required 에 description 이 들어 있고,
+  // 빈 문자열은 서버가 400 COMMON_400_001 로 거절한다 (api-guide §3.2).
+  // GPTs 경로(GptsAvatarCreateRequest)만 nullable·optional 이라 두 경로를 혼동하지 말 것.
+  description: z.string().min(1).max(200),
   answers: z.array(surveyAnswerRequestSchema).min(1),
 });
 export type AvatarCreateFromSurveyRequest = z.infer<typeof avatarCreateFromSurveyRequestSchema>;
@@ -54,7 +55,9 @@ export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
 export const connectCodeSchema = z.object({
   connectCode: z.string().min(1),
   expiresIn: z.number().int().positive(),
-  expiresAt: z.string().datetime(),
+  // 서버는 OffsetDateTime 을 `2026-07-27T12:15:00+09:00` 형태로 직렬화한다 (api-guide §1.3).
+  // Zod 의 .datetime() 기본값은 UTC `Z` 만 허용하므로 offset 을 켜야 실서버 응답이 파싱된다.
+  expiresAt: z.string().datetime({ offset: true }),
 });
 export type ConnectCode = z.infer<typeof connectCodeSchema>;
 
@@ -63,13 +66,16 @@ export const connectStatusSchema = z.object({
 });
 export type ConnectStatus = z.infer<typeof connectStatusSchema>;
 
+// 값 범위는 avatarStatsSchema 와 같은 이유로 소수를 허용한다 — 서버 stats 는 double 이다.
+const generatedStatValue = z.number().min(0).max(100);
+
 export const generatedAvatarStatsSchema = z.object({
-  empathy: z.number().int().min(0).max(100),
-  proactivity: z.number().int().min(0).max(100),
-  humor: z.number().int().min(0).max(100),
-  sensitivity: z.number().int().min(0).max(100),
-  listening: z.number().int().min(0).max(100),
-  expressiveness: z.number().int().min(0).max(100),
+  empathy: generatedStatValue,
+  proactivity: generatedStatValue,
+  humor: generatedStatValue,
+  sensitivity: generatedStatValue,
+  listening: generatedStatValue,
+  expressiveness: generatedStatValue,
 });
 
 export const generatedAvatarSchema = z.object({
@@ -94,5 +100,6 @@ export const apiResponseConnectCode = z.object({ data: connectCodeSchema });
 export const apiResponseConnectStatus = z.object({ data: connectStatusSchema });
 export const apiResponseGeneratedAvatar = z.object({ data: generatedAvatarSchema });
 export const apiResponseCompleteOnboarding = z.object({
-  data: z.object({ completedAt: z.string().datetime() }),
+  // connectCode.expiresAt 과 같은 이유로 offset 을 허용한다 (서버 OffsetDateTime).
+  data: z.object({ completedAt: z.string().datetime({ offset: true }) }),
 });
