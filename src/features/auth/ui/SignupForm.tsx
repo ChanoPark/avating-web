@@ -14,8 +14,8 @@ type SignupFormProps = {
   onSuccess?: () => void;
 };
 
-// UI 강도 표시 전용 — entities/auth/model.ts 의 hasThreeOfFour 와 의도적으로 독립 유지.
-// hasThreeOfFour 는 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
+// UI 강도 표시 전용 — entities/auth/model.ts 의 hasAllRequiredCategories 와 의도적으로 독립 유지.
+// 그쪽은 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
 function computePasswordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;

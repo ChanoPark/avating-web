@@ -46,9 +46,15 @@ export const nicknameSchema = z
   .min(2, '2자 이상 입력해주세요')
   .max(12, '12자 이하로 입력해주세요');
 
+// 로그인은 정책 검증을 하지 않는다 — 존재 여부만 본다.
+// 서버도 로그인에서는 비밀번호 정책을 보지 않는다(api-guide §2.3 은 404·400·422_003 뿐이고
+// §2.2 의 AUTH_422_001/002 는 회원가입 전용). 정책을 여기서 걸면 옛 규칙으로 가입한 계정
+// (예: 특수문자 없는 "Password123")이 서버 기준으로는 멀쩡한데 클라이언트에서 막힌다.
+export const loginPasswordSchema = z.string().min(1, '비밀번호를 입력해주세요');
+
 export const loginFormSchema = z.object({
   email: emailSchema,
-  password: rawPasswordSchema,
+  password: loginPasswordSchema,
 });
 
 export const signupFormSchema = z

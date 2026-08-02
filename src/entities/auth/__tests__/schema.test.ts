@@ -6,6 +6,7 @@ import {
   publicKeyResponseSchema,
   loginFormSchema,
   signupFormSchema,
+  rawPasswordSchema,
   apiResponseAuthToken,
   apiResponsePublicKey,
 } from '../model';
@@ -44,6 +45,17 @@ describe('loginFormSchema', () => {
       password: 'Password1!',
     });
     expect(result.success).toBe(true);
+  });
+
+  it('가입 정책에 못 미치는 옛 비밀번호도 로그인은 통과한다', () => {
+    // 특수문자 없음 = 현재 가입 정책 위반이지만, 옛 규칙으로 가입한 계정은 서버가 정상 인증한다.
+    // 로그인 폼이 정책을 걸면 그 계정이 클라이언트에서만 막힌다.
+    const oldPolicyPassword = 'Password123';
+
+    expect(
+      loginFormSchema.safeParse({ email: 'user@avating.com', password: oldPolicyPassword }).success
+    ).toBe(true);
+    expect(rawPasswordSchema.safeParse(oldPolicyPassword).success).toBe(false);
   });
 });
 
