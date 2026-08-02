@@ -30,7 +30,9 @@ export const AVATAR_STAT_KEYS = [
 
 export type AvatarStatKey = (typeof AVATAR_STAT_KEYS)[number];
 
-const statValue = z.number().int().min(0).max(100);
+// 서버 AvatarSummaryResponse.stats 는 `type: number, format: double` (0.0~100.0) 이다.
+// 정수를 강제하면 72.5 같은 실제 값이 파싱되지 않으므로 소수를 허용하고, 반올림은 표시 단계에서 한다.
+const statValue = z.number().min(0).max(100);
 
 export const avatarStatsSchema = z.object({
   empathy: statValue,

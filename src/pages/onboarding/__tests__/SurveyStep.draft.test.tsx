@@ -56,7 +56,7 @@ describe('SurveyStep — draft', () => {
   describe('draft 삭제', () => {
     it('제출 성공 시 localStorage draft 가 삭제된다', async () => {
       // 이름은 IntroStep 에서 draft 로 저장된 상태를 가정한다.
-      saveDraft({ answers: {}, avatarName: '루나', description: '' });
+      saveDraft({ answers: {}, avatarName: '루나', description: '차분히 듣고 깊게 답합니다' });
 
       const user = userEvent.setup();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
@@ -87,7 +87,11 @@ describe('SurveyStep — draft', () => {
 
   describe('draft 복원', () => {
     it('localStorage draft 에 저장된 답이 라디오에 체크된다', async () => {
-      saveDraft({ answers: { AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_2' } });
+      saveDraft({
+        answers: { AFFECTION_EXPRESSION_0001: 'AFFECTION_EXPRESSION_0001_ANS_2' },
+        avatarName: '루나',
+        description: '차분히 듣고 깊게 답합니다',
+      });
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
@@ -105,6 +109,7 @@ describe('SurveyStep — draft', () => {
       saveDraft({
         answers: {},
         avatarName: '루나',
+        description: '차분히 듣고 깊게 답합니다',
         expressions: ['그치 그치', '🥲'],
       });
 

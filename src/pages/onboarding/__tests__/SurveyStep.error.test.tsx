@@ -23,7 +23,7 @@ vi.mock('react-router', async (importOriginal) => ({
 
 // 이름은 IntroStep 에서 draft 로 저장된 상태를 가정한다.
 function seedNameDraft() {
-  saveDraft({ answers: {}, avatarName: '루나', description: '' });
+  saveDraft({ answers: {}, avatarName: '루나', description: '차분히 듣고 깊게 답합니다' });
 }
 
 async function navigateToExpressionsPage(user: ReturnType<typeof userEvent.setup>) {
@@ -143,6 +143,25 @@ describe('SurveyStep — 에러 처리', () => {
       expect(alert).toHaveClass('border-danger');
       expect(alert).toHaveClass('text-danger');
       expect(alert.textContent ?? '').toMatch(/알 수 없는 오류/);
+    });
+
+    // 이름·설명 입력은 IntroStep 에만 있어서 RHF 가 붙인 필드 에러가 이 화면에는 표시될 자리가 없다.
+    // 안내가 없으면 제출 버튼이 말없이 아무것도 안 하는 것처럼 보인다.
+    it('draft 에 설명이 없으면 제출 시 1단계로 돌아가라는 안내가 alert 로 렌더된다', async () => {
+      const user = userEvent.setup();
+      saveDraft({ answers: {}, avatarName: '루나', description: '' });
+
+      server.use(surveyQuestionsHandlers.success);
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await navigateToExpressionsPage(user);
+
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toHaveTextContent(/1단계로 돌아가 입력해주세요/);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
 
     it('응답 avatarId 누락 시 ZodError 경로 UI 메시지 "입력 데이터를 다시 확인해주세요." 가 alert 로 렌더된다', async () => {

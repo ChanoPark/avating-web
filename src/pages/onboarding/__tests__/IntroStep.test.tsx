@@ -67,6 +67,8 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       const user = userEvent.setup();
       renderWithProviders(<IntroStep />);
 
+      // 설명도 필수라 비워 두면 alert 이 둘이 된다 — 이름 에러만 검사하도록 설명은 채운다.
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣습니다');
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       const nameInput = screen.getByLabelText(/아바타 이름/);
@@ -80,6 +82,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       const user = userEvent.setup();
       renderWithProviders(<IntroStep />);
 
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣습니다');
       await user.click(screen.getByRole('button', { name: /다음/ }));
       expect(await screen.findByRole('alert')).toBeInTheDocument();
 
@@ -89,6 +92,22 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(nameInput).not.toHaveClass('border-danger');
       expect(nameInput).not.toHaveAttribute('aria-invalid');
+    });
+
+    // 설명은 서버 SurveyAvatarCreateRequest 에서 필수다. SurveyStep 에는 설명 입력이 없어
+    // 여기서 못 받으면 제출 시점에 사용자가 고칠 수 없는 검증 실패로 끝난다.
+    it('설명이 비어 있으면 다음 클릭 시 검증 에러를 보이고 이동하지 않는다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<IntroStep />);
+
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+
+      const descInput = screen.getByLabelText(/아바타 설명/);
+      expect(await screen.findByRole('alert')).toHaveTextContent(/설명을 입력해주세요/);
+      expect(descInput).toHaveAttribute('aria-invalid', 'true');
+      expect(descInput).toHaveClass('border-danger');
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('이름 입력 후 다음 → draft 저장 + progress=method + /onboarding/method 이동', async () => {
@@ -128,6 +147,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       renderWithProviders(<IntroStep />);
 
       await user.type(screen.getByLabelText(/아바타 이름/), '루나');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣습니다');
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       const draft = loadDraft();
@@ -141,6 +161,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       renderWithProviders(<IntroStep />);
 
       await user.type(screen.getByLabelText(/아바타 이름/), '루나');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣습니다');
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       expect(loadDraft()?.expressions).toEqual(['그치 그치', '🥲']);

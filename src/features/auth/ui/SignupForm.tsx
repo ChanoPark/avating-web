@@ -14,8 +14,8 @@ type SignupFormProps = {
   onSuccess?: () => void;
 };
 
-// UI 강도 표시 전용 — entities/auth/model.ts 의 hasThreeOfFour 와 의도적으로 독립 유지.
-// hasThreeOfFour 는 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
+// UI 강도 표시 전용 — entities/auth/model.ts 의 hasAllRequiredCategories 와 의도적으로 독립 유지.
+// 그쪽은 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
 function computePasswordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;
@@ -209,7 +209,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                     ? 'signup-password-error'
                     : 'signup-password-help signup-password-strength'
                 }
-                placeholder="8자 이상, 숫자·영문 포함"
+                placeholder="8자 이상, 영문·숫자·특수문자 포함"
                 className={`${inputBase} pr-10 ${errors.password ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
                 {...register('password')}
               />
@@ -265,7 +265,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               </p>
             ) : (
               <p id="signup-password-help" className="text-micro text-ink-mute tnum">
-                영문·숫자를 섞어 8자 이상 입력해 주세요
+                영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요
               </p>
             )}
           </div>

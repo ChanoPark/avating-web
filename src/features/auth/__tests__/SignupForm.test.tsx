@@ -99,13 +99,15 @@ describe('SignupForm', () => {
       expect(screen.getByLabelText(/이메일/i)).toHaveAttribute('placeholder', 'you@example.com');
       expect(screen.getByLabelText(/^비밀번호$/i)).toHaveAttribute(
         'placeholder',
-        '8자 이상, 숫자·영문 포함'
+        '8자 이상, 영문·숫자·특수문자 포함'
       );
       expect(screen.getByLabelText(/닉네임/i)).toHaveAttribute(
         'placeholder',
         '아바타 프로필에 표시됩니다'
       );
-      expect(screen.getByText('영문·숫자를 섞어 8자 이상 입력해 주세요')).toBeInTheDocument();
+      expect(
+        screen.getByText('영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요')
+      ).toBeInTheDocument();
     });
 
     it('제출 버튼이 block(w-full) 이고 화살표 아이콘을 갖는다', () => {
