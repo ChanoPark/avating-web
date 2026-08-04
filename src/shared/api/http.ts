@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 import { env } from '@shared/config/env';
-import { parseApiError } from '@shared/lib/errors';
+import { ApiError, parseApiError } from '@shared/lib/errors';
 
 const AUTH_ALLOWLIST = [
   '/api/auth/login',
@@ -54,6 +54,39 @@ export const http: AxiosInstance = axios.create({
 
 let refreshInflight: Promise<string> | null = null;
 
+/**
+ * refresh 를 부르는 **유일한** 통로다. 서버가 refresh token rotation + 회원당 1개를 쓰므로
+ * 401 인터셉터와 부팅 복구(app/bootstrapAuth)가 각자 refresh 를 부르면
+ * 나중 것이 `AUTH_401_006` 으로 죽는다. 두 경로 모두 이 함수를 거쳐 in-flight 를 공유한다.
+ *
+ * `refreshInflight` 는 모듈 스코프 `let` 이라 ESM 밖에서는 대입할 수 없다 —
+ * 가드를 함수 안에 품는 이유다.
+ */
+export function refreshAccessToken(): Promise<string> {
+  if (refreshInflight) {
+    return refreshInflight;
+  }
+
+  const refreshToken = authAdapter.getRefreshToken();
+  if (!refreshToken) {
+    return Promise.reject(new ApiError(401, 'No refresh token'));
+  }
+
+  refreshInflight = axios
+    .post<{ data: RefreshedTokenPayload }>(`${env.VITE_API_BASE_URL}/api/auth/refresh`, {
+      refreshToken,
+    })
+    .then((res) => {
+      authAdapter.onTokenRefreshed(res.data.data);
+      return res.data.data.accessToken;
+    })
+    .finally(() => {
+      refreshInflight = null;
+    });
+
+  return refreshInflight;
+}
+
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = authAdapter.getAccessToken();
 
@@ -79,32 +112,11 @@ http.interceptors.response.use(
       originalConfig._retry = true;
 
       try {
-        if (!refreshInflight) {
-          const refreshToken = authAdapter.getRefreshToken();
-
-          if (!refreshToken) {
-            throw new Error('No refresh token');
-          }
-
-          refreshInflight = axios
-            .post<{ data: RefreshedTokenPayload }>(`${env.VITE_API_BASE_URL}/api/auth/refresh`, {
-              refreshToken,
-            })
-            .then((res) => {
-              authAdapter.onTokenRefreshed(res.data.data);
-              return res.data.data.accessToken;
-            })
-            .finally(() => {
-              refreshInflight = null;
-            });
-        }
-
-        const newToken = await refreshInflight;
+        const newToken = await refreshAccessToken();
         originalConfig.headers.Authorization = `Bearer ${newToken}`;
         return await http(originalConfig);
       } catch (refreshError) {
         authAdapter.onUnauthorized();
-        refreshInflight = null;
         return Promise.reject(parseApiError(refreshError));
       }
     }

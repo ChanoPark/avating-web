@@ -248,6 +248,46 @@ describe('http 인터셉터 — 응답 에러', () => {
     });
   });
 
+  it('refreshAccessToken() 은 동시 호출을 in-flight 하나로 합친다 (서버 rotation 대비)', async () => {
+    const adapter = makeAdapter({
+      accessToken: 'old-access-token',
+      refreshToken: 'refresh-token-value',
+    });
+    adapter.install();
+
+    let refreshCalls = 0;
+
+    server.use(
+      mswHttp.post(`${BASE_URL}/api/auth/refresh`, () => {
+        refreshCalls += 1;
+        return HttpResponse.json({
+          data: {
+            accessToken: 'new-access-token',
+            refreshToken: 'new-refresh-token',
+            tokenType: 'Bearer',
+            expiresIn: 3600,
+          },
+        });
+      })
+    );
+
+    const { refreshAccessToken } = await import('../http');
+    const [first, second] = await Promise.all([refreshAccessToken(), refreshAccessToken()]);
+
+    expect(refreshCalls).toBe(1);
+    expect(first).toBe('new-access-token');
+    expect(second).toBe('new-access-token');
+  });
+
+  it('refreshAccessToken() 은 refreshToken 이 없으면 ApiError(401) 로 reject 한다', async () => {
+    const adapter = makeAdapter({ accessToken: 'expired-token' });
+    adapter.install();
+
+    const { refreshAccessToken } = await import('../http');
+
+    await expect(refreshAccessToken()).rejects.toMatchObject({ statusCode: 401 });
+  });
+
   it('500 에러는 ApiError로 변환된다', async () => {
     const adapter = makeAdapter();
     adapter.install();
