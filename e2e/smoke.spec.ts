@@ -4,8 +4,9 @@ import { test, expect } from '@playwright/test';
  * 공개 라우트 스모크 — 인증 없이 도달 가능한 경로만 검증한다.
  *
  * 인증 게이트 라우트(/dashboard, /avatars/:id, /onboarding/*)는 useAuthStore 가
- * 메모리 전용(persist 미사용)이라 storageState 로 복원되지 않는다 →
- * 해당 플로우 E2E 는 테스트 내에서 로그인 UI 를 거쳐야 한다.
+ * localStorage 로 persist 되므로 storageState 로 복원할 수 있다 (키: `avating-auth`).
+ * 다만 저장값은 실제 서버가 발급한 토큰이어야 하고 mock 번들에는 그 계약이 없어,
+ * 지금은 여전히 테스트 내에서 로그인 UI 를 거치는 쪽이 안전하다.
  * (.claude/notes/e2e-playwright.md "인증 게이트 라우트" 참조)
  */
 test.describe('공개 라우트 스모크', () => {
