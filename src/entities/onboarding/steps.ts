@@ -14,9 +14,14 @@ type StepDescriptor = {
   label: string;
 };
 
+/**
+ * 라벨은 스텝 레일이 그대로 쓴다. Step 3 만 경로가 둘(설문·Bot 연동)이라 갈리고,
+ * 나머지는 `ONBOARDING_FALLBACK_LABELS` 와 같은 값이어야 한다 — 다르면 어느 경로로 들어왔느냐에
+ * 따라 레일 문구가 흔들린다.
+ */
 export const ONBOARDING_STEPS: Record<OnboardingRoute, StepDescriptor> = {
   '/onboarding/intro': { step: 1, label: '아바타 기본 정보' },
-  '/onboarding/method': { step: 2, label: '아바타 생성 방법' },
+  '/onboarding/method': { step: 2, label: '생성 방법 선택' },
   '/onboarding/survey': { step: 3, label: '성향 설문' },
   '/onboarding/connect': { step: 3, label: 'ChatGPT Bot 대화' },
   '/onboarding/complete': { step: 4, label: '아바타 확인' },

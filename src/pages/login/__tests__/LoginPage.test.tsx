@@ -21,7 +21,9 @@ describe('LoginPage', () => {
     expect(within(aside).getByText('진행 중인 매칭')).toBeInTheDocument();
     expect(within(aside).getByText('관전 이어보기')).toBeInTheDocument();
     expect(within(aside).getByText('받은 요청')).toBeInTheDocument();
-    expect(within(aside).getByText('수락·거절 대기 3건')).toBeInTheDocument();
+    expect(within(aside).getByText('수락·거절 결정하기')).toBeInTheDocument();
+    // 로그인 전에는 알 수 없는 수치를 적지 않는다.
+    expect(within(aside).queryByText(/\d+건/)).not.toBeInTheDocument();
     expect(within(aside).getByText('내 아바타')).toBeInTheDocument();
     expect(within(aside).getByText('스탯 다듬기')).toBeInTheDocument();
   });

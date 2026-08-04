@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Card } from '@shared/ui/Card';
 import { Tag } from '@shared/ui/Tag';
+import { cn } from '@shared/lib/cn';
 
 type Step = {
   title: string;
@@ -11,17 +12,24 @@ type Step = {
 
 // 정본 `ScreenServiceIntro` 의 HOW IT WORKS 3카드.
 const STEPS: readonly Step[] = [
-  { title: '아바타를 만들어요', body: '설문 6문항 또는 ChatGPT Bot 연동' },
+  // 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
+  { title: '아바타를 만들어요', body: '성향 설문 또는 ChatGPT Bot 연동' },
   { title: '아바타끼리 대화해요', body: '관전하며 훈수로 개입' },
   { title: '호감도가 넘으면 연결', body: '양측 수락 시 실제 채팅 개설' },
 ];
 
-// 아직 화면이 없는 마케팅 내비·푸터 항목은 링크를 만들지 않고 비대화형 텍스트로 둔다
-// (죽은 링크에 포커스가 잡히지 않게 — AppShellLayout 의 비활성 내비와 같은 판단).
-const NAV_ITEMS = ['서비스 소개', '작동 방식', '요금'] as const;
-const FOOTER_ITEMS = ['이용약관', '개인정보', '문의'] as const;
-
 const HOW_IT_WORKS_ID = 'how-it-works';
+const HERO_ID = 'service-intro-hero';
+
+// 갈 곳이 있는 항목만 버튼으로 만든다. 요금 화면은 아직 없으므로 비대화형 텍스트로 남긴다
+// (죽은 링크에 포커스가 잡히지 않게 — AppShellLayout 의 비활성 내비와 같은 판단).
+type NavItem = { label: string; targetId?: string };
+const NAV_ITEMS: readonly NavItem[] = [
+  { label: '서비스 소개', targetId: HERO_ID },
+  { label: '작동 방식', targetId: HOW_IT_WORKS_ID },
+  { label: '요금' },
+];
+const FOOTER_ITEMS = ['이용약관', '개인정보', '문의'] as const;
 
 // 로고 마크 = 정사각 size, radius = size × 0.28, `--primary` 채움.
 // 워드마크 = size × 0.78, weight 500, letterSpacing -0.4px (LAYOUT-NUMBERS § 카드 · 데이터 부품).
@@ -43,26 +51,54 @@ function Logo({ size }: { size: number }) {
 export function ServiceIntroPage() {
   const navigate = useNavigate();
 
-  // 아직 별도 라우트가 없는 "작동 방식" 은 같은 화면의 HOW IT WORKS 밴드로만 이동시킨다.
+  // 아직 별도 라우트가 없는 마케팅 내비는 같은 화면의 밴드로만 이동시킨다.
+  const scrollTo = (targetId: string) => {
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   const scrollToHowItWorks = () => {
-    document.getElementById(HOW_IT_WORKS_ID)?.scrollIntoView({ behavior: 'smooth' });
+    scrollTo(HOW_IT_WORKS_ID);
   };
 
   return (
     <div className="bg-canvas text-ink flex min-h-screen flex-col">
       {/* 히어로 밴드 — `--grad-brand`(흰→#f1f3f6) 는 이 화면에서만 허용된다. */}
-      <div className="bg-[image:var(--grad-brand)]">
+      <div id={HERO_ID} className="bg-[image:var(--grad-brand)]">
         {/* 마케팅 상단 바 — height 68, padding 0 64px, 하단 hairline */}
         <header className="border-hairline flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
           <Logo size={19} />
 
-          <div className="text-body-sm hidden items-center gap-[18px] lg:flex">
-            {NAV_ITEMS.map((item, index) => (
-              <span key={item} className={index === 0 ? 'text-ink' : 'text-ink-mute'}>
-                {item}
-              </span>
-            ))}
-          </div>
+          <nav
+            aria-label="서비스 소개 내비게이션"
+            className="text-body-sm hidden items-center gap-[18px] lg:flex"
+          >
+            {NAV_ITEMS.map((item, index) => {
+              const tone = index === 0 ? 'text-ink' : 'text-ink-mute';
+              if (item.targetId === undefined) {
+                return (
+                  <span key={item.label} className={tone}>
+                    {item.label}
+                  </span>
+                );
+              }
+              const targetId = item.targetId;
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    scrollTo(targetId);
+                  }}
+                  className={cn(
+                    tone,
+                    'hover:text-ink cursor-pointer transition-colors duration-[var(--dur-fast)]'
+                  )}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </nav>
 
           <div className="flex items-center gap-2">
             <Button

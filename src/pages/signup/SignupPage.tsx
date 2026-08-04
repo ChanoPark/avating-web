@@ -4,7 +4,8 @@ import { AuthLayout, type AuthAsideItem } from '@features/auth/ui/AuthLayout';
 
 // 정본 `ScreenSignup` 의 AuthAside 3항목.
 const ASIDE_ITEMS: readonly AuthAsideItem[] = [
-  { title: '아바타 생성', description: '설문 6문항 또는 Bot 연동' },
+  // 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
+  { title: '아바타 생성', description: '성향 설문 또는 Bot 연동' },
   { title: '시뮬레이션 관전', description: '아바타끼리 대화, 훈수로 개입' },
   { title: '에프터 연결', description: '호감도 75 이상이면 실제 채팅' },
 ];
