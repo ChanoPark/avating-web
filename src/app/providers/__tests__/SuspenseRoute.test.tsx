@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, afterEach, vi } from 'vitest';
 import { MemoryRouter } from 'react-router';
@@ -27,7 +28,18 @@ describe('SuspenseRoute', () => {
     expect(screen.getByText('라우트 콘텐츠')).toBeInTheDocument();
   });
 
-  it('에러 원문(서버 message)을 화면에 노출하지 않는다', () => {
+  it('로딩 중에는 백지 대신 스켈레톤을 보여준다', () => {
+    // 영원히 resolve 되지 않는 청크 — Suspense 폴백 상태로 고정된다.
+    const NeverLoads = lazy(() => new Promise<never>(() => undefined));
+
+    renderRoute(<NeverLoads />);
+
+    const status = screen.getByRole('status');
+    expect(status).toBeInTheDocument();
+    expect(status).toHaveTextContent('불러오는 중이에요');
+  });
+
+  it('에러 원문(서버 message)을 화면에 노출하지 않는다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(500, '요청한 리소스를 찾을 수 없습니다');
@@ -35,11 +47,12 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
+    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('에러 발생 시 재시도·문의 CTA 가 있는 에러 화면을 보여준다', () => {
+  it('에러 발생 시 재시도·문의 CTA 가 있는 에러 화면을 보여준다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(500, '서버 오류');
@@ -47,12 +60,12 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '문의하기' })).toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('404 ApiError 는 "찾을 수 없음" 화면으로 떨어진다', () => {
+  it('404 ApiError 는 "찾을 수 없음" 화면으로 떨어진다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(404, '요청한 리소스를 찾을 수 없습니다');
@@ -60,12 +73,12 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(screen.getByRole('button', { name: '메인 화면으로' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: '메인 화면으로' })).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('403 ApiError 는 권한 안내 화면으로 떨어진다', () => {
+  it('403 ApiError 는 권한 안내 화면으로 떨어진다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(403, 'Forbidden');
@@ -73,7 +86,20 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(screen.getByRole('heading', { name: '로그인이 필요해요' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '로그인이 필요해요' })).toBeInTheDocument();
+    spy.mockRestore();
+  });
+
+  it('경계가 에러를 삼키지 않고 크래시 핸들러로 넘긴다 (관측 통로)', async () => {
+    const spy = silenceBoundaryLog();
+    const Boom = () => {
+      throw new ApiError(500, '서버 오류');
+    };
+
+    renderRoute(<Boom />);
+
+    await screen.findByRole('button', { name: '다시 시도' });
+    expect(spy.mock.calls.some((call) => call[0] === '[AppBoundary]')).toBe(true);
     spy.mockRestore();
   });
 });

@@ -1,9 +1,15 @@
 import type { ReactNode } from 'react';
-import { Suspense } from 'react';
+import { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import type { FallbackProps } from 'react-error-boundary';
-import { ErrorPage, type ErrorVariant } from '@pages/error';
+import type { ErrorVariant } from '@pages/error';
 import { isApiError } from '@shared/lib/errors';
+import { handleAppCrash } from '../handleAppCrash';
+
+// router.tsx 도 같은 모듈을 lazy 로 가져간다. 여기서 정적 import 하면 그 코드 스플리팅이
+// 무력화돼 ErrorPage 가 메인 청크로 흡수된다 — 에러 화면이 필요 없는 최초 진입 라우트
+// (`/`·`/login`·`/signup`)까지 그 무게를 매번 내려받게 된다.
+const ErrorPage = lazy(() => import('@pages/error').then((m) => ({ default: m.ErrorPage })));
 
 /**
  * 서버가 준 message 를 그대로 화면에 띄우면 안 된다 — 실서버 QA 에서
@@ -20,7 +26,13 @@ function toVariant(error: unknown): ErrorVariant {
 }
 
 function RouteFallback({ error, resetErrorBoundary }: FallbackProps) {
-  return <ErrorPage variant={toVariant(error)} onRetry={resetErrorBoundary} />;
+  // lazy 라 청크가 도착하기 전 한 프레임이 비는데, 에러 화면 자리에 스켈레톤을 깜빡이면
+  // 로딩으로 오인된다. 배경만 채운 빈 면으로 둔다.
+  return (
+    <Suspense fallback={<div className="bg-canvas min-h-screen" />}>
+      <ErrorPage variant={toVariant(error)} onRetry={resetErrorBoundary} />
+    </Suspense>
+  );
 }
 
 /** 라우트 청크·Suspense 쿼리 로딩 구간. 백지 대신 최소한의 자리표시를 둔다. */
@@ -47,7 +59,9 @@ type SuspenseRouteProps = {
 
 export function SuspenseRoute({ children }: SuspenseRouteProps) {
   return (
-    <ErrorBoundary FallbackComponent={RouteFallback}>
+    // onError 없이 두면 라우트 예외가 여기서 완전히 삼켜져 관측 통로가 사라진다.
+    // 루트 경계(App.tsx)와 같은 핸들러를 재사용한다.
+    <ErrorBoundary FallbackComponent={RouteFallback} onError={handleAppCrash}>
       <Suspense fallback={<RouteSkeleton />}>{children}</Suspense>
     </ErrorBoundary>
   );
