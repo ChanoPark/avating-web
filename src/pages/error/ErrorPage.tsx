@@ -35,12 +35,13 @@ type VariantSpec = {
 };
 
 const VARIANTS: Record<ErrorVariant, VariantSpec> = {
+  // 404 만 문구를 분리한다 — 없는 주소인데 "일시적인 문제" 로 안내하면 사용자가
+  // 새로고침을 반복하게 된다(실서버 QA S6). 코드·경로는 여전히 노출하지 않는다.
   'not-found': {
     icon: CircleAlert,
     tone: 'generic',
-    title: '일시적인 문제가 발생했어요',
-    description:
-      '잠깐 문제가 생긴 것 같아요.\n잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.',
+    title: '찾을 수 없는 페이지예요',
+    description: '주소가 바뀌었거나 삭제된 페이지일 수 있어요.\n메인 화면으로 돌아가 주세요.',
   },
   'server-error': {
     icon: CircleAlert,
