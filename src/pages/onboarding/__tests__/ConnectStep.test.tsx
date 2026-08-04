@@ -80,6 +80,31 @@ describe('ConnectStep', () => {
       expect(codeText).toBeDefined();
     });
 
+    // 실서버 QA S7 회귀 — dev(StrictMode)에서 201 을 받고도 "발급하는 중..." 에 멈췄다.
+    // issuedRef 가드가 두 번째 effect 를 막는 사이 구독이 끊긴 것이 원인이었다.
+    it('StrictMode 이중 마운트에서도 코드를 1회만 발급하고 화면에 렌더한다', async () => {
+      let issueCallCount = 0;
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
+          issueCallCount++;
+          return HttpResponse.json(mockConnectCodeResponse, { status: 201 });
+        }),
+        connectStatusHandlers.active
+      );
+
+      renderWithProviders(<ConnectStep />, {
+        initialRoute: '/onboarding/connect',
+        strictMode: true,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/연결 코드를 발급하는 중/)).not.toBeInTheDocument();
+      expect(issueCallCount).toBe(1);
+    });
+
     it('코드가 AVT-XXXX-XX 패턴을 준수한다', async () => {
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 

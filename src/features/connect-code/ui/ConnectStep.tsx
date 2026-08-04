@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowUpRight } from 'lucide-react';
 import { onboardingKeys, getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
-import { useIssueConnectCode } from '../api/useIssueConnectCode';
+import { useConnectCode } from '../api/useConnectCode';
 import { useConnectStatus } from '../api/useConnectStatus';
 import { formatCountdown, isExpired } from '../lib/countdown';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -24,12 +24,11 @@ export function ConnectStep() {
   const guardFailed = onboardingProgress !== 'creating';
 
   const {
-    mutate: issueCode,
     data: connectCode,
     isPending: isIssuing,
     error: issueError,
-    reset: resetIssue,
-  } = useIssueConnectCode();
+    refetch: refetchCode,
+  } = useConnectCode({ enabled: !guardFailed });
   const [localExpired, setLocalExpired] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -42,7 +41,6 @@ export function ConnectStep() {
 
   const navigatedRef = useRef(false);
   const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const issuedRef = useRef(false);
 
   useEffect(() => {
     if (!guardFailed) return;
@@ -54,13 +52,6 @@ export function ConnectStep() {
       void navigate('/onboarding/complete', { replace: true });
     }
   }, [guardFailed, onboardingProgress, navigate]);
-
-  useEffect(() => {
-    if (guardFailed) return;
-    if (issuedRef.current) return;
-    issuedRef.current = true;
-    issueCode();
-  }, [guardFailed, issueCode]);
 
   useEffect(() => {
     if (statusData?.status === 'connected' && !navigatedRef.current) {
@@ -111,10 +102,9 @@ export function ConnectStep() {
   const handleReissue = () => {
     setLocalExpired(false);
     navigatedRef.current = false;
-    issuedRef.current = true;
-    resetIssue();
     queryClient.removeQueries({ queryKey: onboardingKeys.connectStatus('current') });
-    issueCode();
+    // 재발급 = 같은 키의 강제 재요청. 서버가 이전 코드를 즉시 무효화하므로 캐시도 새 값으로 덮인다.
+    void refetchCode();
   };
 
   // 액션 바: 좌측 ghost '생성된 결과 확인' / 우측 primary 'Bot과 대화 시작'(새 탭).
@@ -182,37 +172,36 @@ export function ConnectStep() {
           </p>
         </div>
 
-        {connectCode && (
-          <div className="bg-canvas-soft flex flex-col items-center gap-3 rounded-lg p-5">
-            <span className="text-micro-cap text-ink-mute uppercase">ONE-TIME CODE</span>
-            <div
-              className="text-display-md text-ink tnum tracking-[0.2em]"
-              aria-label="ONE-TIME CODE"
-            >
-              {connectCode.connectCode}
-            </div>
-            <span role="timer" aria-live="polite" className="text-micro text-ink-mute tnum">
-              유효 시간 {countdownDisplay} 남음
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => {
-                  void handleCopy();
-                }}
-              >
-                {copySuccess ? '복사됨' : '복사'}
-              </Button>
-              {showReissueCta && (
-                <Button type="button" variant="ghost" size="sm" onClick={handleReissue}>
-                  재발급
-                </Button>
-              )}
-            </div>
+        {/* isIssuing·issueError 를 위에서 걸렀으므로 여기서는 코드가 반드시 있다. */}
+        <div className="bg-canvas-soft flex flex-col items-center gap-3 rounded-lg p-5">
+          <span className="text-micro-cap text-ink-mute uppercase">ONE-TIME CODE</span>
+          <div
+            className="text-display-md text-ink tnum tracking-[0.2em]"
+            aria-label="ONE-TIME CODE"
+          >
+            {connectCode.connectCode}
           </div>
-        )}
+          <span role="timer" aria-live="polite" className="text-micro text-ink-mute tnum">
+            유효 시간 {countdownDisplay} 남음
+          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                void handleCopy();
+              }}
+            >
+              {copySuccess ? '복사됨' : '복사'}
+            </Button>
+            {showReissueCta && (
+              <Button type="button" variant="ghost" size="sm" onClick={handleReissue}>
+                재발급
+              </Button>
+            )}
+          </div>
+        </div>
 
         <ol className="flex flex-col gap-2">
           {connectSteps.map((text, index) => (
