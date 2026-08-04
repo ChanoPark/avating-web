@@ -12,8 +12,8 @@ describe('ApiError', () => {
   });
 
   it('code 옵션 필드를 포함할 수 있다', () => {
-    const error = new ApiError(409, '이미 사용 중인 이메일이에요.', 'EMAIL_CONFLICT');
-    expect(error.code).toBe('EMAIL_CONFLICT');
+    const error = new ApiError(409, '이미 사용 중인 이메일이에요.', 'MEMBER_409_001');
+    expect(error.code).toBe('MEMBER_409_001');
   });
 
   it('code 없이 생성하면 code는 undefined이다', () => {
@@ -78,11 +78,11 @@ describe('parseApiError', () => {
   it('응답 body의 code를 ApiError.code에 반영한다', () => {
     const axiosError = makeAxiosError(409, {
       message: '이미 사용 중인 이메일이에요.',
-      code: 'EMAIL_CONFLICT',
+      code: 'MEMBER_409_001',
     });
     const apiError = parseApiError(axiosError);
 
-    expect(apiError.code).toBe('EMAIL_CONFLICT');
+    expect(apiError.code).toBe('MEMBER_409_001');
   });
 
   it('응답이 없는 AxiosError는 statusCode 0의 ApiError로 변환한다', () => {
@@ -128,7 +128,7 @@ describe('parseApiError', () => {
   });
 
   it('ApiError를 그대로 넘기면 동일한 인스턴스를 반환한다', () => {
-    const original = new ApiError(409, '이미 사용 중인 이메일', 'EMAIL_CONFLICT');
+    const original = new ApiError(409, '이미 사용 중인 이메일', 'MEMBER_409_001');
     const result = parseApiError(original);
     expect(result).toBe(original);
   });

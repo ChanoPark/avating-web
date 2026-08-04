@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -56,8 +57,16 @@ export const loginHandlers = {
 
   notFound: http.post(`${BASE_URL}/api/auth/login`, () => {
     return HttpResponse.json(
-      { message: '이메일 또는 비밀번호가 올바르지 않습니다.' },
+      { message: '회원을 찾을 수 없습니다.', code: SERVER_ERROR_CODES.AUTH_MEMBER_NOT_FOUND },
       { status: 404 }
+    );
+  }),
+
+  /** 비밀번호 불일치 — 서버는 400 이다. 문구는 404 와 같아야 한다(계정 열거 차단). */
+  passwordMismatch: http.post(`${BASE_URL}/api/auth/login`, () => {
+    return HttpResponse.json(
+      { message: '비밀번호가 일치하지 않습니다.', code: SERVER_ERROR_CODES.AUTH_PASSWORD_MISMATCH },
+      { status: 400 }
     );
   }),
 
@@ -67,7 +76,7 @@ export const loginHandlers = {
 
   rsaFailure: http.post(`${BASE_URL}/api/auth/login`, () => {
     return HttpResponse.json(
-      { message: 'RSA 복호화 실패', code: 'RSA_DECRYPT_FAILED' },
+      { message: '비밀번호 복호화에 실패했습니다.', code: SERVER_ERROR_CODES.AUTH_DECRYPT_FAILED },
       { status: 422 }
     );
   }),
@@ -80,21 +89,27 @@ export const signupHandlers = {
 
   emailConflict: http.post(`${BASE_URL}/api/auth/signup`, () => {
     return HttpResponse.json(
-      { message: '이미 사용 중인 이메일이에요.', code: 'EMAIL_CONFLICT' },
+      { message: '이미 사용 중인 이메일이에요.', code: SERVER_ERROR_CODES.MEMBER_EMAIL_CONFLICT },
       { status: 409 }
     );
   }),
 
   nicknameConflict: http.post(`${BASE_URL}/api/auth/signup`, () => {
     return HttpResponse.json(
-      { message: '이미 사용 중인 닉네임이에요.', code: 'NICKNAME_CONFLICT' },
+      {
+        message: '이미 사용 중인 닉네임이에요.',
+        code: SERVER_ERROR_CODES.MEMBER_NICKNAME_CONFLICT,
+      },
       { status: 409 }
     );
   }),
 
   passwordPolicyViolation: http.post(`${BASE_URL}/api/auth/signup`, () => {
     return HttpResponse.json(
-      { message: '비밀번호 정책을 만족하지 않습니다.', code: 'PASSWORD_POLICY_VIOLATION' },
+      {
+        message: '비밀번호 형식이 올바르지 않습니다.',
+        code: SERVER_ERROR_CODES.AUTH_PASSWORD_POLICY_WEAK,
+      },
       { status: 422 }
     );
   }),
