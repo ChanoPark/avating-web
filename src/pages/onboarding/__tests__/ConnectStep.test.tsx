@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import {
@@ -410,6 +410,44 @@ describe('ConnectStep', () => {
       await waitFor(() => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /재발급/i })).not.toBeInTheDocument();
+      });
+    });
+
+    // 재발급 중에 만료된 옛 코드를 그대로 두면 사용자가 죽은 코드를 붙여넣게 된다.
+    it('재발급 요청이 진행되는 동안 옛 코드 대신 발급 중 상태를 보여준다', async () => {
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
+      server.use(connectCodeHandlers.success, connectStatusHandlers.expired);
+
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /재발급/i })).toBeInTheDocument();
+      });
+
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, async () => {
+          await delay(200);
+          return HttpResponse.json(mockConnectCodeResponse, { status: 201 });
+        }),
+        connectStatusHandlers.active
+      );
+
+      await user.click(screen.getByRole('button', { name: /재발급/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/연결 코드를 발급하는 중/)).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).not.toBeInTheDocument();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
     });
   });

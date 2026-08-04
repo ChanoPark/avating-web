@@ -25,10 +25,14 @@ export function ConnectStep() {
 
   const {
     data: connectCode,
-    isPending: isIssuing,
+    isPending,
+    isFetching,
     error: issueError,
     refetch: refetchCode,
   } = useConnectCode({ enabled: !guardFailed });
+  // 재발급(refetch)은 이전 data 가 남아 있어 isPending 이 false 다. isFetching 을 함께 보지 않으면
+  // 새 코드가 도착할 때까지 만료된 옛 코드와 00:00 카운트다운이 그대로 보인다.
+  const isIssuing = isPending || isFetching;
   const [localExpired, setLocalExpired] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
