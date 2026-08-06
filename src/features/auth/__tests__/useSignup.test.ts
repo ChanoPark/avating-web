@@ -60,7 +60,7 @@ describe('useSignup', () => {
     });
   });
 
-  it('409 EMAIL_CONFLICT 응답 시 mutation이 에러 ��태가 된다', async () => {
+  it('409 MEMBER_409_001 응답 시 mutation이 에러 ��태가 된다', async () => {
     server.use(publicKeyHandlers.success, signupHandlers.emailConflict);
 
     const { result } = renderHook(() => useSignup(), { wrapper: createWrapper() });
@@ -76,7 +76,7 @@ describe('useSignup', () => {
     });
   });
 
-  it('409 EMAIL_CONFLICT 에러 객체에 statusCode 409가 있다', async () => {
+  it('409 MEMBER_409_001 에러 객체에 statusCode 409가 있다', async () => {
     server.use(publicKeyHandlers.success, signupHandlers.emailConflict);
 
     const { result } = renderHook(() => useSignup(), { wrapper: createWrapper() });
@@ -98,7 +98,7 @@ describe('useSignup', () => {
     }
   });
 
-  it('409 NICKNAME_CONFLICT 응답 시 에러 코드가 NICKNAME_CONFLICT이다', async () => {
+  it('409 MEMBER_409_002 응답 시 에러 코드가 MEMBER_409_002 이다', async () => {
     server.use(publicKeyHandlers.success, signupHandlers.nicknameConflict);
 
     const { result } = renderHook(() => useSignup(), { wrapper: createWrapper() });
@@ -115,7 +115,7 @@ describe('useSignup', () => {
 
     const error = result.current.error;
     if (error && 'code' in error) {
-      expect(error.code).toBe('NICKNAME_CONFLICT');
+      expect(error.code).toBe('MEMBER_409_002');
     }
   });
 

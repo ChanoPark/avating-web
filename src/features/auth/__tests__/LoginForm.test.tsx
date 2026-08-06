@@ -177,6 +177,48 @@ describe('LoginForm', () => {
       });
     });
 
+    // 계정 열거 차단 — 400(비밀번호 불일치)과 404(회원 없음)가 같은 문구여야 한다.
+    it('400 AUTH_400_002 응답도 404 와 같은 문구를 배너에 표시한다', async () => {
+      server.use(publicKeyHandlers.success, loginHandlers.passwordMismatch);
+      const user = userEvent.setup();
+
+      renderWithProviders(<LoginForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
+      await user.type(screen.getByLabelText(/비밀번호/i), 'Password1!');
+      await user.click(screen.getByRole('button', { name: /로그인/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/이메일 또는 비밀번호가 올바르지 않습니다/)).toBeInTheDocument();
+      });
+
+      // 서버 원문("비밀번호가 일치하지 않습니다")이 새어 나오면 계정 열거가 가능해진다.
+      expect(screen.queryByText(/비밀번호가 일치하지 않습니다/)).not.toBeInTheDocument();
+    });
+
+    // RSA 복호화 실패는 구현 오류라 사용자가 고칠 수 없다 — 필드 에러가 아니라 토스트로 알린다.
+    it('422 AUTH_422_003 응답은 필드 에러 없이 일반 오류 토스트를 띄운다', async () => {
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      server.use(publicKeyHandlers.success, loginHandlers.rsaFailure);
+      const user = userEvent.setup();
+
+      renderWithProviders(<LoginForm />);
+
+      await user.type(screen.getByLabelText(/이메일/i), 'user@avating.com');
+      await user.type(screen.getByLabelText(/비밀번호/i), 'Password1!');
+      await user.click(screen.getByRole('button', { name: /로그인/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/알 수 없는 오류가 발생했습니다/)).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/비밀번호 형식이 올바르지 않습니다/)).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(consoleSpy).toHaveBeenCalled();
+
+      consoleSpy.mockRestore();
+    });
+
     it('서버 에러 메시지가 role="alert" 영역에 표시된다', async () => {
       server.use(publicKeyHandlers.success, loginHandlers.notFound);
       const user = userEvent.setup();
