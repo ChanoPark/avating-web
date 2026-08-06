@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
+import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import {
@@ -78,6 +78,31 @@ describe('ConnectStep', () => {
 
       const codeText = screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/);
       expect(codeText).toBeDefined();
+    });
+
+    // 실서버 QA S7 회귀 — dev(StrictMode)에서 201 을 받고도 "발급하는 중..." 에 멈췄다.
+    // issuedRef 가드가 두 번째 effect 를 막는 사이 구독이 끊긴 것이 원인이었다.
+    it('StrictMode 이중 마운트에서도 코드를 1회만 발급하고 화면에 렌더한다', async () => {
+      let issueCallCount = 0;
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
+          issueCallCount++;
+          return HttpResponse.json(mockConnectCodeResponse, { status: 201 });
+        }),
+        connectStatusHandlers.active
+      );
+
+      renderWithProviders(<ConnectStep />, {
+        initialRoute: '/onboarding/connect',
+        strictMode: true,
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
+      });
+
+      expect(screen.queryByText(/연결 코드를 발급하는 중/)).not.toBeInTheDocument();
+      expect(issueCallCount).toBe(1);
     });
 
     it('코드가 AVT-XXXX-XX 패턴을 준수한다', async () => {
@@ -385,6 +410,44 @@ describe('ConnectStep', () => {
       await waitFor(() => {
         expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
         expect(screen.queryByRole('button', { name: /재발급/i })).not.toBeInTheDocument();
+      });
+    });
+
+    // 재발급 중에 만료된 옛 코드를 그대로 두면 사용자가 죽은 코드를 붙여넣게 된다.
+    it('재발급 요청이 진행되는 동안 옛 코드 대신 발급 중 상태를 보여준다', async () => {
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
+      server.use(connectCodeHandlers.success, connectStatusHandlers.expired);
+
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /재발급/i })).toBeInTheDocument();
+      });
+
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, async () => {
+          await delay(200);
+          return HttpResponse.json(mockConnectCodeResponse, { status: 201 });
+        }),
+        connectStatusHandlers.active
+      );
+
+      await user.click(screen.getByRole('button', { name: /재발급/i }));
+
+      await waitFor(() => {
+        expect(screen.getByText(/연결 코드를 발급하는 중/)).toBeInTheDocument();
+      });
+      expect(screen.queryByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).not.toBeInTheDocument();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(300);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
     });
   });
