@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
@@ -139,6 +139,21 @@ describe('AppShellLayout', () => {
         const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
         expect(within(nav).queryByText(/1[,.]?240/)).not.toBeNull();
       });
+    });
+
+    it('stats 조회가 실패해도 셸(사이드바·본문)은 살아 있고 잔액만 폴백으로 떨어진다', async () => {
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+      server.use(statsHandlers.serverError);
+      renderWithProviders('/dashboard');
+
+      await waitFor(() => {
+        const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+        expect(within(nav).getByText('—')).toBeInTheDocument();
+      });
+
+      expect(screen.getByTestId('outlet-content')).toBeInTheDocument();
+      expect(screen.getByRole('banner')).toBeInTheDocument();
+      spy.mockRestore();
     });
 
     it('잔액 숫자에 tabular-nums(tnum) 가 적용된다', async () => {

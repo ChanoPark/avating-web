@@ -49,14 +49,17 @@ function renderErrorPage(
 
 describe('ErrorPage', () => {
   describe('variant="not-found" (404)', () => {
-    it('일반 톤 제목·설명을 표시하고 에러 코드는 노출하지 않는다 (chat3)', () => {
+    it('찾을 수 없음 전용 문구를 표시하고 에러 코드는 노출하지 않는다', () => {
       renderErrorPage('not-found');
-      expect(
-        screen.getByRole('heading', { name: '일시적인 문제가 발생했어요' })
-      ).toBeInTheDocument();
-      expect(screen.getByText(/잠깐 문제가 생긴 것 같아요/)).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: '찾을 수 없는 페이지예요' })).toBeInTheDocument();
+      expect(screen.getByText(/주소가 바뀌었거나 삭제된 페이지/)).toBeInTheDocument();
       expect(screen.queryByText(/ERROR_CODE/)).not.toBeInTheDocument();
       expect(screen.queryByText(/404/)).not.toBeInTheDocument();
+    });
+
+    it('일시 장애(server-error) 문구와 구분된다', () => {
+      renderErrorPage('not-found');
+      expect(screen.queryByText(/잠깐 문제가 생긴 것 같아요/)).not.toBeInTheDocument();
     });
 
     it('"메인 화면으로" 버튼 클릭 시 / 로 이동한다', async () => {

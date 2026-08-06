@@ -13,6 +13,8 @@ import {
   Users,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { handleAppCrash } from '../handleAppCrash';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
 import { useDashboardStats } from '@features/dashboard/api/useDashboardStats';
 import { useMyAvatars } from '@entities/avatar';
@@ -110,9 +112,13 @@ function SidebarAccountRow({ expanded }: { expanded: boolean }) {
         )}
         <div className={cn('min-w-0 flex-1', expanded ? '' : 'hidden lg:block')}>
           {primary && <div className="text-ink truncate text-[13px]">{primary.name}</div>}
-          <Suspense fallback={<AccountCreditFallback />}>
-            <AccountCredit />
-          </Suspense>
+          {/* 잔액은 부수 정보다. 통계 조회 하나가 실패했다고 셸 전체(사이드바·상단바·본문)가
+              날아가면 안 된다 — Suspense 만으로는 rejected 쿼리를 못 막아 경계가 따로 필요하다. */}
+          <ErrorBoundary FallbackComponent={AccountCreditFallback} onError={handleAppCrash}>
+            <Suspense fallback={<AccountCreditFallback />}>
+              <AccountCredit />
+            </Suspense>
+          </ErrorBoundary>
         </div>
       </div>
     </div>
