@@ -25,6 +25,7 @@ export function OnboardingPage() {
     <WizardShell
       currentStep={descriptor?.step ?? null}
       animationKey={location.pathname}
+      {...(descriptor !== null ? { currentStepLabel: descriptor.label } : {})}
       {...(note !== undefined ? { note } : {})}
     >
       <Outlet />

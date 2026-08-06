@@ -36,7 +36,7 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
       expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
         '1기본 정보 입력',
         '2생성 방법 선택',
-        '3성향 설문 6문항',
+        '3성향 설문',
         '4아바타 확인',
       ]);
     });

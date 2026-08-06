@@ -10,7 +10,8 @@ import { WIZARD_ACTIONS, WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard
 // 진행 표시는 하지 않는다 (다음 화면부터 레일이 담당한다).
 // "아바타 만들기"는 Step 1(이름·설명)로, "ChatGPT Bot 연동"은 같은 흐름에 method=connect 를
 // 사전 선택해 진입한다.
-const TASKS = ['기본 정보 입력', '생성 방법 선택', '성향 설문 6문항', '아바타 확인'] as const;
+// 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
+const TASKS = ['기본 정보 입력', '생성 방법 선택', '성향 설문', '아바타 확인'] as const;
 
 export function WelcomeStep() {
   const navigate = useNavigate();
@@ -68,14 +69,11 @@ export function WelcomeStep() {
       </div>
 
       <div className={WIZARD_ACTIONS}>
-        {/* `.av-link--muted` — 보조 경로는 채워진 CTA 를 쓰지 않는다 (밴드당 파란 CTA 1개). */}
-        <button
-          type="button"
-          onClick={handleBotConnect}
-          className="text-caption text-ink-mute hover:text-ink cursor-pointer transition-colors duration-[var(--dur-fast)]"
-        >
+        {/* 보조 경로는 채워진 CTA 를 쓰지 않는다 (밴드당 파란 CTA 1개). 다만 평문처럼 보여
+            버튼인지 알아보기 어려웠으므로, 같은 규칙을 지키는 디자인 시스템 ghost 버튼을 쓴다. */}
+        <Button type="button" variant="ghost" onClick={handleBotConnect}>
           ChatGPT Bot 연동
-        </button>
+        </Button>
         <Button type="button" onClick={handleStart}>
           아바타 만들기
           <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />

@@ -39,7 +39,9 @@ describe('SignupPage', () => {
 
     expect(within(aside).getByText('HOW IT WORKS')).toBeInTheDocument();
     expect(within(aside).getByText('아바타 생성')).toBeInTheDocument();
-    expect(within(aside).getByText('설문 6문항 또는 Bot 연동')).toBeInTheDocument();
+    expect(within(aside).getByText('성향 설문 또는 Bot 연동')).toBeInTheDocument();
+    // 문항 수는 서버 시딩에 따라 달라진다 — 문구에 고정 숫자를 두지 않는다.
+    expect(within(aside).queryByText(/\d+문항/)).not.toBeInTheDocument();
     expect(within(aside).getByText('시뮬레이션 관전')).toBeInTheDocument();
     expect(within(aside).getByText('아바타끼리 대화, 훈수로 개입')).toBeInTheDocument();
     expect(within(aside).getByText('에프터 연결')).toBeInTheDocument();

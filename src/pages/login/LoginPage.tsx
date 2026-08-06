@@ -13,9 +13,11 @@ function resolveRedirect(redirect: string | null): string {
 }
 
 // 정본 `ScreenSignin` 의 AuthAside 3항목.
+// 로그인 전 화면이라 계정 데이터를 알 수 없다 — 건수 같은 수치를 적으면 방문자 모두에게
+// 같은 가짜 숫자가 보인다(`수락·거절 대기 3건` 하드코딩이 실제로 그랬다). 설명은 수치 없이 쓴다.
 const ASIDE_ITEMS: readonly AuthAsideItem[] = [
   { title: '진행 중인 매칭', description: '관전 이어보기' },
-  { title: '받은 요청', description: '수락·거절 대기 3건' },
+  { title: '받은 요청', description: '수락·거절 결정하기' },
   { title: '내 아바타', description: '스탯 다듬기' },
 ];
 

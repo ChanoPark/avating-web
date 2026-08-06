@@ -39,7 +39,27 @@ function stepStateOf(index: number, currentStep: number): StepState {
   return 'upcoming';
 }
 
-function StepRail({ currentStep, note }: { currentStep: number; note?: string }) {
+/**
+ * 현재 단계의 라벨만 경로에서 받아 덮는다. Step 3 은 설문(`성향 설문`)과
+ * Bot 연동(`ChatGPT Bot 대화`) 두 경로가 공유하는데, 레일이 fallback 만 그리면
+ * Bot 연동 중에도 `성향 설문 진행 중` 이 뜬다(실서버 QA S8-3).
+ */
+function railLabels(currentStep: number, currentStepLabel: string | undefined): readonly string[] {
+  if (currentStepLabel === undefined) return RAIL_LABELS;
+  return RAIL_LABELS.map((label, index) => (index === currentStep - 1 ? currentStepLabel : label));
+}
+
+function StepRail({
+  currentStep,
+  currentStepLabel,
+  note,
+}: {
+  currentStep: number;
+  currentStepLabel?: string;
+  note?: string;
+}) {
+  const labels = railLabels(currentStep, currentStepLabel);
+
   return (
     <nav
       aria-label="온보딩 단계"
@@ -58,7 +78,7 @@ function StepRail({ currentStep, note }: { currentStep: number; note?: string })
       </div>
 
       <ol className="flex flex-1 items-center md:mt-7 md:flex-none md:flex-col md:items-stretch">
-        {RAIL_LABELS.map((label, index) => {
+        {labels.map((label, index) => {
           const state = stepStateOf(index, currentStep);
           return (
             <li
@@ -102,6 +122,8 @@ function StepRail({ currentStep, note }: { currentStep: number; note?: string })
 type WizardShellProps = {
   /** 1~4 = 레일 있는 형태, null = 레일 없는 플랫 형태(S-02-01 환영). */
   currentStep: 1 | 2 | 3 | 4 | null;
+  /** 현재 경로의 라벨. 같은 단계를 공유하는 경로(설문 / Bot 연동)를 구분한다. */
+  currentStepLabel?: string;
   /** 레일 하단 각주 — 화면마다 다르고 없는 화면도 있다. */
   note?: string;
   /** 스텝 전환 애니메이션 키 — 라우트 경로. */
@@ -109,12 +131,24 @@ type WizardShellProps = {
   children: ReactNode;
 };
 
-export function WizardShell({ currentStep, note, animationKey, children }: WizardShellProps) {
+export function WizardShell({
+  currentStep,
+  currentStepLabel,
+  note,
+  animationKey,
+  children,
+}: WizardShellProps) {
   const hasRail = currentStep !== null;
 
   return (
     <div className="bg-surface text-ink flex min-h-screen flex-col md:flex-row">
-      {hasRail && <StepRail currentStep={currentStep} {...(note !== undefined ? { note } : {})} />}
+      {hasRail && (
+        <StepRail
+          currentStep={currentStep}
+          {...(currentStepLabel !== undefined ? { currentStepLabel } : {})}
+          {...(note !== undefined ? { note } : {})}
+        />
+      )}
 
       {/* 폼 페인 — 레일 있는 형태 padding `48px 40px`, 플랫 형태 `56px 40px`. 둘 다 가운데 정렬. */}
       <main

@@ -71,12 +71,20 @@ describe('OnboardingPage (WizardShell)', () => {
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  it('/onboarding/connect 도 3번째 스텝을 공유한다 (설문/Bot 연동 동일 단계)', () => {
+  // 같은 3단계를 공유하되 라벨은 경로를 따라간다 — Bot 연동 중에 `성향 설문` 이 뜨면 안 된다(QA S8-3).
+  it('/onboarding/connect 는 3번째 스텝을 공유하되 라벨은 ChatGPT Bot 대화다', () => {
     renderAt('/onboarding/connect');
+    const current = within(rail()).getByRole('listitem', { current: 'step' });
+    expect(current).toHaveTextContent('ChatGPT Bot 대화');
+    expect(current).not.toHaveTextContent('성향 설문');
+    expect(screen.getByTestId('step-connect')).toBeInTheDocument();
+  });
+
+  it('/onboarding/survey 는 같은 자리에 성향 설문 라벨을 쓴다', () => {
+    renderAt('/onboarding/survey');
     expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
       '성향 설문'
     );
-    expect(screen.getByTestId('step-connect')).toBeInTheDocument();
   });
 
   it('/onboarding/complete 진입 시 4번째 스텝이 현재 단계다', () => {

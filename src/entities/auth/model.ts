@@ -39,6 +39,9 @@ export const rawPasswordSchema = z
   .max(PASSWORD_MAX, `${String(PASSWORD_MAX)}자 이하로 입력해주세요`)
   .refine(hasAllRequiredCategories, '영문자·숫자·특수문자를 각각 1개 이상 포함해주세요');
 
+// 서버 제약은 2–30자다(실서버 /v3/api-docs). FE 상한 12자는 **의도된 부분집합**으로,
+// 카드·사이드바의 닉네임 슬롯이 12자 기준으로 잡혀 있어 더 길면 잘린다.
+// 서버보다 좁으므로 통과한 값은 항상 서버에서도 유효하다. 넓히려면 UI 슬롯부터 정해야 한다.
 export const nicknameSchema = z
   .string()
   .trim()
