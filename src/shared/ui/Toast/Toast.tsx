@@ -36,14 +36,24 @@ const variantIcon: Record<ToastVariant, LucideIcon> = {
 };
 
 const MAX_VISIBLE = 3;
-const DEFAULT_DURATION_MS = 3000;
+
+// 정본 S-11-07 — "에러 토스트는 자동 소멸하지 않습니다. 닫기 버튼으로만 사라집니다
+// (성공 토스트는 3초 유지, S-10-02)." 실패를 못 보고 놓치면 사용자는 무슨 일이
+// 일어났는지 알 방법이 없다. 주의(warning)도 실패 계열이라 같이 묶는다.
+// 호출부가 `durationMs` 를 명시하면 그쪽이 이긴다.
+const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
+  info: 3000,
+  success: 3000,
+  warning: 0,
+  error: 0,
+};
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
   // hover 시 카운트다운 일시정지 (마우스를 떼면 재시작).
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {
-    const ms = toast.durationMs ?? DEFAULT_DURATION_MS;
+    const ms = toast.durationMs ?? DEFAULT_DURATION_MS[toast.variant];
     if (ms <= 0 || paused) return;
     const handle = setTimeout(() => {
       onDismiss(toast.id);
