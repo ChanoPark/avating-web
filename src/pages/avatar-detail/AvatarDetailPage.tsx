@@ -3,6 +3,7 @@ import { useParams } from 'react-router';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { InlineError } from '@shared/ui/InlineError';
 import { MatchRequestModal } from '@features/match-request';
 import type { PartnerAvatarSummary } from '@features/match-request';
 import {
@@ -144,28 +145,19 @@ function LoadingFallback() {
   );
 }
 
+// 정본 S-11-06 PANEL — 아바타 상세 본문만 실패한 경우다. 셸과 브레드크럼은 살아 있으므로
+// 화면 전체를 에러로 덮지 않는다. 404 는 되돌릴 방법이 없어 재시도를 주지 않는다.
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const isNotFound = isApiError(error) && error.statusCode === 404;
   return (
-    <div role="alert" className="border-hairline bg-surface shadow-card rounded-lg border p-6">
-      <h2 className="text-heading-sm text-ink">
-        {isNotFound ? '아바타를 찾을 수 없어요' : '아바타 정보를 불러오지 못했어요'}
-      </h2>
-      <p className="text-body-sm text-ink-mute mt-1.5">
-        {isNotFound ? '주소가 잘못됐거나 삭제된 아바타일 수 있어요.' : '잠시 후 다시 시도해주세요.'}
-      </p>
-      {!isNotFound && (
-        <Button
-          type="button"
-          variant="secondary"
-          className="mt-4"
-          onClick={() => {
-            resetErrorBoundary();
-          }}
-        >
-          다시 시도
-        </Button>
-      )}
+    <div className="border-hairline bg-surface shadow-card rounded-lg border p-6">
+      <InlineError
+        title={isNotFound ? '아바타를 찾을 수 없어요' : '아바타 정보를 불러오지 못했어요'}
+        body={
+          isNotFound ? '주소가 잘못됐거나 삭제된 아바타일 수 있어요.' : '잠시 후 다시 시도해 주세요'
+        }
+        {...(isNotFound ? {} : { onRetry: resetErrorBoundary })}
+      />
     </div>
   );
 }
