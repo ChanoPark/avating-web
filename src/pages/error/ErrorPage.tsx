@@ -168,7 +168,15 @@ export function ErrorPage({
   const location = useLocation();
 
   const escalated = ESCALATABLE.has(variant) && retryCount >= RETRY_ESCALATION_THRESHOLD;
-  const copy = escalated ? REPEAT_COPY : COPY[variant];
+  // 정본은 비로그인 404 에서 "액션만" 교체하라고 하지만, 본문 뒷문장이 대시보드로
+  // 안내하는데 정작 대시보드 버튼이 없는 조합이 된다. 갈 수 없는 곳을 가리키지 않도록
+  // 그 문장만 뺀다 — 앞문장과 제목은 정본 그대로다.
+  const loggedOutNotFound = variant === 'not-found' && isAuthenticated === false;
+  const copy = escalated
+    ? REPEAT_COPY
+    : loggedOutNotFound
+      ? { ...COPY['not-found'], body: '주소가 바뀌었거나 삭제된 화면이에요.' }
+      : COPY[variant];
   const showBack = canGoBack ?? detectHasHistory();
 
   // 세션이 끊긴 화면은 셸이 존재할 수 없다 — 셸 자체가 인증을 전제한다.

@@ -375,3 +375,26 @@ describe('ErrorPage — embedded (셸 안에서 본문만 교체)', () => {
     ).toBeInTheDocument();
   });
 });
+
+describe('ErrorPage — 비로그인 404 카피 정합', () => {
+  it('갈 수 없는 대시보드를 본문에서 가리키지 않는다', () => {
+    render(
+      <MemoryRouter initialEntries={['/garbage']}>
+        <ErrorPage variant="not-found" isAuthenticated={false} />
+      </MemoryRouter>
+    );
+    // 액션이 "서비스 소개로 · 로그인" 인데 본문만 "대시보드에서 다시 시작해 주세요" 로
+    // 남으면 존재하지 않는 경로를 안내하게 된다.
+    expect(screen.queryByText(/대시보드에서 다시 시작해 주세요/)).not.toBeInTheDocument();
+    expect(screen.getByText('주소가 바뀌었거나 삭제된 화면이에요.')).toBeInTheDocument();
+  });
+
+  it('로그인 상태에서는 정본 문구를 그대로 쓴다', () => {
+    render(
+      <MemoryRouter initialEntries={['/garbage']}>
+        <ErrorPage variant="not-found" isAuthenticated />
+      </MemoryRouter>
+    );
+    expect(screen.getByText(/대시보드에서 다시 시작해 주세요/)).toBeInTheDocument();
+  });
+});
