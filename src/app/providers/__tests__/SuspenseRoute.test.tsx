@@ -52,7 +52,8 @@ describe('SuspenseRoute', () => {
     spy.mockRestore();
   });
 
-  it('에러 발생 시 재시도·문의 CTA 가 있는 에러 화면을 보여준다', async () => {
+  // 정본 S-11-04 는 1차 실패에 문의 경로를 두지 않는다 — 3회 실패(S-11-05)에서만 나온다.
+  it('500 은 수동 재시도만 주고 문의 경로는 아직 노출하지 않는다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(500, '서버 오류');
@@ -61,11 +62,12 @@ describe('SuspenseRoute', () => {
     renderRoute(<Boom />);
 
     expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '문의하기' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '문의하기' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '문의하기' })).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('404 ApiError 는 "찾을 수 없음" 화면으로 떨어진다', async () => {
+  it('404 ApiError 는 S-11-03 없는 페이지 화면으로 떨어진다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(404, '요청한 리소스를 찾을 수 없습니다');
@@ -73,12 +75,14 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('button', { name: '메인 화면으로' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: '찾는 페이지가 없어요.' })
+    ).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('403 ApiError 는 권한 안내 화면으로 떨어진다', async () => {
+  it('403 ApiError 는 S-11-02 권한 없음 화면으로 떨어진다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(403, 'Forbidden');
@@ -86,7 +90,25 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('heading', { name: '로그인이 필요해요' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('heading', { name: '이 페이지를 볼 권한이 없어요.' })
+    ).toBeInTheDocument();
+    spy.mockRestore();
+  });
+
+  // 401 과 403 은 정본에서 서로 다른 화면이다 — 예전엔 둘 다 forbidden 으로 뭉개졌다.
+  it('401 ApiError 는 S-11-01 세션 만료 화면으로 떨어진다', async () => {
+    const spy = silenceBoundaryLog();
+    const Boom = () => {
+      throw new ApiError(401, 'Unauthorized');
+    };
+
+    renderRoute(<Boom />);
+
+    expect(
+      await screen.findByRole('heading', { name: '다시 로그인해 주세요.' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '다시 로그인' })).toBeInTheDocument();
     spy.mockRestore();
   });
 
