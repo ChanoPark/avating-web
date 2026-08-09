@@ -28,9 +28,12 @@ test.describe('공개 라우트 스모크', () => {
 
   test('알 수 없는 경로는 404 not-found 로 떨어진다', async ({ page }) => {
     await page.goto('/this-route-does-not-exist');
-    await expect(page.getByRole('heading', { name: '찾을 수 없는 페이지예요' })).toBeVisible();
-    // not-found 는 "메인 화면으로" 단독, server-error 는 "다시 시도" + "문의하기".
-    await expect(page.getByRole('button', { name: '메인 화면으로' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '찾는 페이지가 없어요.' })).toBeVisible();
+    // 비로그인 진입이라 정본 S-11-03 의 플랫 레이아웃 + "서비스 소개로 · 로그인" 이다.
+    // 셸을 유지하는 로그인 상태 404 와 다르다.
+    await expect(page.getByRole('button', { name: '서비스 소개로' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
+    // 재시도는 서버 에러(S-11-04) 전용이다. 없는 주소는 다시 시도해도 없다.
     await expect(page.getByRole('button', { name: '다시 시도' })).toHaveCount(0);
   });
 });

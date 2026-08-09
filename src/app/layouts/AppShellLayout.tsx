@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useLocation, useOutlet } from 'react-router';
 import {
   Bell,
@@ -15,6 +16,7 @@ import {
 import { AnimatePresence, motion } from 'motion/react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { handleAppCrash } from '../handleAppCrash';
+import { RouteErrorBoundary } from '../providers/RouteErrorBoundary';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
 import { useDashboardStats } from '@features/dashboard/api/useDashboardStats';
 import { useMyAvatars } from '@entities/avatar';
@@ -185,7 +187,15 @@ function SidebarBody({
   );
 }
 
-export function AppShellLayout() {
+type AppShellLayoutProps = {
+  /**
+   * 주면 라우트 outlet 대신 이걸 그린다. 라우트에 매달리지 않은 화면(예: 셸을 유지해야
+   * 하는 404)을 셸 안에 넣기 위한 통로다.
+   */
+  children?: ReactNode;
+};
+
+export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
   const location = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -210,6 +220,7 @@ export function AppShellLayout() {
   // <Outlet /> 컴포넌트를 직접 두면 AnimatePresence 가 보존한 exit 중인 래퍼가
   // 라우트 컨텍스트를 다시 읽어 새 페이지를 그려버려 이중 마운트(깜빡임)가 발생한다.
   const outlet = useOutlet();
+  const content = children ?? outlet;
 
   return (
     // 세로 900 초과 시 본문만 스크롤 — 사이드바·상단바는 고정 (LAYOUT-NUMBERS § AppShell).
@@ -298,7 +309,10 @@ export function AppShellLayout() {
                   본문 폭 상한은 정하지 않는다. 우측 사이드 카드(260~272)가 고정폭이고
                   가운데 열만 신축하는 방식이라 상한이 필요 없다. */}
               <div data-shell-content className="flex w-full flex-col gap-4">
-                {outlet}
+                {/* 정본 S-11-02~04 — 403·404·500 은 셸을 유지하고 본문만 교체한다.
+                    본문에서 터진 예외를 여기서 잡아야 사이드바로 빠져나갈 길이 남는다.
+                    셸 크롬 자체가 터지면 이 경계를 넘어 SuspenseRoute 가 받는다. */}
+                <RouteErrorBoundary embedded>{content}</RouteErrorBoundary>
               </div>
             </motion.div>
           </AnimatePresence>

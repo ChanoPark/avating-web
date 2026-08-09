@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { InlineError } from '@shared/ui/InlineError';
 import { Badge } from '@shared/ui/Badge';
 import { cn } from '@shared/lib/cn';
 import { useMyAvatarsSuspense } from '@entities/avatar';
@@ -50,18 +51,12 @@ function MyAvatarGridSkeleton() {
   );
 }
 
+// 정본 S-11-06 PANEL — 실패한 영역만 교체하고 재시도는 그 자리에 둔다.
 function MyAvatarGridFallback({ resetErrorBoundary }: FallbackProps) {
   return (
     <section aria-label="내 아바타" className={CARD_CLASS}>
       <CardHeader />
-      <div className="text-ink-mute text-micro">불러올 수 없음</div>
-      <button
-        type="button"
-        className="text-caption text-primary hover:text-primary-hover cursor-pointer self-start font-medium"
-        onClick={resetErrorBoundary}
-      >
-        재시도
-      </button>
+      <InlineError body="내 아바타를 불러오지 못했어요" onRetry={resetErrorBoundary} />
     </section>
   );
 }

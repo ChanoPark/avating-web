@@ -1,6 +1,5 @@
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import type { FallbackProps } from 'react-error-boundary';
 import { Send, Heart, Users, Diamond } from 'lucide-react';
 import { StatsCard } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
@@ -25,19 +24,10 @@ function StatsSkeleton() {
   );
 }
 
-function StatsFallback({ resetErrorBoundary }: FallbackProps) {
-  return (
-    <div className={STAT_BOX}>
-      <div className="text-ink-mute text-micro">—</div>
-      <button
-        type="button"
-        className="text-caption text-primary hover:text-primary-hover mt-2 cursor-pointer font-medium"
-        onClick={resetErrorBoundary}
-      >
-        재시도
-      </button>
-    </div>
-  );
+// 정본 S-11-06 STAT — 실패한 카드는 값만 `—` 로 두고 라벨은 유지한다. 재시도 버튼을
+// 카드 안에 넣지 않는다: "재시도는 카드 묶음 상단 액션에서 한 번에."
+function StatsFallback({ config }: { config: CardConfig }) {
+  return <StatsCard failed icon={config.Icon} label={config.label} value="" ariaLabel="" />;
 }
 
 type CardConfig = {
@@ -114,16 +104,44 @@ function SingleStatCard({ config }: { config: CardConfig }) {
 }
 
 export function StatsGrid() {
+  // 카드마다 경계를 따로 두되 재시도는 묶음 단위다(정본 S-11-06). `resetKey` 를 올리면
+  // 모든 경계가 한 번에 복구를 시도한다.
+  const [resetKey, setResetKey] = useState(0);
+  const [failedCount, setFailedCount] = useState(0);
+
   return (
-    // 정본: StatCard 4열 그리드 gap 12 (wf-s2-core ScreenDashboard)
-    <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-      {CARD_CONFIGS.map((config) => (
-        <ErrorBoundary key={config.label} fallbackRender={(props) => <StatsFallback {...props} />}>
-          <Suspense fallback={<StatsSkeleton />}>
-            <SingleStatCard config={config} />
-          </Suspense>
-        </ErrorBoundary>
-      ))}
+    <div className="flex flex-col gap-2">
+      {failedCount > 0 && (
+        <div className="flex justify-end">
+          <button
+            type="button"
+            className="text-caption text-primary hover:text-primary-hover focus-visible:shadow-focus rounded-pill cursor-pointer px-1 font-medium"
+            onClick={() => {
+              setFailedCount(0);
+              setResetKey((k) => k + 1);
+            }}
+          >
+            통계 다시 불러오기
+          </button>
+        </div>
+      )}
+      {/* 정본: StatCard 4열 그리드 gap 12 (wf-s2-core ScreenDashboard) */}
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {CARD_CONFIGS.map((config) => (
+          <ErrorBoundary
+            key={config.label}
+            resetKeys={[resetKey]}
+            onError={() => {
+              setFailedCount((c) => c + 1);
+            }}
+            fallbackRender={() => <StatsFallback config={config} />}
+          >
+            <Suspense fallback={<StatsSkeleton />}>
+              <SingleStatCard config={config} />
+            </Suspense>
+          </ErrorBoundary>
+        ))}
+      </div>
     </div>
   );
 }

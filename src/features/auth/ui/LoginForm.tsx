@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { Banner } from '@shared/ui/Banner';
 import { useLogin } from '../api/useLogin';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { mapServerError } from '../lib/mapServerError';
@@ -61,22 +62,9 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       noValidate
     >
       <div className="flex flex-col gap-5">
-        {/* 폼 전체 실패는 상단 배너 하나로만 알린다 — 필드 오류는 각 필드 아래 인라인. */}
-        {errors.root?.message && (
-          <div
-            role="alert"
-            aria-live="polite"
-            className="text-danger text-caption bg-danger-wash flex items-start gap-1.5 rounded-sm px-3 py-2"
-          >
-            <CircleAlert
-              size={13}
-              strokeWidth={1.5}
-              aria-hidden="true"
-              className="mt-0.5 shrink-0"
-            />
-            {errors.root.message}
-          </div>
-        )}
+        {/* 폼 전체 실패는 상단 배너 하나로만 알린다 — 필드 오류는 각 필드 아래 인라인
+            (정본 S-11-07: "필드 단위 오류는 배너로 올리지 않고 필드 아래 인라인으로"). */}
+        {errors.root?.message && <Banner tone="danger">{errors.root.message}</Banner>}
 
         <div className="flex flex-col gap-2">
           <button
