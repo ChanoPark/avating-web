@@ -5,6 +5,7 @@ import { onboardingHandlers } from './handlers/onboarding';
 import { matchRequestHandlers } from './handlers/matchRequest';
 import { inboxHandlers } from './handlers/inbox';
 import { avatarDetailHandlers } from './handlers/avatarDetail';
+import { primaryAvatarDefaultHandlers } from './handlers/primaryAvatar';
 
 export const server = setupServer(
   ...authHandlers,
@@ -12,7 +13,8 @@ export const server = setupServer(
   ...onboardingHandlers,
   ...matchRequestHandlers,
   ...inboxHandlers,
-  ...avatarDetailHandlers
+  ...avatarDetailHandlers,
+  ...primaryAvatarDefaultHandlers
 );
 
 server.events.on('request:unhandled', ({ request }) => {
