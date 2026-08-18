@@ -5,6 +5,7 @@ import { Card } from '@shared/ui/Card';
 import { Tag } from '@shared/ui/Tag';
 import { cn } from '@shared/lib/cn';
 import { useAuthStore } from '@entities/auth/store';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 
 type Step = {
   title: string;
@@ -53,14 +54,31 @@ export function ServiceIntroPage() {
   const navigate = useNavigate();
   const status = useAuthStore((s) => s.status);
 
-  // 랜딩은 로그인 여부와 무관하게 같은 레이아웃을 쓰되, 목적지만 바꾼다.
   // 로그인한 사용자를 가입·로그인 폼으로 되돌려보내면 세션이 풀린 것처럼 읽힌다.
+  // 그래서 로그인 상태에서는 헤더 두 버튼을 "시작하기" 하나로 접고, 목적지를 아래에서 정한다.
   const isAuthenticated = status === 'authenticated';
+
+  // 비로그인 방문자에게 조회가 나가면 토큰 없이 401 을 받아 refresh 인터셉터가 돈다 —
+  // 랜딩을 보기만 해도 세션이 정리되므로 로그인 상태에서만 켠다.
+  const { hasPrimaryAvatar, isResolved, isUnknown } = useOnboardingCompletion({
+    enabled: isAuthenticated,
+  });
+
+  // 대표 아바타가 "없다고 확인된" 경우에만 온보딩으로 보낸다. 판정 전(isResolved=false)이나
+  // 조회 실패(isUnknown)까지 미완료로 취급하면, 서버가 잠깐 흔들린 것만으로 온보딩을 마친
+  // 회원을 다시 온보딩으로 되돌려보내게 된다. 근거가 없을 때의 기본값은 대시보드다.
+  const needsOnboarding = isResolved && !isUnknown && !hasPrimaryAvatar;
+
+  // 온보딩 재개 위치는 `/onboarding` 진입 화면(환영 → 방법 선택)이 스스로 정한다.
+  // 여기서 resolveResumeRoute 를 다시 부르면 아직 방법을 고르지 않은 사용자를 건너뛰게 된다.
+  const enterService = () => {
+    void navigate(needsOnboarding ? '/onboarding' : '/dashboard');
+  };
   const goSignup = () => {
-    void navigate(isAuthenticated ? '/dashboard' : '/signup');
+    void navigate('/signup');
   };
   const goLogin = () => {
-    void navigate(isAuthenticated ? '/dashboard' : '/login');
+    void navigate('/login');
   };
 
   // 아직 별도 라우트가 없는 마케팅 내비는 같은 화면의 밴드로만 이동시킨다.
@@ -112,13 +130,24 @@ export function ServiceIntroPage() {
             })}
           </nav>
 
+          {/* 정본 wf-kit.jsx:187 MktTop 은 로그인/회원가입 2개 고정이라 로그인 상태 분기가
+              없다. 2026-08-18 사용자 지시로 추가한 의도된 divergence이며, 새 버튼은 회원가입과
+              같은 값(`Btn v="secondary" sm`)을 그대로 쓴다 — 밴드당 파란 CTA 1개 규칙 유지. */}
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={goLogin}>
-              로그인
-            </Button>
-            <Button variant="secondary" size="sm" onClick={goSignup}>
-              회원가입
-            </Button>
+            {isAuthenticated ? (
+              <Button variant="secondary" size="sm" onClick={enterService}>
+                시작하기
+              </Button>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={goLogin}>
+                  로그인
+                </Button>
+                <Button variant="secondary" size="sm" onClick={goSignup}>
+                  회원가입
+                </Button>
+              </>
+            )}
           </div>
         </header>
 
@@ -139,7 +168,7 @@ export function ServiceIntroPage() {
             </p>
 
             <div className="mt-1 flex flex-wrap gap-2.5">
-              <Button onClick={goSignup}>
+              <Button onClick={isAuthenticated ? enterService : goSignup}>
                 무료로 시작하기
                 <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
               </Button>
