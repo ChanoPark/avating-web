@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowRight, Check, Clock, MessageCircle, SquarePen, type LucideIcon } from 'lucide-react';
+import { Check, Clock, MessageCircle, SquarePen, type LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { cn } from '@shared/lib/cn';
@@ -103,21 +103,16 @@ export function WelcomeStep() {
       <div className="flex flex-col items-stretch gap-3 sm:flex-row">
         {METHODS.map(({ method, icon: MethodIcon, time, title, desc, cta }, index) => {
           const titleId = `${titleIdPrefix}-method-${String(index)}`;
-          // 첫 카드만 강조 — 정본이 borderColor + 같은 색 inset 링으로 1.5px 처럼 보이게 한다.
-          // shared `Card` 를 쓰지 않는 이유: 정본 `.av-card` 에는 그림자가 없고(`--featured`·
-          // `--elevated` 만 갖는다), 강조 카드는 그림자 자리를 inset 링이 차지한다.
-          const isRecommended = index === 0;
+          // 세 카드는 시각적으로 동등하다. 정본은 첫 카드에 `borderColor: var(--primary)` +
+          // 같은 색 inset 링을 두지만 2026-08-18 사용자 지시로 제거했다 (의도된 divergence —
+          // wiki flows/onboarding v14 참고). shared `Card` 를 쓰지 않는 이유는 정본 `.av-card`
+          // 에 그림자가 없어서다(`--featured`·`--elevated` 만 갖는다).
           return (
             <div
               key={title}
               role="group"
               aria-labelledby={titleId}
-              className={cn(
-                'bg-surface flex flex-1 flex-col gap-3 rounded-lg border p-[18px]',
-                isRecommended
-                  ? 'border-primary shadow-[inset_0_0_0_1px_var(--primary)]'
-                  : 'border-hairline'
-              )}
+              className="bg-surface border-hairline flex flex-1 flex-col gap-3 rounded-lg border p-[18px]"
             >
               <div className="flex items-center justify-between gap-2">
                 <span
@@ -150,10 +145,8 @@ export function WelcomeStep() {
                     }
                   : {})}
               >
+                {/* 정본은 `Btn icon="arrowRight"` 지만 2026-08-18 사용자 지시로 화살표를 뺐다. */}
                 {cta}
-                {/* `shrink-0` 없이는 긴 라벨("Bot과 대화해서 만들기")에 밀려 화살표가
-                    2px 로 눌린다 — 좁은 폭 실측에서 잡힌 값이다. */}
-                <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
               </Button>
             </div>
           );

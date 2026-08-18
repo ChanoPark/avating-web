@@ -78,6 +78,28 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       expect(within(prompt).getByText('약 5분')).toBeInTheDocument();
     });
 
+    /* 정본(v2.5)은 첫 카드에만 `borderColor: var(--primary)` + 같은 색 inset 링을 준다.
+       2026-08-18 사용자 지시로 그 강조를 제거했다 — 세 카드는 시각적으로 동등하다.
+       design-fidelity 스윕이 정본만 보고 파란 테두리를 되돌리지 않도록 여기서 고정한다. */
+    it('세 카드가 같은 테두리를 쓴다 — 첫 카드 파란 테두리 강조는 없다', () => {
+      renderWithProviders(<WelcomeStep />);
+      const classNames = screen
+        .getAllByRole('group', { name: /아바타 만들기$/ })
+        .map((card) => card.className);
+
+      expect(new Set(classNames).size).toBe(1);
+      expect(classNames[0]).not.toMatch(/border-primary|inset/);
+    });
+
+    /* 정본은 카드 CTA 를 `Btn icon="arrowRight"` 로 그리지만 2026-08-18 사용자 지시로
+       화살표를 뺐다. 위 테두리 건과 같은 이유로 고정한다. */
+    it('카드 CTA 에는 화살표 아이콘이 없다', () => {
+      renderWithProviders(<WelcomeStep />);
+      for (const cta of [surveyCta(), botCta(), promptCta()]) {
+        expect(cta.querySelector('svg')).toBeNull();
+      }
+    });
+
     it('앞으로 할 일 4단계 체크리스트가 렌더된다 — 3번은 세 방법을 아우르는 라벨이다', () => {
       renderWithProviders(<WelcomeStep />);
       expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
