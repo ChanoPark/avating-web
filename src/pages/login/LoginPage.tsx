@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { LoginForm } from '@features/auth/ui/LoginForm';
 import { AuthLayout, type AuthAsideItem } from '@features/auth/ui/AuthLayout';
+import { useAuthStore } from '@entities/auth/store';
 
 // 오픈 리다이렉트 방지: AuthGuard 가 심은 redirect 파라미터를 그대로 navigate 에 넘기되,
 // 동일 출처 절대 경로(`/path`)만 허용한다. `//evil.com`(프로토콜-상대)·절대 URL 은 차단.
@@ -25,6 +27,15 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = resolveRedirect(searchParams.get('redirect'));
+  const status = useAuthStore((s) => s.status);
+
+  // 로그인한 채로 이 화면에 들어오면(뒤로가기 등) 빈 폼이 보여 로그아웃된 것처럼 읽힌다.
+  // 세션은 살아 있으니 폼을 보여줄 이유가 없다 — 가려던 곳으로 바로 보낸다.
+  useEffect(() => {
+    if (status === 'authenticated') {
+      void navigate(redirectTo, { replace: true });
+    }
+  }, [status, redirectTo, navigate]);
 
   // 정본 v2 `ScreenSignin`: 좌 폼 페인 + 우 AuthAside 340 의 2단 구성.
   return (
