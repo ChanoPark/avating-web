@@ -119,13 +119,28 @@ function StepRail({
   );
 }
 
+/**
+ * 폼 카드 폭 — 정본 `Page` 는 `maxWidth = max(max, 440) + 88` 로 계산한다
+ * (`.claude/design/2026-08-18-wireframe-v2.5/wf/wf-kit.jsx`).
+ * `default` = max 460 → 548 · `wide` = max 780 → 868 (S-02-01 환영의 방법 카드 3열).
+ */
+const FORM_MAX_WIDTH = {
+  default: 'max-w-[548px]',
+  wide: 'max-w-[868px]',
+} as const;
+
 type WizardShellProps = {
   /** 1~4 = 레일 있는 형태, null = 레일 없는 플랫 형태(S-02-01 환영). */
   currentStep: 1 | 2 | 3 | 4 | null;
   /** 현재 경로의 라벨. 같은 단계를 공유하는 경로(설문 / Bot 연동)를 구분한다. */
   currentStepLabel?: string;
-  /** 레일 하단 각주 — 화면마다 다르고 없는 화면도 있다. */
+  /**
+   * 각주 — 화면마다 다르고 없는 화면도 있다. 레일이 있으면 레일 하단에,
+   * 플랫 형태에서는 정본대로 폼 카드 **바깥 아래**에 가운데 정렬로 붙는다.
+   */
   note?: string;
+  /** 폼 카드 폭. 기본값은 정본 `Page` 의 `max=460`. */
+  formWidth?: keyof typeof FORM_MAX_WIDTH;
   /** 스텝 전환 애니메이션 키 — 라우트 경로. */
   animationKey: string;
   children: ReactNode;
@@ -135,6 +150,7 @@ export function WizardShell({
   currentStep,
   currentStepLabel,
   note,
+  formWidth = 'default',
   animationKey,
   children,
 }: WizardShellProps) {
@@ -164,11 +180,20 @@ export function WizardShell({
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-          // 폼 카드 — maxWidth 548, 흰 서피스 + hairline + 옅은 중립 그림자.
-          className="bg-surface border-hairline shadow-card flex w-full max-w-[548px] flex-col overflow-hidden rounded-xl border"
+          // 폼 카드 — 흰 서피스 + hairline + 옅은 중립 그림자. 폭은 화면이 정한다.
+          className={cn(
+            'bg-surface border-hairline shadow-card flex w-full flex-col overflow-hidden rounded-xl border',
+            FORM_MAX_WIDTH[formWidth]
+          )}
         >
           {children}
         </motion.div>
+
+        {/* 플랫 형태의 각주는 카드 아래 16px, 가운데 정렬 (정본 `Page` 의 `!steps` 분기).
+            레일이 있는 화면에서는 같은 값이 레일 하단으로 간다. */}
+        {!hasRail && note !== undefined && (
+          <p className="text-micro text-ink-mute mt-4 text-center text-pretty">{note}</p>
+        )}
       </main>
     </div>
   );
