@@ -3,6 +3,7 @@ import { screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 import { server } from '@shared/mocks/server';
 import {
   connectCodeHandlers,
@@ -49,13 +50,31 @@ describe('ConnectStep', () => {
       });
     });
 
-    it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', async () => {
+    it('progress 가 complete 이고 대표 아바타가 있으면 /onboarding/complete 로 redirect 한다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');
-      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+      renderWithProviders(<ConnectStep />, {
+        initialRoute: '/onboarding/connect',
+        queryClient: queryClientWithPrimaryAvatar(SAMPLE_PRIMARY_AVATAR),
+      });
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
       });
+    });
+
+    // 진행 기록의 complete 는 완료를 보장하지 않는다. 여기서 확인 화면으로 되돌리면
+    // 대표 아바타가 없는 확인 화면이 다시 이 화면으로 보내 왕복이 된다.
+    it('progress 가 complete 여도 대표 아바타가 없으면 연동 화면을 이어서 보여준다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      renderWithProviders(<ConnectStep />, {
+        initialRoute: '/onboarding/connect',
+        queryClient: queryClientWithPrimaryAvatar(null),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
     });
 
     it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
@@ -514,6 +533,35 @@ describe('ConnectStep', () => {
       });
 
       expect(screen.getByRole('alert').textContent).toContain('연결 코드 발급에 실패했어요.');
+    });
+  });
+
+  // "생성된 결과 확인" 은 결과를 보러 가는 버튼이지 완료 선언이 아니다.
+  // 예전에는 연결 여부와 무관하게 진행도를 complete 로 올려서, 아바타를 만든 적 없는
+  // 사용자까지 완료 상태로 기록됐다.
+  describe('생성된 결과 확인 버튼', () => {
+    it('아직 연결되지 않았으면 진행도를 complete 로 올리지 않고 안내만 한다', async () => {
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: '생성된 결과 확인' })).toBeInTheDocument();
+      });
+      await user.click(screen.getByRole('button', { name: '생성된 결과 확인' }));
+
+      expect(localStorage.getItem('avating:onboarding:progress')).toBe('creating');
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
+      expect(await screen.findByText(/아직 연결되지 않았어요/)).toBeInTheDocument();
+    });
+
+    it('연결이 끝났으면 확인 화면으로 보낸다', async () => {
+      server.use(connectCodeHandlers.success, connectStatusHandlers.connected);
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
+      });
+      expect(localStorage.getItem('avating:onboarding:progress')).toBe('complete');
     });
   });
 });

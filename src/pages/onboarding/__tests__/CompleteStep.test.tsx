@@ -11,8 +11,19 @@ import {
   mockGeneratedAvatar,
 } from '@shared/mocks/handlers/onboarding';
 import { CompleteStep } from '@features/onboarding-complete/ui/CompleteStep';
+import type { AvatarSummary } from '@entities/avatar';
+import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+
+// 확인 화면의 정상 상태 = 대표 아바타를 보유한 상태.
+function renderComplete(primary: AvatarSummary | null = SAMPLE_PRIMARY_AVATAR) {
+  return renderWithProviders(<CompleteStep />, {
+    initialRoute: '/onboarding/complete',
+    queryClient: queryClientWithPrimaryAvatar(primary),
+  });
+}
 
 const mockNavigate = vi.fn();
 
@@ -40,20 +51,44 @@ describe('CompleteStep (Avatar Confirm)', () => {
     server.use(generatedAvatarHandlers.success, completeOnboardingHandlers.success);
   });
 
+  // 확인 화면에 있을 자격은 "대표 아바타를 갖고 있는가" 로만 정한다.
   describe('진입 가드', () => {
-    it('progress 가 complete 가 아니면 /onboarding/welcome 으로 redirect 한다', async () => {
+    it('대표 아바타가 없으면 이어서 진행할 화면으로 되돌린다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'creating');
+      localStorage.setItem('avating:onboarding:method', 'survey');
+      renderComplete(null);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey', { replace: true });
+      });
+    });
+
+    it('대표 아바타가 있으면 진행 기록과 무관하게 확인 화면에 머문다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'welcome');
+      renderComplete();
+
+      await waitFor(() => {
+        expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    // 조회 실패까지 "대표 아바타 없음" 으로 취급하면, 서버가 흔들릴 때마다 완료한 사용자를
+    // 온보딩으로 밀어내고 그 화면이 다시 여기로 보내는 왕복이 생긴다.
+    it('보유 여부를 확인하지 못하면 화면을 옮기지 않는다', async () => {
+      server.use(primaryAvatarHandlers.serverError);
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+        expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 
   describe('와이어프레임 헤더 (읽기 전용 확인)', () => {
     it('"생성 완료" 배지가 렌더되고 STEP 라벨은 없다 (진행 표시는 레일 담당)', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByText(/생성 완료/)).toBeInTheDocument();
@@ -62,7 +97,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('"이렇게 생성됐어요" 제목과 서브 카피가 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(
@@ -73,7 +108,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('기본(읽기 전용) 화면에는 튜닝 카운터가 보이지 않는다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByText(mockGeneratedAvatar.data.name)).toBeInTheDocument();
@@ -84,7 +119,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
   describe('아바타 데이터 렌더링 (읽기 전용)', () => {
     it('API 응답 후 아바타 이름이 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByText(mockGeneratedAvatar.data.name)).toBeInTheDocument();
@@ -92,7 +127,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('기본 화면의 스탯은 읽기 전용이라 클릭 가능한 스탯 버튼이 없다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByText(mockGeneratedAvatar.data.name)).toBeInTheDocument();
@@ -101,7 +136,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('6개의 읽기 전용 스탯 바가 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByTestId('stat-bar-fill-empathy')).toBeInTheDocument();
@@ -119,7 +154,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('HexRadar(role=img) 가 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('img', { name: /아바타 스탯 레이더/ })).toBeInTheDocument();
@@ -127,7 +162,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('태그 목록이 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         for (const tag of mockGeneratedAvatar.data.tags) {
@@ -137,7 +172,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     it('"스탯 다듬기" 링크가 렌더된다', async () => {
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: /스탯 다듬기/ })).toBeInTheDocument();
@@ -148,7 +183,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
   describe('인터랙티브 스탯 튜닝 (스탯 다듬기 진입 후)', () => {
     it('"스탯 다듬기" 진입 시 클릭 가능한 스탯 버튼과 0/3 카운터가 나타난다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       expect(screen.getByRole('button', { name: /적극성 스탯/ })).toBeInTheDocument();
@@ -157,7 +192,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('스탯 클릭 시 미니 설문 다이얼로그가 열린다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
@@ -168,7 +203,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('미니 설문 답변 선택 시 다이얼로그가 닫히고 카운터가 1 증가한다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
@@ -180,7 +215,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('X 버튼 클릭 시 다이얼로그가 닫힌다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
@@ -195,7 +230,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('Escape 키로 다이얼로그를 닫으면 트리거 스탯 버튼으로 포커스가 복원된다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       const triggerBtn = screen.getByRole('button', { name: /공감 스탯/ });
@@ -214,7 +249,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('백드롭 클릭 시 다이얼로그가 닫힌다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       await user.click(screen.getByRole('button', { name: /공감 스탯/ }));
@@ -231,7 +266,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('3회 튜닝 후 추가 클릭 시 토스트가 노출된다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
       await enterTuning(user);
 
       for (let i = 0; i < 3; i++) {
@@ -263,7 +298,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
         })
       );
 
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
@@ -278,7 +313,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
 
     it('"완료" 성공 시 /dashboard 로 navigate 가 호출된다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
@@ -295,7 +330,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
       const user = userEvent.setup();
       server.use(generatedAvatarHandlers.success, completeOnboardingHandlers.conflict);
 
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
@@ -319,7 +354,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
         })
       );
 
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         expect(screen.getByRole('button', { name: '완료' })).toBeInTheDocument();
@@ -339,7 +374,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     it('서버 500 응답 시 ErrorBoundary fallback 이 노출된다', async () => {
       server.use(generatedAvatarHandlers.serverError, completeOnboardingHandlers.success);
 
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         const errorEl = screen.queryByRole('alert') ?? screen.queryByText(/오류|에러|실패|다시/i);
@@ -350,7 +385,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
     it('404 응답 시 ErrorBoundary fallback 이 노출된다', async () => {
       server.use(generatedAvatarHandlers.notFound, completeOnboardingHandlers.success);
 
-      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
+      renderComplete();
 
       await waitFor(() => {
         const errorEl = screen.queryByRole('alert') ?? screen.queryByText(/오류|에러|실패|다시/i);
