@@ -4,12 +4,16 @@ import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { server } from '@shared/mocks/server';
 import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { avatarKeys } from '@entities/avatar';
 import { useOnboardingCompletion } from '../useOnboardingCompletion';
 
-function createWrapper() {
-  const queryClient = new QueryClient({
+function createTestQueryClient(): QueryClient {
+  return new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+}
+
+function createWrapper(queryClient: QueryClient = createTestQueryClient()) {
   return function Wrapper({ children }: { children: ReactNode }) {
     return createElement(QueryClientProvider, { client: queryClient }, children);
   };
@@ -68,5 +72,36 @@ describe('useOnboardingCompletion — 완료 판정은 대표 아바타 보유 �
       expect(result.current.isResolved).toBe(true);
     });
     expect(result.current.isUnknown).toBe(true);
+  });
+
+  // 랜딩처럼 비로그인 방문자도 보는 화면에서 이 훅을 쓰면, 스위치가 없는 한 토큰 없이
+  // `/api/avatars/primary` 를 때려 401 → refresh 인터셉터 → clear() 왕복이 생긴다.
+  describe('enabled 스위치', () => {
+    it('enabled:false 면 조회 자체를 걸지 않는다', () => {
+      const queryClient = createTestQueryClient();
+      const { result } = renderHook(() => useOnboardingCompletion({ enabled: false }), {
+        wrapper: createWrapper(queryClient),
+      });
+
+      // 꺼진 쿼리도 캐시에는 올라가지만 요청은 나가지 않는다 — `pending` + `idle` 조합이
+      // "한 번도 요청한 적 없음" 이다.
+      const state = queryClient.getQueryState(avatarKeys.primary());
+      expect(state?.fetchStatus).toBe('idle');
+      expect(state?.status).toBe('pending');
+      // 조회를 안 했으니 "판정 끝남" 으로 읽혀서도 안 된다.
+      expect(result.current.isResolved).toBe(false);
+    });
+
+    it('enabled:true 면 평소대로 조회한다', async () => {
+      server.use(primaryAvatarHandlers.success);
+      const { result } = renderHook(() => useOnboardingCompletion({ enabled: true }), {
+        wrapper: createWrapper(),
+      });
+
+      await waitFor(() => {
+        expect(result.current.isResolved).toBe(true);
+      });
+      expect(result.current.hasPrimaryAvatar).toBe(true);
+    });
   });
 });
