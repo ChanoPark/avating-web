@@ -10,8 +10,14 @@
 /** 폼 카드 본문 — padding `34px 44px 28px`, gap 18. */
 export const WIZARD_BODY = 'flex flex-col gap-[18px] px-11 pt-[34px] pb-7';
 
-/** 레일 없는 플랫 형태(S-02-01 환영) 본문 — padding `38px 44px 30px`, gap 18. */
-export const WIZARD_BODY_FLAT = 'flex flex-col gap-[18px] px-11 pt-[38px] pb-[30px]';
+/**
+ * 레일 없는 플랫 형태(S-02-01 환영) 본문 — padding `38px 44px 30px`, gap 18.
+ *
+ * 좁은 폭에서는 좌우를 24 로 줄인다. 정본은 1440 데스크톱 전용이라 모바일 값을 정의하지
+ * 않는데(`wf-spec.jsx` 결정 목록 "모바일 · 반응형 — 미정의"), 390 에서 44 를 그대로 쓰면
+ * 카드 안쪽 폭이 186 까지 좁아져 방법 카드의 CTA 가 깨진다. sm 이상은 정본 값 그대로다.
+ */
+export const WIZARD_BODY_FLAT = 'flex flex-col gap-[18px] px-6 pt-[38px] pb-[30px] sm:px-11';
 
 /** 액션 바 — padding `16px 44px`, 상단 1px hairline, `--canvas-soft`. */
 export const WIZARD_ACTIONS =
