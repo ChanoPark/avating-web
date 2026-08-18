@@ -59,6 +59,9 @@ export const AUTH_STORAGE_KEY = 'avating-auth';
  * 서버가 refresh token rotation + 회원당 1개를 쓰기 때문에 탭을 두 개 열면
  * 한쪽이 `AUTH_401_006` 으로 로그아웃된다. 어차피 refreshToken 이 localStorage 에 있어
  * XSS 노출면도 실질적으로 같아 이득이 없다.
+ *
+ * 다만 **저장한 값을 그대로 믿지는 않는다.** `expiresAt` 은 우리가 계산한 시각이라 서버
+ * 재기동·토큰 회수를 모르므로, 부팅 판정은 `bootstrapAuth()` 가 서버에 물어서 한다.
  */
 export const useAuthStore = create<AuthState>()(
   persist(

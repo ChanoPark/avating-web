@@ -3,28 +3,36 @@ import { ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
 import { Card } from '@shared/ui/Card/Card';
 import { cn } from '@shared/lib/cn';
-import { setOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
+import {
+  resolveResumeRoute,
+  setOnboardingMethod,
+  setOnboardingProgress,
+} from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { WIZARD_ACTIONS, WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard';
 
 // S-02-01 환영 — 레일 없는 플랫 형태. 앞으로 할 일 4단계를 체크리스트로 보여주기만 하고
 // 진행 표시는 하지 않는다 (다음 화면부터 레일이 담당한다).
-// "아바타 만들기"는 Step 1(이름·설명)로, "ChatGPT Bot 연동"은 같은 흐름에 method=connect 를
-// 사전 선택해 진입한다.
+// 두 버튼 모두 "이어서 진행할 화면"으로 보낸다 — 처음이면 Step 1(이름·설명)이고,
+// 하던 게 있으면 멈춘 자리다. "ChatGPT Bot 연동"은 같은 흐름에 method=connect 를 사전 선택한다.
 // 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
 const TASKS = ['기본 정보 입력', '생성 방법 선택', '성향 설문', '아바타 확인'] as const;
 
 export function WelcomeStep() {
   const navigate = useNavigate();
+  // 처음이 아니면 멈춘 자리에서 이어간다. 판정이 아직이면 미완료 쪽으로 떨어져
+  // 온보딩을 계속할 수 있고, 다음 화면의 가드가 스스로 바로잡는다.
+  const { hasPrimaryAvatar } = useOnboardingCompletion();
 
   const handleStart = () => {
     setOnboardingProgress('intro');
-    void navigate('/onboarding/intro');
+    void navigate(resolveResumeRoute(hasPrimaryAvatar));
   };
 
   const handleBotConnect = () => {
     setOnboardingMethod('connect');
     setOnboardingProgress('intro');
-    void navigate('/onboarding/intro');
+    void navigate(resolveResumeRoute(hasPrimaryAvatar));
   };
 
   return (

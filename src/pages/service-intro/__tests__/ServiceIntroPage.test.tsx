@@ -1,7 +1,8 @@
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useAuthStore } from '@entities/auth/store';
 import { ServiceIntroPage } from '../ServiceIntroPage';
 
 const mockNavigate = vi.fn();
@@ -167,6 +168,54 @@ describe('ServiceIntroPage', () => {
       renderPage();
       const footer = screen.getByRole('contentinfo');
       expect(footer).not.toHaveTextContent('Avating');
+    });
+  });
+
+  // 레이아웃은 그대로 두고 목적지만 바꾼다 — 로그인한 사용자를 가입/로그인 폼으로
+  // 되돌려보내면 세션이 풀린 것처럼 읽힌다.
+  describe('로그인 상태에 따른 CTA 목적지', () => {
+    beforeEach(() => {
+      useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
+    });
+
+    it('비로그인이면 "무료로 시작하기" 가 가입으로 간다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      await user.click(screen.getByRole('button', { name: /무료로 시작하기/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/signup');
+    });
+
+    it('로그인 상태면 "무료로 시작하기" 가 대시보드로 간다', async () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        accessToken: 'a',
+        expiresAt: Date.now() + 1000,
+      });
+      const user = userEvent.setup();
+      renderPage();
+
+      await user.click(screen.getByRole('button', { name: /무료로 시작하기/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('로그인 상태면 헤더의 로그인·회원가입도 대시보드로 간다', async () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        accessToken: 'a',
+        expiresAt: Date.now() + 1000,
+      });
+      const user = userEvent.setup();
+      renderPage();
+      const header = screen.getByRole('banner');
+
+      await user.click(within(header).getByRole('button', { name: '로그인' }));
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+
+      await user.click(within(header).getByRole('button', { name: '회원가입' }));
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
 

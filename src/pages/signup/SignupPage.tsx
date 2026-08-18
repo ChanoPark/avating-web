@@ -1,6 +1,10 @@
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { SignupForm } from '@features/auth/ui/SignupForm';
 import { AuthLayout, type AuthAsideItem } from '@features/auth/ui/AuthLayout';
+import { clearDraft } from '@features/persona-survey/lib/draftStorage';
+import { clearOnboardingProgress } from '@entities/onboarding';
+import { useAuthStore } from '@entities/auth/store';
 
 // 정본 `ScreenSignup` 의 AuthAside 3항목.
 const ASIDE_ITEMS: readonly AuthAsideItem[] = [
@@ -12,6 +16,14 @@ const ASIDE_ITEMS: readonly AuthAsideItem[] = [
 
 export function SignupPage() {
   const navigate = useNavigate();
+  const status = useAuthStore((s) => s.status);
+
+  // 로그인한 채로 가입 화면에 들어오면(뒤로가기 등) 빈 폼이 보여 로그아웃된 것처럼 읽힌다.
+  useEffect(() => {
+    if (status === 'authenticated') {
+      void navigate('/onboarding', { replace: true });
+    }
+  }, [status, navigate]);
 
   // 정본 v2 `ScreenSignup`: 좌 폼 페인 + 우 AuthAside 340 의 2단 구성.
   return (
@@ -25,6 +37,10 @@ export function SignupPage() {
     >
       <SignupForm
         onSuccess={() => {
+          // 온보딩 로컬 상태는 브라우저 단위라 계정이 바뀌어도 남는다.
+          // 새 계정이 앞사람의 진행도·입력을 물려받지 않도록 여기서 끊는다.
+          clearOnboardingProgress();
+          clearDraft();
           void navigate('/onboarding');
         }}
       />

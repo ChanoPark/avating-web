@@ -2,6 +2,8 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { saveDraft, loadDraft } from '@features/persona-survey/lib/draftStorage';
+import { useAuthStore } from '@entities/auth/store';
 import { SignupPage } from '../SignupPage';
 
 vi.mock('@features/auth/lib/encryptPassword', () => ({
@@ -26,6 +28,8 @@ vi.mock('@features/auth/ui/SignupForm', () => ({
 describe('SignupPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
   });
 
   it('2단 구성: 우측 AuthAside(complementary)를 렌더한다', () => {
@@ -83,5 +87,48 @@ describe('SignupPage', () => {
     await user.click(screen.getByRole('button', { name: /mock-submit/i }));
 
     expect(mockNavigate).toHaveBeenCalledWith('/onboarding');
+  });
+
+  // 온보딩 로컬 상태는 브라우저 단위라 계정을 갈아타도 그대로 남는다.
+  // 새 계정에 앞사람의 진행도·입력이 딸려오면 온보딩이 엉뚱한 자리에서 시작된다.
+  describe('가입 성공 시 이전 온보딩 흔적 정리', () => {
+    it('이전 계정의 진행도·생성방법 기록을 지운다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      localStorage.setItem('avating:onboarding:method', 'connect');
+      const user = userEvent.setup();
+      renderWithProviders(<SignupPage />);
+
+      await user.click(screen.getByRole('button', { name: /mock-submit/i }));
+
+      expect(localStorage.getItem('avating:onboarding:progress')).toBeNull();
+      expect(localStorage.getItem('avating:onboarding:method')).toBeNull();
+    });
+
+    it('이전 계정의 설문 draft(이름·설명·답변)를 지운다', async () => {
+      saveDraft({
+        answers: { Q_001: 'Q_001_ANS_1' },
+        avatarName: '앞사람',
+        description: '앞 설명',
+      });
+      const user = userEvent.setup();
+      renderWithProviders(<SignupPage />);
+
+      await user.click(screen.getByRole('button', { name: /mock-submit/i }));
+
+      expect(loadDraft()).toBeNull();
+    });
+  });
+
+  describe('이미 로그인한 상태', () => {
+    it('가입 화면 대신 온보딩으로 보낸다', () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        accessToken: 'a',
+        expiresAt: Date.now() + 1000,
+      });
+      renderWithProviders(<SignupPage />);
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding', { replace: true });
+    });
   });
 });

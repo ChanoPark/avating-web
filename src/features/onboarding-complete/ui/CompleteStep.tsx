@@ -9,7 +9,8 @@ import { HexRadar } from '@shared/ui/HexRadar/HexRadar';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import { cn } from '@shared/lib/cn';
-import { clearOnboardingProgress, getOnboardingProgress } from '@entities/onboarding';
+import { clearOnboardingProgress, resolveResumeRoute } from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import type { GeneratedAvatar } from '@entities/onboarding';
 import { isApiError } from '@shared/lib/errors';
 import { useGeneratedAvatar } from '../api/useGeneratedAvatar';
@@ -426,14 +427,20 @@ function ErrorFallback() {
 
 export function CompleteStep() {
   const navigate = useNavigate();
+  const { hasPrimaryAvatar, isResolved, isUnknown } = useOnboardingCompletion();
+
+  // 대표 아바타가 "없다고 확인된" 경우에만 되돌린다.
+  // 조회 자체가 실패한 경우(isUnknown)까지 없음으로 취급하면, 여기서 밀어낸 화면이
+  // 다시 여기로 보내는 왕복이 생긴다. 근거가 없을 때는 화면을 옮기지 않는다.
+  const shouldResume = isResolved && !isUnknown && !hasPrimaryAvatar;
 
   useEffect(() => {
-    if (getOnboardingProgress() !== 'complete') {
-      void navigate('/onboarding/welcome', { replace: true });
+    if (shouldResume) {
+      void navigate(resolveResumeRoute(false), { replace: true });
     }
-  }, [navigate]);
+  }, [shouldResume, navigate]);
 
-  if (getOnboardingProgress() !== 'complete') return null;
+  if (shouldResume) return null;
 
   return (
     <ErrorBoundary FallbackComponent={ErrorFallback}>

@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 import { MethodSelectStep } from '../steps/MethodSelectStep';
 
 const mockNavigate = vi.fn();
@@ -138,10 +139,36 @@ describe('MethodSelectStep', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/intro', { replace: true });
     });
 
-    it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', () => {
+    it('progress 가 complete 이고 대표 아바타가 있으면 /onboarding/complete 로 redirect 한다', () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');
-      renderWithProviders(<MethodSelectStep />);
+      renderWithProviders(<MethodSelectStep />, {
+        queryClient: queryClientWithPrimaryAvatar(SAMPLE_PRIMARY_AVATAR),
+      });
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+    });
+
+    // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
+    // 이때는 아직 생성 중인 것으로 보고 creating 과 같게 다룬다. 확인 화면으로 되돌리면
+    // 그 화면이 다시 여기로 보내 왕복이 된다.
+    it('progress 가 complete 여도 대표 아바타가 없으면 고른 방법의 화면으로 이어준다', () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      localStorage.setItem('avating:onboarding:method', 'survey');
+      renderWithProviders(<MethodSelectStep />, {
+        queryClient: queryClientWithPrimaryAvatar(null),
+      });
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey', { replace: true });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
+    });
+
+    it('progress 가 complete 여도 대표 아바타·방법 기록이 모두 없으면 방법 선택 화면에 머문다', () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      renderWithProviders(<MethodSelectStep />, {
+        queryClient: queryClientWithPrimaryAvatar(null),
+      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(
+        screen.getByRole('heading', { level: 1, name: /어떻게 아바타를 만들까요/ })
+      ).toBeInTheDocument();
     });
 
     it('progress=creating + method=survey 이면 /onboarding/survey 로 redirect 한다', () => {

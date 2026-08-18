@@ -32,6 +32,13 @@ export const mockPublicKeyResponse = {
   },
 };
 
+export const mockSessionResponse = {
+  data: {
+    email: 'coach@avating.app',
+    nickname: '코치',
+  },
+};
+
 export const authHandlers = [
   http.get(`${BASE_URL}/api/crypto/public-key`, () => {
     return HttpResponse.json(mockPublicKeyResponse);
@@ -47,6 +54,12 @@ export const authHandlers = [
 
   http.post(`${BASE_URL}/api/auth/refresh`, () => {
     return HttpResponse.json(mockTokenResponse);
+  }),
+
+  // 부팅 검증. 다른 mock 과 마찬가지로 무조건 성공한다 — 세션이 끊긴 상황은
+  // 테스트에서 `server.use(...)` 로 갈아끼운다.
+  http.get(`${BASE_URL}/api/auth/me`, () => {
+    return HttpResponse.json(mockSessionResponse);
   }),
 ];
 

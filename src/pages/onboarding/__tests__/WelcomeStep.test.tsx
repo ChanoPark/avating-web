@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { AvatarSummary } from '@entities/avatar';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 import { WelcomeStep } from '../steps/WelcomeStep';
 
 const mockNavigate = vi.fn();
@@ -13,6 +15,12 @@ vi.mock('react-router', async (importOriginal) => ({
 
 const PROGRESS_KEY = 'avating:onboarding:progress';
 const METHOD_KEY = 'avating:onboarding:method';
+
+function renderWithPrimary(primary: AvatarSummary | null = null) {
+  return renderWithProviders(<WelcomeStep />, {
+    queryClient: queryClientWithPrimaryAvatar(primary),
+  });
+}
 
 describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', () => {
   beforeEach(() => {
@@ -61,7 +69,7 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
   describe('상호작용', () => {
     it('"아바타 만들기" 클릭 시 /onboarding/intro 로 이동하고 progress 가 intro 로 승격된다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<WelcomeStep />);
+      renderWithPrimary();
 
       await user.click(screen.getByRole('button', { name: /아바타 만들기/ }));
 
@@ -71,7 +79,7 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
 
     it('"아바타 만들기" CTA 는 Enter 키로도 트리거된다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<WelcomeStep />);
+      renderWithPrimary();
 
       const button = screen.getByRole('button', { name: /아바타 만들기/ });
       button.focus();
@@ -82,13 +90,61 @@ describe('WelcomeStep (와이어프레임 v2 — 브랜드 환영 모멘트)', (
 
     it('"Bot 연동" 클릭 시 method=connect 사전선택 + /onboarding/intro 로 이동한다', async () => {
       const user = userEvent.setup();
-      renderWithProviders(<WelcomeStep />);
+      renderWithPrimary();
 
       await user.click(screen.getByRole('button', { name: /Bot 연동/ }));
 
       expect(localStorage.getItem(METHOD_KEY)).toBe('connect');
       expect(localStorage.getItem(PROGRESS_KEY)).toBe('intro');
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding/intro');
+    });
+  });
+
+  // 진행 기록이 남아 있으면 처음이 아니라 "멈춘 자리"로 이어져야 한다.
+  // 예전에는 무조건 /onboarding/intro 로 보냈고, intro 가드가 그걸 다시 튕겨내
+  // 사용자 눈에는 버튼이 죽은 것처럼 보였다.
+  describe('진행 기록이 있을 때 이어서 진행', () => {
+    it('method 까지 진행했으면 방법 선택 화면으로 이어진다', async () => {
+      localStorage.setItem(PROGRESS_KEY, 'method');
+      const user = userEvent.setup();
+      renderWithPrimary();
+
+      await user.click(screen.getByRole('button', { name: /아바타 만들기/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method');
+    });
+
+    it('설문 진행 중이었으면 설문 화면으로 이어진다', async () => {
+      localStorage.setItem(PROGRESS_KEY, 'creating');
+      localStorage.setItem(METHOD_KEY, 'survey');
+      const user = userEvent.setup();
+      renderWithPrimary();
+
+      await user.click(screen.getByRole('button', { name: /아바타 만들기/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey');
+    });
+
+    it('"Bot 연동" 도 진행 기록을 따라 이어진다', async () => {
+      localStorage.setItem(PROGRESS_KEY, 'creating');
+      const user = userEvent.setup();
+      renderWithPrimary();
+
+      await user.click(screen.getByRole('button', { name: /Bot 연동/ }));
+
+      expect(localStorage.getItem(METHOD_KEY)).toBe('connect');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+    });
+
+    // 완료 판정의 정본은 진행 기록이 아니라 대표 아바타 보유 여부다.
+    it('대표 아바타가 이미 있으면 진행 기록과 무관하게 확인 화면으로 보낸다', async () => {
+      localStorage.setItem(PROGRESS_KEY, 'intro');
+      const user = userEvent.setup();
+      renderWithPrimary(SAMPLE_PRIMARY_AVATAR);
+
+      await user.click(screen.getByRole('button', { name: /아바타 만들기/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
     });
   });
 });

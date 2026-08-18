@@ -3,6 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 import { server } from '@shared/mocks/server';
 import { surveyQuestionsHandlers, surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
 import { saveDraft } from '@features/persona-survey/lib/draftStorage';
@@ -76,12 +77,30 @@ describe('SurveyStep', () => {
       });
     });
 
-    it('progress 가 complete 이면 /onboarding/complete 로 redirect 한다', async () => {
+    it('progress 가 complete 이고 대표 아바타가 있으면 /onboarding/complete 로 redirect 한다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');
-      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      renderWithProviders(<SurveyStep />, {
+        initialRoute: '/onboarding/survey',
+        queryClient: queryClientWithPrimaryAvatar(SAMPLE_PRIMARY_AVATAR),
+      });
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete', { replace: true });
       });
+    });
+
+    // 진행 기록의 complete 는 완료를 보장하지 않는다. 여기서 확인 화면으로 되돌리면
+    // 대표 아바타가 없는 확인 화면이 다시 이 화면으로 보내 왕복이 된다.
+    it('progress 가 complete 여도 대표 아바타가 없으면 설문을 이어서 보여준다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'complete');
+      renderWithProviders(<SurveyStep />, {
+        initialRoute: '/onboarding/survey',
+        queryClient: queryClientWithPrimaryAvatar(null),
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
     });
 
     it('progress 가 creating 이면 redirect 없이 질문이 노출된다', async () => {

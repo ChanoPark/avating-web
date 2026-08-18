@@ -2,6 +2,7 @@ import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/renderWithProviders';
+import { useAuthStore } from '@entities/auth/store';
 import { LoginPage } from '../LoginPage';
 
 const mockNavigate = vi.fn();
@@ -22,6 +23,34 @@ vi.mock('@features/auth/ui/LoginForm', () => ({
 describe('LoginPage 로그인 성공 후 이동', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
+  });
+
+  // 로그인 상태로 다시 로그인 화면에 오면(뒤로가기 등) 빈 폼이 보여 로그아웃된 것처럼 읽힌다.
+  describe('이미 로그인한 상태', () => {
+    it('로그인 화면 대신 목적지로 바로 보낸다', () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        accessToken: 'a',
+        expiresAt: Date.now() + 1000,
+      });
+      renderWithProviders(<LoginPage />, { initialRoute: '/login' });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard', { replace: true });
+    });
+
+    it('redirect 파라미터가 있으면 그쪽으로 보낸다', () => {
+      useAuthStore.setState({
+        status: 'authenticated',
+        accessToken: 'a',
+        expiresAt: Date.now() + 1000,
+      });
+      renderWithProviders(<LoginPage />, {
+        initialRoute: '/login?redirect=%2Fonboarding%2Fwelcome',
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome', { replace: true });
+    });
   });
 
   it('redirect 파라미터가 없으면 /dashboard 로 이동한다', async () => {

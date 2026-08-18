@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { ArrowUpRight } from 'lucide-react';
 import { onboardingKeys, getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { useConnectCode } from '../api/useConnectCode';
 import { useConnectStatus } from '../api/useConnectStatus';
 import { formatCountdown, isExpired } from '../lib/countdown';
@@ -21,7 +22,12 @@ export function ConnectStep() {
   const toast = useToast();
 
   const onboardingProgress = getOnboardingProgress();
-  const guardFailed = onboardingProgress !== 'creating';
+  const { hasPrimaryAvatar } = useOnboardingCompletion();
+  // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
+  // 대표 아바타가 없으면 아직 생성 중인 것으로 보고 이 화면에 머문다. 여기서 확인 화면으로
+  // 되돌리면, 그 화면이 아바타가 없다는 이유로 다시 여기로 보내 왕복이 된다.
+  const guardFailed =
+    onboardingProgress !== 'creating' && !(onboardingProgress === 'complete' && !hasPrimaryAvatar);
 
   const {
     data: connectCode,
@@ -116,7 +122,17 @@ export function ConnectStep() {
     window.open(AVATING_GPT_URL, '_blank', 'noopener,noreferrer');
   };
 
+  // 결과를 보러 가는 버튼이지 완료 선언이 아니다. 연결 전에 진행도를 complete 로 올리면
+  // 아바타를 만든 적 없는 사용자가 완료로 기록돼, 이후 온보딩 재진입이 이 화면을 건너뛴다.
   const handleViewResult = () => {
+    if (statusData?.status !== 'connected') {
+      toast.show({
+        variant: 'warning',
+        title: '아직 연결되지 않았어요',
+        description: 'Bot과 대화를 마치면 결과 화면으로 자동 이동해요.',
+      });
+      return;
+    }
     setOnboardingProgress('complete');
     void navigate('/onboarding/complete');
   };

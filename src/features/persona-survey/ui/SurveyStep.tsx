@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ZodError } from 'zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import {
   avatarCreateFromSurveyRequestSchema,
   type AvatarCreateFromSurveyRequest,
@@ -30,7 +31,12 @@ export function SurveyStep() {
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
-  const guardFailed = onboardingProgress !== 'creating';
+  const { hasPrimaryAvatar } = useOnboardingCompletion();
+  // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
+  // 대표 아바타가 없으면 아직 생성 중인 것으로 보고 이 화면에 머문다. 여기서 확인 화면으로
+  // 되돌리면, 그 화면이 아바타가 없다는 이유로 다시 여기로 보내 왕복이 된다.
+  const guardFailed =
+    onboardingProgress !== 'creating' && !(onboardingProgress === 'complete' && !hasPrimaryAvatar);
 
   const {
     data: questions,

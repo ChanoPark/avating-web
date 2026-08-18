@@ -6,7 +6,8 @@ import { z } from 'zod';
 import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
 import { cn } from '@shared/lib/cn';
-import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
+import { setOnboardingProgress } from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { loadDraft, saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
@@ -47,12 +48,15 @@ export function IntroStep() {
     },
   });
 
-  // 이미 온보딩을 완료한 사용자는 확인 화면으로 보낸다.
+  // 이미 대표 아바타가 있는 사용자는 확인 화면으로 보낸다.
+  // 진행 기록(progress)이 아니라 대표 아바타 보유 여부로 판단한다 — 기록은 아바타 없이도
+  // complete 로 올라갈 수 있어서, 그걸 믿으면 만든 적 없는 사용자까지 여기서 튕겨냈다.
+  const { hasPrimaryAvatar } = useOnboardingCompletion();
   useEffect(() => {
-    if (getOnboardingProgress() === 'complete') {
+    if (hasPrimaryAvatar) {
       void navigate('/onboarding/complete', { replace: true });
     }
-  }, [navigate]);
+  }, [hasPrimaryAvatar, navigate]);
 
   const nameLength = watch('avatarName').length;
   const descLength = watch('description').length;

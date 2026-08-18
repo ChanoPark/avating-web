@@ -4,6 +4,7 @@ import { Button } from '@shared/ui/Button';
 import { Card } from '@shared/ui/Card';
 import { Tag } from '@shared/ui/Tag';
 import { cn } from '@shared/lib/cn';
+import { useAuthStore } from '@entities/auth/store';
 
 type Step = {
   title: string;
@@ -50,6 +51,17 @@ function Logo({ size }: { size: number }) {
 
 export function ServiceIntroPage() {
   const navigate = useNavigate();
+  const status = useAuthStore((s) => s.status);
+
+  // 랜딩은 로그인 여부와 무관하게 같은 레이아웃을 쓰되, 목적지만 바꾼다.
+  // 로그인한 사용자를 가입·로그인 폼으로 되돌려보내면 세션이 풀린 것처럼 읽힌다.
+  const isAuthenticated = status === 'authenticated';
+  const goSignup = () => {
+    void navigate(isAuthenticated ? '/dashboard' : '/signup');
+  };
+  const goLogin = () => {
+    void navigate(isAuthenticated ? '/dashboard' : '/login');
+  };
 
   // 아직 별도 라우트가 없는 마케팅 내비는 같은 화면의 밴드로만 이동시킨다.
   const scrollTo = (targetId: string) => {
@@ -101,22 +113,10 @@ export function ServiceIntroPage() {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                void navigate('/login');
-              }}
-            >
+            <Button variant="ghost" size="sm" onClick={goLogin}>
               로그인
             </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => {
-                void navigate('/signup');
-              }}
-            >
+            <Button variant="secondary" size="sm" onClick={goSignup}>
               회원가입
             </Button>
           </div>
@@ -139,11 +139,7 @@ export function ServiceIntroPage() {
             </p>
 
             <div className="mt-1 flex flex-wrap gap-2.5">
-              <Button
-                onClick={() => {
-                  void navigate('/signup');
-                }}
-              >
+              <Button onClick={goSignup}>
                 무료로 시작하기
                 <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
               </Button>

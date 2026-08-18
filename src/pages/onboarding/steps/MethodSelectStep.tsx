@@ -10,6 +10,7 @@ import {
   setOnboardingProgress,
   type OnboardingMethod,
 } from '@entities/onboarding';
+import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
 type MethodCardProps = {
@@ -66,6 +67,7 @@ function MethodCard({ selected, title, meta, description, onSelect, inputId }: M
 export function MethodSelectStep() {
   const navigate = useNavigate();
   const [method, setMethod] = useState<OnboardingMethod>(() => getOnboardingMethod() ?? 'survey');
+  const { hasPrimaryAvatar } = useOnboardingCompletion();
 
   useEffect(() => {
     const progress = getOnboardingProgress();
@@ -78,11 +80,13 @@ export function MethodSelectStep() {
       void navigate('/onboarding/intro', { replace: true });
       return;
     }
-    if (progress === 'complete') {
+    if (progress === 'complete' && hasPrimaryAvatar) {
       void navigate('/onboarding/complete', { replace: true });
       return;
     }
-    if (progress === 'creating') {
+    // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
+    // 대표 아바타가 없으면 아직 생성 중인 것으로 보고 creating 과 같게 다룬다.
+    if (progress === 'creating' || progress === 'complete') {
       const stored = getOnboardingMethod();
       if (stored === 'survey') {
         void navigate('/onboarding/survey', { replace: true });
@@ -93,7 +97,7 @@ export function MethodSelectStep() {
       // 일반 플로우로는 도달 불가 (수동 localStorage 조작 시만 발생). 사용자에게 방법을
       // 다시 선택할 기회를 주는 조용한 복구로 처리 — 별도 redirect 없이 화면 표시.
     }
-  }, [navigate]);
+  }, [hasPrimaryAvatar, navigate]);
 
   const handleNext = () => {
     setOnboardingMethod(method);

@@ -104,6 +104,18 @@ export const apiResponseAuthToken = z.object({
   data: authTokenResponseSchema,
 });
 
+// 부팅 검증(`GET /api/auth/me`)의 응답. 닉네임은 `nicknameSchema` 로 검증하지 않는다 —
+// 그쪽 상한 12자는 카드 슬롯에 맞춘 **폼 전용** 제약이고, 서버 상한은 30자다.
+// 응답 파싱에 쓰면 서버 기준으로 멀쩡한 닉네임이 부팅을 깨뜨린다.
+const sessionResponseSchema = z.object({
+  email: z.string().min(1),
+  nickname: z.string().min(1),
+});
+
+export const apiResponseSession = z.object({
+  data: sessionResponseSchema,
+});
+
 export const publicKeyResponseSchema = z.object({
   publicKey: z.string().min(1),
 });
@@ -115,6 +127,7 @@ export const apiResponsePublicKey = z.object({
 export type LoginForm = z.infer<typeof loginFormSchema>;
 export type SignupForm = z.infer<typeof signupFormSchema>;
 export type AuthTokenResponse = z.infer<typeof authTokenResponseSchema>;
+export type SessionResponse = z.infer<typeof sessionResponseSchema>;
 export type PublicKeyResponse = z.infer<typeof publicKeyResponseSchema>;
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
 export type SignupRequest = z.infer<typeof signupRequestSchema>;

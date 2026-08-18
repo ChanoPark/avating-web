@@ -73,3 +73,23 @@ export const avatarDetailSchema = avatarBaseSchema.extend({
 export type AvatarDetail = z.infer<typeof avatarDetailSchema>;
 
 export const apiResponseAvatarDetail = z.object({ data: avatarDetailSchema });
+
+/**
+ * 서버 `AvatarSummaryResponse` — `GET /api/avatars/{avatarId}/summary` 와
+ * `GET /api/avatars/primary` 가 같은 형태로 돌려준다.
+ *
+ * `stats` 는 위의 6축 `avatarStatsSchema` 와 다른 계열이다. 서버는 `PersonaStatType`
+ * (OPENNESS·IMAGINATION 등 7종) 를 키로 쓰는 맵을 준다. 지표가 늘거나 이름이 바뀌어도
+ * 파싱이 깨지지 않도록 키를 고정하지 않고 record 로 받는다.
+ */
+export const avatarSummarySchema = z.object({
+  schemaVersion: z.number().int(),
+  avatarId: z.string().min(1),
+  name: z.string().min(1),
+  // 계약상 "저장된 값이 없으면 빈 문자열" 이라 min(1) 을 걸면 실응답이 떨어진다.
+  description: z.string(),
+  stats: z.record(z.string(), statValue),
+});
+export type AvatarSummary = z.infer<typeof avatarSummarySchema>;
+
+export const apiResponseAvatarSummary = z.object({ data: avatarSummarySchema });
