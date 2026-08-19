@@ -1,48 +1,40 @@
-/* ═══ Avating · Color tokens — LIGHT BASE (white + gray) ═════════════════
+/* ═══ Avating · Color tokens — BLUE on NAVY-TINTED LIGHT ═══════════════
    1. RAW palette  — literal hex (never used directly in UI).
    2. SEMANTIC     — role tokens components reference (var(--canvas)…).
-   Near-white gray canvas, pure-white cards, hairline gray dividers, near
-   black ink. One blue carries actions; color appears only in state and data. */
+   v2.1 — 중립색이 무채색 회색에서 네이비 틴트로 바뀌었습니다. 화면의 "색"은
+   포인트 컬러가 아니라 중립색 전체의 파란 기운 + 딥 밴드에서 나옵니다.
+   베이지·크림 계열, 장식용 다색 팔레트(마젠타 등)는 사용하지 않습니다. */
 :root {
   /* ── RAW · Brand blue (the single CTA color) ── */
   --c-indigo: #1d7afc; /* primary surface & CTA — bright azure */
-  --c-indigo-deep: #1667dc; /* hover, gradient mid-stop */
+  --c-indigo-deep: #1667dc; /* hover */
   --c-indigo-press: #1155b8; /* press + text-on-wash */
-  --c-indigo-soft: #6db4fd; /* decorative light blue */
-  --c-indigo-subdued: #d3e7fe; /* pale fill — soft tag bg */
+  --c-indigo-soft: #6db4fd; /* decorative light blue — never a button */
+  --c-indigo-subdued: #d3e7fe; /* pale fill — soft tag bg, borders on wash */
   --c-indigo-wash: #eaf3ff; /* faintest blue surface */
-  --c-navy-900: #191c22; /* inverted surface — dark band, tooltip */
+  --c-navy-900: #1c1e54; /* deep indigo-navy — ink alt, dark band, tooltip */
 
-  /* ── RAW · Chromatic accents — sparing ── */
-  --c-magenta: #b8348c; /* second accent — data series, rare label */
-  --c-magenta-wash: #fbeef6;
-  --c-ruby: #dd3546; /* critical + chart accent */
-  --c-ruby-wash: #fdedee;
-  --c-lemon: #a97511; /* caution */
-  --c-lemon-wash: #fdf4e3;
-  --c-cream: #f6f1e7; /* warm interlude band */
-
-  /* ── RAW · Ink & surfaces (light gray ramp) ── */
-  --c-ink: #15171b; /* near-black headings & body */
-  --c-ink-2: #3d424b; /* secondary copy */
-  --c-ink-mute: #6c7178; /* muted — helper copy */
-  --c-ink-faint: #9ba0a8; /* faint. DECORATION ONLY: dividers, axis
+  /* ── RAW · Ink & surfaces (navy-tinted light ramp) ── */
+  --c-ink: #0d253d; /* headings & body — deep navy, never pure black */
+  --c-ink-2: #273951; /* secondary copy */
+  --c-ink-mute: #5b6b85; /* muted — helper copy */
+  --c-ink-faint: #93a3b8; /* faint. DECORATION ONLY: dividers, axis
                                      labels, disabled glyphs, status dots.
                                      Never body copy or placeholders. */
   --c-white: #ffffff;
-  --c-canvas: #f6f7f8; /* default content surface — gray base */
-  --c-canvas-soft: #f0f1f3; /* inset well, one step below surface */
+  --c-canvas: #f6f9fc; /* default content surface — cool off-white */
+  --c-canvas-soft: #eef3f9; /* inset well, one step below surface */
   --c-surface: #ffffff; /* card / chrome, the raised plane */
-  --c-hairline: #e6e7eb; /* 1px divider on cards and tables */
-  --c-hairline-input: #d7d9de;
+  --c-hairline: #e3e8ee; /* 1px divider on cards and tables */
+  --c-hairline-input: #c3d3e3;
 
-  /* ── RAW · State tones — positive = blue · caution = amber · critical = red ── */
+  /* ── RAW · State tones — positive = blue · caution = amber · critical = ruby ── */
+  --c-ruby: #e0245e; /* critical */
+  --c-ruby-wash: #fdedf2;
+  --c-lemon: #9b6829; /* caution — text/icon only, never a surface */
+  --c-lemon-wash: #fdf3e6;
   --c-success: #1d7afc;
   --c-success-wash: #eaf3ff;
-  --c-warning: #a97511;
-  --c-warning-wash: #fdf4e3;
-  --c-danger: #dd3546;
-  --c-danger-wash: #fdedee;
 
   /* ═══ SEMANTIC ═══ */
   --primary: var(--c-indigo);
@@ -53,30 +45,33 @@
   --primary-wash: var(--c-indigo-wash);
   --on-primary: var(--c-white);
   --brand-dark: var(--c-navy-900);
+  --on-brand-dark: var(--c-white);
   --accent-ruby: var(--c-ruby);
-  --accent-magenta: var(--c-magenta);
-  --accent-magenta-wash: var(--c-magenta-wash);
   --link: var(--c-indigo);
 
   --canvas: var(--c-canvas);
   --canvas-soft: var(--c-canvas-soft);
-  --canvas-cream: var(--c-cream);
+  --canvas-deep: var(--c-navy-900); /* interlude band — replaces cream */
   --surface: var(--c-surface);
   --surface-inset: var(--c-canvas-soft);
   --hairline: var(--c-hairline);
   --hairline-input: var(--c-hairline-input);
+  /* hairline on the deep band, where a light 1px line reads as the divider */
+  --hairline-deep: rgba(255, 255, 255, 0.14);
 
   --ink: var(--c-ink);
   --ink-secondary: var(--c-ink-2);
   --ink-mute: var(--c-ink-mute);
   --ink-faint: var(--c-ink-faint);
+  --ink-on-deep: #ffffff;
+  --ink-on-deep-mute: #b7bfe0;
 
   --success: var(--c-success);
   --success-wash: var(--c-success-wash);
-  --warning: var(--c-warning);
-  --warning-wash: var(--c-warning-wash);
-  --danger: var(--c-danger);
-  --danger-wash: var(--c-danger-wash);
+  --warning: var(--c-lemon);
+  --warning-wash: var(--c-lemon-wash);
+  --danger: var(--c-ruby);
+  --danger-wash: var(--c-ruby-wash);
 
   --focus-ring: 0 0 0 3px rgba(29, 122, 252, 0.24);
 }

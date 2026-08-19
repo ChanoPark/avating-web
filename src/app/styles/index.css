@@ -1,6 +1,7 @@
-/* Avating 디자인 시스템 v2 — 라이트 베이스 (흰 서피스 + 회색 캔버스 + hairline).
+/* Avating 디자인 시스템 v2.5 — 라이트 베이스 (흰 서피스 + 네이비 틴트 캔버스 + hairline).
    tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다.
-   출처: .claude/design/2026-07-26-wireframe-v2/tokens/ */
+   출처: 색·그림자는 .claude/design/2026-08-18-wireframe-v2.5/tokens/,
+        나머지(타이포·간격·반경·폰트)는 .claude/design/2026-07-26-wireframe-v2/tokens/ */
 @import './avating/tokens/colors.css';
 @import './avating/tokens/typography.css';
 @import './avating/tokens/spacing.css';
@@ -33,17 +34,22 @@
   --color-surface-inset: var(--surface-inset);
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
-  --color-canvas-cream: var(--canvas-cream);
+  /* 인터루드 밴드 — v2.4 에서 크림(`--canvas-cream`)이 딥 네이비로 교체됐다. */
+  --color-canvas-deep: var(--canvas-deep);
 
   /* ── 선 ── */
   --color-hairline: var(--hairline);
   --color-hairline-input: var(--hairline-input);
+  /* 딥 밴드 위에서는 밝은 1px 선이 구분선 역할을 한다. */
+  --color-hairline-deep: var(--hairline-deep);
 
   /* ── 잉크 (ink-faint 는 장식 전용 — 본문·placeholder 금지) ── */
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-mute: var(--ink-mute);
   --color-ink-faint: var(--ink-faint);
+  --color-ink-on-deep: var(--ink-on-deep);
+  --color-ink-on-deep-mute: var(--ink-on-deep-mute);
 
   /* ── 브랜드 · 단일 CTA 색 ── */
   --color-primary: var(--primary);
@@ -54,14 +60,14 @@
   --color-primary-wash: var(--primary-wash);
   --color-on-primary: var(--on-primary);
   --color-brand-dark: var(--brand-dark);
+  --color-on-brand-dark: var(--on-brand-dark);
   --color-link: var(--link);
 
-  /* ── 액센트 (데이터 시리즈·희소 라벨 전용) ── */
+  /* ── 액센트 (데이터 시리즈·희소 라벨 전용) ──
+     v2.4 에서 마젠타 계열이 삭제됐다 — 장식용 다색 팔레트는 쓰지 않는다. */
   --color-accent-ruby: var(--accent-ruby);
-  --color-accent-magenta: var(--accent-magenta);
-  --color-accent-magenta-wash: var(--accent-magenta-wash);
 
-  /* ── 상태 · 긍정=파랑 · 주의=앰버 · 위험=빨강 (초록·보라 없음) ── */
+  /* ── 상태 · 긍정=파랑 · 주의=앰버 · 위험=루비 (초록·보라 없음) ── */
   --color-success: var(--success);
   --color-success-wash: var(--success-wash);
   --color-warning: var(--warning);
