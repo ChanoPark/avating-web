@@ -32,6 +32,39 @@ describe('OnboardingPage (WizardShell)', () => {
     expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
   });
 
+  // 각주는 화면마다 자리가 다르다 — 레일이 있으면 레일 하단, 플랫 형태에서는 폼 카드 바깥 아래다
+  // (정본 `wf/wf-kit.jsx` 의 `Page` 가 `!steps` 분기에서 카드 밖에 렌더한다).
+  it('/onboarding/welcome 의 각주는 레일이 아니라 폼 카드 바깥 아래에 렌더된다', () => {
+    renderAt('/onboarding/welcome');
+    expect(
+      screen.getByText(
+        '어느 방법을 골라도 아래 4단계를 거칩니다 · 시작 후 2단계에서 방법을 바꿀 수 있어요'
+      )
+    ).toBeInTheDocument();
+  });
+
+  // 폼 카드 폭은 정본 `Page` 의 `maxWidth = max(max, 440) + 88` 이다.
+  // 환영은 `max={780}` → 868 이라 방법 카드 3열이 들어가고, 나머지는 `max={460}` → 548 이다.
+  it('/onboarding/welcome 의 폼 카드만 넓은 폭(868)을 쓴다', () => {
+    const { unmount } = renderAt('/onboarding/welcome');
+    expect(screen.getByTestId('step-welcome').closest('div[class*="max-w-"]')).toHaveClass(
+      'max-w-[868px]'
+    );
+    unmount();
+
+    renderAt('/onboarding/intro');
+    expect(screen.getByTestId('step-intro').closest('div[class*="max-w-"]')).toHaveClass(
+      'max-w-[548px]'
+    );
+  });
+
+  it('레일이 있는 화면의 각주는 레일 안에 남는다', () => {
+    renderAt('/onboarding/intro');
+    expect(
+      within(rail()).getByText('이름과 설명은 나중에 프로필에서 수정할 수 있어요.')
+    ).toBeInTheDocument();
+  });
+
   it('레일이 표시되는 단계에서는 스텝 4개가 고정 라벨로 렌더된다', () => {
     renderAt('/onboarding/intro');
     const items = within(rail()).getAllByRole('listitem');

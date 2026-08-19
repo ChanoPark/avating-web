@@ -1,8 +1,11 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter } from 'react-router';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { server } from '@shared/mocks/server';
+import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { avatarKeys } from '@entities/avatar';
 import { useAuthStore } from '@entities/auth/store';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { ServiceIntroPage } from '../ServiceIntroPage';
 
 const mockNavigate = vi.fn();
@@ -11,12 +14,26 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
+// 로그인 상태에서 대표 아바타를 조회하므로 QueryClient 가 필요하다.
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <ServiceIntroPage />
-    </MemoryRouter>
-  );
+  return renderWithProviders(<ServiceIntroPage />);
+}
+
+function authenticate() {
+  useAuthStore.setState({
+    status: 'authenticated',
+    accessToken: 'a',
+    expiresAt: Date.now() + 1000,
+  });
+}
+
+/** 대표 아바타 조회가 끝날 때까지 기다린다 — 판정 전 클릭은 목적지가 다르다. */
+async function waitForCompletionResolved(queryClient: {
+  getQueryState: (key: readonly unknown[]) => { status: string } | undefined;
+}) {
+  await waitFor(() => {
+    expect(queryClient.getQueryState(avatarKeys.primary())?.status).not.toBe('pending');
+  });
 }
 
 describe('ServiceIntroPage', () => {
@@ -171,11 +188,93 @@ describe('ServiceIntroPage', () => {
     });
   });
 
-  // 레이아웃은 그대로 두고 목적지만 바꾼다 — 로그인한 사용자를 가입/로그인 폼으로
-  // 되돌려보내면 세션이 풀린 것처럼 읽힌다.
-  describe('로그인 상태에 따른 CTA 목적지', () => {
+  // 로그인한 사용자에게 가입·로그인 폼을 다시 들이밀면 세션이 풀린 것처럼 읽힌다.
+  // 2026-08-18 사용자 지시로, 로그인 상태의 헤더는 두 버튼 대신 "시작하기" 하나만 둔다
+  // (정본 wf-kit.jsx:187 MktTop 에는 로그인 상태 분기가 없다 — 의도된 divergence).
+  describe('로그인 상태 진입 CTA', () => {
     beforeEach(() => {
       useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
+    });
+
+    it('비로그인이면 헤더에 로그인·회원가입이 그대로 있고 "시작하기" 는 없다', () => {
+      renderPage();
+      const banner = screen.getByRole('banner');
+
+      expect(within(banner).getByRole('button', { name: '로그인' })).toBeInTheDocument();
+      expect(within(banner).getByRole('button', { name: '회원가입' })).toBeInTheDocument();
+      expect(within(banner).queryByRole('button', { name: '시작하기' })).not.toBeInTheDocument();
+    });
+
+    // 비로그인 방문자에게 조회가 나가면 토큰 없이 401 을 받아 refresh 인터셉터가 돌고,
+    // 랜딩을 보기만 해도 세션이 정리되는 부작용이 생긴다.
+    it('비로그인이면 대표 아바타를 조회하지 않는다', () => {
+      const { queryClient } = renderPage();
+
+      // 꺼진 쿼리도 캐시에는 올라가므로 "요청이 나갔는가" 로 본다 — `idle` 이면 안 나간 것이다.
+      expect(queryClient.getQueryState(avatarKeys.primary())?.fetchStatus).toBe('idle');
+    });
+
+    it('로그인 상태면 헤더가 "시작하기" 한 개로 바뀐다', () => {
+      authenticate();
+      renderPage();
+      const banner = screen.getByRole('banner');
+
+      expect(within(banner).getByRole('button', { name: '시작하기' })).toBeInTheDocument();
+      expect(within(banner).queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
+      expect(within(banner).queryByRole('button', { name: '회원가입' })).not.toBeInTheDocument();
+    });
+
+    it('"시작하기" 도 채워진 파란 CTA 가 아니다 (밴드당 1개 규칙 — 히어로가 갖는다)', () => {
+      authenticate();
+      renderPage();
+
+      expect(
+        within(screen.getByRole('banner')).getByRole('button', { name: '시작하기' })
+      ).not.toHaveClass('bg-primary');
+    });
+
+    it('온보딩을 마쳤으면(대표 아바타 보유) 대시보드로 간다', async () => {
+      authenticate();
+      server.use(primaryAvatarHandlers.success);
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      await waitForCompletionResolved(queryClient);
+
+      await user.click(
+        within(screen.getByRole('banner')).getByRole('button', { name: '시작하기' })
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('온보딩이 안 끝났으면(대표 아바타 없음) 아바타 생성 온보딩으로 간다', async () => {
+      authenticate();
+      server.use(primaryAvatarHandlers.none);
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      await waitForCompletionResolved(queryClient);
+
+      await user.click(
+        within(screen.getByRole('banner')).getByRole('button', { name: '시작하기' })
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding');
+    });
+
+    // "확인해보니 없다"(404) 와 "확인을 못 했다"(500) 는 다르다. 판정 실패만으로 온보딩에
+    // 밀어넣으면 서버가 잠깐 흔들릴 때마다 완료한 회원이 온보딩으로 되돌아간다.
+    it('판정에 실패하면 온보딩이 아니라 대시보드로 간다', async () => {
+      authenticate();
+      server.use(primaryAvatarHandlers.serverError);
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      await waitForCompletionResolved(queryClient);
+
+      await user.click(
+        within(screen.getByRole('banner')).getByRole('button', { name: '시작하기' })
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 
     it('비로그인이면 "무료로 시작하기" 가 가입으로 간다', async () => {
@@ -187,35 +286,17 @@ describe('ServiceIntroPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/signup');
     });
 
-    it('로그인 상태면 "무료로 시작하기" 가 대시보드로 간다', async () => {
-      useAuthStore.setState({
-        status: 'authenticated',
-        accessToken: 'a',
-        expiresAt: Date.now() + 1000,
-      });
+    // 같은 화면의 두 진입 버튼이 서로 다른 곳으로 가면 안 된다 — 히어로 CTA 도 같은 판정을 쓴다.
+    it('로그인 상태에서 히어로 CTA 도 온보딩 판정을 거친다', async () => {
+      authenticate();
+      server.use(primaryAvatarHandlers.none);
       const user = userEvent.setup();
-      renderPage();
+      const { queryClient } = renderPage();
+      await waitForCompletionResolved(queryClient);
 
       await user.click(screen.getByRole('button', { name: /무료로 시작하기/ }));
 
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
-    });
-
-    it('로그인 상태면 헤더의 로그인·회원가입도 대시보드로 간다', async () => {
-      useAuthStore.setState({
-        status: 'authenticated',
-        accessToken: 'a',
-        expiresAt: Date.now() + 1000,
-      });
-      const user = userEvent.setup();
-      renderPage();
-      const header = screen.getByRole('banner');
-
-      await user.click(within(header).getByRole('button', { name: '로그인' }));
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
-
-      await user.click(within(header).getByRole('button', { name: '회원가입' }));
-      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding');
     });
   });
 

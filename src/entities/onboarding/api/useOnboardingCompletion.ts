@@ -13,6 +13,16 @@ export type OnboardingCompletion = {
   isUnknown: boolean;
 };
 
+type Options = {
+  /**
+   * 조회를 걸지 여부. 기본 true.
+   * 비로그인 방문자도 보는 화면(랜딩)에서는 반드시 로그인 여부로 꺼야 한다 — 토큰 없이
+   * 조회하면 401 이 나고 refresh 인터셉터가 돌아, 화면을 보기만 해도 세션이 정리된다.
+   * 꺼져 있는 동안에는 `isResolved` 가 false 로 남아 호출부가 판정을 믿지 않는다.
+   */
+  enabled?: boolean;
+};
+
 /**
  * 온보딩을 마쳤는지 판정한다.
  *
@@ -23,8 +33,8 @@ export type OnboardingCompletion = {
  * 조회에 실패하면 미완료로 떨어뜨린다 — 완료로 잘못 판정하면 온보딩 진입 자체가 막혀
  * 사용자가 스스로 빠져나올 방법이 없어진다. 반대 방향의 오판은 온보딩을 한 번 더 보는 것으로 끝난다.
  */
-export function useOnboardingCompletion(): OnboardingCompletion {
-  const { data, isPending, isError } = usePrimaryAvatar();
+export function useOnboardingCompletion({ enabled = true }: Options = {}): OnboardingCompletion {
+  const { data, isPending, isError } = usePrimaryAvatar({ enabled });
 
   return {
     hasPrimaryAvatar: data != null,
