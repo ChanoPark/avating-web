@@ -293,7 +293,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
           </div>
         </header>
 
-        {/* 본문 — padding 28, 세로 gap 16. 배경은 캔버스 회색(#f6f7f8). */}
+        {/* 본문 — padding 28, 세로 gap 16. 배경은 캔버스(`--canvas`, v2.5 기준 #f6f9fc). */}
         <main className="bg-canvas relative flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div

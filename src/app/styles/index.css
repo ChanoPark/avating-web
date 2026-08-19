@@ -1,6 +1,7 @@
-/* Avating 디자인 시스템 v2 — 라이트 베이스 (흰 서피스 + 회색 캔버스 + hairline).
+/* Avating 디자인 시스템 v2.5 — 라이트 베이스 (흰 서피스 + 네이비 틴트 캔버스 + hairline).
    tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다.
-   출처: .claude/design/2026-07-26-wireframe-v2/tokens/ */
+   출처: 색·그림자는 .claude/design/2026-08-18-wireframe-v2.5/tokens/,
+        나머지(타이포·간격·반경·폰트)는 .claude/design/2026-07-26-wireframe-v2/tokens/ */
 @import './avating/tokens/colors.css';
 @import './avating/tokens/typography.css';
 @import './avating/tokens/spacing.css';
