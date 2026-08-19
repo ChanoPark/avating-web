@@ -1,20 +1,31 @@
-/* ═══ Avating · Elevation, motion & effects — LIGHT BASE ═════════════════
-   On a gray canvas, lift comes from a white surface, a hairline, and a very
-   soft neutral shadow (tight contact + wide ambient). Never a colored shadow. */
+/* ═══ Avating · Elevation, motion & effects — NAVY-TINTED LIGHT ══════════
+   Lift comes from a white surface, a hairline, and a soft navy-tinted shadow
+   (tight contact + wide ambient). Shadows carry the ink hue — never neutral
+   gray, never a saturated colored glow. */
 :root {
-  --shadow-1: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-2: 0 4px 12px -2px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-3: 0 24px 48px -12px rgba(16, 24, 40, 0.14), 0 4px 10px -4px rgba(16, 24, 40, 0.06);
+  --shadow-1: 0 1px 2px rgba(13, 37, 61, 0.07);
+  --shadow-2: 0 4px 12px -2px rgba(13, 37, 61, 0.09), 0 1px 2px rgba(13, 37, 61, 0.06);
+  --shadow-3: 0 24px 48px -12px rgba(13, 37, 61, 0.16), 0 4px 10px -4px rgba(13, 37, 61, 0.07);
 
   /* Layered elevation */
-  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.05);
-  --shadow-lift: 0 8px 20px -6px rgba(16, 24, 40, 0.1), 0 2px 4px rgba(16, 24, 40, 0.04);
-  --shadow-float: 0 28px 56px -16px rgba(16, 24, 40, 0.18), 0 8px 16px -8px rgba(16, 24, 40, 0.08);
+  --shadow-card: 0 1px 2px rgba(13, 37, 61, 0.06);
+  --shadow-lift: 0 8px 20px -6px rgba(13, 37, 61, 0.11), 0 2px 4px rgba(13, 37, 61, 0.05);
+  --shadow-float: 0 28px 56px -16px rgba(13, 37, 61, 0.2), 0 8px 16px -8px rgba(13, 37, 61, 0.09);
   --shadow-glow: 0 0 0 1px rgba(29, 122, 252, 0.3), 0 10px 28px -8px rgba(29, 122, 252, 0.22);
 
-  /* Signature gradient — restrained white→gray wash, marketing hero only. */
-  --grad-brand: linear-gradient(180deg, #ffffff 0%, #f1f3f6 100%);
-  --grad-wash: #f6f7f8;
+  /* Hero atmosphere — cool pastel wash, marketing/onboarding hero only.
+     Lavender → periwinkle → indigo mist. No warm stops: no cream, no peach. */
+  --wash-hero:
+    radial-gradient(58% 78% at 4% 2%, #e8eaff 0%, rgba(232, 234, 255, 0) 62%),
+    radial-gradient(54% 74% at 32% -8%, #dfe4ff 0%, rgba(223, 228, 255, 0) 62%),
+    radial-gradient(56% 84% at 58% 0%, #ded6fb 0%, rgba(222, 214, 251, 0) 64%),
+    radial-gradient(50% 76% at 82% -4%, #cfdcfb 0%, rgba(207, 220, 251, 0) 62%),
+    radial-gradient(42% 66% at 99% 14%, #e6dcfa 0%, rgba(230, 220, 250, 0) 66%);
+  --wash-hero-height: 620px;
+
+  /* Signature gradient — restrained white→cool wash. */
+  --grad-brand: linear-gradient(180deg, #ffffff 0%, #eef2fa 100%);
+  --grad-wash: #f6f9fc;
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
