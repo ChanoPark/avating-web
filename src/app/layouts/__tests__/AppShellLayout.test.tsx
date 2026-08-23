@@ -6,8 +6,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
-import { server } from '@shared/mocks/server';
-import { statsHandlers } from '@shared/mocks/handlers/dashboard';
 import { AppShellLayout } from '../AppShellLayout';
 
 const mockToken = {
@@ -26,7 +24,7 @@ function renderWithProviders(initialRoute = '/dashboard') {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return render(
+  const view = render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[initialRoute]}>
         <ToastProvider>
@@ -47,6 +45,7 @@ function renderWithProviders(initialRoute = '/dashboard') {
       </MemoryRouter>
     </QueryClientProvider>
   );
+  return { ...view, queryClient };
 }
 
 describe('AppShellLayout', () => {
@@ -116,55 +115,137 @@ describe('AppShellLayout', () => {
     expect(locationBefore).toBe(locationAfter);
   });
 
-  // v2 상단 바 우측은 "화면별 액션 + 알림 벨"뿐이고, 크레딧은 사이드바 계정 행으로 내려갔다
-  // (LAYOUT-NUMBERS § AppShell).
-  describe('크레딧 (사이드바 계정 행)', () => {
-    it('사이드바 계정 행에 다이아 잔액 표시 영역이 있다', () => {
+  // v2.6 에서 계정 행의 크레딧 자리를 톱니 버튼이 가져갔다
+  // (.claude/design/2026-08-21-wireframe-v2.6 `AccountMenu`). 잔여 다이아는 대시보드 Stat 카드에 남는다.
+  describe('크레딧', () => {
+    it('사이드바 계정 행에 다이아 잔액이 없다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      expect(within(nav).getByText('잔여 다이아')).toBeInTheDocument();
+      expect(within(nav).queryByText(/다이아/)).toBeNull();
     });
 
-    it('상단 바에는 다이아 잔액이 없다', () => {
+    it('상단 바에도 다이아 잔액이 없다', () => {
       renderWithProviders('/dashboard');
       const header = screen.getByRole('banner');
       expect(within(header).queryByText(/다이아/)).toBeNull();
     });
+  });
 
-    it('stats API 응답 후 다이아 잔액이 숫자로 표시된다', async () => {
-      server.use(statsHandlers.success);
+  // v2.6 신규 — 사이드바 계정 행의 톱니를 누르면 위로 열리는 계정 메뉴.
+  // 정본: .claude/design/2026-08-21-wireframe-v2.6/wf/wf-kit-excerpt.jsx `AccountMenu`.
+  describe('계정 메뉴 (톱니 드롭다운)', () => {
+    function gear() {
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      return within(nav).getByRole('button', { name: '계정 설정' });
+    }
+
+    it('기본 상태에서는 메뉴가 닫혀 있다', () => {
       renderWithProviders('/dashboard');
-
-      await waitFor(() => {
-        const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-        expect(within(nav).queryByText(/1[,.]?240/)).not.toBeNull();
-      });
+      expect(gear()).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('button', { name: '로그아웃' })).toBeNull();
+      expect(screen.queryByRole('button', { name: '내 정보' })).toBeNull();
     });
 
-    it('stats 조회가 실패해도 셸(사이드바·본문)은 살아 있고 잔액만 폴백으로 떨어진다', async () => {
-      const spy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-      server.use(statsHandlers.serverError);
+    it('톱니를 누르면 내 정보 · 로그아웃 항목이 나타난다', async () => {
+      const user = userEvent.setup();
       renderWithProviders('/dashboard');
 
-      await waitFor(() => {
-        const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-        expect(within(nav).getByText('—')).toBeInTheDocument();
-      });
+      await user.click(gear());
 
-      expect(screen.getByTestId('outlet-content')).toBeInTheDocument();
-      expect(screen.getByRole('banner')).toBeInTheDocument();
-      spy.mockRestore();
+      expect(gear()).toHaveAttribute('aria-expanded', 'true');
+      expect(screen.getByRole('button', { name: '내 정보' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '로그아웃' })).toBeInTheDocument();
     });
 
-    it('잔액 숫자에 tabular-nums(tnum) 가 적용된다', async () => {
-      server.use(statsHandlers.success);
+    it('열리면 첫 항목으로 포커스가 이동한다', async () => {
+      const user = userEvent.setup();
       renderWithProviders('/dashboard');
 
+      await user.click(gear());
+
+      expect(screen.getByRole('button', { name: '내 정보' })).toHaveFocus();
+    });
+
+    it('톱니를 다시 누르면 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      await user.click(gear());
+
+      expect(gear()).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('button', { name: '로그아웃' })).toBeNull();
+    });
+
+    it('Escape 로 닫히고 톱니로 포커스가 돌아온다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      await user.keyboard('{Escape}');
+
+      expect(screen.queryByRole('button', { name: '로그아웃' })).toBeNull();
+      expect(gear()).toHaveFocus();
+    });
+
+    it('메뉴 바깥을 클릭하면 닫힌다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      await user.click(screen.getByTestId('outlet-content'));
+
+      expect(screen.queryByRole('button', { name: '로그아웃' })).toBeNull();
+    });
+
+    it('로그아웃을 누르면 세션과 쿼리 캐시가 비워지고 /login 으로 이동한다', async () => {
+      const user = userEvent.setup();
+      const { queryClient } = renderWithProviders('/dashboard');
+      // 개인 데이터가 캐시에 남으면 다음에 로그인한 사람이 그대로 본다.
+      // 마운트된 훅이 clear 직후 쿼리를 다시 등록하므로 "캐시 0개" 대신 호출 자체를 본다.
+      const clearSpy = vi.spyOn(queryClient, 'clear');
+
+      await user.click(gear());
+      await user.click(screen.getByRole('button', { name: '로그아웃' }));
+
+      expect(useAuthStore.getState().accessToken).toBeNull();
+      expect(useAuthStore.getState().status).toBe('anonymous');
+      expect(clearSpy).toHaveBeenCalled();
       await waitFor(() => {
-        const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-        const balance = within(nav).getByText(/1[,.]?240/);
-        expect(balance.className).toContain('tnum');
+        expect(screen.getByText('LOGIN_PAGE')).toBeInTheDocument();
       });
+      clearSpy.mockRestore();
+    });
+
+    // 온보딩 진행 기록은 브라우저 단위라 계정을 따라가지 않는다. 지우지 않으면 다음에 로그인한
+    // 사람이 이전 사용자가 고른 생성 방법으로 밀려 들어간다.
+    it('로그아웃 시 온보딩 진행 기록도 지운다', async () => {
+      localStorage.setItem('avating:onboarding:progress', 'creating');
+      localStorage.setItem('avating:onboarding:method', 'connect');
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      await user.click(screen.getByRole('button', { name: '로그아웃' }));
+
+      expect(localStorage.getItem('avating:onboarding:progress')).toBeNull();
+      expect(localStorage.getItem('avating:onboarding:method')).toBeNull();
+    });
+
+    /* spec-gap — 정본에 메뉴 항목만 있고 목적지 화면이 없다. `wf/wf-spec.jsx` SPEC_SCREENS 41개에
+       계정 정보 화면이 없고(S-09-01 `내 아바타` 는 아바타 스탯 화면이라 다른 것), 2026-08-21
+       사용자 결정으로 카드는 정본대로 그리되 플로우에는 연결하지 않는다. 임의 연결도, 임의
+       '준비중' 처리도 이 테스트가 회귀로 잡는다. */
+    it('내 정보는 정본에 목적지가 없어 아무 데도 이동하지 않는다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      await user.click(screen.getByRole('button', { name: '내 정보' }));
+
+      expect(screen.getByTestId('outlet-content')).toHaveTextContent('대시보드 콘텐츠');
+      expect(screen.queryByText('LOGIN_PAGE')).toBeNull();
+      expect(useAuthStore.getState().accessToken).not.toBeNull();
     });
   });
 
@@ -378,12 +459,12 @@ describe('AppShellLayout', () => {
   });
 
   // LAYOUT-NUMBERS § AppShell — 계정 행: 상단 hairline, padding 10, 내부 4px 6px,
-  // 아바타 26 circle, 닉네임 13px, 크레딧 12px.
+  // 아바타 26 circle, 닉네임 13px. v2.6 에서 크레딧 자리를 톱니가 가져갔다.
   describe('계정 행 (LAYOUT-NUMBERS § AppShell)', () => {
     it('상단 hairline + padding 10(p-2.5) · 내부 padding 4px 6px(py-1 px-1.5)', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      const row = within(nav).getByText('잔여 다이아').closest('.border-t');
+      const row = within(nav).getByRole('button', { name: '계정 설정' }).closest('.border-t');
       expect(row?.className).toContain('border-hairline');
       expect(row?.className).toContain('p-2.5');
       expect(row?.firstElementChild?.className).toContain('px-1.5');
