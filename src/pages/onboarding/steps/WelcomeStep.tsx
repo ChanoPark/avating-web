@@ -14,11 +14,11 @@ import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingC
 import { WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard';
 
 // S-02-01 환영 — 레일 없는 플랫 형태. 와이어프레임 v2.5 에서 재설계됐다.
-// 정본: .claude/design/2026-08-18-wireframe-v2.5/wf/wf-s1-entry.jsx `ScreenOnbWelcome` · `ONB_METHODS`.
-// 예전에는 하단 액션 바에 CTA 두 개(아바타 만들기 · Bot 연동)를 두고 본문은 4단계 예고만 했다.
-// 이제 생성 방법을 카드 3장으로 먼저 고르게 하고, 4단계 예고는 그 아래 인셋 카드로 내려간다.
-// 카드를 눌러도 곧장 그 방법으로 들어가는 게 아니라 method 만 사전선택하고 Step 1 로 간다 —
-// 각주가 "시작 후 2단계에서 방법을 바꿀 수 있어요" 라고 말하는 그 순서다.
+// 정본: .claude/design/2026-08-18-wireframe-v2.5/wf/wf-s1-entry.jsx `ScreenOnbWelcome` · `ONB_METHODS`
+// + v2.6 델타(.claude/design/2026-08-21-wireframe-v2.6/IMPORT.md).
+// 생성 방법을 카드 3장으로 고르게 하고, 앞으로 할 일 예고는 그 아래 인셋 카드로 내려간다.
+// v2.6 에서 별도 방법 선택 화면(구 Step 2)이 삭제돼 **방법을 고르는 자리는 여기뿐**이다 —
+// 카드를 누르면 method 를 저장하고 Step 1(이름·설명)로 간다.
 
 type MethodCard = {
   /**
@@ -66,14 +66,13 @@ const METHODS: readonly MethodCard[] = [
   },
 ];
 
-// 앞으로 할 일 4단계. 스텝 레일 라벨(`ONBOARDING_FALLBACK_LABELS`)과는 다른 계열이라
+// 앞으로 할 일 3단계. 스텝 레일 라벨(`ONBOARDING_FALLBACK_LABELS`)과는 다른 계열이라
 // 그 상수로 대체하지 않는다 — 정본이 두 곳에서 서로 다른 문구를 쓴다.
-const TASKS = [
-  '기본 정보 입력',
-  '생성 방법 선택',
-  '성향 분석 (설문 · Bot 대화 · 프롬프트)',
-  '아바타 확인',
-] as const;
+//
+// 정본(`wf-s1-entry.jsx`)의 리스트는 아직 '생성 방법 선택' 을 포함한 4항목이라 같은 화면의
+// 각주("아래 3단계")·레일(3단계)과 숫자가 어긋난다. 게다가 그 항목은 이제 이 화면에서 하는 일이다.
+// 2026-08-21 사용자 결정으로 3항목이 정답이다 (.claude/design/2026-08-21-wireframe-v2.6/IMPORT.md).
+const TASKS = ['기본 정보 입력', '성향 분석 (설문 · Bot 대화 · 프롬프트)', '아바타 확인'] as const;
 
 export function WelcomeStep() {
   const navigate = useNavigate();
@@ -103,10 +102,10 @@ export function WelcomeStep() {
       <div className="flex flex-col items-stretch gap-3 sm:flex-row">
         {METHODS.map(({ method, icon: MethodIcon, time, title, desc, cta }, index) => {
           const titleId = `${titleIdPrefix}-method-${String(index)}`;
-          // 세 카드는 시각적으로 동등하다. 정본은 첫 카드에 `borderColor: var(--primary)` +
-          // 같은 색 inset 링을 두지만 2026-08-18 사용자 지시로 제거했다 (의도된 divergence —
-          // wiki flows/onboarding v14 참고). shared `Card` 를 쓰지 않는 이유는 정본 `.av-card`
-          // 에 그림자가 없어서다(`--featured`·`--elevated` 만 갖는다).
+          // 세 카드는 시각적으로 동등하다. 2026-08-18 사용자 지시로 첫 카드 강조를 뺐고,
+          // v2.6 에서 정본도 같아졌다 — 더는 divergence 가 아니다.
+          // shared `Card` 를 쓰지 않는 이유는 정본 `.av-card` 에 그림자가 없어서다
+          // (`--featured`·`--elevated` 만 갖는다).
           return (
             <div
               key={title}
@@ -145,7 +144,7 @@ export function WelcomeStep() {
                     }
                   : {})}
               >
-                {/* 정본은 `Btn icon="arrowRight"` 지만 2026-08-18 사용자 지시로 화살표를 뺐다. */}
+                {/* 2026-08-18 사용자 지시로 화살표를 뺐고, v2.6 에서 정본도 같아졌다. */}
                 {cta}
               </Button>
             </div>

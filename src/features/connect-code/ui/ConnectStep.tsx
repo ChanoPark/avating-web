@@ -56,8 +56,6 @@ export function ConnectStep() {
     if (!guardFailed) return;
     if (onboardingProgress === 'welcome') {
       void navigate('/onboarding/welcome', { replace: true });
-    } else if (onboardingProgress === 'method') {
-      void navigate('/onboarding/method', { replace: true });
     } else {
       void navigate('/onboarding/complete', { replace: true });
     }

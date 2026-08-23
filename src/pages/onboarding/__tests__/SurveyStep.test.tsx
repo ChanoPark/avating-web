@@ -69,12 +69,15 @@ describe('SurveyStep', () => {
       });
     });
 
-    it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
+    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 는 creating 으로 마이그레이션된다 —
+    // 되돌릴 곳이 없으므로 그대로 설문을 이어서 보여준다.
+    it('레거시 method 기록이면 redirect 없이 설문을 이어서 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'method');
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method', { replace: true });
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('progress 가 complete 이고 대표 아바타가 있으면 /onboarding/complete 로 redirect 한다', async () => {
@@ -108,7 +111,7 @@ describe('SurveyStep', () => {
       await waitFor(() => {
         expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
       });
-      expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/method', { replace: true });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

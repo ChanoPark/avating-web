@@ -77,13 +77,16 @@ describe('ConnectStep', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
     });
 
-    it('progress 가 method 이면 /onboarding/method 로 redirect 한다', async () => {
+    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 는 creating 으로 마이그레이션된다 —
+    // 되돌릴 곳이 없으므로 그대로 코드 발급 화면을 보여준다.
+    it('레거시 method 기록이면 redirect 없이 코드 발급 화면을 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'method');
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method', { replace: true });
+        expect(screen.getByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
       });
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
 

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
 import { cn } from '@shared/lib/cn';
-import { setOnboardingProgress } from '@entities/onboarding';
+import { getOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { loadDraft, saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
@@ -70,8 +70,17 @@ export function IntroStep() {
       description: values.description.trim(),
       ...(existing?.expressions ? { expressions: existing.expressions } : {}),
     });
-    setOnboardingProgress('method');
-    void navigate('/onboarding/method');
+    // v2.6: 생성 방법 선택 화면이 사라져 Step 1 다음은 곧장 Step 2(설문 · Bot)다.
+    // 방법은 S-02-01 환영 카드에서 이미 골라 두었다.
+    const method = getOnboardingMethod();
+    if (method === null) {
+      // 방법을 고른 적이 없다 — URL 직접 진입 등. 둘 중 하나를 임의로 택하면 사용자가
+      // 고르지 않은 경로로 밀어넣게 되므로 고르는 자리(환영)로 되돌린다. 입력은 위에서 이미 저장했다.
+      void navigate('/onboarding/welcome');
+      return;
+    }
+    setOnboardingProgress('creating');
+    void navigate(method === 'survey' ? '/onboarding/survey' : '/onboarding/connect');
   });
 
   return (
