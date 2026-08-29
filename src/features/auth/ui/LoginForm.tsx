@@ -14,10 +14,6 @@ type LoginFormProps = {
   onSuccess?: () => void;
 };
 
-// 폼 입력 계약은 shared/ui/Input 의 base 와 같다 — caption(13px) · radius `--r-sm` ·
-// padding 9px 12px · placeholder 는 `--ink-mute`(`--ink-faint` 금지).
-// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · padding 9px 12px
-// · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
 const inputBase =
   'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
 
@@ -62,8 +58,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
       noValidate
     >
       <div className="flex flex-col gap-5">
-        {/* 폼 전체 실패는 상단 배너 하나로만 알린다 — 필드 오류는 각 필드 아래 인라인
-            (정본 S-11-07: "필드 단위 오류는 배너로 올리지 않고 필드 아래 인라인으로"). */}
+        {/* 정본 S-11-07 — 필드 오류는 배너가 아니라 필드 아래 인라인으로 표시한다. */}
         {errors.root?.message && <Banner tone="danger">{errors.root.message}</Banner>}
 
         <div className="flex flex-col gap-2">
@@ -91,7 +86,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
           <span className="bg-hairline h-px flex-1" />
         </div>
 
-        {/* 필드 그룹 — 정본 Col gap 14 */}
         <div className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
             <label htmlFor="login-email" className="text-caption text-ink-secondary font-medium">
@@ -145,7 +139,6 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             )}
           </div>
 
-          {/* 정본 Row between — 로그인 상태 유지 / 비밀번호 찾기 (둘 다 준비 중) */}
           <div className="flex items-center justify-between">
             <div className="text-caption text-ink-secondary flex items-center gap-2">
               <input

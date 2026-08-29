@@ -13,8 +13,7 @@ type SurveyQuestionProps = {
   name: string;
 };
 
-// S-02-04 선택지 — 질문 문장은 카드 헤드(h1)가 맡고, 여기서는 legend 를 sr-only 로 두어
-// 라디오 그룹의 접근성 이름만 유지한다. 선택 상태는 틴트 채움이 아니라 `border-primary` 다 (v2.1 Breaking).
+// 질문 문장은 카드 헤드(h1)가 이미 보여주므로 legend 는 sr-only 로 접근성 이름만 유지한다.
 export function SurveyQuestion({ question, options, value, onChange, name }: SurveyQuestionProps) {
   return (
     <fieldset className="flex flex-col gap-2">

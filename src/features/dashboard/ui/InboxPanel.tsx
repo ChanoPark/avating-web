@@ -6,7 +6,6 @@ import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
-// wf-s2-core `ScreenDashboard` 우측 하단 `알림` 카드 — 카드 규격은 좌측 내 아바타 카드와 같다.
 const CARD_CLASS =
   'border-hairline bg-surface shadow-card flex flex-col gap-2 rounded-lg border p-4';
 
@@ -35,7 +34,6 @@ function CardHeader({
       <div className="flex items-center gap-1.5">
         <h2 className="text-caption text-ink font-medium">알림</h2>
         {unreadCount > 0 && (
-          // 카운트 배지 문법 — LAYOUT-NUMBERS § 내비 카운트 배지 (brand wash, height 18, 11px, tnum)
           <span
             aria-label={`읽지 않은 알림 ${unreadCount}개`}
             className="bg-primary-wash text-primary-press rounded-pill text-micro tnum inline-flex h-4.5 items-center px-1.75 font-medium"
@@ -63,8 +61,7 @@ function InboxPanelSkeleton() {
   );
 }
 
-// 정본 S-11-06 PANEL — 화면 전체를 덮지 않고 이 패널 자리만 교체한다.
-// 카드 머리는 남겨 사용자가 무엇이 실패했는지 알 수 있게 한다.
+// 정본 S-11-06 PANEL — 패널 자리만 교체하고, 카드 머리는 남겨 무엇이 실패했는지 알 수 있게 한다.
 function InboxPanelFallback({ resetErrorBoundary }: FallbackProps) {
   return (
     <section aria-label="알림" className={CARD_CLASS}>
@@ -105,7 +102,6 @@ function InboxPanelContent() {
                 item.read ? 'border-transparent bg-transparent' : 'border-primary bg-surface'
               )}
             >
-              {/* 알림 아이콘 상자 28 · radius 8 */}
               <span
                 aria-hidden="true"
                 className="bg-canvas text-ink-mute flex h-7 w-7 shrink-0 items-center justify-center rounded-md"

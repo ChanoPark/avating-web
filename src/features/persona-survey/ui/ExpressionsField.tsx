@@ -2,8 +2,7 @@ import { useRef, useState, type KeyboardEvent } from 'react';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
 
-// S-02-05 자주 쓰는 표현(선택). 사용자의 말투·표현·이모지를 수집해 아바타가 더 나답게 말하도록 한다.
-// 이모지는 장식 chrome 이 아닌 사용자 콘텐츠(데이터)이므로 디자인 시스템의 "장식 이모지 금지" 규칙에 해당하지 않는다.
+// 이모지는 장식 chrome 이 아닌 사용자 콘텐츠(데이터)라 "장식 이모지 금지" 규칙에 해당하지 않는다.
 const SUGGESTED_EXPRESSIONS = [
   '그치 그치',
   '진짜요?',
@@ -16,10 +15,9 @@ const SUGGESTED_EXPRESSIONS = [
 
 const SUGGESTED_EMOJIS = ['😄', '🥲', '✨', '👀', '😭', '🔥', '🌿', '🌙', '💡', '☕️'] as const;
 
-// 정본 카운터 상한 — 표시 전용이다. 입력 개수를 막는 검증은 두지 않는다.
+// 표시 전용 상한 — 입력 개수를 막는 검증은 두지 않는다.
 const EXPRESSIONS_HINT_MAX = 10;
 
-// `.av-chip` — height 30, radius pill, 13px. 선택 가능 칩은 hover 에서 테두리만 파랗게 바뀐다.
 const CHIP_BASE =
   'text-caption border-hairline bg-surface text-ink-secondary inline-flex h-[30px] items-center gap-1.5 rounded-pill border';
 

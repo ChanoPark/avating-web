@@ -6,11 +6,9 @@ import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
-// StatCard 와 같은 상자 규격 — padding 14, radius `--r-lg`, hairline + shadow-card.
 const STAT_BOX = 'border-hairline bg-surface shadow-card rounded-lg border p-3.5';
 
-// StatsCard 와 같은 3단 구조(아이콘+라벨 행 / 26px value / delta 행)를 그대로 세운다.
-// 라인 하나만 두면 데이터 도착 시 카드가 눈에 띄게 늘어나 CLS 가 생긴다.
+// 실제 StatsCard 와 같은 3단 구조를 그대로 세운다 — 라인 하나만 두면 도착 시 카드가 늘어나 CLS 가 생긴다.
 function StatsSkeleton() {
   return (
     <div className={cn(STAT_BOX, 'flex animate-pulse flex-col gap-1')}>
@@ -24,8 +22,7 @@ function StatsSkeleton() {
   );
 }
 
-// 정본 S-11-06 STAT — 실패한 카드는 값만 `—` 로 두고 라벨은 유지한다. 재시도 버튼을
-// 카드 안에 넣지 않는다: "재시도는 카드 묶음 상단 액션에서 한 번에."
+// 정본 S-11-06 STAT — 재시도 버튼은 카드 안이 아니라 묶음 상단 액션에서 한 번에 처리한다.
 function StatsFallback({ config }: { config: CardConfig }) {
   return <StatsCard failed icon={config.Icon} label={config.label} value="" ariaLabel="" />;
 }
@@ -104,8 +101,7 @@ function SingleStatCard({ config }: { config: CardConfig }) {
 }
 
 export function StatsGrid() {
-  // 카드마다 경계를 따로 두되 재시도는 묶음 단위다(정본 S-11-06). `resetKey` 를 올리면
-  // 모든 경계가 한 번에 복구를 시도한다.
+  // 카드마다 경계를 따로 두되 재시도는 묶음 단위다(정본 S-11-06).
   const [resetKey, setResetKey] = useState(0);
   const [failedCount, setFailedCount] = useState(0);
 
@@ -125,7 +121,6 @@ export function StatsGrid() {
           </button>
         </div>
       )}
-      {/* 정본: StatCard 4열 그리드 gap 12 (wf-s2-core ScreenDashboard) */}
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
         {CARD_CONFIGS.map((config) => (
           <ErrorBoundary

@@ -54,8 +54,6 @@ describe('MatchRequestModal', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    // 정본(wf-s3-request ScreenMatchRequestSend)의 상대 카드는 이름·인증 배지·핸들·성향·온라인만
-    // 보여준다. 관심사 태그는 상세 화면 몫이다.
     it('상대 아바타 카드가 표시된다 (이름·인증·핸들·성향·온라인)', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');

@@ -7,13 +7,11 @@ import { useMyAvatarsSuspense } from '@entities/avatar';
 import type { MyAvatar } from '@entities/match-request';
 import type { AvatarStatus } from '@entities/avatar';
 
-// wf-s2-core `ScreenDashboard` 좌측 카드 — 폭 300 고정은 페이지가 준다.
-// 카드 규격: hairline + shadow-card + radius `--r-lg`, padding 14.
+// 폭 300 고정은 페이지(부모)가 준다 — 여기서는 지정하지 않는다.
 const CARD_CLASS =
   'border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4';
 
-// 정본은 `활성` success 배지(dot) 하나만 보여준다. 나머지 두 상태는 같은 배지 문법을
-// 유지하되 색만 바꾼다 — 카피는 이미 쓰이던 표현(`매칭 중` / `오프라인`)을 그대로 쓴다.
+// 정본은 `활성` 배지만 정의한다 — 나머지 두 상태는 같은 문법에 색만 바꾸고, 기존 표현을 그대로 쓴다.
 const STATUS_BADGE: Record<
   AvatarStatus,
   { label: string; variant: 'success' | 'warning' | 'neutral' }
@@ -32,8 +30,7 @@ function CardHeader({ action }: { action?: React.ReactNode }) {
   );
 }
 
-// 실제 콘텐츠와 같은 4단(헤더 / 아바타 행 / divider / `진행 중 매칭` 행)을 세운다.
-// 앞의 두 단만 두면 로드 후 카드가 divider + 한 행만큼 늘어나 CLS 가 생긴다.
+// 실제 콘텐츠와 같은 골격을 세운다 — 앞 두 단만 두면 로드 후 카드가 늘어나 CLS 가 생긴다.
 function MyAvatarGridSkeleton() {
   return (
     <section aria-label="내 아바타" className={cn(CARD_CLASS, 'animate-pulse')}>
@@ -73,7 +70,6 @@ function AvatarSummary({ avatar }: { avatar: MyAvatar }) {
   const status = STATUS_BADGE[avatar.status];
   return (
     <div className="flex items-center gap-2.75">
-      {/* 아바타 사각 44 — radius = size × 0.24, tone=wash */}
       <span
         aria-hidden="true"
         className="bg-primary-wash text-primary text-body-sm flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] font-semibold uppercase"
@@ -95,7 +91,6 @@ function AvatarSummary({ avatar }: { avatar: MyAvatar }) {
 
 function MyAvatarGridContent() {
   const { items } = useMyAvatarsSuspense();
-  // 정본 카드는 대표 아바타 한 명을 보여준다. 대표 지정이 없으면 첫 아바타로 대체한다.
   const primary = items.find((a) => a.isPrimary) ?? items[0];
   const busyCount = items.filter((a) => a.busy).length;
 

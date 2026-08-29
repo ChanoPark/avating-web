@@ -11,10 +11,8 @@ import { useToast } from '@shared/ui/Toast/useToast';
 import { Button } from '@shared/ui/Button/Button';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// Avating Custom GPT 진입점. 실제 GPT URL 은 배포 시 env 로 주입 예정 (현재는 ChatGPT 홈).
+// GPT URL 은 배포 시 env 로 주입할 예정이다 — 지금은 ChatGPT 홈으로 고정해 둔다.
 const AVATING_GPT_URL = 'https://chatgpt.com';
-
-// WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
 
 export function ConnectStep() {
   const navigate = useNavigate();
@@ -23,9 +21,7 @@ export function ConnectStep() {
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
-  // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
-  // 대표 아바타가 없으면 아직 생성 중인 것으로 보고 이 화면에 머문다. 여기서 확인 화면으로
-  // 되돌리면, 그 화면이 아바타가 없다는 이유로 다시 여기로 보내 왕복이 된다.
+  // complete 기록만으론 완료를 보장 못한다 — 대표 아바타가 없으면 여기 머문다 (되돌리면 왕복만 생긴다).
   const guardFailed =
     onboardingProgress !== 'creating' && !(onboardingProgress === 'complete' && !hasPrimaryAvatar);
 
@@ -36,15 +32,13 @@ export function ConnectStep() {
     error: issueError,
     refetch: refetchCode,
   } = useConnectCode({ enabled: !guardFailed });
-  // 재발급(refetch)은 이전 data 가 남아 있어 isPending 이 false 다. isFetching 을 함께 보지 않으면
-  // 새 코드가 도착할 때까지 만료된 옛 코드와 00:00 카운트다운이 그대로 보인다.
+  // 재발급 시 isPending 은 false 다 — isFetching 을 함께 안 보면 만료된 옛 코드가 그대로 보인다.
   const isIssuing = isPending || isFetching;
   const [localExpired, setLocalExpired] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
 
-  // expired 상태 후 폴링 중단은 useConnectStatus 내부 refetchInterval 이 담당
-  // (active 일 때만 15초 간격, 그 외 false) — 여기서 status 조건을 추가하면 이중 관리.
+  // 폴링 중단은 useConnectStatus 내부 refetchInterval 이 담당한다 — 여기서 status 조건을 더하면 관리 지점이 두 곳으로 나뉜다.
   const pollingEnabled = !guardFailed && connectCode !== undefined;
 
   const { data: statusData } = useConnectStatus({ enabled: pollingEnabled });
@@ -111,17 +105,14 @@ export function ConnectStep() {
     setLocalExpired(false);
     navigatedRef.current = false;
     queryClient.removeQueries({ queryKey: onboardingKeys.connectStatus('current') });
-    // 재발급 = 같은 키의 강제 재요청. 서버가 이전 코드를 즉시 무효화하므로 캐시도 새 값으로 덮인다.
     void refetchCode();
   };
 
-  // 액션 바: 좌측 ghost '생성된 결과 확인' / 우측 primary 'Bot과 대화 시작'(새 탭).
   const handleOpenGpt = () => {
     window.open(AVATING_GPT_URL, '_blank', 'noopener,noreferrer');
   };
 
-  // 결과를 보러 가는 버튼이지 완료 선언이 아니다. 연결 전에 진행도를 complete 로 올리면
-  // 아바타를 만든 적 없는 사용자가 완료로 기록돼, 이후 온보딩 재진입이 이 화면을 건너뛴다.
+  // connected 이전에 complete 를 기록하면 아바타 없는 사용자가 완료 처리돼 재진입 시 이 화면을 건너뛴다.
   const handleViewResult = () => {
     if (statusData?.status !== 'connected') {
       toast.show({
@@ -170,8 +161,7 @@ export function ConnectStep() {
     );
   }
 
-  // 정본(S-02-06)은 Bot 이 발급한 코드를 붙여넣는 흐름이지만, 구현은 앱이 일회용 코드를
-  // 발급해 Bot 에 붙여넣는 반대 방향이다. 안내 문구는 실제 흐름을 따른다.
+  // spec-divergence: 정본(S-02-06)은 Bot 발급 코드를 붙여넣는 흐름이나, 구현은 반대 방향이다.
   const connectSteps = [
     'ChatGPT에서 Avating GPT를 검색해 시작합니다',
     '위 ONE-TIME CODE를 붙여넣어 계정을 연결합니다',

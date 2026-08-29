@@ -1,8 +1,7 @@
 import { surveyDraftSchema } from '@entities/onboarding/model';
 import type { SurveyDraft } from '@entities/onboarding/model';
 
-// 설문 draft 는 로컬 전용 전략. 서버 동기화(useSurveyDraft)는 백엔드 계약 v2 에서 제외됨 —
-// 크로스 디바이스 복원 요구사항 없음, 24h TTL + 페이지 진입 시 단일 기기 복원으로 충분.
+// 설문 draft 는 로컬에만 둔다. 크로스 디바이스 복원 요구가 없어 24h TTL + 진입 시 단일 기기 복원으로 충분하다.
 const KEY = 'avating:onboarding:survey-draft';
 const TTL_MS = 24 * 60 * 60 * 1000;
 

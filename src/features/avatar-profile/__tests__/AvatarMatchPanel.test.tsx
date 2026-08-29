@@ -20,7 +20,6 @@ describe('AvatarMatchPanel', () => {
     expect(panel).toHaveClass('border-primary');
   });
 
-  // `◇` 문자 글리프 대신 Diamond 아이콘 + tnum 숫자 (`.av-credit` 계약).
   it('요청 비용이 다이아 수치로 노출되고 문자 글리프를 쓰지 않는다', () => {
     const { container } = render(<AvatarMatchPanel onRequest={vi.fn()} requestOpen={false} />);
     expect(screen.getByText('요청 비용')).toBeInTheDocument();

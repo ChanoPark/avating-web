@@ -19,8 +19,6 @@ import { SurveyQuestion } from './SurveyQuestion';
 import { ExpressionsField } from './ExpressionsField';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
-
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
@@ -32,9 +30,7 @@ export function SurveyStep() {
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
-  // 진행 기록의 complete 는 완료를 보장하지 않는다 — 아바타 없이도 올라가던 경로가 있었다.
-  // 대표 아바타가 없으면 아직 생성 중인 것으로 보고 이 화면에 머문다. 여기서 확인 화면으로
-  // 되돌리면, 그 화면이 아바타가 없다는 이유로 다시 여기로 보내 왕복이 된다.
+  // complete 기록만으론 완료를 보장 못한다 — 대표 아바타가 없으면 여기 머문다 (되돌리면 왕복만 생긴다).
   const guardFailed =
     onboardingProgress !== 'creating' && !(onboardingProgress === 'complete' && !hasPrimaryAvatar);
 
@@ -45,7 +41,6 @@ export function SurveyStep() {
     refetch,
   } = useSurveyQuestions({ enabled: !guardFailed });
 
-  // 단계 순서: welcome → intro → (creating)survey/connect → complete.
   useEffect(() => {
     if (!guardFailed) return;
     if (onboardingProgress === 'welcome') {
@@ -149,7 +144,6 @@ export function SurveyStep() {
     );
   }
 
-  // 페이지: [질문 0..N-1, 자주 쓰는 표현(선택)]. 표현 단계가 마지막 = 제출 단계.
   const isExpressionsPage = pageIndex === questions.length;
   const isFirstPage = pageIndex === 0;
   const currentQuestion: SurveyQuestionModel | null = !isExpressionsPage
@@ -198,9 +192,7 @@ export function SurveyStep() {
     });
   };
 
-  // 이름·설명은 IntroStep 에서만 입력받는데 서버 제출 계약상 둘 다 필수라 이 폼의 resolver 도 필수로 본다.
-  // 이 화면에는 두 필드의 입력이 없어 RHF 가 붙인 필드 에러가 어디에도 보이지 않는다 —
-  // 그대로 두면 제출 버튼이 말없이 아무것도 안 하므로, Step 1 로 돌아가라고 알려준다.
+  // 이름·설명은 이 화면에 입력 필드가 없어 RHF 필드 에러가 안 보인다 — Step 1 로 돌아가라고 알려준다.
   const onInvalid = (errors: FieldErrors<AvatarCreateFromSurveyRequest>) => {
     if (errors.avatarName ?? errors.description) {
       setSubmitError('아바타 이름과 설명이 필요해요. 1단계로 돌아가 입력해주세요.');
@@ -227,17 +219,15 @@ export function SurveyStep() {
   }, onInvalid);
 
   const handleSkip = () => {
-    // 표현 단계 건너뛰기 — 표현을 비우고 제출한다.
     persistExpressions([]);
     void onSubmit();
   };
 
-  // 진행률은 질문 N개 + 표현 1개를 합친 페이지 수로 센다 (표현 단계가 정본의 마지막 '선택 문항').
+  // totalPages 는 질문 수에 표현 단계 1페이지를 더한 값이다 — 표현 단계도 정본의 마지막 '선택 문항'이다.
   const totalPages = questions.length + 1;
   const pageNumber = pageIndex + 1;
   const percent = Math.round((pageNumber / totalPages) * 100);
-  // 정본의 `3 / 6 · 대화 스타일` 은 문항 카테고리를 함께 적지만, 질문 모델에 사람이 읽을
-  // 카테고리 필드가 없어(primaryType 은 서버 enum 코드) 표현 단계에만 부제를 붙인다.
+  // 질문 모델에 사람이 읽을 카테고리 필드가 없어(primaryType 은 서버 enum) 표현 단계에만 부제를 붙인다.
   const progressLabel = isExpressionsPage
     ? `${pageNumber} / ${totalPages} · 선택 문항`
     : `${pageNumber} / ${totalPages}`;
@@ -251,7 +241,6 @@ export function SurveyStep() {
       className="flex flex-col"
     >
       <div className={WIZARD_BODY}>
-        {/* 낭독 문구는 눈에 보이는 진행 카운터와 같은 분모(질문 + 표현 단계)를 쓴다. */}
         <p role="status" aria-live="polite" className="sr-only">
           {isExpressionsPage
             ? `자주 쓰는 표현 입력 (선택) ${progressLabel}`

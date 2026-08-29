@@ -24,8 +24,6 @@ function renderCard(overrides: Partial<RecommendedAvatar> = {}) {
   return { onOpen, onMatch };
 }
 
-// wf-s2-core `AvatarCard` — 이름 + 인증 배지 / 핸들·성향 / 관심사 neutral 태그 /
-// 하단 예상 호감도 + 매칭 secondary sm.
 describe('AvatarCard', () => {
   it('이름·인증 배지·핸들·성향·관심사 태그가 렌더된다', () => {
     renderCard();
@@ -41,7 +39,6 @@ describe('AvatarCard', () => {
     expect(screen.getByText('87')).toHaveClass('tnum');
   });
 
-  // 목록은 행마다 반복되므로 채워진 파란 CTA 를 쓰지 않는다 — secondary 다.
   it('매칭 버튼은 secondary(흰 서피스 + 파란 테두리)다', () => {
     renderCard();
     const match = screen.getByRole('button', { name: /매칭/ });

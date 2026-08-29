@@ -7,15 +7,12 @@ type Props = {
   avatar: AvatarDetail;
 };
 
-// wf-s2-core `ScreenAvatarDetail` 좌 상단 카드 — 이미지 56(r 12) + 이름 t-heading-sm + 인증 배지 /
-// 핸들·성향 caption mute / 소개문 body-sm secondary / 관심사 neutral 태그.
-// 매칭 요청 CTA 는 우측 featured 카드가 가진다 (화면당 채워진 파란 CTA 는 하나).
+// 매칭 요청 CTA 는 우측 featured 카드가 가진다 —
+// 이 헤더에는 버튼을 추가하지 않는다 (화면당 채워진 파란 CTA 는 하나).
 export function AvatarProfileHeader({ avatar }: Props) {
   return (
     <header className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-start gap-3">
-        {/* 아바타 사각 56 · radius 12 — 정본 wf-s2-core.jsx:107 `<Ph h={56} w={56} r={12} />`.
-            `--r-lg`(12) = `rounded-lg`. tone=wash (`--primary-wash` + `--primary`, 테두리 없음). */}
         <span
           aria-hidden="true"
           className="bg-primary-wash text-primary text-heading-sm flex h-14 w-14 shrink-0 items-center justify-center rounded-lg font-semibold uppercase"

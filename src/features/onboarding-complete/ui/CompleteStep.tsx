@@ -17,8 +17,6 @@ import { useGeneratedAvatar } from '../api/useGeneratedAvatar';
 import { useCompleteOnboarding } from '../api/useCompleteOnboarding';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// WizardShell(pages/onboarding/ui/WizardShell.tsx) 의 WIZARD_* 와 같은 값이다.
-
 const MAX_TUNE = 3;
 
 type StatKey = 'empathy' | 'proactivity' | 'humor' | 'sensitivity' | 'listening' | 'expressiveness';
@@ -82,7 +80,6 @@ function clampStat(value: number): number {
   return Math.min(100, Math.max(10, value));
 }
 
-// StatBar — 라벨 폭 72, 값 tnum (LAYOUT-NUMBERS § 카드 · 데이터 부품).
 function StatBarRow({ label, value, testId }: { label: string; value: number; testId: string }) {
   return (
     <>
@@ -107,7 +104,6 @@ type AvatarContentInnerProps = {
 
 function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerProps) {
   const toast = useToast();
-  // 기본은 읽기 전용 확인. "스탯 다듬기" 진입 시에만 튜닝 가능.
   const [tuning, setTuning] = useState(false);
   const [stats, setStats] = useState(avatar.stats);
   const [tuneCount, setTuneCount] = useState(0);
@@ -208,7 +204,6 @@ function AvatarContentInner({ avatar, onStart, isPending }: AvatarContentInnerPr
           )}
         </div>
 
-        {/* 생성 결과 카드 — 아바타 46 + 이름 + 배지 + 성향 · divider · 스탯 (S-02-07). */}
         <div className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
           <div className="flex items-center gap-3">
             <span
@@ -429,9 +424,7 @@ export function CompleteStep() {
   const navigate = useNavigate();
   const { hasPrimaryAvatar, isResolved, isUnknown } = useOnboardingCompletion();
 
-  // 대표 아바타가 "없다고 확인된" 경우에만 되돌린다.
-  // 조회 자체가 실패한 경우(isUnknown)까지 없음으로 취급하면, 여기서 밀어낸 화면이
-  // 다시 여기로 보내는 왕복이 생긴다. 근거가 없을 때는 화면을 옮기지 않는다.
+  // 조회 실패(isUnknown)까지 "없음"으로 취급하면 되돌아간 화면이 사용자를 다시 여기로 보내 왕복하게 된다.
   const shouldResume = isResolved && !isUnknown && !hasPrimaryAvatar;
 
   useEffect(() => {

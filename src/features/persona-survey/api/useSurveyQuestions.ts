@@ -16,9 +16,7 @@ async function fetchSurveyQuestions(): Promise<SurveyQuestion[]> {
   return apiResponseSurveyQuestionsSchema.parse(response.data).data;
 }
 
-// useQuery 사용 (useSuspenseQuery 미선택) 이유:
-//   useConnectStatus, usePublicKey 등 동일 레이어의 비-Suspense 훅과 패턴 일치를 우선.
-//   설문 페이지는 라우트 경계 아래에서 자체 isLoading/isError 분기 + refetch CTA 로 처리.
+// useSuspenseQuery 대신 useQuery — 이 화면은 자체 isLoading/isError 분기 + refetch CTA 로 처리한다.
 export function useSurveyQuestions(options: UseSurveyQuestionsOptions = {}) {
   return useQuery({
     queryKey: onboardingKeys.surveyQuestions(),

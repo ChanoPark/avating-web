@@ -2,11 +2,8 @@ import type { ReactNode } from 'react';
 import { Card } from '@shared/ui/Card';
 
 /**
- * 가입(S-01-02) · 로그인(S-01-03) 공통 2단 셸.
- * 정본: `.claude/design/2026-07-26-wireframe-v2/wf/wf-s1-entry.jsx` 의 `ScreenSignup` ·
- * `ScreenSignin` · `AuthAside`. 좌 폼 페인 flex 1 (padding 48/56, 가운데 정렬) +
- * 우 AuthAside 340 고정. 정본 아트보드는 1440 데스크톱 전용이라 모바일 규격이 없어,
- * 좁은 폭에서는 두 페인을 세로로 접기만 한다 (가로 스크롤 0).
+ * 정본 아트보드가 1440 데스크톱 전용이라 모바일 규격이 없다 — 좁은 폭에서는
+ * 두 페인을 세로로 접기만 한다.
  */
 
 export type AuthAsideItem = {
@@ -27,8 +24,7 @@ type AuthLayoutProps = {
   children: ReactNode;
 };
 
-// 로고 마크 — 정사각 19, radius = 19 × 0.28. 워드마크 = 19 × 0.78, weight 500,
-// letterSpacing -0.4px (LAYOUT-NUMBERS § 카드 · 데이터 부품).
+// 정본: LAYOUT-NUMBERS § 카드 · 데이터 부품 (로고 마크)
 function BrandLogo() {
   return (
     <span className="flex items-center gap-2">
@@ -38,8 +34,6 @@ function BrandLogo() {
   );
 }
 
-// AuthAside — 폭 340 고정, padding 48/36, bg-surface + 좌측 hairline.
-// 항목 = 26px 사각 번호 + 제목(t-caption/500) + 설명(t-micro t-mute, padding-left 34).
 function AuthAside({ items, note }: { items: readonly AuthAsideItem[]; note?: string }) {
   return (
     <aside
@@ -80,7 +74,6 @@ export function AuthLayout({
     <div className="bg-canvas text-ink flex min-h-screen flex-col lg:flex-row">
       <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12 lg:px-14">
         <section aria-labelledby={headingId} className="w-full max-w-[460px]">
-          {/* 폼 카드 — padding 38px 44px 34px, 내부 gap 20 */}
           <Card className="flex flex-col gap-5 px-6 pt-9.5 pb-8.5 sm:px-11">
             <BrandLogo />
 
