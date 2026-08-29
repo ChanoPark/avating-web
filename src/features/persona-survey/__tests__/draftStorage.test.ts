@@ -29,6 +29,16 @@ describe('draftStorage', () => {
       expect(loaded).toEqual({ answers: {} });
     });
 
+    it('interestTags·expressions 를 저장하고 로드할 수 있다', () => {
+      const draft = {
+        answers: { q1: 'a1' },
+        interestTags: ['심야 산책', '재즈'],
+        expressions: ['그치 그치'],
+      };
+      saveDraft(draft);
+      expect(loadDraft()).toEqual(draft);
+    });
+
     it('avatarName, description 포함 draft 를 저장하고 로드할 수 있다', () => {
       const draft = {
         answers: { Q_001: 'Q_001_ANS_2', Q_002: 'Q_002_ANS_4' },

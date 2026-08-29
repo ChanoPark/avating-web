@@ -218,13 +218,17 @@ describe('SurveyStep', () => {
     });
   });
 
-  describe('자주 쓰는 표현 페이지 (선택)', () => {
-    it('모든 질문 답변 후 자주 쓰는 표현 페이지가 노출된다', async () => {
+  describe('관심사 · 표현 페이지 (선택)', () => {
+    it('모든 질문 답변 후 관심사·표현 페이지가 노출된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await goToExpressionsPage(user);
+      expect(screen.getByLabelText('관심사 태그 입력')).toBeInTheDocument();
       expect(screen.getByLabelText('자주 쓰는 표현 입력')).toBeInTheDocument();
-      expect(screen.getByText('자주 쓰는 표현 · 선택 문항')).toBeInTheDocument();
+      expect(screen.getByText('A · 설문으로 만들기 — 선택 문항')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: '관심사와 자주 쓰는 말투를 알려주세요' })
+      ).toBeInTheDocument();
       expect(screen.getByText('3 / 3 · 선택 문항')).toBeInTheDocument();
     });
 

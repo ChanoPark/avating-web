@@ -4,84 +4,74 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ExpressionsField } from '../ExpressionsField';
 
-function Harness({ initial = [] as string[] }: { initial?: string[] }) {
-  const [value, setValue] = useState<string[]>(initial);
-  return <ExpressionsField value={value} onChange={setValue} />;
+function Harness({
+  initialTags = [] as string[],
+  initialExpressions = [] as string[],
+}: {
+  initialTags?: string[];
+  initialExpressions?: string[];
+}) {
+  const [interestTags, setInterestTags] = useState<string[]>(initialTags);
+  const [expressions, setExpressions] = useState<string[]>(initialExpressions);
+  return (
+    <ExpressionsField
+      interestTags={interestTags}
+      onInterestTagsChange={setInterestTags}
+      expressions={expressions}
+      onExpressionsChange={setExpressions}
+    />
+  );
 }
 
-describe('ExpressionsField (자주 쓰는 표현 chip 입력)', () => {
-  it('입력 필드와 추천 표현·이모지 칩이 렌더된다', () => {
+describe('ExpressionsField (관심사 태그 + 자주 쓰는 표현)', () => {
+  it('관심사 태그와 자주 쓰는 표현 두 입력이 함께 렌더된다', () => {
     render(<Harness />);
+    expect(screen.getByLabelText('관심사 태그 입력')).toBeInTheDocument();
     expect(screen.getByLabelText('자주 쓰는 표현 입력')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'ㅎㅎㅎ 추가' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '😄 추가' })).toBeInTheDocument();
   });
 
-  it('칩 카운터가 "n / 10" 으로 렌더된다', () => {
-    render(<Harness initial={['그치 그치']} />);
+  it('정본의 추천 태그 6종이 렌더된다', () => {
+    render(<Harness />);
+    for (const tag of ['독립서점', '전시', '러닝', '필름 사진', '베이킹', '천문']) {
+      expect(screen.getByRole('button', { name: `${tag} 추가` })).toBeInTheDocument();
+    }
+  });
+
+  it('정본의 자주 쓰이는 표현 4종이 렌더된다', () => {
+    render(<Harness />);
+    for (const expr of ['진짜요?', '오 신기하네', '아 그래서요', '음…']) {
+      expect(screen.getByRole('button', { name: `${expr} 추가` })).toBeInTheDocument();
+    }
+  });
+
+  it('이모지 추천 행은 렌더되지 않는다', () => {
+    render(<Harness />);
+    expect(screen.queryByText('자주 쓰는 이모지')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '😄 추가' })).not.toBeInTheDocument();
+  });
+
+  it('정본 안내 문구가 렌더된다', () => {
+    render(<Harness />);
+    expect(
+      screen.getByText('관심사 태그와 표현 모두 최대 10개 · 이모지 입력은 받지 않습니다.')
+    ).toBeInTheDocument();
+  });
+
+  it('두 입력의 칩은 서로 섞이지 않는다', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(screen.getByLabelText('관심사 태그 입력'), '심야 산책{Enter}');
+    await user.type(screen.getByLabelText('자주 쓰는 표현 입력'), '그치 그치{Enter}');
+
+    // 추천 태그에 없는 값이라 '삭제' 버튼은 각각 하나씩만 존재해야 한다.
+    expect(screen.getAllByRole('button', { name: '심야 산책 삭제' })).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: '그치 그치 삭제' })).toHaveLength(1);
+  });
+
+  it('각 입력의 카운터가 독립적으로 표시된다', () => {
+    render(<Harness initialTags={['재즈']} initialExpressions={['그치 그치', '~인 듯']} />);
     expect(screen.getByText('1 / 10')).toBeInTheDocument();
-  });
-
-  it('"추가" 칩을 누르면 입력 필드로 포커스가 이동한다', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    await user.click(screen.getByRole('button', { name: '추가' }));
-
-    expect(screen.getByLabelText('자주 쓰는 표현 입력')).toHaveFocus();
-  });
-
-  it('입력 후 Enter 로 칩이 추가된다', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    await user.type(screen.getByLabelText('자주 쓰는 표현 입력'), 'ㅋㅋ{Enter}');
-
-    expect(screen.getByRole('button', { name: 'ㅋㅋ 삭제' })).toBeInTheDocument();
-  });
-
-  it('공백만 입력 후 Enter 시 칩이 추가되지 않는다', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    await user.type(screen.getByLabelText('자주 쓰는 표현 입력'), '   {Enter}');
-
-    expect(screen.queryByRole('button', { name: /삭제$/ })).not.toBeInTheDocument();
-  });
-
-  it('이미 있는 표현은 중복 추가되지 않는다', async () => {
-    const user = userEvent.setup();
-    render(<Harness initial={['ㅋㅋ']} />);
-
-    await user.type(screen.getByLabelText('자주 쓰는 표현 입력'), 'ㅋㅋ{Enter}');
-
-    expect(screen.getAllByRole('button', { name: 'ㅋㅋ 삭제' })).toHaveLength(1);
-  });
-
-  it('추천 표현 칩 클릭 시 칩이 추가된다', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    await user.click(screen.getByRole('button', { name: 'ㅎㅎㅎ 추가' }));
-
-    expect(screen.getByRole('button', { name: 'ㅎㅎㅎ 삭제' })).toBeInTheDocument();
-  });
-
-  it('추천 이모지 클릭 시 칩이 추가된다', async () => {
-    const user = userEvent.setup();
-    render(<Harness />);
-
-    await user.click(screen.getByRole('button', { name: '🥲 추가' }));
-
-    expect(screen.getByRole('button', { name: '🥲 삭제' })).toBeInTheDocument();
-  });
-
-  it('칩 삭제 버튼 클릭 시 해당 표현이 제거된다', async () => {
-    const user = userEvent.setup();
-    render(<Harness initial={['그치 그치']} />);
-
-    await user.click(screen.getByRole('button', { name: '그치 그치 삭제' }));
-
-    expect(screen.queryByRole('button', { name: '그치 그치 삭제' })).not.toBeInTheDocument();
+    expect(screen.getByText('2 / 10')).toBeInTheDocument();
   });
 });
