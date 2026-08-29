@@ -12,7 +12,6 @@ const myAvatarsHandler = (
     id: string;
     initials: string;
     name: string;
-    handle: string;
     level: number;
     status: 'online' | 'busy' | 'offline';
     verified: boolean;
@@ -58,7 +57,6 @@ describe('MyAvatarGrid', () => {
             id: 'a',
             initials: 'AA',
             name: 'avatar-a',
-            handle: '@a',
             type: '내향·분석형',
             isPrimary: true,
           },
@@ -67,7 +65,6 @@ describe('MyAvatarGrid', () => {
             id: 'b',
             initials: 'BB',
             name: 'avatar-b',
-            handle: '@b',
             type: '외향·낭만형',
             isPrimary: false,
           },
@@ -76,7 +73,6 @@ describe('MyAvatarGrid', () => {
             id: 'c',
             initials: 'CC',
             name: 'avatar-c',
-            handle: '@c',
             type: '외향·분석형',
             isPrimary: false,
           },
@@ -101,7 +97,6 @@ describe('MyAvatarGrid', () => {
             id: 'b',
             initials: 'BB',
             name: 'avatar-b',
-            handle: '@b',
             type: '외향·낭만형',
             isPrimary: false,
           },
@@ -110,7 +105,6 @@ describe('MyAvatarGrid', () => {
             id: 'a',
             initials: 'HW',
             name: 'hyunwoo',
-            handle: '@hw',
             type: '내향·분석형',
             isPrimary: true,
           },
@@ -131,7 +125,6 @@ describe('MyAvatarGrid', () => {
             id: 'a',
             initials: 'HW',
             name: 'hyunwoo',
-            handle: '@hw',
             type: '내향·분석형',
             isPrimary: true,
           },
@@ -155,7 +148,6 @@ describe('MyAvatarGrid', () => {
             id: 'a',
             initials: 'HW',
             name: 'hyunwoo',
-            handle: '@hw',
             type: '내향·분석형',
             isPrimary: true,
             busy: true,
@@ -165,7 +157,6 @@ describe('MyAvatarGrid', () => {
             id: 'b',
             initials: 'BB',
             name: 'avatar-b',
-            handle: '@b',
             type: '외향·낭만형',
             isPrimary: false,
           },
@@ -186,7 +177,6 @@ describe('MyAvatarGrid', () => {
             id: 'a',
             initials: 'HW',
             name: 'hyunwoo',
-            handle: '@hw',
             type: '내향·분석형',
             isPrimary: true,
           },

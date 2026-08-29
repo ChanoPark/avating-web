@@ -19,7 +19,6 @@ const baseAvatar: AvatarDetail = {
   id: 'avatar-1',
   initials: 'MN',
   name: 'Moonlit Narrator',
-  handle: '@moonlit',
   level: 6,
   status: 'online',
   verified: true,

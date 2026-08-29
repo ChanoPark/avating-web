@@ -56,7 +56,6 @@ describe('dashboard MSW 핸들러 픽스처 정합성', () => {
       expect(first).toHaveProperty('id');
       expect(first).toHaveProperty('initials');
       expect(first).toHaveProperty('name');
-      expect(first).toHaveProperty('handle');
       expect(first).toHaveProperty('level');
       expect(first).toHaveProperty('status');
       expect(first).toHaveProperty('verified');

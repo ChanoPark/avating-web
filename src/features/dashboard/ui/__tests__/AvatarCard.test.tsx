@@ -8,7 +8,6 @@ const avatar: RecommendedAvatar = {
   id: 'avatar-1',
   initials: 'MN',
   name: 'Moonlit',
-  handle: '@moonlit',
   level: 3,
   status: 'online',
   verified: true,
@@ -25,11 +24,11 @@ function renderCard(overrides: Partial<RecommendedAvatar> = {}) {
 }
 
 describe('AvatarCard', () => {
-  it('이름·인증 배지·핸들·성향·관심사 태그가 렌더된다', () => {
+  it('이름·인증 배지·성향·관심사 태그가 렌더된다', () => {
     renderCard();
     expect(screen.getByRole('button', { name: 'Moonlit' })).toBeInTheDocument();
     expect(screen.getByText('인증')).toBeInTheDocument();
-    expect(screen.getByText('@moonlit · 내향 · 낭만형')).toBeInTheDocument();
+    expect(screen.getByText('내향 · 낭만형')).toBeInTheDocument();
     expect(screen.getByText('서촌')).toBeInTheDocument();
   });
 

@@ -15,7 +15,6 @@ import type { PartnerAvatarSummary } from '../ui/PartnerAvatarCard';
 const partner: PartnerAvatarSummary = {
   initials: 'MN',
   name: 'Moonlit Narrator',
-  handle: '@moonlit',
   type: '내향·낭만형',
   verified: true,
   status: 'online',
@@ -59,7 +58,7 @@ describe('MatchRequestModal', () => {
       const dialog = await screen.findByRole('dialog');
       expect(within(dialog).getByText('Moonlit Narrator')).toBeInTheDocument();
       expect(within(dialog).getByText('인증')).toBeInTheDocument();
-      expect(within(dialog).getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
+      expect(within(dialog).getByText('내향·낭만형')).toBeInTheDocument();
       // 온라인은 `av-badge--success` + `av-badge__dot` 이다 — 장식 점까지 확인한다.
       const onlineDot = within(dialog).getByText('온라인').firstElementChild;
       expect(onlineDot).toHaveAttribute('aria-hidden', 'true');

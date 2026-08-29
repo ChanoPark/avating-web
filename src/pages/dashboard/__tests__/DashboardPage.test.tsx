@@ -171,7 +171,6 @@ describe('DashboardPage 통합 시나리오', () => {
                   id: 'avatar-1',
                   initials: 'HW',
                   name: 'Moonlit',
-                  handle: '@moonlit',
                   level: 3,
                   status: 'online',
                   verified: true,

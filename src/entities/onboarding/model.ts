@@ -74,7 +74,6 @@ export const generatedAvatarStatsSchema = z.object({
 export const generatedAvatarSchema = z.object({
   initials: z.string().min(1).max(4),
   name: z.string().min(1).max(30),
-  handle: z.string().regex(/^@[a-zA-Z0-9_]{2,30}$/),
   level: z.number().int().nonnegative(),
   type: z.string().min(1),
   stats: generatedAvatarStatsSchema,

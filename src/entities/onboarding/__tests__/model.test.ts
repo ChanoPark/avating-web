@@ -252,7 +252,6 @@ describe('generatedAvatarSchema', () => {
   const validAvatar = {
     initials: 'AB',
     name: '루나',
-    handle: '@luna_av',
     level: 3,
     type: '내향 · 분석형',
     stats: {
@@ -323,8 +322,10 @@ describe('generatedAvatarSchema', () => {
     ).toThrow();
   });
 
-  it('handle 이 @ 없이 시작하면 throw 한다', () => {
-    expect(() => generatedAvatarSchema.parse({ ...validAvatar, handle: 'luna_av' })).toThrow();
+  it('handle 은 스키마에 없다 — 응답에 남아 있어도 결과에서 빠진다', () => {
+    expect(generatedAvatarSchema.parse({ ...validAvatar, handle: '@luna_av' })).not.toHaveProperty(
+      'handle'
+    );
   });
 
   it('initials 가 빈 문자열이면 throw 한다', () => {
@@ -387,7 +388,6 @@ describe('apiResponseGeneratedAvatar', () => {
       data: {
         initials: 'AB',
         name: '루나',
-        handle: '@luna_av',
         level: 3,
         type: '내향 · 분석형',
         stats: {
