@@ -10,8 +10,7 @@ import {
 async function createAvatarFromSurvey(
   data: AvatarCreateFromSurveyRequest
 ): Promise<AvatarCreateFromSurveyResponse> {
-  // RHF resolver 와 독립적인 API 경계 검증 — 훅 직접 호출(테스트·외부 호출자) 시에도
-  // 잘못된 페이로드가 네트워크 단계로 새는 것을 차단.
+  // defense-in-depth: RHF resolver 와 별개로 API 경계에서 한번 더 검증한다.
   const payload = avatarCreateFromSurveyRequestSchema.parse(data);
   const response = await http.post('/api/avatars/survey', payload);
   return avatarCreateFromSurveyResponseSchema.parse(response.data).data;

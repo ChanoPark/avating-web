@@ -15,12 +15,10 @@ type Props = {
   partner: PartnerAvatarSummary;
 };
 
-// wf-s3-request `ScreenMatchRequestSend` 의 상대 카드 — 이미지 44(r 11) + 이름 + 인증 배지 /
-// 핸들·성향 micro / 우측 온라인 배지. 관심사 태그는 정본에 없다 (상세 화면에서 본다).
+// 관심사 태그는 정본(wf-s3-request)에 없다 — 상세 화면에서 본다.
 export function PartnerAvatarCard({ partner }: Props) {
   return (
     <div className="border-hairline bg-surface shadow-card flex items-center gap-2.75 rounded-lg border p-3.5">
-      {/* 아바타 사각 — radius = size × 0.24, tone=wash (wash 배경 + primary 텍스트, 테두리 없음) */}
       <div
         aria-hidden="true"
         className="bg-primary-wash text-primary text-body-sm flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] font-semibold uppercase"

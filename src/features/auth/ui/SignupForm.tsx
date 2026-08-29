@@ -14,8 +14,7 @@ type SignupFormProps = {
   onSuccess?: () => void;
 };
 
-// UI 강도 표시 전용 — entities/auth/model.ts 의 hasAllRequiredCategories 와 의도적으로 독립 유지.
-// 그쪽은 submit 검증 gate(통과/불통과), 이쪽은 4-단계 UX score 라 분리.
+// entities/auth/model.ts 의 hasAllRequiredCategories(제출 gate)와는 의도적으로 분리했다 — 이 함수는 4단계 UX 강도만 보여준다.
 function computePasswordStrength(password: string): {
   score: 0 | 1 | 2 | 3 | 4;
   label: string;
@@ -50,10 +49,6 @@ const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
   4: 'text-success',
 };
 
-// 폼 입력 계약은 shared/ui/Input 의 base 와 같다 — caption(13px) · radius `--r-sm` ·
-// padding 9px 12px · placeholder 는 `--ink-mute`(`--ink-faint` 금지).
-// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · padding 9px 12px
-// · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
 const inputBase =
   'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
 
@@ -91,8 +86,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (values: SignupFormValues) => {
-    // termsAgreed / marketingOptIn 은 서버 payload 비포함 — 와이어프레임 미명세 + 사용자 결정
-    // (인수인계 plan §5.1). 클라이언트 측 폼 검증·로컬 기록 용도로만 사용.
+    // termsAgreed / marketingOptIn 은 서버 payload 에서 제외한다 (plan §5.1).
     try {
       await mutateAsync({
         email: values.email,
@@ -121,7 +115,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
       noValidate
     >
       <div className="flex flex-col gap-5">
-        {/* 폼 전체 실패는 상단 배너 하나로만 알린다 — 필드 오류는 각 필드 아래 인라인. */}
         {errors.root?.message && (
           <div
             role="alert"
@@ -163,7 +156,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <span className="bg-hairline h-px flex-1" />
         </div>
 
-        {/* 필드 그룹 — 정본 Col gap 14, 순서는 이메일 → 비밀번호 → 닉네임 */}
         <div className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
             <label htmlFor="signup-email" className="text-caption text-ink-secondary font-medium">

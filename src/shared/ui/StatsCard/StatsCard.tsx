@@ -15,18 +15,13 @@ type StatsCardProps = {
   value: string;
   delta?: { text: string; tone: DeltaTone };
   ariaLabel: string;
-  /**
-   * 이 카드만 로드에 실패했을 때. 정본 S-11-06 STAT — "카드 하나만 실패하면 값만 `—`로
-   * 두고 나머지는 그대로 보여 줍니다." 라벨은 유지하고 값과 델타만 교체한다.
-   */
+  /** 카드 단위 로드 실패 — 라벨은 유지하고 값·델타만 `—`로 바꾼다(S-11-06 STAT). */
   failed?: boolean;
 };
 
 const FAILED_VALUE = '—';
 const FAILED_DELTA = '불러오지 못했어요';
 
-// LAYOUT-NUMBERS § 카드·데이터 부품 — padding 14, gap 4, value 26px, 라벨/델타 아이콘 13px.
-// 숫자는 전부 tabular-nums.
 export function StatsCard({
   icon: Icon,
   label,

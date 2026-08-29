@@ -21,7 +21,6 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
-// 이름은 IntroStep 에서 draft 로 저장된 상태를 가정한다.
 function seedNameDraft() {
   saveDraft({ answers: {}, avatarName: '루나', description: '차분히 듣고 깊게 답합니다' });
 }
@@ -145,8 +144,7 @@ describe('SurveyStep — 에러 처리', () => {
       expect(alert.textContent ?? '').toMatch(/알 수 없는 오류/);
     });
 
-    // 이름·설명 입력은 IntroStep 에만 있어서 RHF 가 붙인 필드 에러가 이 화면에는 표시될 자리가 없다.
-    // 안내가 없으면 제출 버튼이 말없이 아무것도 안 하는 것처럼 보인다.
+    // 이름·설명 입력 필드는 IntroStep 에만 있어 이 화면에는 필드 에러를 표시할 자리가 없다 — 그래서 alert 로 안내한다.
     it('draft 에 설명이 없으면 제출 시 1단계로 돌아가라는 안내가 alert 로 렌더된다', async () => {
       const user = userEvent.setup();
       saveDraft({ answers: {}, avatarName: '루나', description: '' });

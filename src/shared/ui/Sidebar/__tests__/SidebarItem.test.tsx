@@ -53,7 +53,6 @@ describe('SidebarItem', () => {
       expect(link).not.toHaveAttribute('aria-current', 'page');
     });
 
-    // LAYOUT-NUMBERS § AppShell — "내비 활성: --primary-wash 배경 + --primary 텍스트 + weight 500".
     it('active=true 시 primary-wash 배경 + primary 텍스트가 링크에 적용된다', () => {
       render(
         <MemoryRouter>
@@ -66,7 +65,6 @@ describe('SidebarItem', () => {
       expect(link.className).toContain('font-medium');
     });
 
-    // "내비 비활성: 배경 transparent + --ink-mute + weight 400".
     it('active=false 시 투명 배경 + ink-mute 텍스트다', () => {
       render(
         <MemoryRouter>
@@ -143,7 +141,6 @@ describe('SidebarItem', () => {
       expect(link.getAttribute('aria-label') ?? link.textContent ?? '').toMatch(/3/);
     });
 
-    // "내비 카운트 배지: av-badge av-badge--brand, height 18, fontSize 11, padding 0 7px, tnum".
     it('카운트 배지는 brand 배지 규격 + tabular-nums 다', () => {
       render(
         <MemoryRouter>

@@ -1,9 +1,8 @@
 import { http, HttpResponse } from 'msw';
 
-// 백엔드 계약 v2 endpoint prefix:
-//   - 신규/이전 도메인: /api/persona/* (설문, 연결 코드), /api/avatars/* (아바타 생성)
-//   - 잔존 도메인: /api/onboarding/* (connect-status, avatar 조회, 온보딩 완료)
-//     → 백엔드가 의도적으로 분리 유지(계정 라이프사이클은 onboarding, 페르소나/아바타 자원은 persona/avatars)
+// endpoint prefix 가 두 갈래다 — 설문·아바타 생성은 /api/persona·avatars, 계정 라이프사이클
+// (연결 상태·온보딩 완료)은 /api/onboarding 그대로다. 백엔드가 의도적으로 나눠 둔 것이라
+// 하나로 통일하면 안 된다.
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 export const mockSurveyQuestionsResponse = {

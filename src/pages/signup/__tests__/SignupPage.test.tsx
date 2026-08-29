@@ -89,8 +89,6 @@ describe('SignupPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/onboarding');
   });
 
-  // 온보딩 로컬 상태는 브라우저 단위라 계정을 갈아타도 그대로 남는다.
-  // 새 계정에 앞사람의 진행도·입력이 딸려오면 온보딩이 엉뚱한 자리에서 시작된다.
   describe('가입 성공 시 이전 온보딩 흔적 정리', () => {
     it('이전 계정의 진행도·생성방법 기록을 지운다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');

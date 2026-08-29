@@ -5,8 +5,7 @@ type Props = {
   stats: AvatarStats;
 };
 
-// wf-s2-core `ScreenAvatarDetail` 좌 하단 `아바타 스탯` 카드 — StatBar 행만 쌓는다(레이더 없음).
-// StatBar 규격: 라벨 폭 72, 값 tnum (LAYOUT-NUMBERS § 카드·데이터 부품).
+// `아바타 스탯` 카드는 StatBar 행만 쌓고, 레이더는 넣지 않는다.
 export function AvatarStatsPanel({ stats }: Props) {
   return (
     <section

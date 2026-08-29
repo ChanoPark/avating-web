@@ -62,8 +62,6 @@ describe('AppShellLayout', () => {
     expect(screen.getByRole('navigation', { name: '메인 내비게이션' })).toBeInTheDocument();
   });
 
-  // v2 내비 6항목에는 "대시보드"가 없다. 대시보드·아바타 상세는 모두 "탐색"이 덮는다
-  // (LAYOUT-NUMBERS § 사이드바 내비 6항목, wf-s2-core 의 AppShell active="탐색").
   it('/dashboard 경로에서 "탐색" 항목이 aria-current="page" 이다', () => {
     renderWithProviders('/dashboard');
     const exploreItem = screen.getByRole('link', { name: /탐색/ });
@@ -115,8 +113,6 @@ describe('AppShellLayout', () => {
     expect(locationBefore).toBe(locationAfter);
   });
 
-  // v2.6 에서 계정 행의 크레딧 자리를 톱니 버튼이 가져갔다
-  // (.claude/design/2026-08-21-wireframe-v2.6 `AccountMenu`). 잔여 다이아는 대시보드 Stat 카드에 남는다.
   describe('크레딧', () => {
     it('사이드바 계정 행에 다이아 잔액이 없다', () => {
       renderWithProviders('/dashboard');
@@ -131,8 +127,6 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // v2.6 신규 — 사이드바 계정 행의 톱니를 누르면 위로 열리는 계정 메뉴.
-  // 정본: .claude/design/2026-08-21-wireframe-v2.6/wf/wf-kit-excerpt.jsx `AccountMenu`.
   describe('계정 메뉴 (톱니 드롭다운)', () => {
     function gear() {
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
@@ -188,14 +182,11 @@ describe('AppShellLayout', () => {
       expect(gear()).toHaveFocus();
     });
 
-    // 열린 오버레이는 Tab 이 안에서만 돌아야 한다 (checklist § 5.1 item 2·3).
-    // 트랩이 없으면 메뉴가 열린 채로 포커스만 뒤 화면(알림 벨·본문)으로 빠져나간다.
     it('Tab 이 메뉴 안에서 순환한다 — 마지막 항목에서 톱니로 돌아온다', async () => {
       const user = userEvent.setup();
       renderWithProviders('/dashboard');
 
       await user.click(gear());
-      // 열림 직후 포커스는 첫 항목(내 정보)에 있다.
       await user.tab();
       expect(screen.getByRole('button', { name: '로그아웃' })).toHaveFocus();
 
@@ -208,7 +199,6 @@ describe('AppShellLayout', () => {
       renderWithProviders('/dashboard');
 
       await user.click(gear());
-      // 내 정보 → 톱니(트랩 안의 첫 요소)까지 되짚은 뒤 한 번 더.
       await user.tab({ shift: true });
       expect(gear()).toHaveFocus();
 
@@ -229,8 +219,7 @@ describe('AppShellLayout', () => {
     it('로그아웃을 누르면 세션과 쿼리 캐시가 비워지고 /login 으로 이동한다', async () => {
       const user = userEvent.setup();
       const { queryClient } = renderWithProviders('/dashboard');
-      // 개인 데이터가 캐시에 남으면 다음에 로그인한 사람이 그대로 본다.
-      // 마운트된 훅이 clear 직후 쿼리를 다시 등록하므로 "캐시 0개" 대신 호출 자체를 본다.
+      // 훅이 clear 직후 쿼리를 다시 등록하므로, 캐시가 비었는지 보는 대신 clear 호출 자체를 확인한다.
       const clearSpy = vi.spyOn(queryClient, 'clear');
 
       await user.click(gear());
@@ -245,8 +234,6 @@ describe('AppShellLayout', () => {
       clearSpy.mockRestore();
     });
 
-    // 온보딩 진행 기록은 브라우저 단위라 계정을 따라가지 않는다. 지우지 않으면 다음에 로그인한
-    // 사람이 이전 사용자가 고른 생성 방법으로 밀려 들어간다.
     it('로그아웃 시 온보딩 진행 기록도 지운다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'creating');
       localStorage.setItem('avating:onboarding:method', 'connect');
@@ -260,10 +247,7 @@ describe('AppShellLayout', () => {
       expect(localStorage.getItem('avating:onboarding:method')).toBeNull();
     });
 
-    /* spec-gap — 정본에 메뉴 항목만 있고 목적지 화면이 없다. `wf/wf-spec.jsx` SPEC_SCREENS 41개에
-       계정 정보 화면이 없고(S-09-01 `내 아바타` 는 아바타 스탯 화면이라 다른 것), 2026-08-21
-       사용자 결정으로 카드는 정본대로 그리되 플로우에는 연결하지 않는다. 임의 연결도, 임의
-       '준비중' 처리도 이 테스트가 회귀로 잡는다. */
+    // 추측 연결이나 '준비중' 문구로 고치지 않는다 — 사양이 오면 onClick 만 채운다.
     it('내 정보는 정본에 목적지가 없어 아무 데도 이동하지 않는다', async () => {
       const user = userEvent.setup();
       renderWithProviders('/dashboard');
@@ -278,7 +262,6 @@ describe('AppShellLayout', () => {
   });
 
   describe('반응형 (웹 비율 · main-dashboard.md §10)', () => {
-    // 데스크톱 폭은 디자인 v2 에서 232px 로 바뀌었다 (LAYOUT-NUMBERS § AppShell). w-58 = 14.5rem.
     it('고정 레일은 모바일에서 숨고(md 부터 표시) 태블릿 64px·데스크톱 232px 로 리플로우한다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
@@ -333,7 +316,6 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // LAYOUT-NUMBERS § 사이드바 내비 6항목 — 순서·라벨이 정본이다.
   describe('내비 6항목 (LAYOUT-NUMBERS § 사이드바 내비 6항목)', () => {
     const EXPECTED = ['탐색', '매칭 요청', '시뮬레이션', '실제 대화', '내 아바타', '대화 기록'];
 
@@ -361,7 +343,6 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // LAYOUT-NUMBERS § AppShell — 상단 바 height 56(h-14) · padding 0 28px(px-7) · 하단 hairline.
   describe('상단 바 (LAYOUT-NUMBERS § AppShell)', () => {
     it('height 56 · padding 0 28px · 하단 hairline · surface 배경', () => {
       renderWithProviders('/dashboard');
@@ -379,7 +360,7 @@ describe('AppShellLayout', () => {
       expect(within(header).getByRole('button', { name: '알림' })).toBeInTheDocument();
     });
 
-    // v2 는 문자로 도형을 그리지 않는다 — `⌘` 는 Pretendard 에 없어 시스템 폰트로 폴백한다.
+    // ⌘ 는 Pretendard 에 없어 시스템 폰트로 폴백해 깨져 보인다.
     it('⌘ 등 문자 글리프를 쓰지 않는다', () => {
       renderWithProviders('/dashboard');
       expect(document.body.textContent ?? '').not.toMatch(/[⌘◇▲↵]/);
@@ -387,7 +368,6 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // LAYOUT-NUMBERS § AppShell — 본문 padding 28(p-7) · 세로 gap 16(gap-4) · 캔버스 배경.
   describe('본문 (LAYOUT-NUMBERS § AppShell)', () => {
     it('본문 padding 은 28(p-7) 이다', () => {
       renderWithProviders('/dashboard');
@@ -411,9 +391,6 @@ describe('AppShellLayout', () => {
   });
 
   describe('메인 콘텐츠 폭', () => {
-    // LAYOUT-NUMBERS § AppShell: "넓은 뷰포트: 사이드바는 232px 고정, 본문이 늘어납니다."
-    // 정본은 본문 폭 상한을 규정하지 않는다 — 우측 사이드 카드(260~272)가 고정폭이고
-    // 가운데 열만 신축하는 방식이라 상한이 필요 없다.
     it('콘텐츠 컨테이너에 폭 상한을 두지 않는다', () => {
       renderWithProviders('/dashboard');
       const outlet = screen.getByTestId('outlet-content');
@@ -455,8 +432,6 @@ describe('AppShellLayout', () => {
       useChromeBreadcrumbStore.getState().clearTrail();
     });
 
-    // 시각 계약: 13.5px · `--ink-mute` · gap 7 · 구분자 ChevronRight 13px ·
-    // 마지막 항목만 `--ink` + weight 500 (LAYOUT-NUMBERS § AppShell).
     it('13.5px · ink-mute · gap 7 로 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
@@ -486,8 +461,6 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // LAYOUT-NUMBERS § AppShell — 계정 행: 상단 hairline, padding 10, 내부 4px 6px,
-  // 아바타 26 circle, 닉네임 13px. v2.6 에서 크레딧 자리를 톱니가 가져갔다.
   describe('계정 행 (LAYOUT-NUMBERS § AppShell)', () => {
     it('상단 hairline + padding 10(p-2.5) · 내부 padding 4px 6px(py-1 px-1.5)', () => {
       renderWithProviders('/dashboard');

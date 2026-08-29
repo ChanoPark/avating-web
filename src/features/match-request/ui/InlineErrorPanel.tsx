@@ -12,8 +12,7 @@ type Props = {
   onRetry?: () => void;
 };
 
-// 에러 패널은 danger wash 서피스가 아니라 흰 서피스 + danger 테두리다
-// (틴트 채움 + 같은 색 테두리 금지).
+// 에러 패널은 danger wash 서피스가 아니라 흰 서피스 + danger 테두리다 (틴트 채움 금지).
 const panelClass =
   'border-danger bg-surface text-caption text-ink flex flex-col gap-2 rounded-lg border p-3';
 

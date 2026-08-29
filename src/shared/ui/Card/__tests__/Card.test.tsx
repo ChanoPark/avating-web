@@ -8,7 +8,6 @@ describe('Card', () => {
     expect(screen.getByText('카드 콘텐츠')).toBeInTheDocument();
   });
 
-  // 흰 서피스 + hairline + shadow-card + radius 12 가 기본 카드 계약이다.
   it('기본 카드는 흰 서피스 + hairline + shadow-card + rounded-lg 다', () => {
     const { container } = render(<Card>기본</Card>);
     const card = container.firstChild as HTMLElement;

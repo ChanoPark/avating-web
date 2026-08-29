@@ -105,7 +105,6 @@ describe('FilterChips', () => {
   });
 
   it('유일하게 활성된 칩을 토글 오프 시 isAllActive → resetFilter() 경로가 호출된다', async () => {
-    // online 만 true 인 상태에서 "온라인" 클릭 → next = 모두 false → isAllActive(next)=true → resetFilter
     const onFilterChange = vi.fn();
     const user = userEvent.setup();
     const onlyOnlineFilter: RecommendedAvatarFilter = {

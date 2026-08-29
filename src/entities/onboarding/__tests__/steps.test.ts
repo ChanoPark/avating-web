@@ -27,7 +27,6 @@ describe('ONBOARDING_STEPS (와이어프레임 v2.6 단계 매핑)', () => {
     expect('/onboarding/welcome' in ONBOARDING_STEPS).toBe(false);
   });
 
-  // v2.6 에서 생성 방법 선택 화면이 삭제됐다 — 방법은 S-02-01 환영 카드에서만 고른다.
   it('생성 방법 선택은 더 이상 단계가 아니다', () => {
     expect('/onboarding/method' in ONBOARDING_STEPS).toBe(false);
     expect(ONBOARDING_FALLBACK_LABELS).not.toContain('생성 방법 선택');

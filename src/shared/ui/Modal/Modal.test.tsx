@@ -85,15 +85,15 @@ describe('Modal', () => {
           body
         </Modal>
       );
-      // Sheet 의 첫 포커스 가능 요소는 헤더 행의 닫기 아이콘이다 (LAYOUT-NUMBERS § Sheet).
+      // Sheet 의 첫 포커스 가능 요소는 헤더 행의 닫기 아이콘이다.
       const close = screen.getByRole('button', { name: '닫기' });
       const confirm = screen.getByRole('button', { name: '확인' });
 
       confirm.focus();
-      await user.tab(); // 마지막 → 처음 순환
+      await user.tab();
       expect(close).toHaveFocus();
 
-      await user.tab({ shift: true }); // 처음 → 마지막 역방향
+      await user.tab({ shift: true });
       expect(confirm).toHaveFocus();
     });
 
@@ -127,7 +127,8 @@ describe('Modal', () => {
       await user.click(trigger);
       const dialog = screen.getByRole('dialog');
       expect(dialog).toBeInTheDocument();
-      // 열림 시 다이얼로그 컨테이너로 포커스 이동 (a11y § 5.1 item 1) — 복귀 단언만으로는 회귀 미포착
+      // 열릴 때 포커스가 다이얼로그로 이동하는지도 함께 확인한다(§5.1 item 1) — 복귀 단언만으로는
+      // 이 회귀를 못 잡는다.
       expect(dialog).toHaveFocus();
 
       await user.keyboard('{Escape}');
@@ -137,9 +138,7 @@ describe('Modal', () => {
   });
 
   describe('시맨틱 톤 (components.css `.av-badge--*`)', () => {
-    // v2 Sheet 는 상단 액센트 레일을 두지 않는다. 톤 신호는 헤더 배지 행으로 옮겼고,
-    // 배지 색은 wash 배경 + 시맨틱 텍스트 + 투명 테두리다.
-    // (v1 의 `border-t-brand` 는 `--color-brand` 가 없어 아무 스타일도 만들지 않던 죽은 클래스였다.)
+    // v2 Sheet 는 상단 레일이 아니라 헤더 배지 행으로 톤을 표시한다.
     it.each([
       ['info', 'bg-primary-wash'],
       ['success', 'bg-success-wash'],
@@ -156,7 +155,6 @@ describe('Modal', () => {
       expect(badge).not.toBeNull();
       expect(badge?.className).toContain(washClass);
       expect(badge?.className).toContain('border-transparent');
-      // 배지 안에는 문자 글리프가 아니라 라인 아이콘이 들어간다.
       expect(badge?.querySelector('svg')).not.toBeNull();
     });
 

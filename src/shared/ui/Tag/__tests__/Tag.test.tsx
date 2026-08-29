@@ -8,7 +8,6 @@ describe('Tag', () => {
     expect(screen.getByText('BETA')).toBeInTheDocument();
   });
 
-  // `.av-tag{background:var(--primary-wash);color:var(--primary-press);border-radius:pill}` — 테두리 없음.
   it('기본은 primary-wash 채움 + primary-press 텍스트 + pill 이고 테두리가 없다', () => {
     render(<Tag>BETA</Tag>);
     const tag = screen.getByText('BETA');
@@ -44,7 +43,6 @@ describe('Tag', () => {
     expect(tag.className).toContain('border-hairline');
   });
 
-  // 상태 신호는 `.av-badge` 계약이라 Tag 가 아니라 Badge 가 맡는다 — v1 별칭은 제거됐다.
   it('badge 의 22px 고정 높이 계약을 갖지 않는다', () => {
     render(<Tag>BETA</Tag>);
     expect(screen.getByText('BETA').className).not.toContain('h-5.5');

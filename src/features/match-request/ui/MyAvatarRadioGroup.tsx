@@ -11,8 +11,7 @@ type Props = {
   'aria-describedby'?: string | undefined;
 };
 
-// wf-s3-request 의 RadioCard — 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 +
-// 1px inset 링이다 (`Card featured`, FilterChip `--on` 과 같은 계약).
+// 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + 1px inset 링이다.
 export function MyAvatarRadioGroup({
   avatars,
   value,
@@ -70,7 +69,6 @@ export function MyAvatarRadioGroup({
             >
               {checked && <span className="bg-surface h-1.5 w-1.5 rounded-full" />}
             </span>
-            {/* 아바타 사각 — radius = size × 0.24, tone=wash */}
             <span
               aria-hidden="true"
               className="bg-primary-wash text-primary text-micro flex h-7 w-7 shrink-0 items-center justify-center rounded-sm font-semibold uppercase"
@@ -80,7 +78,7 @@ export function MyAvatarRadioGroup({
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
                 <span className="text-caption text-ink truncate font-medium">{avatar.name}</span>
-                {/* 정본 RadioCard 의 meta 는 배지가 아니라 중립 태그다 (`av-tag av-tag--neutral`). */}
+                {/* meta 는 Badge 가 아니라 중립 Tag 다. */}
                 {avatar.isPrimary && <Tag variant="neutral">대표</Tag>}
                 {avatar.busy && <Tag variant="neutral">매칭 중</Tag>}
               </span>

@@ -10,14 +10,11 @@ type AvatarCardProps = {
   onMatch: (id: string) => void;
 };
 
-// wf-s2-core `AvatarCard` — padding 14 · gap 10. 이미지 40(r 10) + 이름 13/500 + 인증 배지 /
-// 핸들·성향 micro / 관심사 neutral 태그 / 하단 예상 호감도 + 매칭 secondary sm.
 // 목록은 행마다 반복되므로 채워진 파란 CTA 를 쓰지 않는다 (밴드당 primary 는 하나).
 export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
   return (
     <li className="border-hairline bg-surface shadow-card relative flex flex-col gap-2.5 rounded-lg border p-3.5">
       <div className="flex items-center gap-2.5">
-        {/* 아바타 사각 — radius = size × 0.24, tone=wash */}
         <span
           aria-hidden="true"
           className="bg-primary-wash text-primary text-caption flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-semibold uppercase"
@@ -26,8 +23,7 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex items-center gap-1.5">
-            {/* 카드 전면을 덮는 after 오버레이로 카드 전체가 클릭 대상이 된다 —
-                중첩 버튼 없이 이름 버튼 하나가 상세 진입을 담당한다. */}
+            {/* after 오버레이로 카드 전체를 클릭 대상으로 만든다 — 버튼을 중첩하지 않고 이름 버튼 하나로 처리한다. */}
             <button
               type="button"
               onClick={() => {

@@ -179,16 +179,12 @@ describe('SignupForm', () => {
       const termsCheckbox = screen.getByRole('checkbox', { name: /동의합니다/ });
 
       await waitFor(() => {
-        // 단언 1: 에러 메시지 텍스트
         expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
-        // 단언 2: aria-invalid="true"
         expect(termsCheckbox).toHaveAttribute('aria-invalid', 'true');
-        // 단언 3: 에러 시각 스타일(border-danger + outline-danger)
         expect(termsCheckbox).toHaveClass('border-danger');
         expect(termsCheckbox).toHaveClass('outline-danger');
-        // 단언 4: aria-describedby 가 에러 id 를 가리킴
         expect(termsCheckbox).toHaveAttribute('aria-describedby', 'signup-terms-error');
-        // 단언 5: 에러 p 요소가 해당 id 를 가짐 (describedby 양방향 정합)
+        // aria-describedby 가 가리키는 id 를 에러 p 가 실제로 갖는지 — 양방향 정합.
         expect(screen.getByText(/약관에 동의해주세요/).closest('p')).toHaveAttribute(
           'id',
           'signup-terms-error'
@@ -201,7 +197,6 @@ describe('SignupForm', () => {
       renderWithProviders(<SignupForm />);
 
       await fillValidForm(user);
-      // 한 번 체크해제 → 제출 → 에러
       await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
@@ -209,7 +204,6 @@ describe('SignupForm', () => {
         expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
       });
 
-      // 다시 체크 → 즉시 에러 사라짐
       await user.click(screen.getByRole('checkbox', { name: /동의합니다/ }));
 
       await waitFor(() => {
@@ -389,7 +383,6 @@ describe('SignupForm', () => {
       await waitFor(() => {
         const banner = screen.getByText(/입력 정보를 확인해 주세요/);
         expect(banner).toBeInTheDocument();
-        // role=alert 컨테이너 안에 위치
         expect(banner.closest('[role="alert"]')).not.toBeNull();
       });
     });

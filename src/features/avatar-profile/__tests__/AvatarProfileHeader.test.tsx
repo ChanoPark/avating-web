@@ -30,7 +30,6 @@ describe('AvatarProfileHeader', () => {
     render(<AvatarProfileHeader avatar={avatar} />);
     expect(screen.getByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
     expect(screen.getByText('인증')).toBeInTheDocument();
-    // chat7: 레벨(Lv.x) 은 전 화면에서 제거됨
     expect(screen.queryByText(/^Lv\./)).not.toBeInTheDocument();
     expect(screen.getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
     expect(screen.getByText('심야의 책방을 좋아하는 낭만가.')).toBeInTheDocument();
@@ -43,8 +42,6 @@ describe('AvatarProfileHeader', () => {
     expect(screen.queryByText('인증')).not.toBeInTheDocument();
   });
 
-  // 정본(wf-s2-core ScreenAvatarDetail)에서 채워진 파란 CTA 는 우측 featured 카드 하나뿐이다.
-  // 프로필 헤더는 어떤 버튼도 갖지 않는다.
   it('헤더에는 CTA 버튼이 없다', () => {
     render(<AvatarProfileHeader avatar={avatar} />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

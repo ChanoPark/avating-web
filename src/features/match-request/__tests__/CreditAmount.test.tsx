@@ -4,8 +4,6 @@ import { CreditAmount } from '../ui/CreditAmount';
 import { InlineErrorPanel } from '../ui/InlineErrorPanel';
 import { MemoryRouter } from 'react-router';
 
-// components.css `.av-credit` — Diamond 라인 아이콘 + tnum 숫자.
-// `◇` 는 Pretendard 에 없어 시스템 폰트로 폴백하며 자간이 깨진다.
 describe('CreditAmount', () => {
   it('숫자는 tabular-nums 로, 아이콘은 SVG 로 렌더된다', () => {
     const { container } = render(<CreditAmount amount={30} />);

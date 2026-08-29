@@ -36,7 +36,6 @@ describe('StatsGrid', () => {
     expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
     expect(screen.getByText('평균 호감도')).toBeInTheDocument();
     expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-    // 정본 4번째 슬롯은 `잔여 다이아`(Diamond) — gemsBalance 는 이미 파싱되던 필드다.
     expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
     expect(screen.getByLabelText(/잔여 다이아 1240개/)).toBeInTheDocument();
   });
@@ -84,7 +83,6 @@ describe('StatsGrid', () => {
   });
 
   it('a11y — axe 위반 0 (jest-axe 미설치 — 도입 후 활성화)', () => {
-    // jest-axe 미설치 상태. GREEN 단계에서 의존성 추가 후 활성화.
     expect(true).toBe(true);
   });
 

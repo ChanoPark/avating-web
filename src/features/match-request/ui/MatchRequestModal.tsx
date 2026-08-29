@@ -23,7 +23,7 @@ import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCar
 import { InlineErrorPanel, type InlineErrorKind } from './InlineErrorPanel';
 import { CreditAmount } from './CreditAmount';
 
-// 상태 안내 패널 — 흰 서피스 + hairline. 톤은 테두리가 아니라 텍스트 색이 나른다.
+// 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
 const NOTICE_CLASS = 'text-caption border-hairline bg-surface rounded-lg border p-3';
 
 type InlineError = { kind: InlineErrorKind };
@@ -209,7 +209,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border focus:outline-none"
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        {/* 헤더 행 — padding 18px 24px 0, 좌 배지 행 / 우 닫기 아이콘 16px (LAYOUT-NUMBERS § Sheet) */}
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
           <Tag>MATCH REQUEST</Tag>
           <button
@@ -224,7 +223,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           </button>
         </div>
 
-        {/* 타이틀 블록 — padding 14px 24px 0, gap 6 */}
         <div className="flex flex-col gap-1.5 px-6 pt-3.5">
           <h2 id={titleId} className="text-heading-md text-ink">
             이 아바타에게 소개팅을 요청할까요?
@@ -240,7 +238,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           }}
           noValidate
         >
-          {/* 본문 — padding 18px 24px, gap 12 */}
           <div className="flex flex-col gap-3 px-6 py-4.5">
             <PartnerAvatarCard partner={partner} />
 
@@ -325,8 +322,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 aria-describedby={errors.greeting !== undefined ? greetingErrorId : greetingHelpId}
                 {...register('greeting')}
                 className={cn(
-                  // forms.css `.av-textarea` — 흰 서피스 · 15px · lh 1.55
-                  // · min-height 92 · resize: vertical.
                   'bg-surface text-body text-ink min-h-23 w-full resize-y rounded-sm border px-3 py-2.25 leading-[1.55]',
                   'ease-brand transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
                   errors.greeting ? 'border-danger' : 'border-hairline-input',
@@ -355,7 +350,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               />
             )}
 
-            {/* 요청 비용 — soft 카드 (흰 서피스 위 회색 캔버스면) */}
             <div
               id={costNoteId}
               className="bg-canvas border-hairline flex items-center justify-between gap-3 rounded-lg border p-3"
@@ -371,7 +365,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             </div>
           </div>
 
-          {/* 액션 바 — padding 16px 24px, 상단 hairline, 좌우 배치 */}
           <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
             <Button
               type="button"

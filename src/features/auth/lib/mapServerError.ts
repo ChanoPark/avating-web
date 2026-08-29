@@ -17,10 +17,7 @@ type ServerErrorLike = {
   };
 };
 
-/**
- * 계정 열거(account enumeration) 차단 — 비밀번호가 틀렸는지 계정이 없는지 구분되면
- * 가입 여부를 훑을 수 있다. 400·404 를 한 문구로 합친다.
- */
+// 계정 열거(account enumeration) 차단 — 400·404 를 한 문구로 합친다.
 const CREDENTIALS_MESSAGE = '이메일 또는 비밀번호가 올바르지 않습니다.';
 const PASSWORD_FORMAT_MESSAGE = '비밀번호 형식이 올바르지 않습니다.';
 
@@ -75,8 +72,8 @@ export function mapServerError<T extends FieldValues>(
     });
   }
 
-  // RSA 복호화 실패는 사용자가 아무리 비밀번호를 고쳐도 통과하지 못하는 구현 오류다.
-  // 비밀번호 형식 문제로 표시하면 사용자가 무한히 재시도하게 된다(실서버 QA S4).
+  // RSA 복호화 실패는 사용자가 고칠 수 없는 구현 오류다 — 비밀번호 형식 오류로 표시하면 사용자가
+  // 무한히 재시도한다.
   if (code === SERVER_ERROR_CODES.AUTH_DECRYPT_FAILED) {
     console.error('[auth] 비밀번호 복호화 실패 — 공개키·암호화 구현을 확인해야 한다', {
       code,

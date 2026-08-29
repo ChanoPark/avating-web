@@ -26,17 +26,14 @@ export function SidebarItem({
   const { mode } = useSidebarContext();
   const isActive = active || (to !== undefined && location.pathname === to);
 
-  // 아이콘 전용(라벨 숨김)으로 보이는 모드인지 — collapsed 는 항상, responsive 는 md 구간에서.
   const iconOnly = mode === 'collapsed' || mode === 'responsive';
 
-  // LAYOUT-NUMBERS § AppShell — 내비 항목 padding 9px 12px, 라벨-아이콘 gap 9.
   const layoutClass =
     mode === 'expanded'
       ? 'gap-2.25 px-3 py-2.25'
       : mode === 'collapsed'
         ? 'justify-center px-0 py-2.5'
-        : // responsive: md 아이콘 전용 → lg 라벨
-          'justify-center px-0 py-2.5 lg:justify-start lg:gap-2.25 lg:px-3 lg:py-2.25';
+        : 'justify-center px-0 py-2.5 lg:justify-start lg:gap-2.25 lg:px-3 lg:py-2.25';
 
   const labelClass =
     mode === 'expanded' ? '' : mode === 'collapsed' ? 'sr-only' : 'sr-only lg:not-sr-only';
@@ -45,8 +42,6 @@ export function SidebarItem({
     badge !== undefined && badge > 0 && (mode === 'expanded' || mode === 'responsive');
   const badgeClass = mode === 'responsive' ? 'hidden lg:flex' : 'flex';
 
-  // 활성 = `--primary-wash` 배경 + `--primary` 텍스트 + weight 500,
-  // 비활성 = 투명 + `--ink-mute` + weight 400 (LAYOUT-NUMBERS § AppShell). radius 8.
   const baseClass = cn(
     'text-caption flex w-full items-center rounded-md transition-colors',
     'duration-[var(--dur-fast)] ease-brand',
@@ -66,7 +61,6 @@ export function SidebarItem({
       {badgeVisible && (
         <span
           aria-label={`${badge}개`}
-          // `av-badge av-badge--brand`, height 18, fontSize 11, padding 0 7px, tnum.
           className={cn(
             'bg-primary-wash text-primary-press text-micro tnum rounded-pill ml-auto h-4.5 items-center justify-center px-1.75',
             badgeClass
@@ -78,7 +72,6 @@ export function SidebarItem({
     </>
   );
 
-  // 아이콘 전용으로 보일 수 있는 모드에서는 접근 가능한 이름·툴팁을 라벨로 제공.
   const ariaLabel = iconOnly ? label : undefined;
   const titleAttr = iconOnly ? label : undefined;
 

@@ -23,7 +23,6 @@ function rail() {
   return screen.getByRole('navigation', { name: '온보딩 단계' });
 }
 
-// 디자인 시스템 v2.1: 진행 상태는 상단 진행바가 아니라 좌측 스텝 레일이 전담한다.
 describe('OnboardingPage (WizardShell)', () => {
   it('/onboarding/welcome 은 레일 없는 플랫 환영 모멘트다', () => {
     renderAt('/onboarding/welcome');
@@ -31,8 +30,6 @@ describe('OnboardingPage (WizardShell)', () => {
     expect(screen.getByTestId('step-welcome')).toBeInTheDocument();
   });
 
-  // 각주는 화면마다 자리가 다르다 — 레일이 있으면 레일 하단, 플랫 형태에서는 폼 카드 바깥 아래다
-  // (정본 `wf/wf-kit.jsx` 의 `Page` 가 `!steps` 분기에서 카드 밖에 렌더한다).
   it('/onboarding/welcome 의 각주는 레일이 아니라 폼 카드 바깥 아래에 렌더된다', () => {
     renderAt('/onboarding/welcome');
     expect(
@@ -40,8 +37,6 @@ describe('OnboardingPage (WizardShell)', () => {
     ).toBeInTheDocument();
   });
 
-  // 폼 카드 폭은 정본 `Page` 의 `maxWidth = max(max, 440) + 88` 이다.
-  // 환영은 `max={780}` → 868 이라 방법 카드 3열이 들어가고, 나머지는 `max={460}` → 548 이다.
   it('/onboarding/welcome 의 폼 카드만 넓은 폭(868)을 쓴다', () => {
     const { unmount } = renderAt('/onboarding/welcome');
     expect(screen.getByTestId('step-welcome').closest('div[class*="max-w-"]')).toHaveClass(
@@ -74,7 +69,6 @@ describe('OnboardingPage (WizardShell)', () => {
     ]);
   });
 
-  // v2.6 에서 생성 방법 선택 화면이 삭제됐다 — 레일에도 그 단계가 없다.
   it('레일에 생성 방법 선택 단계가 없다', () => {
     renderAt('/onboarding/intro');
     expect(within(rail()).queryByText('생성 방법 선택')).not.toBeInTheDocument();
@@ -98,7 +92,6 @@ describe('OnboardingPage (WizardShell)', () => {
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  // 같은 2단계를 공유하되 라벨은 경로를 따라간다 — Bot 연동 중에 `성향 설문` 이 뜨면 안 된다(QA S8-3).
   it('/onboarding/connect 는 2번째 스텝을 공유하되 라벨은 ChatGPT Bot 대화다', () => {
     renderAt('/onboarding/connect');
     const current = within(rail()).getByRole('listitem', { current: 'step' });

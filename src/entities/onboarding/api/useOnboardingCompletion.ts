@@ -1,37 +1,25 @@
 import { usePrimaryAvatar } from '@entities/avatar/api/usePrimaryAvatar';
 
 export type OnboardingCompletion = {
-  /** 온보딩 완료 여부의 정본 — 이 회원에게 대표 아바타가 있는가. */
   hasPrimaryAvatar: boolean;
-  /** 판정이 끝났는지. false 면 아직 서버 응답을 기다리는 중이라 화면을 옮기면 안 된다. */
+  /** false 면 아직 서버 응답 대기 중 — 이때 화면을 옮기면 안 된다. */
   isResolved: boolean;
-  /**
-   * 조회 자체가 실패해 판정할 수 없었는지.
-   * "확인해보니 대표 아바타가 없다"(404) 와 "확인을 못 했다"(그 밖의 오류) 는 구분해야 한다 —
-   * 뒤섞으면 서버가 잠깐 흔들린 것만으로 완료한 회원을 온보딩으로 되돌려보내게 된다.
-   */
+  /** 조회 실패로 판정 불가한 상태 — 404(없음)와 다른 오류를 구분해, 오류 시 완료 회원을 온보딩으로 되돌리지 않는다. */
   isUnknown: boolean;
 };
 
 type Options = {
   /**
-   * 조회를 걸지 여부. 기본 true.
-   * 비로그인 방문자도 보는 화면(랜딩)에서는 반드시 로그인 여부로 꺼야 한다 — 토큰 없이
-   * 조회하면 401 이 나고 refresh 인터셉터가 돌아, 화면을 보기만 해도 세션이 정리된다.
-   * 꺼져 있는 동안에는 `isResolved` 가 false 로 남아 호출부가 판정을 믿지 않는다.
+   * 기본 true. 비로그인 방문자도 보는 화면에서는 꺼야 한다 — 토큰 없이 조회하면 401 → refresh → clear() 가 돈다.
+   * 꺼져 있는 동안 `isResolved` 는 false 로 남는다 — 호출부가 판정을 신뢰하면 안 된다.
    */
   enabled?: boolean;
 };
 
 /**
- * 온보딩을 마쳤는지 판정한다.
- *
- * localStorage 의 진행 기록은 브라우저 단위라 계정 전환을 보지 못하고, 아바타를 만들지 않고도
- * `complete` 로 올라가던 경로가 있었다. 그래서 완료 판정은 서버가 가진 대표 아바타 유무로만 한다.
- * (첫 아바타는 서버가 자동으로 대표로 지정한다 — openapi `POST /api/avatars/survey` 설명)
- *
- * 조회에 실패하면 미완료로 떨어뜨린다 — 완료로 잘못 판정하면 온보딩 진입 자체가 막혀
- * 사용자가 스스로 빠져나올 방법이 없어진다. 반대 방향의 오판은 온보딩을 한 번 더 보는 것으로 끝난다.
+ * 완료 판정은 서버의 대표 아바타 보유 여부만으로 한다 — localStorage 진행 기록은 브라우저 단위라
+ * 계정 전환을 보지 못하고, 아바타 없이도 complete 로 올라갈 수 있다.
+ * 조회 실패는 미완료로 떨어뜨린다 — 완료로 오판하면 온보딩에 갇히지만, 반대 오판은 온보딩을 한 번 더 보는 것으로 끝난다.
  */
 export function useOnboardingCompletion({ enabled = true }: Options = {}): OnboardingCompletion {
   const { data, isPending, isError } = usePrimaryAvatar({ enabled });

@@ -54,14 +54,9 @@ export const http: AxiosInstance = axios.create({
 
 let refreshInflight: Promise<string> | null = null;
 
-/**
- * refresh 를 부르는 **유일한** 통로다. 서버가 refresh token rotation + 회원당 1개를 쓰므로
- * 401 인터셉터와 부팅 복구(app/bootstrapAuth)가 각자 refresh 를 부르면
- * 나중 것이 `AUTH_401_006` 으로 죽는다. 두 경로 모두 이 함수를 거쳐 in-flight 를 공유한다.
- *
- * `refreshInflight` 는 모듈 스코프 `let` 이라 ESM 밖에서는 대입할 수 없다 —
- * 가드를 함수 안에 품는 이유다.
- */
+// refresh 를 부르는 유일한 통로다 — 서버가 rotation + 회원당 1개 refresh token 만 허용해서,
+// 401 인터셉터와 부팅 복구가 각자 부르면 나중 호출이 AUTH_401_006 으로 죽는다. 둘 다 이
+// 함수를 거쳐 in-flight 를 공유해야 한다.
 export function refreshAccessToken(): Promise<string> {
   if (refreshInflight) {
     return refreshInflight;

@@ -177,7 +177,6 @@ describe('LoginForm', () => {
       });
     });
 
-    // 계정 열거 차단 — 400(비밀번호 불일치)과 404(회원 없음)가 같은 문구여야 한다.
     it('400 AUTH_400_002 응답도 404 와 같은 문구를 배너에 표시한다', async () => {
       server.use(publicKeyHandlers.success, loginHandlers.passwordMismatch);
       const user = userEvent.setup();
@@ -249,7 +248,6 @@ describe('LoginForm', () => {
         expect(screen.getByText(/이메일 또는 비밀번호가 올바르지 않습니다/)).toBeInTheDocument();
       });
 
-      // 배너는 1개, 필드 인라인 에러로 중복 표시하지 않는다
       expect(screen.getAllByRole('alert')).toHaveLength(1);
       const banner = screen.getAllByRole('alert')[0]!;
       expect(banner.querySelector('svg')).not.toBeNull();

@@ -17,7 +17,6 @@ import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onbo
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
-// 확인 화면의 정상 상태 = 대표 아바타를 보유한 상태.
 function renderComplete(primary: AvatarSummary | null = SAMPLE_PRIMARY_AVATAR) {
   return renderWithProviders(<CompleteStep />, {
     initialRoute: '/onboarding/complete',
@@ -32,7 +31,6 @@ vi.mock('react-router', async (importOriginal) => ({
   useNavigate: () => mockNavigate,
 }));
 
-// 와이어프레임 v2: Step 4 는 읽기 전용 확인. 튜닝은 "스탯 다듬기" 진입 후에만 가능.
 async function enterTuning(user: ReturnType<typeof userEvent.setup>) {
   await waitFor(() => {
     expect(screen.getByRole('button', { name: /스탯 다듬기/ })).toBeInTheDocument();
@@ -73,8 +71,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    // 조회 실패까지 "대표 아바타 없음" 으로 취급하면, 서버가 흔들릴 때마다 완료한 사용자를
-    // 온보딩으로 밀어내고 그 화면이 다시 여기로 보내는 왕복이 생긴다.
+    // 조회 실패까지 미완료로 취급하면, 서버가 흔들릴 때마다 완료한 사용자가 온보딩과 이 화면을 왕복하게 된다.
     it('보유 여부를 확인하지 못하면 화면을 옮기지 않는다', async () => {
       server.use(primaryAvatarHandlers.serverError);
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });

@@ -10,9 +10,7 @@ const PUBLIC_INFO_ROWS: { key: keyof AvatarPublicInfo; label: string }[] = [
   { key: 'job', label: '직군' },
 ];
 
-// wf-s2-core `ScreenAvatarDetail` 우측 `공개 정보` PropertyList — 행 13px, padding `9px 0`,
-// 행 사이 hairline (LAYOUT-NUMBERS § PropertyList 행). 세션 이력(호감도·턴) 노출은
-// 프라이버시 사유로 제거되고 비식별 공개 정보로 대체됨 (chat2/8/13).
+// 세션 이력(호감도·턴)은 프라이버시 사유로 노출하지 않고 비식별 공개 정보만 보여준다.
 export function AvatarIntroPanel({ publicInfo }: Props) {
   return (
     <section

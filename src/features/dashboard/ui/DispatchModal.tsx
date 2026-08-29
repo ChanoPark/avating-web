@@ -52,7 +52,6 @@ export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchM
       onClose={handleClose}
       title="매칭 확인"
       description={`${avatarName} 아바타와 매칭을 시작할까요?`}
-      // 액션 바는 좌우 배치 — 좌 ghost 취소 / 우 채워진 파란 CTA 하나 (LAYOUT-NUMBERS § Sheet).
       footer={
         <>
           <Button variant="ghost" onClick={handleClose} disabled={isPending}>

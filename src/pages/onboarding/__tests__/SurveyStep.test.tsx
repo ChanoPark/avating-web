@@ -23,7 +23,6 @@ const MOCK_Q2_TITLE = /팀장님 때문에/i;
 const MOCK_Q1_ANS1 = /속으로만 생각하고 기다린다/i;
 const MOCK_Q2_ANS1 = /상황 파악 우선/i;
 
-// 와이어프레임 v2: 이름·설명은 IntroStep(Step 1)에서 draft 로 저장된다. 설문 제출은 draft 이름을 사용한다.
 function seedNameDraft() {
   saveDraft({ answers: {}, avatarName: '루나', description: '차분한 분석가' });
 }
@@ -69,8 +68,7 @@ describe('SurveyStep', () => {
       });
     });
 
-    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 는 creating 으로 마이그레이션된다 —
-    // 되돌릴 곳이 없으므로 그대로 설문을 이어서 보여준다.
+    // 레거시 'method' 기록은 creating 으로 마이그레이션된다 — 되돌릴 곳이 없어 그대로 보여준다.
     it('레거시 method 기록이면 redirect 없이 설문을 이어서 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'method');
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
@@ -91,8 +89,8 @@ describe('SurveyStep', () => {
       });
     });
 
-    // 진행 기록의 complete 는 완료를 보장하지 않는다. 여기서 확인 화면으로 되돌리면
-    // 대표 아바타가 없는 확인 화면이 다시 이 화면으로 보내 왕복이 된다.
+    // 진행 기록의 complete 는 완료를 보장하지 않는다 — 확인 화면으로 되돌리면 대표 아바타
+    // 없는 확인 화면이 다시 여기로 보내 왕복이 된다.
     it('progress 가 complete 여도 대표 아바타가 없으면 설문을 이어서 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');
       renderWithProviders(<SurveyStep />, {
@@ -129,7 +127,6 @@ describe('SurveyStep', () => {
       await waitFor(() => {
         expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
       });
-      // mock 질문 2개 + 표현 단계 1개 = 3페이지.
       expect(screen.getByText('1 / 3')).toBeInTheDocument();
       expect(screen.getByText('33%')).toBeInTheDocument();
     });

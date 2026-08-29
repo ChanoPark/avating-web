@@ -17,7 +17,6 @@ vi.mock('react-router', async (importOriginal) => ({
 const PROGRESS_KEY = 'avating:onboarding:progress';
 const METHOD_KEY = 'avating:onboarding:method';
 
-// 기본은 "대표 아바타 없음" — 온보딩 도중의 정상 상태다.
 function renderIntro(primary: AvatarSummary | null = null) {
   return renderWithProviders(<IntroStep />, { queryClient: queryClientWithPrimaryAvatar(primary) });
 }
@@ -102,8 +101,6 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(nameInput).not.toHaveAttribute('aria-invalid');
     });
 
-    // 설명은 서버 SurveyAvatarCreateRequest 에서 필수다. SurveyStep 에는 설명 입력이 없어
-    // 여기서 못 받으면 제출 시점에 사용자가 고칠 수 없는 검증 실패로 끝난다.
     it('설명이 비어 있으면 다음 클릭 시 검증 에러를 보이고 이동하지 않는다', async () => {
       const user = userEvent.setup();
       renderIntro();
@@ -118,7 +115,6 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    // v2.6: 생성 방법 선택 화면이 사라져 Step 1 다음은 곧장 Step 2(설문 · Bot)다.
     // 방법은 환영 화면에서 이미 골라 METHOD_KEY 에 들어 있다.
     it('이름 입력 후 다음 → draft 저장 + progress=creating + 고른 방법 화면(설문) 이동', async () => {
       localStorage.setItem(METHOD_KEY, 'survey');
@@ -149,8 +145,6 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(localStorage.getItem(PROGRESS_KEY)).toBe('creating');
     });
 
-    // URL 직접 진입 등으로 방법을 고른 적이 없으면 고르는 자리(환영)로 되돌린다 —
-    // 둘 중 하나를 임의로 택하면 사용자가 고르지 않은 경로로 밀어넣게 된다.
     it('방법을 고른 기록이 없으면 다음 → 환영 화면으로 되돌린다', async () => {
       const user = userEvent.setup();
       renderIntro();
@@ -208,9 +202,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
     });
   });
 
-  // 완료 판정은 진행 기록이 아니라 대표 아바타 보유 여부로 한다.
-  // 예전에는 progress==='complete' 만 보고 튕겨서, 아바타를 만든 적 없는 사용자도
-  // 확인 화면(에러 상태)에 갇혔다.
+  // 완료 판정은 진행 기록이 아니라 대표 아바타 보유 여부로 한다 — progress 만 보면 만든 적 없는 사용자도 확인 화면에 갇힌다.
   describe('완료 가드', () => {
     it('대표 아바타가 있으면 확인 화면으로 보낸다', () => {
       renderIntro(SAMPLE_PRIMARY_AVATAR);

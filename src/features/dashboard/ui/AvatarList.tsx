@@ -39,7 +39,7 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
 
   return (
     <>
-      {/* 4열 카드 그리드 gap 12 (wf-s2-core ScreenDashboard). 세그먼트 `표` 뷰는 미설계라 1차 제외. */}
+      {/* 세그먼트 `표` 뷰는 미설계라 1차 제외 (spec-gap). */}
       <ul
         aria-label="추천 아바타 목록"
         className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
@@ -81,11 +81,7 @@ function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
   );
 }
 
-/**
- * 로딩 스켈레톤은 실제 4열 카드 그리드와 같은 골격을 세운다. 한 줄 텍스트로 두면
- * 데이터 도착 시 대시보드 하단이 카드 높이만큼 통째로 밀려 CLS 가 발생한다.
- * 카드 내부 3단(아바타 행 / 태그 행 / 호감도+버튼 행)을 AvatarCard 와 맞춘다.
- */
+// 실제 카드와 같은 골격을 세운다 — 단순 텍스트로 두면 데이터 도착 시 카드 높이만큼 CLS 가 발생한다.
 function AvatarListSkeleton() {
   return (
     <div

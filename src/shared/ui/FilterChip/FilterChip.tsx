@@ -6,8 +6,7 @@ type FilterChipProps = {
   onToggle: (label: string) => void;
 };
 
-// components.css `.av-chip` + `.av-chip--selectable`/`--on`.
-// 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + 1px inset 링이다.
+// components.css `.av-chip` — 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + inset 링이다.
 export function FilterChip({ label, active, onToggle }: FilterChipProps) {
   return (
     <button

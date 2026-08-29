@@ -14,15 +14,11 @@ type ModalProps = {
   title: string;
   description?: ReactNode;
   children?: ReactNode;
-  /** 액션 바 내용 — 상단 hairline 이 그어진 좌우 배치 영역에 들어간다. */
   footer?: ReactNode;
-  /** 액션 바 아래 가운데 정렬 각주. */
   footnote?: ReactNode;
-  /** 시맨틱 톤 — 비-neutral 은 헤더 배지 행에 톤 배지를 표시한다. */
   tone?: ModalTone;
 };
 
-// components.css `.av-badge--*` — 톤 배지는 wash 배경 + 시맨틱 텍스트, 테두리는 투명.
 const TONE_CONFIG: Record<Exclude<ModalTone, 'neutral'>, { badge: string; icon: LucideIcon }> = {
   info: { badge: 'bg-primary-wash text-primary-press', icon: Info },
   success: { badge: 'bg-success-wash text-success', icon: Check },
@@ -43,7 +39,6 @@ export function Modal({
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
 
-  // Tab/Shift+Tab 을 다이얼로그 내부로 순환 가두기 (키보드 a11y § 5.1 item 2·3).
   useFocusTrap(open, dialogRef);
 
   useEffect(() => {
@@ -59,7 +54,7 @@ export function Modal({
 
   useEffect(() => {
     if (!open) return undefined;
-    // 열림 직전 포커스를 저장했다가 닫힐 때 트리거로 복귀 (키보드 a11y § 5.1 item 4).
+    // 열림 직전 포커스를 저장했다가 닫힐 때 트리거로 되돌린다(키보드 a11y §5.1 item 4).
     const active = document.activeElement;
     prevFocusRef.current = active instanceof HTMLElement ? active : null;
     dialogRef.current?.focus();
@@ -86,7 +81,6 @@ export function Modal({
         className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
-      {/* Sheet — 폭 560 · radius 16 · hairline · shadow-float (LAYOUT-NUMBERS § Sheet). */}
       <div
         ref={dialogRef}
         role="dialog"
@@ -96,7 +90,6 @@ export function Modal({
         className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        {/* 헤더 행 — padding 18px 24px 0, 좌 배지 행 / 우 닫기 아이콘 16px */}
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
           <div className="flex items-center gap-2">
             {toneCfg && ToneIcon && (
@@ -121,7 +114,6 @@ export function Modal({
           </button>
         </div>
 
-        {/* 타이틀 블록 — padding 14px 24px 0, gap 6 */}
         <div
           className={cn('flex flex-col gap-1.5 px-6 pt-3.5', children === undefined && 'pb-4.5')}
         >
@@ -129,12 +121,10 @@ export function Modal({
           {description !== undefined && <p className="text-body-sm text-ink-mute">{description}</p>}
         </div>
 
-        {/* 본문 — padding 18px 24px, gap 12 */}
         {children !== undefined && (
           <div className="flex flex-col gap-3 px-6 py-4.5">{children}</div>
         )}
 
-        {/* 액션 바 — padding 16px 24px, 상단 hairline, 좌우 배치 */}
         {footer !== undefined && (
           <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
             {footer}

@@ -50,7 +50,6 @@ describe('MyAvatarGrid', () => {
       });
     });
 
-    // 정본(wf-s2-core ScreenDashboard) 카드 헤더의 액션은 `추가하기` 링크 하나뿐이다.
     it('아바타가 3개여도 액션은 "추가하기" 하나뿐이다', async () => {
       server.use(
         myAvatarsHandler([
@@ -94,7 +93,6 @@ describe('MyAvatarGrid', () => {
   });
 
   describe('아바타 요약', () => {
-    // 정본 카드는 대표 아바타 한 명만 보여준다 (폭 300 고정).
     it('대표 아바타 한 명만 요약으로 노출된다', async () => {
       server.use(
         myAvatarsHandler([
@@ -143,7 +141,6 @@ describe('MyAvatarGrid', () => {
       await waitFor(() => {
         expect(screen.getByText('활성')).toBeInTheDocument();
       });
-      // 정본 wf-s2-core `ScreenDashboard` 는 `av-badge--success` + `av-badge__dot` 이다.
       // 라벨만 보면 dot 유실을 놓치므로 장식 점의 존재까지 단언한다.
       const dot = screen.getByText('활성').firstElementChild;
       expect(dot).toHaveAttribute('aria-hidden', 'true');

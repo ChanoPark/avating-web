@@ -22,7 +22,7 @@ function renderWithPrimary(primary: AvatarSummary | null = null) {
   });
 }
 
-/** 방법 카드 CTA — 카드 제목이 아니라 CTA 라벨로 찾는다 (정본 `ONB_METHODS[].cta`). */
+/** 방법 카드 CTA — 카드 제목이 아니라 CTA 라벨로 찾는다. */
 function surveyCta() {
   return screen.getByRole('button', { name: /설문으로 만들기/ });
 }
@@ -78,9 +78,8 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       expect(within(prompt).getByText('약 5분')).toBeInTheDocument();
     });
 
-    /* 정본(v2.5)은 첫 카드에만 `borderColor: var(--primary)` + 같은 색 inset 링을 준다.
-       2026-08-18 사용자 지시로 그 강조를 제거했다 — 세 카드는 시각적으로 동등하다.
-       design-fidelity 스윕이 정본만 보고 파란 테두리를 되돌리지 않도록 여기서 고정한다. */
+    // 정본은 첫 카드에 파란 테두리 강조를 주지만 이 앱은 쓰지 않는다 —
+    // design-fidelity 가 정본만 보고 되돌리지 않도록 여기서 고정한다.
     it('세 카드가 같은 테두리를 쓴다 — 첫 카드 파란 테두리 강조는 없다', () => {
       renderWithProviders(<WelcomeStep />);
       const classNames = screen
@@ -91,8 +90,7 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       expect(classNames[0]).not.toMatch(/border-primary|inset/);
     });
 
-    /* 정본은 카드 CTA 를 `Btn icon="arrowRight"` 로 그리지만 2026-08-18 사용자 지시로
-       화살표를 뺐다. 위 테두리 건과 같은 이유로 고정한다. */
+    // 정본은 CTA 에 화살표 아이콘을 두지만 이 앱은 두지 않는다 — 위 테두리 건과 같은 이유로 고정한다.
     it('카드 CTA 에는 화살표 아이콘이 없다', () => {
       renderWithProviders(<WelcomeStep />);
       for (const cta of [surveyCta(), botCta(), promptCta()]) {
@@ -100,8 +98,7 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       }
     });
 
-    // v2.6: 생성 방법 선택은 이 화면의 카드가 됐다. 각주·레일이 말하는 3단계와 숫자를 맞춘다
-    // (정본 리스트는 아직 4항목이라 어긋나 있다 — 2026-08-21 사용자 결정으로 3항목이 정답).
+    // 정본 리스트는 4항목이지만 이 화면은 3항목이 정답이다.
     it('앞으로 할 일 3단계 체크리스트가 렌더된다 — 2번은 세 방법을 아우르는 라벨이다', () => {
       renderWithProviders(<WelcomeStep />);
       expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
@@ -167,10 +164,8 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
     });
   });
 
-  /* 프롬프트 방식은 정본(Claude Design v2.5)에 진입 카드만 있고 목적지 화면·데이터 계약이 없다.
-     `wf/wf-spec.jsx` SPEC_SCREENS 41개 어디에도 대응 화면이 없고 S-02-03 은 여전히 2택이다.
-     2026-08-18 사용자 결정: 카드는 정본대로 그리되 플로우에는 연결하지 않는다(spec-gap 보류).
-     이 테스트가 그 결정을 못 박는다 — 임의 연결도, 임의 '준비중' 처리도 회귀로 잡힌다. */
+  // spec-gap — 프롬프트 방식은 정본에 진입 카드만 있고 목적지가 없어 연결하지 않는다.
+  // 이 테스트가 그 결정을 못 박는다 — 임의 연결도 '준비중' 처리도 회귀로 잡힌다.
   describe('프롬프트 방식 — 정본 미정의로 미연결 보류 (spec-gap)', () => {
     it('카드와 CTA 는 정본대로 렌더되지만 클릭해도 아무 데도 이동하지 않는다', async () => {
       const user = userEvent.setup();
@@ -192,12 +187,10 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
     });
   });
 
-  // 진행 기록이 남아 있으면 처음이 아니라 "멈춘 자리"로 이어져야 한다.
-  // 예전에는 무조건 /onboarding/intro 로 보냈고, intro 가드가 그걸 다시 튕겨내
-  // 사용자 눈에는 버튼이 죽은 것처럼 보였다.
+  // 진행 기록이 남아 있으면 처음이 아니라 "멈춘 자리"로 이어져야 한다 — 무조건 /onboarding/intro 로
+  // 보내면 intro 가드가 다시 튕겨내 사용자 눈에는 버튼이 죽은 것처럼 보인다.
   describe('진행 기록이 있을 때 이어서 진행', () => {
-    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 기록은 creating 으로 마이그레이션된다.
-    // 카드를 다시 고르면 그 방법의 화면으로 이어진다.
+    // 레거시 'method' 기록은 creating 으로 마이그레이션된다 — 카드를 다시 고르면 그 화면으로 이어진다.
     it('레거시 method 기록이 있어도 방금 고른 방법의 화면으로 이어진다', async () => {
       localStorage.setItem(PROGRESS_KEY, 'method');
       const user = userEvent.setup();

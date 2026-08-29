@@ -22,13 +22,10 @@ describe('avatarSummarySchema (서버 AvatarSummaryResponse)', () => {
     expect(avatarSummarySchema.parse(valid)).toEqual(valid);
   });
 
-  // description 은 "저장된 값이 없으면 빈 문자열" 이라고 계약에 적혀 있다.
   it('description 이 빈 문자열이어도 통과한다', () => {
     expect(avatarSummarySchema.parse({ ...valid, description: '' }).description).toBe('');
   });
 
-  // stats 는 PersonaStatType 7종이 키인 맵이고 값은 0.0~100.0 의 double 이다.
-  // 정수를 강제하면 72.5 같은 실제 값이 떨어져 나간다.
   it('stats 의 소수 값을 보존한다', () => {
     expect(avatarSummarySchema.parse(valid).stats.OPENNESS).toBe(72.5);
   });

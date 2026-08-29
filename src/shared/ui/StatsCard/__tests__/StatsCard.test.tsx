@@ -59,7 +59,6 @@ describe('StatsCard', () => {
     });
   });
 
-  // LAYOUT-NUMBERS § 카드·데이터 부품 — "StatCard … value fontSize 26" = `--fs-display-md`.
   it('value 는 26px display 타입 + tabular-nums 로 렌더된다', () => {
     render(<StatsCard {...defaultProps} />);
     const value = screen.getByText('47');
@@ -88,8 +87,6 @@ describe('StatsCard', () => {
   });
 
   it('a11y — axe 위반 0 (vitest-axe 미설치 — jest-axe 도입 후 활성화)', () => {
-    // vitest-axe / jest-axe 가 미설치 상태임. GREEN 단계에서 의존성 추가 후 활성화.
-    // axe: it.todo('axe 위반 0 — jest-axe 도입 후 활성화')
     expect(true).toBe(true);
   });
 });

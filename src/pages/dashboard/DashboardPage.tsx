@@ -26,9 +26,7 @@ export function DashboardPage() {
   }
 
   return (
-    // wf-s2-core `ScreenDashboard` — 본문 세로 gap 14.
     <div className="flex flex-col gap-3.5">
-      {/* 상단 행: 좌 내 아바타 카드 폭 300 고정 / 우 flex 1 */}
       <div className="flex flex-col items-stretch gap-3.5 lg:flex-row">
         <div className="lg:w-75 lg:shrink-0">
           <MyAvatarGrid />
@@ -39,7 +37,6 @@ export function DashboardPage() {
         </div>
       </div>
 
-      {/* 하단: 추천 아바타 제목 + 부제 / 우측 필터 */}
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="flex flex-col gap-0.5">
           <h2 className="text-heading-sm text-ink">추천 아바타</h2>

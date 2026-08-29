@@ -11,8 +11,8 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   server.resetHandlers();
-  // auth 스토어가 localStorage 에 persist 되므로 같은 파일 안의 테스트끼리 세션이 샌다.
-  // 스토어와 저장소를 함께 초기 상태로 되돌린다.
+  // auth 스토어가 localStorage 에 persist 돼 한 파일 안의 테스트끼리 세션이 샌다 — 둘 다
+  // 초기화한다.
   useAuthStore.setState(useAuthStore.getInitialState(), true);
   localStorage.clear();
 });

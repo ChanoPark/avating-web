@@ -21,7 +21,7 @@ describe('HexRadar', () => {
     expect(() => render(<HexRadar stats={[10, 20]} labels={LABELS} />)).toThrowError(/exactly 6/);
   });
 
-  // v1 토큰(--border/--brand/--text-3/--font-mono)은 v2 에 존재하지 않아 색이 사라졌었다.
+  // 죽은 토큰(--border/--brand/--text-3/--font-mono)을 참조하면 색이 나오지 않는다.
   it('v2 시맨틱 토큰만 참조한다 (죽은 v1 토큰 없음)', () => {
     const { container } = render(<HexRadar stats={[80, 60, 70, 50, 90, 40]} labels={LABELS} />);
     const svg = container.querySelector('svg');

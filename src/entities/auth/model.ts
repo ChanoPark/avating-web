@@ -1,13 +1,10 @@
 import { z } from 'zod';
 
-// 서버 비밀번호 정책 (api-guide §2.2 · AUTH_422_001/AUTH_422_002).
-// 비밀번호는 RSA 로 암호화해 보내므로 서버는 복호화 후에야 검증할 수 있다 —
-// 422 는 최후 방어선이고, 사용자에게 즉시 알리려면 같은 규칙을 여기서 먼저 걸러야 한다.
+// 서버 비밀번호 정책(api-guide §2.2, AUTH_422_001/002) — 비밀번호는 RSA 암호화라 서버는 복호화 후에야 검증하므로 여기서 먼저 막는다.
 const PASSWORD_MIN = 8;
 const PASSWORD_MAX = 128;
 
-// "ASCII 33~126 중 영숫자가 아닌 문자" 를 코드 포인트 구간으로 옮긴 것.
-// 공백·한글·이모지는 서버가 특수문자로 치지 않으므로 여기서도 제외한다.
+// ASCII 33~126 중 영숫자가 아닌 문자만 특수문자로 본다 — 공백·한글·이모지는 서버도 특수문자로 치지 않는다.
 const ASCII_SPECIAL_RANGES: readonly (readonly [number, number])[] = [
   [33, 47], // ! " # $ % & ' ( ) * + , - . /
   [58, 64], // : ; < = > ? @
@@ -39,9 +36,7 @@ export const rawPasswordSchema = z
   .max(PASSWORD_MAX, `${String(PASSWORD_MAX)}자 이하로 입력해주세요`)
   .refine(hasAllRequiredCategories, '영문자·숫자·특수문자를 각각 1개 이상 포함해주세요');
 
-// 서버 제약은 2–30자다(실서버 /v3/api-docs). FE 상한 12자는 **의도된 부분집합**으로,
-// 카드·사이드바의 닉네임 슬롯이 12자 기준으로 잡혀 있어 더 길면 잘린다.
-// 서버보다 좁으므로 통과한 값은 항상 서버에서도 유효하다. 넓히려면 UI 슬롯부터 정해야 한다.
+// 서버 상한은 2–30자이지만(실서버 /v3/api-docs) 카드·사이드바 슬롯이 12자 기준이라 폼 상한은 12자로 좁힌다.
 export const nicknameSchema = z
   .string()
   .trim()
@@ -49,10 +44,7 @@ export const nicknameSchema = z
   .min(2, '2자 이상 입력해주세요')
   .max(12, '12자 이하로 입력해주세요');
 
-// 로그인은 정책 검증을 하지 않는다 — 존재 여부만 본다.
-// 서버도 로그인에서는 비밀번호 정책을 보지 않는다(api-guide §2.3 은 404·400·422_003 뿐이고
-// §2.2 의 AUTH_422_001/002 는 회원가입 전용). 정책을 여기서 걸면 옛 규칙으로 가입한 계정
-// (예: 특수문자 없는 "Password123")이 서버 기준으로는 멀쩡한데 클라이언트에서 막힌다.
+// 로그인은 존재 여부만 본다 — 서버도 로그인(api-guide §2.3)에서는 비밀번호 정책을 안 본다(AUTH_422_001/002 는 §2.2 가입 전용). 여기서 걸면 옛 규칙 계정이 클라이언트에서만 막힌다.
 export const loginPasswordSchema = z.string().min(1, '비밀번호를 입력해주세요');
 
 export const loginFormSchema = z.object({
@@ -104,9 +96,7 @@ export const apiResponseAuthToken = z.object({
   data: authTokenResponseSchema,
 });
 
-// 부팅 검증(`GET /api/auth/me`)의 응답. 닉네임은 `nicknameSchema` 로 검증하지 않는다 —
-// 그쪽 상한 12자는 카드 슬롯에 맞춘 **폼 전용** 제약이고, 서버 상한은 30자다.
-// 응답 파싱에 쓰면 서버 기준으로 멀쩡한 닉네임이 부팅을 깨뜨린다.
+// 부팅 검증(`GET /api/auth/me`) 응답 — nicknameSchema(폼 전용 12자 상한)로 검증하면 서버 상한(30자) 닉네임에서 부팅이 깨진다.
 const sessionResponseSchema = z.object({
   email: z.string().min(1),
   nickname: z.string().min(1),

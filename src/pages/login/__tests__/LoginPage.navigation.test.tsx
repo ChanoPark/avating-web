@@ -26,7 +26,6 @@ describe('LoginPage 로그인 성공 후 이동', () => {
     useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
   });
 
-  // 로그인 상태로 다시 로그인 화면에 오면(뒤로가기 등) 빈 폼이 보여 로그아웃된 것처럼 읽힌다.
   describe('이미 로그인한 상태', () => {
     it('로그인 화면 대신 목적지로 바로 보낸다', () => {
       useAuthStore.setState({

@@ -24,8 +24,6 @@ describe('resolveResumeRoute', () => {
       expect(resolveResumeRoute(false)).toBe('/onboarding/intro');
     });
 
-    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 는 creating 으로 마이그레이션된다.
-    // 그 시점에 METHOD_KEY 는 환영 화면에서 이미 채워져 있으므로 고른 방법의 화면으로 이어진다.
     it('레거시 method 기록은 고른 방법의 화면으로 이어진다', () => {
       localStorage.setItem(PROGRESS_KEY, 'method');
       localStorage.setItem(METHOD_KEY, 'connect');
@@ -49,9 +47,6 @@ describe('resolveResumeRoute', () => {
       expect(resolveResumeRoute(false)).toBe('/onboarding/welcome');
     });
 
-    // 진행 기록의 complete 는 "아바타가 생겼다" 를 보장하지 않는다.
-    // (ConnectStep 의 '생성된 결과 확인' 처럼 아바타 없이도 올라가던 값이다)
-    // 아바타가 없으면 완료로 인정하지 않고 생성 단계로 되돌린다.
     it('complete 기록이 있어도 아바타가 없으면 생성 단계로 되돌린다', () => {
       localStorage.setItem(PROGRESS_KEY, 'complete');
       localStorage.setItem(METHOD_KEY, 'survey');

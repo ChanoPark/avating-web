@@ -12,7 +12,6 @@ const stats = {
 };
 
 describe('AvatarStatsPanel', () => {
-  // 정본(wf-s2-core ScreenAvatarDetail)의 `아바타 스탯` 카드는 StatBar 행만 쌓는다 — 레이더는 없다.
   it('6개의 StatBar(Meter) 가 렌더되고 레이더는 없다', () => {
     render(<AvatarStatsPanel stats={stats} />);
     expect(screen.getAllByRole('meter')).toHaveLength(6);

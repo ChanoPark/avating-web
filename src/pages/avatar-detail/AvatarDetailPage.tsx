@@ -46,7 +46,6 @@ function AvatarDetailContent({ id }: { id: string }) {
 
   return (
     <>
-      {/* wf-s2-core `ScreenAvatarDetail` — 좌 flex 1 / 우 260 고정, gap 14 */}
       <div className="flex flex-col items-stretch gap-3.5 lg:flex-row">
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">
           <AvatarProfileHeader avatar={avatar} />
@@ -62,8 +61,7 @@ function AvatarDetailContent({ id }: { id: string }) {
             {...(ctaDisabled ? { disabledReason: '이미 매칭 중인 아바타입니다' } : {})}
           />
           <AvatarIntroPanel publicInfo={avatar.publicInfo} />
-          {/* 정본 우 하단 ghost block. 관전 라우트는 아직 없어 동작은 후속 PR 이다
-              (대시보드의 `추가하기` · `전체 보기` 와 같은 자리표시 액션). */}
+          {/* 관전 라우트가 아직 없어 이 버튼에는 동작을 연결하지 않는다(후속 PR). */}
           <Button variant="ghost" block>
             지난 시뮬레이션 관전
             <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
@@ -82,14 +80,9 @@ function AvatarDetailContent({ id }: { id: string }) {
   );
 }
 
-/** 카드 크롬 — Card 와 같은 규격(hairline + shadow-card + `--r-lg`). */
 const SKELETON_CARD = 'border-hairline bg-surface shadow-card rounded-lg border p-4';
 
-/**
- * 로딩 스켈레톤은 최종 렌더와 **같은 2열 골격**을 유지해야 한다. 한 줄 텍스트로 두면
- * 데이터 도착 시 전체 레이아웃이 밀려 CLS 가 발생한다 (호감도 임계값을 다루는
- * 매칭 화면이라 특히 민감하다). 열 폭·카드 개수·행 수를 본문과 맞춘다.
- */
+/** 실제 렌더와 다른 골격을 쓰면 데이터 도착 시 레이아웃이 밀려 CLS 가 발생한다 — 2열 구조를 그대로 유지한다. */
 function LoadingFallback() {
   return (
     <div
@@ -99,7 +92,6 @@ function LoadingFallback() {
     >
       <span className="sr-only">아바타 정보를 불러오는 중…</span>
 
-      {/* 좌: 프로필 헤더 + 스탯 패널 */}
       <div className="flex min-w-0 flex-1 flex-col gap-3.5">
         <div className={SKELETON_CARD}>
           <div className="flex items-start gap-4">
@@ -116,7 +108,6 @@ function LoadingFallback() {
           <div className="mt-3 flex flex-col gap-2.5">
             {Array.from({ length: 6 }, (_, i) => (
               <div key={i} className="flex items-center gap-3">
-                {/* 라벨 폭 72 — LAYOUT-NUMBERS § 카드·데이터 부품 StatBar. `w-18` = 4 × 18. */}
                 <div className="bg-canvas-soft h-3 w-18 shrink-0 rounded" />
                 <div className="bg-canvas-soft h-1.5 flex-1 rounded-full" />
               </div>
@@ -125,7 +116,6 @@ function LoadingFallback() {
         </div>
       </div>
 
-      {/* 우: 매칭 패널 + 공개 정보 + ghost 액션 (정본 260 고정) */}
       <div className="flex flex-col gap-3.5 lg:w-65 lg:shrink-0">
         <div className={SKELETON_CARD}>
           <div className="bg-canvas-soft rounded-pill h-9 w-full" />
@@ -145,8 +135,7 @@ function LoadingFallback() {
   );
 }
 
-// 정본 S-11-06 PANEL — 아바타 상세 본문만 실패한 경우다. 셸과 브레드크럼은 살아 있으므로
-// 화면 전체를 에러로 덮지 않는다. 404 는 되돌릴 방법이 없어 재시도를 주지 않는다.
+// 본문만 실패한 경우라 화면 전체가 아니라 이 패널만 에러로 덮는다(셸·브레드크럼은 유지).
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const isNotFound = isApiError(error) && error.statusCode === 404;
   return (

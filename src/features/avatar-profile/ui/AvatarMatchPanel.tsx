@@ -10,11 +10,8 @@ type Props = {
   disabledReason?: string;
 };
 
-// wf-s2-core `ScreenAvatarDetail` 우 상단 featured 카드 — 강조는 틴트 채움이 아니라
-// 흰 서피스 + 파란 테두리다. 이 화면의 채워진 파란 CTA 는 여기 하나뿐이다.
-//
-// 정본의 `예상 호감도` 대형 숫자·진행 바·설명문은 `avatarDetailSchema` 에 대응 필드가 없어
-// 렌더하지 않는다 (spec-gap: 상대 아바타 상세 응답에 매칭 점수 없음).
+// 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다 — 이 화면의 채워진 파란 CTA 는 여기 하나뿐이다.
+// 정본의 `예상 호감도` 숫자·진행 바는 spec-gap(상대 아바타 상세 응답에 매칭 점수 없음)으로 렌더하지 않는다.
 export function AvatarMatchPanel({
   onRequest,
   requestOpen,

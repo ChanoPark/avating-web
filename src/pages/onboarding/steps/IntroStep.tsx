@@ -11,21 +11,17 @@ import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingC
 import { loadDraft, saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// S-02-02 Step 1 — 표시용 입력 제한. 정본 wf/wf-s1-entry.jsx 의 `count="0 / 20"`·`"0 / 120"`.
-// 백엔드 제출 계약(avatarCreateFromSurveyRequestSchema: 이름 50 / 설명 200)의 부분집합이라 항상 유효하다.
+// 정본 UI 제한(20/120)은 백엔드 제출 한도(50/200)의 부분집합이라 항상 유효하다 — 둘을 맞출 필요 없다.
 const NAME_MAX = 20;
 const DESC_MAX = 120;
 
 const introFormSchema = z.object({
   avatarName: z.string().trim().min(1, '아바타 이름을 입력해주세요').max(NAME_MAX),
-  // 서버 SurveyAvatarCreateRequest 에서 description 은 필수다. 설명 입력이 있는 화면은 여기뿐이라
-  // (SurveyStep 은 draft 값을 그대로 실어 보낸다) 여기서 못 받으면 제출 시점에 사용자가 고칠 방법이 없다.
+  // 서버 SurveyAvatarCreateRequest 에서 description 은 필수다 — 입력받는 화면은 여기뿐이라 안 받으면 고칠 방법이 없다.
   description: z.string().trim().min(1, '아바타 설명을 입력해주세요').max(DESC_MAX),
 });
 type IntroFormValues = z.infer<typeof introFormSchema>;
 
-// forms.css `.av-input` — 흰 서피스 + hairline-input 테두리 · 15px · lh 1.4
-// · padding 9px 12px · radius --r-sm(6) · min-height 40. 회색 채움은 disabled 전용이다.
 const FIELD_INPUT =
   'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] outline-none transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
 
@@ -48,9 +44,8 @@ export function IntroStep() {
     },
   });
 
-  // 이미 대표 아바타가 있는 사용자는 확인 화면으로 보낸다.
   // 진행 기록(progress)이 아니라 대표 아바타 보유 여부로 판단한다 — 기록은 아바타 없이도
-  // complete 로 올라갈 수 있어서, 그걸 믿으면 만든 적 없는 사용자까지 여기서 튕겨냈다.
+  // complete 로 올라갈 수 있어, 그걸 믿으면 만든 적 없는 사용자까지 튕겨낸다.
   const { hasPrimaryAvatar } = useOnboardingCompletion();
   useEffect(() => {
     if (hasPrimaryAvatar) {
@@ -62,7 +57,6 @@ export function IntroStep() {
   const descLength = watch('description').length;
 
   const onSubmit = handleSubmit((values) => {
-    // 기존 설문 답변·표현 draft 를 보존한 채 이름·설명만 갱신한다.
     const existing = loadDraft();
     saveDraft({
       answers: existing?.answers ?? {},
@@ -70,12 +64,10 @@ export function IntroStep() {
       description: values.description.trim(),
       ...(existing?.expressions ? { expressions: existing.expressions } : {}),
     });
-    // v2.6: 생성 방법 선택 화면이 사라져 Step 1 다음은 곧장 Step 2(설문 · Bot)다.
     // 방법은 S-02-01 환영 카드에서 이미 골라 두었다.
     const method = getOnboardingMethod();
     if (method === null) {
-      // 방법을 고른 적이 없다 — URL 직접 진입 등. 둘 중 하나를 임의로 택하면 사용자가
-      // 고르지 않은 경로로 밀어넣게 되므로 고르는 자리(환영)로 되돌린다. 입력은 위에서 이미 저장했다.
+      // URL 직접 진입 등으로 방법이 없으면, 임의로 하나를 고르지 않고 고르는 자리(환영)로 되돌린다.
       void navigate('/onboarding/welcome');
       return;
     }

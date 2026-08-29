@@ -5,7 +5,6 @@ import { server } from '@shared/mocks/server';
 import { inboxScenarios } from '@shared/mocks/handlers/inbox';
 import { InboxPanel } from '../InboxPanel';
 
-// 정본(wf-s2-core ScreenDashboard) 우측 하단 카드의 제목은 `알림`, 액션은 `전체 보기` 링크다.
 describe('InboxPanel', () => {
   describe('렌더링', () => {
     it('헤더에 "알림" 이 표시된다', async () => {
@@ -57,7 +56,6 @@ describe('InboxPanel', () => {
       });
     });
 
-    // 읽지 않음 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
     it('읽지 않은 항목에 data-unread="true" 와 파란 테두리가 적용된다', async () => {
       server.use(inboxScenarios.success);
       const { container } = renderWithProviders(<InboxPanel />);

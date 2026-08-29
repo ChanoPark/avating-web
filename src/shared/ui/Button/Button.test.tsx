@@ -23,7 +23,6 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: '기본' }).className).toContain('bg-primary');
   });
 
-  // components.css `.av-btn` — 모든 버튼은 pill · height 40(sm 32 · lg 48).
   it('pill 반경과 기본 높이 40px 를 갖는다', () => {
     render(<Button>기본</Button>);
     const btn = screen.getByRole('button', { name: '기본' });
@@ -40,8 +39,6 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: '크기' }).className).toContain(heightClass);
   });
 
-  // `.av-btn--secondary{background:var(--surface);color:var(--primary);border-color:var(--primary)}`
-  // — 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
   it('secondary 는 흰 서피스 + 파란 테두리 + 파란 텍스트다', () => {
     render(<Button variant="secondary">보조</Button>);
     const cls = screen.getByRole('button', { name: '보조' }).className;
@@ -60,7 +57,6 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: '삭제' }).className).toContain('bg-danger');
   });
 
-  // `.av-btn:focus-visible{box-shadow:var(--focus-ring)}` — 인터랙션 5상태 중 focus.
   it('focus-visible 포커스 링을 갖는다', () => {
     render(<Button>포커스</Button>);
     expect(screen.getByRole('button', { name: '포커스' }).className).toContain(
@@ -73,7 +69,6 @@ describe('Button', () => {
     expect(screen.getByRole('button', { name: '전체 폭' }).className).toContain('w-full');
   });
 
-  // `.av-btn--icon{width:40px;padding:0}` — 좌우 패딩 대신 높이와 같은 정사각 폭.
   it('icon 이면 좌우 패딩 대신 정사각 폭을 갖는다', () => {
     render(
       <Button icon aria-label="추가">
