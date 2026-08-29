@@ -11,8 +11,7 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-// 좌측 3px 레일(톤 시그널). v1 의 `border-l-brand` 는 `--color-brand` 가 없어
-// 아무 스타일도 만들지 못하던 죽은 클래스였다 — v2 시맨틱 토큰으로 교체.
+// 좌측 3px 레일(톤 시그널) — 색은 정의된 시맨틱 토큰으로만 준다.
 const variantRail: Record<ToastVariant, string> = {
   info: 'border-l-primary',
   success: 'border-l-success',
@@ -20,7 +19,7 @@ const variantRail: Record<ToastVariant, string> = {
   error: 'border-l-danger',
 };
 
-// 시맨틱 배지 (20px 원형). 틴트 채움에 같은 색 테두리를 겹치지 않는다 — wash 배경만.
+// 배지는 wash 배경만 쓴다 — 틴트 채움에 같은 색 테두리를 겹치지 않는다.
 const variantBadge: Record<ToastVariant, string> = {
   info: 'bg-primary-wash text-primary-press',
   success: 'bg-success-wash text-success',
@@ -37,10 +36,8 @@ const variantIcon: Record<ToastVariant, LucideIcon> = {
 
 const MAX_VISIBLE = 3;
 
-// 정본 S-11-07 — "에러 토스트는 자동 소멸하지 않습니다. 닫기 버튼으로만 사라집니다
-// (성공 토스트는 3초 유지, S-10-02)." 실패를 못 보고 놓치면 사용자는 무슨 일이
-// 일어났는지 알 방법이 없다. 주의(warning)도 실패 계열이라 같이 묶는다.
-// 호출부가 `durationMs` 를 명시하면 그쪽이 이긴다.
+// 에러·경고 토스트는 자동으로 사라지지 않는다(S-11-07) — 놓치면 사용자가 실패를 알 방법이
+// 없다. 성공은 3초 유지한다. 호출부가 durationMs 를 명시하면 그 값이 우선한다.
 const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
   info: 3000,
   success: 3000,
@@ -49,7 +46,6 @@ const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
-  // hover 시 카운트다운 일시정지 (마우스를 떼면 재시작).
   const [paused, setPaused] = useState(false);
 
   useEffect(() => {

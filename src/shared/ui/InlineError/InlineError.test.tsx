@@ -3,8 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { InlineError } from './InlineError';
 
-// 정본: .claude/design/2026-08-06-wireframe-v2.3/wf/wf-s6-errors.jsx S-11-06 (InlineFail)
-// "화면 전체를 에러로 덮지 않고, 실패한 영역만 교체합니다 · 재시도는 실패한 자리에"
+// S-11-06 InlineFail — "화면 전체를 에러로 덮지 않고, 실패한 영역만 교체합니다 · 재시도는 실패한 자리에"
 describe('InlineError', () => {
   it('기본 제목·본문·재시도 버튼을 그린다', () => {
     render(<InlineError onRetry={vi.fn()} />);

@@ -3,8 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { Banner } from './Banner';
 
-// 정본: .claude/design/2026-08-06-wireframe-v2.3/wf/wf-s6-errors.jsx S-11-07 (FORM BANNER)
-// 시각 계약: .claude/design/2026-08-06-wireframe-v2.3/css/feedback.css `.av-banner`
 describe('Banner', () => {
   it('제목과 본문을 함께 렌더한다', () => {
     render(
@@ -39,7 +37,6 @@ describe('Banner', () => {
 
   it('톤별 wash 배경을 쓰고 같은 색 테두리를 겹치지 않는다 (v2 절대 규칙 ③)', () => {
     const { rerender } = render(<Banner tone="danger">실패</Banner>);
-    // 틴트 채움 + 동색 테두리 조합 금지 — wash 배경일 때 테두리는 transparent 다.
     expect(screen.getByRole('alert').className).toContain('bg-danger-wash');
     expect(screen.getByRole('alert').className).toContain('border-transparent');
 

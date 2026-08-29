@@ -22,12 +22,11 @@ export const mockPrimaryAvatar: { data: AvatarSummary } = {
 };
 
 export const primaryAvatarHandlers = {
-  /** 대표 아바타 보유 — 온보딩을 마친 회원. */
   success: http.get(`${BASE_URL}/api/avatars/primary`, () => {
     return HttpResponse.json(mockPrimaryAvatar);
   }),
 
-  /** 대표 아바타 없음 — 아직 아바타를 만들지 않은 회원. 오류가 아니라 정상 응답이다. */
+  // 404 지만 정상 응답이다 — 아직 아바타를 만들지 않은 회원의 상태를 나타낸다.
   none: http.get(`${BASE_URL}/api/avatars/primary`, () => {
     return HttpResponse.json(
       { code: 'AVATAR_404_002', message: '아바타를 찾을 수 없습니다.' },
@@ -35,7 +34,7 @@ export const primaryAvatarHandlers = {
     );
   }),
 
-  /** 판정 불가 — 서버 오류. "대표 아바타 없음" 과 구분해야 한다. */
+  // 'none' 과 구분한다 — 이건 판정 불가(서버 오류)고, none 은 확정된 '대표 아바타 없음'이다.
   serverError: http.get(`${BASE_URL}/api/avatars/primary`, () => {
     return HttpResponse.json(
       { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },

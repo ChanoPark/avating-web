@@ -1,11 +1,8 @@
 import { cn } from '@shared/lib/cn';
 
 type MeterProps = {
-  // 0–100 사이 정수 값. 범위를 벗어나면 clamp.
   value: number;
-  // 접근성 라벨. 시각적으로 라벨이 보이면 caller 가 `aria-labelledby` 를 직접 줘도 됨.
   label?: string;
-  // tone — 향후 호감도 임계값별 색 차이 (현 v1 은 brand 단일).
   tone?: 'brand' | 'success' | 'warning' | 'danger';
   className?: string;
 };

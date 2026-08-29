@@ -7,18 +7,15 @@ export type BannerTone = 'info' | 'success' | 'warning' | 'danger';
 
 type BannerProps = {
   tone: BannerTone;
-  /** 굵은 한 줄 요약. 없으면 본문만 그린다. */
   title?: string;
   children: ReactNode;
-  /** 기본 아이콘 대신 쓸 lucide 아이콘. 정본 S-11-07 의 세션 만료 배너는 clock 을 쓴다. */
   icon?: LucideIcon;
-  /** 주면 우측에 닫기 버튼이 붙는다. */
   onClose?: () => void;
   className?: string;
 };
 
-// 톤별 배경 — 전부 wash 다. 틴트 채움 + 같은 색 테두리 조합은 v2 절대 규칙 ③ 위반이라
-// wash 를 쓰는 순간 테두리는 transparent 로 둔다 (feedback.css `.av-banner--*`).
+// wash 배경일 때는 테두리를 항상 transparent 로 둔다 — 틴트 채움과 동색 테두리를 같이
+// 쓰면 v2 절대 규칙 ③ 위반이다.
 const toneSurface: Record<BannerTone, string> = {
   info: 'bg-primary-wash border-transparent',
   success: 'bg-success-wash border-transparent',
@@ -41,15 +38,9 @@ const toneIcon: Record<BannerTone, LucideIcon> = {
 };
 
 /**
- * 폼·화면 상단에 고정하는 지속형 알림 (S-11-07 FORM BANNER).
- *
- * 정본 규칙 — "배너는 폼·화면 맨 위에 고정하고 스크롤되어도 사용자가 먼저 보게 합니다.
- * 필드 단위 오류는 배너로 올리지 않고 필드 아래 인라인으로 둡니다(S-10-01)."
- *
- * 시각 값은 `wf-kit.jsx` 의 `Banner` 가 렌더하는 실제 치수를 따른다 —
- * padding 11px 13px · fontSize 13 · 아이콘 16. `css/feedback.css` 의 `.av-banner` 기본값
- * (14px 16px · 14px · 18px)은 컴포넌트 계약이지만, 정본 화면에 그려진 배너는 전부
- * wf-kit 의 compact 오버라이드를 거친다. 화면 대조 기준이 후자라 이쪽을 택했다.
+ * S-11-07 FORM BANNER — 필드 단위 오류는 배너가 아니라 필드 아래 인라인(InlineError)으로 둔다.
+ * 값은 feedback.css `.av-banner` 기본값이 아니라 wf-kit.jsx 의 compact 오버라이드를 따른다 —
+ * 정본 화면이 실제로 그 값으로 그려졌기 때문이다.
  */
 export function Banner({ tone, title, children, icon, onClose, className }: BannerProps) {
   const Icon = icon ?? toneIcon[tone];

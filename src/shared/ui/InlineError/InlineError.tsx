@@ -1,6 +1,6 @@
 import { cn } from '@shared/lib/cn';
 
-/** panel = 카드·패널 안, table = 표 본문 자리. 정본의 `h` 기본값 118 / 130 에 대응한다. */
+// panel = 카드·패널 안, table = 표 본문 자리.
 export type InlineErrorKind = 'panel' | 'table';
 
 type InlineErrorProps = {
@@ -8,24 +8,17 @@ type InlineErrorProps = {
   title?: string;
   body?: string;
   retryLabel?: string;
-  /** 없으면 재시도 버튼을 그리지 않는다 — 되돌릴 방법이 없는 자리도 있다. */
   onRetry?: () => void;
   className?: string;
 };
 
-// 정본이 못박은 높이. 스켈레톤·정상 콘텐츠와 같은 세로 공간을 차지해야
-// 로드 실패가 주변 레이아웃을 끌어올리지 않는다(CLS).
+// 스켈레톤·정상 콘텐츠와 같은 높이를 유지해야 로드 실패가 레이아웃을 밀어내지 않는다(CLS).
 const kindMinHeight: Record<InlineErrorKind, string> = {
   panel: 'min-h-[118px]',
   table: 'min-h-[130px]',
 };
 
-/**
- * 영역 단위 로드 실패 (S-11-06 InlineFail).
- *
- * 정본 규칙 — "화면 전체를 에러로 덮지 않고, 실패한 영역만 교체합니다.
- * 재시도는 실패한 자리에." 화면 전체가 죽었을 때는 이게 아니라 `ErrorPage` 다.
- */
+// 영역 단위 로드 실패 전용이다(S-11-06) — 화면 전체가 죽었을 때는 ErrorPage 를 쓴다.
 export function InlineError({
   kind = 'panel',
   title = '불러오지 못했어요',
@@ -46,8 +39,8 @@ export function InlineError({
       <div className="text-caption text-ink font-medium">{title}</div>
       <div className="text-micro text-ink-mute max-w-[250px] text-pretty">{body}</div>
       {onRetry && (
-        // 정본은 여기에 secondary(흰 서피스 + 파란 테두리) 버튼을 둔다. 화면당 채워진
-        // 파란 CTA 는 1개뿐이어야 하고(v2 절대 규칙 ①), 인라인 실패는 그 1개가 아니다.
+        // 화면당 채워진 파란 CTA 는 하나여야 해서(v2 절대 규칙 ①) 재시도는 secondary(흰
+        // 서피스 + 파란 테두리)로 둔다.
         <button
           type="button"
           onClick={onRetry}

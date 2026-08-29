@@ -13,7 +13,7 @@ type EmptyStateProps = {
   action?: EmptyStateAction;
 };
 
-// 빈 상태 공용 패턴 (empty-states-and-errors §2): 아이콘 24px + 제목 + 설명 + 선택 ghost CTA, 수직 패딩 48px.
+// 빈 상태 공용 패턴 (empty-states-and-errors §2).
 export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">

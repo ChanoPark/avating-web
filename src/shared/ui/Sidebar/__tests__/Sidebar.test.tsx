@@ -46,7 +46,6 @@ describe('Sidebar', () => {
     expect(nav.className.includes('w-14')).toBe(true);
   });
 
-  // LAYOUT-NUMBERS § AppShell — "사이드바 폭 232px". w-58 = 14.5rem = 232px.
   it('collapsed=false 시 232px 폭(w-58) 으로 렌더된다', () => {
     render(<Sidebar collapsed={false}>항목</Sidebar>);
     const nav = screen.getByRole('navigation');
@@ -63,7 +62,6 @@ describe('Sidebar', () => {
     expect(nav.className).toContain('lg:w-58');
   });
 
-  // "background: var(--surface), 우측 1px hairline" (LAYOUT-NUMBERS § AppShell).
   it('흰 서피스 배경 + 우측 hairline 을 갖는다', () => {
     render(<Sidebar>항목</Sidebar>);
     const nav = screen.getByRole('navigation');

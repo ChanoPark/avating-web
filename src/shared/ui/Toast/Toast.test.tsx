@@ -140,7 +140,6 @@ describe('Toast', () => {
     const toast = screen.getByText('호버 일시정지').closest('[role="status"]');
     expect(toast).not.toBeNull();
 
-    // 카운트다운 도중 hover → 일시정지: duration 을 한참 넘겨도 사라지지 않는다.
     act(() => {
       vi.advanceTimersByTime(600);
     });
@@ -152,7 +151,6 @@ describe('Toast', () => {
     });
     expect(screen.getByText('호버 일시정지')).toBeInTheDocument();
 
-    // 마우스를 떼면 카운트다운 재개 → duration 후 사라진다.
     act(() => {
       fireEvent.mouseLeave(toast as HTMLElement);
     });
@@ -163,8 +161,7 @@ describe('Toast', () => {
     vi.useRealTimers();
   });
 
-  // 톤 신호는 좌측 3px 레일 + wash 배지다. v1 의 `border-l-brand`/하드코딩 rgba 는
-  // v2 토큰에 존재하지 않아 아무 색도 만들지 못했다.
+  // 톤 신호는 좌측 3px 레일 + wash 배지다.
   it.each([
     ['info', 'border-l-primary', 'bg-primary-wash'],
     ['success', 'border-l-success', 'bg-success-wash'],

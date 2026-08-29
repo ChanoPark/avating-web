@@ -22,7 +22,6 @@ describe('Input', () => {
     expect(screen.getByLabelText('이메일').className).toContain('border-danger');
   });
 
-  // forms.css `.av-field--invalid .av-input:focus{box-shadow:0 0 0 3px var(--danger-wash)}`
   it('에러 상태 focus 링은 danger-wash 를 쓴다', () => {
     render(<Input label="이메일" errorMessage="형식이 올바르지 않습니다." />);
     expect(screen.getByLabelText('이메일').className).toContain(
@@ -31,7 +30,6 @@ describe('Input', () => {
   });
 
   describe('`.av-input` 규격 (forms.css)', () => {
-    // `background: var(--surface)` — 입력칸은 흰색이다. 회색은 disabled 신호로만 쓴다.
     it('기본 배경은 흰 서피스이고, 회색 채움은 disabled 에만 쓴다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
@@ -41,7 +39,6 @@ describe('Input', () => {
       expect(cls).not.toContain('disabled:bg-surface');
     });
 
-    // `font-size:15px; padding:9px 12px; border-radius:var(--r-sm); min-height:40px`
     it('15px 타입 · 9px 12px 패딩 · radius 6 · min-height 40 을 갖는다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
@@ -52,7 +49,6 @@ describe('Input', () => {
       expect(cls).toContain('min-h-10');
     });
 
-    // `:focus{border-color:var(--primary);box-shadow:var(--focus-ring)}`
     it('focus 시 파란 테두리와 포커스 링을 함께 쓴다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
@@ -60,7 +56,6 @@ describe('Input', () => {
       expect(cls).toContain('focus:shadow-focus');
     });
 
-    // `:disabled{background:var(--canvas-soft);color:var(--ink-mute)}`
     it('disabled 는 canvas-soft 채움 + ink-mute 텍스트다', () => {
       render(<Input label="이메일" disabled />);
       const cls = screen.getByLabelText('이메일').className;
@@ -97,7 +92,6 @@ describe('Input', () => {
     });
   });
 
-  // 문자 글리프(✕)는 Pretendard 에 없어 시스템 폰트로 폴백한다 — 라인 아이콘만 쓴다.
   it('에러 메시지는 문자 글리프가 아니라 라인 아이콘(svg)을 앞에 둔다', () => {
     render(<Input label="이메일" errorMessage="형식이 올바르지 않습니다." />);
     const message = screen.getByText(/형식이 올바르지 않습니다/);
@@ -105,7 +99,7 @@ describe('Input', () => {
     expect(message.textContent).not.toContain('✕');
   });
 
-  // placeholder 에 `--ink-faint` 를 쓰지 않는다 (colors.css — 장식 전용).
+  // ink-faint 는 장식 전용이라 대비가 부족하다 — placeholder 에 쓰지 않는다.
   it('placeholder 는 ink-mute 이상 대비를 쓴다', () => {
     render(<Input label="이메일" placeholder="you@example.com" />);
     const cls = screen.getByLabelText('이메일').className;

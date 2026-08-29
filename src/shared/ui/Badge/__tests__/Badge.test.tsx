@@ -8,7 +8,6 @@ describe('Badge', () => {
     expect(screen.getByText('인증')).toBeInTheDocument();
   });
 
-  // `.av-badge{height:22;padding:0 9px;font-size:12px;font-weight:500;line-height:1;radius:pill}`
   it('22px 높이 · 9px 좌우 패딩 · 12px medium · line-height 1 · pill 이다', () => {
     render(<Badge>인증</Badge>);
     const badge = screen.getByText('인증');
@@ -20,7 +19,6 @@ describe('Badge', () => {
     expect(badge.className).toContain('rounded-pill');
   });
 
-  // Tag 와 갈리는 지점 — badge 는 대문자로 변환하지 않고 letter-spacing 을 벌리지 않는다.
   it('Tag 의 uppercase eyebrow 타입을 쓰지 않는다', () => {
     render(<Badge>인증</Badge>);
     const badge = screen.getByText('인증');
@@ -28,7 +26,6 @@ describe('Badge', () => {
     expect(badge.className).not.toContain('text-micro-cap');
   });
 
-  // `.av-badge{background:var(--canvas-soft);color:var(--ink-secondary);border:1px solid var(--hairline)}`
   it('기본(neutral)은 canvas-soft 채움 + ink-secondary 텍스트 + hairline 테두리다', () => {
     render(<Badge>대기</Badge>);
     const badge = screen.getByText('대기');
@@ -49,7 +46,7 @@ describe('Badge', () => {
     expect(badge.className).toContain(text);
   });
 
-  // modifier 는 `border-color:transparent` 일 뿐 1px 폭은 그대로 — 높이 22 가 variant 마다 어긋나면 안 된다.
+  // border-transparent 라도 폭 1px 은 유지해야 한다 — 안 그러면 variant 마다 높이 22 가 어긋난다.
   it.each(['brand', 'success', 'warning', 'danger'] as const)(
     'variant="%s" 는 hairline 대신 투명 테두리를 쓰되 1px 폭은 유지한다',
     (variant) => {
@@ -62,7 +59,6 @@ describe('Badge', () => {
   );
 
   describe('dot', () => {
-    // `.av-badge__dot{width:6px;height:6px;border-radius:50%;background:currentColor}`
     it('dot 를 켜면 6px currentColor 원이 children 앞에 붙는다', () => {
       render(
         <Badge variant="success" dot>

@@ -21,8 +21,6 @@ describe('FilterChip', () => {
     expect(chip).toHaveAttribute('aria-pressed', 'true');
   });
 
-  // `.av-chip--on{background:var(--surface);border-color:var(--primary);
-  //  color:var(--primary-press);box-shadow:inset 0 0 0 1px var(--primary)}`
   it('active=true 시 흰 서피스 + 파란 테두리 + inset 링이 적용된다 (틴트 채움 아님)', () => {
     render(<FilterChip label="온라인" active onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
@@ -32,7 +30,6 @@ describe('FilterChip', () => {
     expect(chip.className).toContain('shadow-[inset_0_0_0_1px_var(--primary)]');
   });
 
-  // `.av-chip{height:30px;padding:0 12px;border-radius:pill;font-size:13px;font-weight:500}`
   it('높이 30px · pill · 13px 미디엄 타입을 갖는다', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });

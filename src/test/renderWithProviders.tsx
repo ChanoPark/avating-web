@@ -17,10 +17,7 @@ function createTestQueryClient(): QueryClient {
 type RenderOptions = {
   queryClient?: QueryClient;
   initialRoute?: string;
-  /**
-   * 실제 앱(main.tsx)은 StrictMode 로 렌더한다. effect 이중 실행에서만 드러나는 결함
-   * (ref 가드가 구독을 끊어 화면이 멈추는 부류)을 재현할 때 켠다.
-   */
+  /** 실제 앱은 StrictMode 로 렌더한다 — effect 이중 실행에서만 드러나는 결함을 재현할 때 켠다. */
   strictMode?: boolean;
 };
 
