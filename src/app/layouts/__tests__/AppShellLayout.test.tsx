@@ -188,6 +188,34 @@ describe('AppShellLayout', () => {
       expect(gear()).toHaveFocus();
     });
 
+    // 열린 오버레이는 Tab 이 안에서만 돌아야 한다 (checklist § 5.1 item 2·3).
+    // 트랩이 없으면 메뉴가 열린 채로 포커스만 뒤 화면(알림 벨·본문)으로 빠져나간다.
+    it('Tab 이 메뉴 안에서 순환한다 — 마지막 항목에서 톱니로 돌아온다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      // 열림 직후 포커스는 첫 항목(내 정보)에 있다.
+      await user.tab();
+      expect(screen.getByRole('button', { name: '로그아웃' })).toHaveFocus();
+
+      await user.tab();
+      expect(gear()).toHaveFocus();
+    });
+
+    it('Shift+Tab 이 첫 항목(톱니)에서 마지막 항목으로 감긴다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/dashboard');
+
+      await user.click(gear());
+      // 내 정보 → 톱니(트랩 안의 첫 요소)까지 되짚은 뒤 한 번 더.
+      await user.tab({ shift: true });
+      expect(gear()).toHaveFocus();
+
+      await user.tab({ shift: true });
+      expect(screen.getByRole('button', { name: '로그아웃' })).toHaveFocus();
+    });
+
     it('메뉴 바깥을 클릭하면 닫힌다', async () => {
       const user = userEvent.setup();
       renderWithProviders('/dashboard');

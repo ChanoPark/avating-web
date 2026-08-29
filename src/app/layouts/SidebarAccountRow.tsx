@@ -6,6 +6,7 @@ import { useAuthStore } from '@entities/auth/store';
 import { useMyAvatars } from '@entities/avatar';
 import { clearOnboardingProgress } from '@entities/onboarding';
 import { cn } from '@shared/lib/cn';
+import { useFocusTrap } from '@shared/lib/useFocusTrap';
 
 // 사이드바 하단 계정 행 + 계정 메뉴.
 // 정본: .claude/design/2026-08-21-wireframe-v2.6/wf/wf-kit-excerpt.jsx `AccountMenu`
@@ -39,6 +40,12 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
   useEffect(() => {
     if (open) firstItemRef.current?.focus();
   }, [open]);
+
+  // 열린 동안 Tab 을 안에 가둔다 (checklist § 5.1 item 2·3) — Modal·MatchRequestModal·
+  // CompleteStep 과 같은 훅이다. 없으면 메뉴는 열린 채로 포커스만 뒤 화면으로 빠져나간다.
+  // 트랩 범위를 메뉴가 아니라 `containerRef`(계정 행 전체)로 잡아 톱니도 순환에 넣는다 —
+  // 열어 둔 채 Tab 으로 트리거까지 돌아와 다시 닫을 수 있다.
+  useFocusTrap(open, containerRef);
 
   // Escape 로 닫고 톱니로 포커스를 되돌린다.
   useEffect(() => {
