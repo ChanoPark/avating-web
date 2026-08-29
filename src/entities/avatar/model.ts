@@ -14,11 +14,7 @@ export const avatarBaseSchema = z.object({
 });
 export type AvatarBase = z.infer<typeof avatarBaseSchema>;
 
-// 6축 스탯 — domains/avatar §5.3 (handover) 와 generatedAvatarStatsSchema (onboarding) 와 정합.
-// 0–100 정수. 아바타 상세(S-03-03) 의 스탯바에서 사용.
-// NOTE: 와이어프레임 v2 는 5종(적극성·공감·유머·깊이·속도)을 규정하지만 여기는 6축이다.
-// 사용자가 5종 고정을 확정했으나 wiki domains/avatar §5.3 · 온보딩 스키마와 물려 있어
-// 함께 옮겨야 한다 — 계획서의 spec-divergence #4 참조.
+// 6축 스탯(domains/avatar §5.3) — 확정 사양은 5종이지만 wiki·온보딩 스키마와 함께 옮겨야 해 지금은 6축을 유지한다(spec-divergence #4).
 export const AVATAR_STAT_KEYS = [
   'empathy',
   'proactivity',
@@ -30,8 +26,7 @@ export const AVATAR_STAT_KEYS = [
 
 export type AvatarStatKey = (typeof AVATAR_STAT_KEYS)[number];
 
-// 서버 AvatarSummaryResponse.stats 는 `type: number, format: double` (0.0~100.0) 이다.
-// 정수를 강제하면 72.5 같은 실제 값이 파싱되지 않으므로 소수를 허용하고, 반올림은 표시 단계에서 한다.
+// 서버 stats 는 double(0.0~100.0)이라 정수를 강제하면 72.5 같은 실제 값이 깨진다. 반올림은 표시 단계에서 한다.
 const statValue = z.number().min(0).max(100);
 
 export const avatarStatsSchema = z.object({
@@ -53,8 +48,7 @@ export const AVATAR_STAT_LABELS: Record<AvatarStatKey, { short: string; long: st
   expressiveness: { short: '표현', long: '표현력' },
 };
 
-// 공개 정보 — 상대 아바타 상세에서 노출 가능한 비식별 공개 필드 (나이대/지역/직군).
-// 상대 아바타의 세션 이력(호감도·턴)은 프라이버시 사유로 노출에서 제거됨 (chat2/8/13).
+// 호감도·턴 등 세션 이력은 프라이버시 사유로 노출하지 않는다.
 export const avatarPublicInfoSchema = z.object({
   ageRange: z.string().min(1),
   region: z.string().min(1),
@@ -62,7 +56,6 @@ export const avatarPublicInfoSchema = z.object({
 });
 export type AvatarPublicInfo = z.infer<typeof avatarPublicInfoSchema>;
 
-// Avatar Detail 응답 — `GET /api/avatars/:id` 본문. base 정보 + 설명 + 6축 stats + 태그/성향 + 공개 정보.
 export const avatarDetailSchema = avatarBaseSchema.extend({
   type: z.string().min(1),
   description: z.string(),
@@ -74,14 +67,7 @@ export type AvatarDetail = z.infer<typeof avatarDetailSchema>;
 
 export const apiResponseAvatarDetail = z.object({ data: avatarDetailSchema });
 
-/**
- * 서버 `AvatarSummaryResponse` — `GET /api/avatars/{avatarId}/summary` 와
- * `GET /api/avatars/primary` 가 같은 형태로 돌려준다.
- *
- * `stats` 는 위의 6축 `avatarStatsSchema` 와 다른 계열이다. 서버는 `PersonaStatType`
- * (OPENNESS·IMAGINATION 등 7종) 를 키로 쓰는 맵을 준다. 지표가 늘거나 이름이 바뀌어도
- * 파싱이 깨지지 않도록 키를 고정하지 않고 record 로 받는다.
- */
+/** 서버 AvatarSummaryResponse(GET .../summary, GET .../primary) — stats 는 PersonaStatType 키가 늘거나 바뀌어도 깨지지 않게 고정 키가 아닌 record 로 받는다(위 6축 avatarStatsSchema 와 다른 계열). */
 export const avatarSummarySchema = z.object({
   schemaVersion: z.number().int(),
   avatarId: z.string().min(1),

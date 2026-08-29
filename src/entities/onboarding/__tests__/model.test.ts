@@ -119,8 +119,6 @@ describe('avatarCreateFromSurveyRequestSchema', () => {
     ).toThrow();
   });
 
-  // api-guide §3.2 / openapi.yaml SurveyAvatarCreateRequest.required — description 은 필수이며
-  // 빈 문자열은 서버가 400 COMMON_400_001 로 거절한다. GPTs 경로(nullable·optional)와 다르다.
   it('description 이 빈 문자열이면 throw 한다', () => {
     expect(() =>
       avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, description: '' })
@@ -225,9 +223,6 @@ describe('connectCodeSchema', () => {
     expect(() => connectCodeSchema.parse({ ...validCode, expiresAt: 'not-a-date' })).toThrow();
   });
 
-  // 서버는 OffsetDateTime 을 `+09:00` 오프셋으로 직렬화한다 (api-guide §1.3, openapi.yaml
-  // ConnectCodeResponse.expiresAt example). Zod 의 .datetime() 기본값은 Z 만 허용하므로
-  // offset 을 켜지 않으면 실서버 연결 시 여기서 파싱이 깨진다.
   it('expiresAt 이 +09:00 오프셋이어도 파싱에 성공한다', () => {
     expect(
       connectCodeSchema.safeParse({ ...validCode, expiresAt: '2026-07-27T12:15:00+09:00' }).success
@@ -310,7 +305,6 @@ describe('generatedAvatarSchema', () => {
     ).toThrow();
   });
 
-  // 서버 페르소나 지표는 double 이라 정수를 강제하지 않는다 (avatarStatsSchema 와 동일 근거).
   it('stats 가 소수여도 파싱에 성공한다', () => {
     expect(
       generatedAvatarSchema.safeParse({

@@ -3,10 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import type { StateStorage } from 'zustand/middleware';
 import type { AuthTokenResponse } from './model';
 
-/**
- * localStorage 접근이 막혀도(사파리 프라이빗 모드·용량 초과) 로그인 자체는 성공해야 한다.
- * 영속화는 부가 기능이라, 실패하면 "새로고침을 못 넘긴다" 로 끝나야지 setToken() 이 던지면 안 된다.
- */
+/** localStorage 가 막혀도(프라이빗 모드 등) 로그인은 성공해야 한다 — 실패해도 setToken() 은 던지지 않는다. */
 const guardedLocalStorage: StateStorage = {
   getItem: (name) => {
     try {
@@ -31,12 +28,7 @@ const guardedLocalStorage: StateStorage = {
   },
 };
 
-/**
- * 세션 복구 3-상태.
- * - `restoring`: 부팅 직후, 저장된 refreshToken 으로 복구를 시도할 수 있는 구간.
- *   이때 `/login` 으로 튕기면 새로고침 한 번에 로그아웃되는 것과 같다 (실서버 QA S1).
- * - `authenticated` / `anonymous`: 판정이 끝난 상태.
- */
+/** 세션 복구 3-상태 — `restoring` 중에 `/login` 으로 보내면 새로고침 한 번에 로그아웃된다. */
 export type AuthStatus = 'restoring' | 'authenticated' | 'anonymous';
 
 type AuthState = {
@@ -54,14 +46,8 @@ type AuthState = {
 export const AUTH_STORAGE_KEY = 'avating-auth';
 
 /**
- * accessToken 까지 함께 영속화한다.
- * refreshToken 만 저장하고 부팅마다 refresh 로 access 를 복구하는 안(계획서 A1-(b))은
- * 서버가 refresh token rotation + 회원당 1개를 쓰기 때문에 탭을 두 개 열면
- * 한쪽이 `AUTH_401_006` 으로 로그아웃된다. 어차피 refreshToken 이 localStorage 에 있어
- * XSS 노출면도 실질적으로 같아 이득이 없다.
- *
- * 다만 **저장한 값을 그대로 믿지는 않는다.** `expiresAt` 은 우리가 계산한 시각이라 서버
- * 재기동·토큰 회수를 모르므로, 부팅 판정은 `bootstrapAuth()` 가 서버에 물어서 한다.
+ * accessToken 까지 영속화한다 — refreshToken 만 저장하면 rotation 정책(회원당 1개) 탓에 탭 두 개를 열었을 때 한쪽이 `AUTH_401_006` 으로 로그아웃된다.
+ * 저장된 `expiresAt` 은 신뢰하지 않는다 — 서버 재기동·토큰 회수를 알 수 없으므로 부팅 판정은 `bootstrapAuth()` 가 서버에 물어서 한다.
  */
 export const useAuthStore = create<AuthState>()(
   persist(

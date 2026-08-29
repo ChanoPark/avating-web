@@ -48,8 +48,6 @@ describe('loginFormSchema', () => {
   });
 
   it('가입 정책에 못 미치는 옛 비밀번호도 로그인은 통과한다', () => {
-    // 특수문자 없음 = 현재 가입 정책 위반이지만, 옛 규칙으로 가입한 계정은 서버가 정상 인증한다.
-    // 로그인 폼이 정책을 걸면 그 계정이 클라이언트에서만 막힌다.
     const oldPolicyPassword = 'Password123';
 
     expect(
@@ -89,9 +87,7 @@ describe('signupFormSchema', () => {
     expect(result.success).toBe(false);
   });
 
-  // 서버 정책(api-guide §2.2 / AUTH_422_001·422_002): 8~128자 + 영문자·숫자·특수문자를
-  // "각 1개 이상" 전부 요구한다. 4종 중 3종 방식은 대문자+소문자+숫자 조합을 통과시켜
-  // 서버에서만 422 로 튕기는 불일치를 만든다.
+  // 서버는 영문자·숫자·특수문자 각 1개 이상을 전부 요구한다(api-guide §2.2) — 3종 조합만 검증하면 서버와 어긋난다.
   it('특수문자가 없으면 실패한다 (대소문자+숫자 조합)', () => {
     const result = signupFormSchema.safeParse({ ...validBase, password: 'Abcd1234' });
     expect(result.success).toBe(false);

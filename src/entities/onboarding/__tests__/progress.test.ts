@@ -28,8 +28,6 @@ describe('getOnboardingProgress', () => {
     expect(getOnboardingProgress()).toBe('complete');
   });
 
-  // v2.6 에서 생성 방법 선택 화면이 사라졌다. 'method' 는 "intro 를 끝내고 방법을 고르던 중" 이었고,
-  // 그 시점에 METHOD_KEY 는 이미 환영 화면에서 채워져 있으므로 creating 과 같은 자리다.
   it('레거시 "method" 값을 발견하면 "creating" 으로 즉시 마이그레이션한다 (read-side write)', () => {
     localStorage.setItem(PROGRESS_KEY, 'method');
     expect(getOnboardingProgress()).toBe('creating');

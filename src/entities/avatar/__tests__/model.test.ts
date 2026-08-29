@@ -124,8 +124,6 @@ describe('avatarStatsSchema', () => {
     expect(() => avatarStatsSchema.parse({ ...validStats, humor: -1 })).toThrow();
   });
 
-  // 서버 AvatarSummaryResponse.stats 는 `type: number, format: double` 이고 예시가 72.5 다
-  // (openapi.yaml PersonaStatType 맵). 정수를 강제하면 실서버 값이 파싱되지 않는다.
   it('소수를 허용한다 (서버 stats 는 double)', () => {
     expect(avatarStatsSchema.safeParse({ ...validStats, listening: 70.5 }).success).toBe(true);
   });

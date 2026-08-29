@@ -27,8 +27,6 @@ describe('usePrimaryAvatar', () => {
     expect(result.current.data?.stats.OPENNESS).toBe(72.5);
   });
 
-  // 404 는 "아직 대표 아바타가 없다" 는 정상 상태다. 오류로 던지면 호출부가
-  // 서버 장애와 구분할 수 없어진다.
   it('404 는 오류가 아니라 null 로 돌려준다', async () => {
     server.use(primaryAvatarHandlers.none);
     const { result } = renderHook(() => usePrimaryAvatar(), { wrapper: createWrapper() });
