@@ -46,7 +46,6 @@ describe('AvatarDetailPage', () => {
     });
   });
 
-  // 정본(wf-s2-core ScreenAvatarDetail)의 `아바타 스탯` 카드는 StatBar 행만 쌓는다 — 레이더는 없다.
   it('6개의 StatBar(Meter) 가 렌더된다 (6축 스탯)', async () => {
     renderPage();
     await screen.findByRole('heading', { name: '아바타 스탯' });
@@ -68,7 +67,6 @@ describe('AvatarDetailPage', () => {
     expect(screen.queryByRole('heading', { name: '세션 이력' })).not.toBeInTheDocument();
   });
 
-  // 정본: 이 화면의 채워진 파란 CTA 는 우측 featured 카드의 `매칭 요청 보내기` 하나뿐이다.
   it('"매칭 요청 보내기" CTA 클릭 시 MatchRequestModal 이 열린다', async () => {
     const user = userEvent.setup();
     renderPage();

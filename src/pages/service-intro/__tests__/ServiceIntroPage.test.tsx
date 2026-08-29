@@ -98,7 +98,6 @@ describe('ServiceIntroPage', () => {
       const badge = screen.getByText(/BETA · 인터랙티브 소셜 게임/);
       expect(badge).toHaveClass('bg-primary-wash');
       expect(badge).toHaveClass('text-primary-press');
-      // 틴트 채움 + 같은 색 테두리 금지 (v2.1)
       expect(badge.className).not.toMatch(/border-primary/);
     });
 
@@ -179,8 +178,7 @@ describe('ServiceIntroPage', () => {
       expect(within(footer).getByText('문의')).toBeInTheDocument();
     });
 
-    // 사용자 지시로 푸터 로고를 제거했다 (상단 바 로고와 중복). 정본
-    // wf-s1-entry.jsx:34 은 좌측에 `<Logo size={16} />` 을 두므로 의도적 divergence 다.
+    // 푸터에는 로고를 두지 않는다 — 상단 바 로고와 중복이다(정본과 의도된 divergence).
     it('로고를 렌더하지 않는다', () => {
       renderPage();
       const footer = screen.getByRole('contentinfo');
@@ -188,9 +186,8 @@ describe('ServiceIntroPage', () => {
     });
   });
 
-  // 로그인한 사용자에게 가입·로그인 폼을 다시 들이밀면 세션이 풀린 것처럼 읽힌다.
-  // 2026-08-18 사용자 지시로, 로그인 상태의 헤더는 두 버튼 대신 "시작하기" 하나만 둔다
-  // (정본 wf-kit.jsx:187 MktTop 에는 로그인 상태 분기가 없다 — 의도된 divergence).
+  // 로그인 상태에서 폼을 다시 보여주면 세션이 풀린 것처럼 보이므로, 헤더를
+  // "시작하기" 하나로 접는다 (정본엔 없는 분기).
   describe('로그인 상태 진입 CTA', () => {
     beforeEach(() => {
       useAuthStore.setState({ status: 'anonymous', accessToken: null, expiresAt: null });
@@ -205,8 +202,7 @@ describe('ServiceIntroPage', () => {
       expect(within(banner).queryByRole('button', { name: '시작하기' })).not.toBeInTheDocument();
     });
 
-    // 비로그인 방문자에게 조회가 나가면 토큰 없이 401 을 받아 refresh 인터셉터가 돌고,
-    // 랜딩을 보기만 해도 세션이 정리되는 부작용이 생긴다.
+    // 비로그인 방문자에게 조회가 나가면 401 로 refresh 인터셉터가 돌아 세션이 정리된다.
     it('비로그인이면 대표 아바타를 조회하지 않는다', () => {
       const { queryClient } = renderPage();
 
@@ -261,8 +257,7 @@ describe('ServiceIntroPage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/onboarding');
     });
 
-    // "확인해보니 없다"(404) 와 "확인을 못 했다"(500) 는 다르다. 판정 실패만으로 온보딩에
-    // 밀어넣으면 서버가 잠깐 흔들릴 때마다 완료한 회원이 온보딩으로 되돌아간다.
+    // 판정 실패까지 미완료로 취급하면 서버가 잠깐 흔들릴 때마다 완료한 회원이 온보딩으로 되돌아간다.
     it('판정에 실패하면 온보딩이 아니라 대시보드로 간다', async () => {
       authenticate();
       server.use(primaryAvatarHandlers.serverError);

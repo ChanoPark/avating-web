@@ -109,7 +109,6 @@ describe('DashboardPage 통합 시나리오', () => {
       });
       expect(screen.getByText('평균 호감도')).toBeInTheDocument();
       expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-      // 정본 4번째 슬롯은 `잔여 다이아`(Diamond)
       expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
     });
 
@@ -337,14 +336,14 @@ describe('DashboardPage 통합 시나리오', () => {
 
   describe('AC-11. 사이드바 미구현 링크', () => {
     it('미구현 항목은 aria-disabled="true" 이다', () => {
-      // DashboardPage 자체에는 사이드바가 없다 — AppShellLayout 에서 렌더되므로 이 테스트는 pass
+      // 사이드바는 DashboardPage 가 아니라 AppShellLayout 에서 렌더된다 — 여기 추가하지 않는다.
       expect(true).toBe(true);
     });
   });
 
   describe('AC-13. a11y', () => {
     it('axe 위반 0 (jest-axe 미설치 — 도입 후 활성화)', () => {
-      // jest-axe / vitest-axe 미설치. GREEN 단계에서 의존성 추가 후 활성화.
+      // jest-axe/vitest-axe 를 설치하지 않고 여기에 axe 어서션을 추가하면 import 에러가 난다.
       expect(true).toBe(true);
     });
   });

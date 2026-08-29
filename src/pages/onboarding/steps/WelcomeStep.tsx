@@ -13,18 +13,10 @@ import {
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard';
 
-// S-02-01 환영 — 레일 없는 플랫 형태. 와이어프레임 v2.5 에서 재설계됐다.
-// 정본: .claude/design/2026-08-18-wireframe-v2.5/wf/wf-s1-entry.jsx `ScreenOnbWelcome` · `ONB_METHODS`
-// + v2.6 델타(.claude/design/2026-08-21-wireframe-v2.6/IMPORT.md).
-// 생성 방법을 카드 3장으로 고르게 하고, 앞으로 할 일 예고는 그 아래 인셋 카드로 내려간다.
-// v2.6 에서 별도 방법 선택 화면(구 Step 2)이 삭제돼 **방법을 고르는 자리는 여기뿐**이다 —
-// 카드를 누르면 method 를 저장하고 Step 1(이름·설명)로 간다.
+// 방법을 고르는 자리는 여기뿐이다 — 카드를 누르면 method 를 저장하고 Step 1(이름·설명)로 간다.
 
 type MethodCard = {
-  /**
-   * 플로우에 연결되는 방법만 값을 갖는다. `null` 은 정본에 진입 카드만 있고
-   * 목적지 화면·데이터 계약이 없는 방법이다 (아래 프롬프트 항목 주석 참고).
-   */
+  /** `null` 은 정본에 카드만 있고 목적지·데이터 계약이 없는 방법이다(아래 프롬프트 카드 참고). */
   method: OnboardingMethod | null;
   icon: LucideIcon;
   time: string;
@@ -51,12 +43,8 @@ const METHODS: readonly MethodCard[] = [
     cta: 'Bot과 대화해서 만들기',
   },
   {
-    // spec-gap — 정본(Claude Design v2.5)에 이 카드만 있고 그 다음이 없다.
-    // `wf/wf-spec.jsx` SPEC_SCREENS 41개에 프롬프트 방식 화면이 없고, S-02-03(생성 방법 선택)은
-    // 여전히 설문·Bot 2택이며, 서버 계약의 OnboardingMethod 도 둘뿐이다.
-    // 2026-08-18 사용자 결정: 카드는 정본대로 그리되 플로우에는 연결하지 않는다.
-    // 목적지를 추측해 잇는 것도, '준비중' 문구나 disabled 를 지어내는 것도 창작이라 하지 않는다.
-    // 사양이 오면 method 를 채우는 것만으로 연결된다. 회귀 방지는 WelcomeStep.test.tsx 가 맡는다.
+    // spec-gap — 목적지 화면·데이터 계약이 없어 연결하지 않는다.
+    // 라우트를 추측해 잇거나 '준비중' 문구·disabled 를 지어내지 않는다 — 사양이 오면 method 만 채운다.
     method: null,
     icon: SquarePen,
     time: '약 5분',
@@ -66,19 +54,14 @@ const METHODS: readonly MethodCard[] = [
   },
 ];
 
-// 앞으로 할 일 3단계. 스텝 레일 라벨(`ONBOARDING_FALLBACK_LABELS`)과는 다른 계열이라
-// 그 상수로 대체하지 않는다 — 정본이 두 곳에서 서로 다른 문구를 쓴다.
-//
-// 정본(`wf-s1-entry.jsx`)의 리스트는 아직 '생성 방법 선택' 을 포함한 4항목이라 같은 화면의
-// 각주("아래 3단계")·레일(3단계)과 숫자가 어긋난다. 게다가 그 항목은 이제 이 화면에서 하는 일이다.
-// 2026-08-21 사용자 결정으로 3항목이 정답이다 (.claude/design/2026-08-21-wireframe-v2.6/IMPORT.md).
+// ONBOARDING_FALLBACK_LABELS(스텝 레일 라벨)와는 다른 문구 계열이라 재사용하지 않는다.
+// 정본은 '생성 방법 선택'을 포함한 4항목이지만, 그 항목이 이 화면의 카드라 3항목이 맞다.
 const TASKS = ['기본 정보 입력', '성향 분석 (설문 · Bot 대화 · 프롬프트)', '아바타 확인'] as const;
 
 export function WelcomeStep() {
   const navigate = useNavigate();
   const titleIdPrefix = useId();
-  // 처음이 아니면 멈춘 자리에서 이어간다. 판정이 아직이면 미완료 쪽으로 떨어져
-  // 온보딩을 계속할 수 있고, 다음 화면의 가드가 스스로 바로잡는다.
+  // 판정이 아직이면 미완료로 간주해 온보딩을 계속하게 하고, 다음 화면의 가드가 스스로 바로잡는다.
   const { hasPrimaryAvatar } = useOnboardingCompletion();
 
   const handleStart = (method: OnboardingMethod) => {
@@ -98,14 +81,11 @@ export function WelcomeStep() {
         </p>
       </div>
 
-      {/* 정본은 1440 데스크톱 전용이라 3열 고정이다. 좁은 폭은 세로로 쌓는다 (§4 기본기). */}
+      {/* 정본은 데스크톱 전용 3열이라, 좁은 폭에서는 세로로 쌓는다. */}
       <div className="flex flex-col items-stretch gap-3 sm:flex-row">
         {METHODS.map(({ method, icon: MethodIcon, time, title, desc, cta }, index) => {
           const titleId = `${titleIdPrefix}-method-${String(index)}`;
-          // 세 카드는 시각적으로 동등하다. 2026-08-18 사용자 지시로 첫 카드 강조를 뺐고,
-          // v2.6 에서 정본도 같아졌다 — 더는 divergence 가 아니다.
-          // shared `Card` 를 쓰지 않는 이유는 정본 `.av-card` 에 그림자가 없어서다
-          // (`--featured`·`--elevated` 만 갖는다).
+          // 세 카드는 동등하게 강조 없이 그린다. 정본 `.av-card` 에는 그림자가 없어 shared `Card` 를 쓰지 않는다.
           return (
             <div
               key={title}
@@ -144,7 +124,7 @@ export function WelcomeStep() {
                     }
                   : {})}
               >
-                {/* 2026-08-18 사용자 지시로 화살표를 뺐고, v2.6 에서 정본도 같아졌다. */}
+                {/* 카드 CTA 에는 화살표 아이콘을 두지 않는다. */}
                 {cta}
               </Button>
             </div>
@@ -152,12 +132,9 @@ export function WelcomeStep() {
         })}
       </div>
 
-      {/* `Card soft` — 캔버스 인셋이라 서피스 카드와 달리 테두리·그림자가 없다
-          (`.av-card--soft`: background `--canvas-soft`, border-color transparent). */}
       <div className="bg-canvas-soft rounded-lg px-3.5 py-1">
         <ol className="flex flex-col">
           {TASKS.map((task, index) => {
-            // 전부 미완료 상태 — 첫 항목만 active.
             const isActive = index === 0;
             return (
               <li

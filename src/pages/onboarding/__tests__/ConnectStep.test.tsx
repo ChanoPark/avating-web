@@ -62,8 +62,8 @@ describe('ConnectStep', () => {
       });
     });
 
-    // 진행 기록의 complete 는 완료를 보장하지 않는다. 여기서 확인 화면으로 되돌리면
-    // 대표 아바타가 없는 확인 화면이 다시 이 화면으로 보내 왕복이 된다.
+    // 진행 기록의 complete 는 완료를 보장하지 않는다 — 확인 화면으로 되돌리면 대표 아바타
+    // 없는 확인 화면이 사용자를 다시 여기로 보내 두 화면을 왕복하게 된다.
     it('progress 가 complete 여도 대표 아바타가 없으면 연동 화면을 이어서 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'complete');
       renderWithProviders(<ConnectStep />, {
@@ -77,8 +77,7 @@ describe('ConnectStep', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete', { replace: true });
     });
 
-    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 는 creating 으로 마이그레이션된다 —
-    // 되돌릴 곳이 없으므로 그대로 코드 발급 화면을 보여준다.
+    // 레거시 'method' 기록은 creating 으로 마이그레이션된다 — 되돌릴 곳이 없어 그대로 보여준다.
     it('레거시 method 기록이면 redirect 없이 코드 발급 화면을 보여준다', async () => {
       localStorage.setItem('avating:onboarding:progress', 'method');
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
@@ -102,8 +101,8 @@ describe('ConnectStep', () => {
       expect(codeText).toBeDefined();
     });
 
-    // 실서버 QA S7 회귀 — dev(StrictMode)에서 201 을 받고도 "발급하는 중..." 에 멈췄다.
-    // issuedRef 가드가 두 번째 effect 를 막는 사이 구독이 끊긴 것이 원인이었다.
+    // ref 가드가 두 번째 effect 를 막는 사이 구독이 끊기면, 201 을 받고도 화면이
+    // "발급하는 중..." 에 멈춘다.
     it('StrictMode 이중 마운트에서도 코드를 1회만 발급하고 화면에 렌더한다', async () => {
       let issueCallCount = 0;
       server.use(
@@ -143,7 +142,6 @@ describe('ConnectStep', () => {
 
       await waitFor(() => {
         const timer = screen.getByRole('timer');
-        // '유효 시간 MM:SS 남음' — MM:SS 포함 여부로 검증
         expect(timer.textContent).toMatch(/\d{2}:\d{2}/);
       });
     });
@@ -539,9 +537,7 @@ describe('ConnectStep', () => {
     });
   });
 
-  // "생성된 결과 확인" 은 결과를 보러 가는 버튼이지 완료 선언이 아니다.
-  // 예전에는 연결 여부와 무관하게 진행도를 complete 로 올려서, 아바타를 만든 적 없는
-  // 사용자까지 완료 상태로 기록됐다.
+  // "생성된 결과 확인" 은 결과를 보러 가는 버튼이지 완료 선언이 아니다 — 연결 여부와 무관하게 진행도를 올리면 안 된다.
   describe('생성된 결과 확인 버튼', () => {
     it('아직 연결되지 않았으면 진행도를 complete 로 올리지 않고 안내만 한다', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });

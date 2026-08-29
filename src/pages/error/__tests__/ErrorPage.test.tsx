@@ -7,11 +7,6 @@ import { ErrorPage } from '../ErrorPage';
 import type { ErrorPageProps, ErrorVariant } from '../ErrorPage';
 
 /**
- * 정본: `.claude/design/2026-08-06-wireframe-v2.3/wf/wf-s6-errors.jsx` (S-11-01 ~ S-11-05)
- *
- * 이 파일은 2026-08-07 에 **전면 재작성**됐다. 이전 판본은 v2.3 이 폐기한 동작
- * (offline 자동 재시도 · forbidden 의 로그인 CTA · server-error 1차 실패의 문의하기)을
- * 단언하고 있어 "구현이 아니라 테스트가 낡은" 경우였다.
  */
 
 function LocationDisplay() {
@@ -63,8 +58,6 @@ describe('ErrorPage — 공통 시각 계약 (S-11 ErrBody)', () => {
 
   it('정본이 금지한 장식을 그리지 않는다 — 아이콘 박스·격자 배경·워드마크', () => {
     const { container } = renderErrorPage('not-found');
-    // "그래픽 없이 타입 중심" (wf-s6-errors.jsx 헤더). 이전 판본의 56px 아이콘 박스와
-    // 하단 `AVATING · {year}` 워드마크는 정본에 없다.
     expect(screen.queryByText(/AVATING ·/)).not.toBeInTheDocument();
     expect(container.querySelector('[aria-hidden="true"][style*="backgroundImage"]')).toBeNull();
   });
@@ -102,8 +95,6 @@ describe('ErrorPage — S-11-01 세션 만료 (401)', () => {
 
   it('앱 셸 없이 상단바만 있는 플랫 레이아웃이다', () => {
     renderErrorPage('session-expired');
-    // 정본: "셸 없음 (사이드바·상단 바를 그리지 않습니다)" — 대신 로고 + 우측 라벨의
-    // 얇은 상단바를 둔다.
     expect(screen.getByText('로그인 화면')).toBeInTheDocument();
     expect(screen.getByRole('main')).toBeInTheDocument();
   });
@@ -138,7 +129,6 @@ describe('ErrorPage — S-11-02 접근 권한 없음 (403)', () => {
       screen.getByRole('heading', { name: '이 페이지를 볼 권한이 없어요.' })
     ).toBeInTheDocument();
     expect(screen.getByText(/다른 사람의 아바타나 대화는 열 수 없어요/)).toBeInTheDocument();
-    // 정본: "문구는 항상 '권한이 없다'로 고정" — 없는 리소스인지 남의 것인지 구분하지 않는다.
     expect(screen.queryByText(/찾을 수 없|존재하지 않/)).not.toBeInTheDocument();
   });
 
@@ -195,7 +185,6 @@ describe('ErrorPage — S-11-03 없는 페이지 (404)', () => {
 describe('ErrorPage — S-11-04 서버 에러 (500)', () => {
   it('1차 실패에는 문의 경로를 노출하지 않는다', () => {
     renderErrorPage('server-error');
-    // 정본은 문의·상태 페이지를 S-11-05(3회 실패)에서만 보여 준다.
     expect(screen.queryByRole('button', { name: '문의하기' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /상태 페이지/ })).not.toBeInTheDocument();
   });
@@ -231,7 +220,6 @@ describe('ErrorPage — S-11-04 서버 에러 (500)', () => {
       const onRetry = vi.fn();
       renderErrorPage('server-error', { onRetry });
       vi.advanceTimersByTime(30_000);
-      // 정본: "자동 재시도는 하지 않습니다." 사용자가 누른 적이 없으면 0회여야 한다.
       expect(onRetry).not.toHaveBeenCalled();
     } finally {
       vi.useRealTimers();
@@ -248,8 +236,7 @@ describe('ErrorPage — S-11-04 서버 에러 (500)', () => {
   it('셸 밖(비인증 가능)에서는 "서비스 소개로" 로 바뀐다', async () => {
     const user = userEvent.setup();
     renderErrorPage('server-error');
-    // 대시보드는 AuthGuard 뒤에 있다. 비로그인 사용자를 그쪽으로 보내면 로그인으로
-    // 튕겨 나가므로, 셸 밖에서는 항상 열려 있는 랜딩을 준다.
+    // 대시보드는 AuthGuard 뒤에 있어 비로그인 사용자를 보내면 로그인으로 튕겨 나간다.
     expect(screen.queryByRole('button', { name: '대시보드로' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: '서비스 소개로' }));
     expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
@@ -358,7 +345,7 @@ describe('ErrorPage — offline · maintenance (정본 외 · 유지 결정)', (
 describe('ErrorPage — embedded (셸 안에서 본문만 교체)', () => {
   it('embedded 면 main 랜드마크를 새로 만들지 않는다', () => {
     renderErrorPage('forbidden', { embedded: true });
-    // 셸(AppShellLayout)이 이미 main 을 갖고 있다. 두 개가 되면 랜드마크가 중복된다.
+    // 셸에 이미 main 이 있으므로, 여기서 또 만들면 랜드마크가 중복된다.
     expect(screen.queryByRole('main')).not.toBeInTheDocument();
     expect(screen.getByRole('alert')).toBeInTheDocument();
   });
@@ -383,8 +370,6 @@ describe('ErrorPage — 비로그인 404 카피 정합', () => {
         <ErrorPage variant="not-found" isAuthenticated={false} />
       </MemoryRouter>
     );
-    // 액션이 "서비스 소개로 · 로그인" 인데 본문만 "대시보드에서 다시 시작해 주세요" 로
-    // 남으면 존재하지 않는 경로를 안내하게 된다.
     expect(screen.queryByText(/대시보드에서 다시 시작해 주세요/)).not.toBeInTheDocument();
     expect(screen.getByText('주소가 바뀌었거나 삭제된 화면이에요.')).toBeInTheDocument();
   });

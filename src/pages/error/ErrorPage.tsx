@@ -5,20 +5,15 @@ import { Button } from '@shared/ui/Button';
 import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
 
 /**
- * 정본: `.claude/design/2026-08-06-wireframe-v2.3/wf/wf-s6-errors.jsx` (S-11-01 ~ S-11-05)
- *
- * 정본이 못박은 원칙 셋 —
- * ① 그래픽 없이 타입 중심. 아이콘 박스·일러스트·격자 배경을 두지 않는다.
- * ② 에러 코드·요청 ID 는 사용자에게 노출하지 않는다.
- * ③ 세션이 끊긴 401 만 셸 없이, 로그인 상태의 403·404·500 은 셸 안에서 본문만 교체한다.
+ * — 아이콘·일러스트 없이 타입 중심으로 그리고, 에러 코드·요청 ID 는 사용자에게 보여주지 않는다.
  */
 export type ErrorVariant =
   | 'session-expired' // S-11-01 · 401
   | 'forbidden' // S-11-02 · 403
   | 'not-found' // S-11-03 · 404
   | 'server-error' // S-11-04 · 500
-  | 'offline' // 정본 외 — 유지 결정 (2026-08-07)
-  | 'maintenance'; // 정본 외 — 유지 결정 (2026-08-07)
+  | 'offline' // 정본 외
+  | 'maintenance'; // 정본 외
 
 type MaintenanceWindow = {
   startsAt: string;
@@ -29,15 +24,11 @@ type MaintenanceWindow = {
 
 export type ErrorPageProps = {
   variant: ErrorVariant;
-  /**
-   * 앱 셸(AppShellLayout) 안에 놓일 때 true. 셸이 이미 `<main>` 을 갖고 있으므로
-   * 랜드마크를 새로 만들지 않는다. `session-expired` 는 셸이 없는 화면이라 무시된다.
-   */
+  /** 앱 셸 안에 놓일 때 true. 셸의 `<main>` 과 중복되지 않도록 랜드마크를 새로 만들지 않는다(`session-expired` 는 예외). */
   embedded?: boolean;
   /**
-   * 사용자가 "다시 시도" 를 누른 횟수. `RETRY_ESCALATION_THRESHOLD` 에 도달하면
-   * S-11-05 반복 실패 화면으로 교체한다. 이 카운터는 에러 경계 **바깥**에서 살아야 한다 —
-   * `FallbackComponent` 는 `resetErrorBoundary()` 마다 언마운트되기 때문이다.
+   * 사용자가 "다시 시도" 를 누른 횟수. 에러 경계 안에 두면 `resetErrorBoundary()` 마다
+   * 초기화돼 `RETRY_ESCALATION_THRESHOLD` 에 영영 도달하지 못하므로, 상태는 경계 바깥에 둔다.
    */
   retryCount?: number;
   onRetry?: () => void;
@@ -48,7 +39,7 @@ export type ErrorPageProps = {
   maintenanceStatusUrl?: string;
 };
 
-/** 정본 S-11-05: "재시도 3회 연속 실패하면 S-11-04를 이 화면으로 교체합니다." */
+// 정본 S-11-05 — 3회 연속 실패 기준.
 const RETRY_ESCALATION_THRESHOLD = 3;
 
 /** 재시도라는 개념이 성립하는 화면에서만 반복 실패로 승격한다. */
@@ -77,8 +68,7 @@ const COPY: Record<ErrorVariant, Copy> = {
     title: '문제가 생겼어요. 다시 시도해 주세요.',
     body: '요청을 처리하지 못했어요. 잠시 후 다시 시도하면 대부분 해결됩니다.',
   },
-  // 아래 둘은 정본에 대응 화면이 없다. S-11 의 ErrBody 골격과 해요체 톤만 따르고
-  // 문구는 기존 판본에서 이어받았다 (design-fidelity § 4 — 정본 침묵 시 기본기 적용).
+  // offline · maintenance 는 정본에 대응 화면이 없다 — 기존 판본 문구를 그대로 쓴다.
   offline: {
     eyebrow: '연결 끊김',
     title: '인터넷 연결이 불안정해요.',
@@ -102,10 +92,6 @@ function detectHasHistory(): boolean {
   return window.history.length > 1;
 }
 
-/**
- * 정본 `ErrBody` — 26×1px 룰 → eyebrow → 제목 → 본문 → 액션.
- * 폭은 470(반복 실패만 520)이고, 룰 아래 22 / 제목 위 12 / 본문 위 10 / 액션 위 26.
- */
 function ErrorBody({
   copy,
   actions,
@@ -132,7 +118,6 @@ function ErrorBody({
   );
 }
 
-/** S-11-05 의 문의 · 상태 페이지 카드. `.av-card--soft` = canvas-soft + 투명 테두리. */
 function EscalationCard({
   title,
   hint,
@@ -168,9 +153,8 @@ export function ErrorPage({
   const location = useLocation();
 
   const escalated = ESCALATABLE.has(variant) && retryCount >= RETRY_ESCALATION_THRESHOLD;
-  // 정본은 비로그인 404 에서 "액션만" 교체하라고 하지만, 본문 뒷문장이 대시보드로
-  // 안내하는데 정작 대시보드 버튼이 없는 조합이 된다. 갈 수 없는 곳을 가리키지 않도록
-  // 그 문장만 뺀다 — 앞문장과 제목은 정본 그대로다.
+  // 정본 문구를 그대로 쓰면 비인증 사용자에게는 있지도 않은 대시보드 버튼을 가리키게 되므로, 그
+  // 문장만 뺀다.
   const loggedOutNotFound = variant === 'not-found' && isAuthenticated === false;
   const copy = escalated
     ? REPEAT_COPY
@@ -206,8 +190,6 @@ export function ErrorPage({
     if (typeof window !== 'undefined') window.location.reload();
   }
 
-  // 화면·밴드마다 채워진 파란 CTA 는 정확히 1개 (v2 절대 규칙 ①).
-  // 부가 액션의 목적지는 셸 안이면 대시보드, 밖이면 랜딩이다.
   const secondaryHome = embedded ? (
     <Button variant="ghost" onClick={goDashboard}>
       대시보드로
@@ -234,8 +216,7 @@ export function ErrorPage({
           title="문의 남기기"
           hint="보통 하루 안에 답변해요"
           action={
-            // 정본은 에러 코드·요청 ID 를 문의 링크에 "내부적으로만" 붙이라고 한다.
-            // 지금은 붙일 식별자 자체가 없어 링크만 연다.
+            // 에러 코드·요청 ID 는 사용자에게 보여주지 않는다 — 지금은 식별자가 없어 링크만 연다.
             onContact ? (
               <Button variant="secondary" size="sm" onClick={onContact}>
                 문의하기
@@ -290,8 +271,6 @@ export function ErrorPage({
       </>
     );
   } else if (variant === 'not-found') {
-    // 정본 note: "비로그인 상태에서 같은 주소로 들어오면 셸 없이 S-11-01과 같은 플랫
-    // 레이아웃을 쓰고, 액션만 '서비스 소개로 · 로그인'으로 교체합니다."
     actions =
       isAuthenticated === false ? (
         <>
@@ -301,9 +280,7 @@ export function ErrorPage({
           </Button>
         </>
       ) : (
-        // 정본의 부가 액션 "탐색 둘러보기" 는 S-03-02 탐색 화면을 가리키는데 이 앱에는
-        // 아직 그 라우트가 없다(사이드바 '탐색' 도 /dashboard 를 가리킨다). 같은 곳으로
-        // 가는 버튼을 둘 두지 않고 주 액션만 남긴다.
+        // 정본은 버튼을 2개(탐색 둘러보기 포함) 두지만, 탐색 화면 라우트가 아직 없어 하나만 둔다.
         <Button onClick={goDashboard}>대시보드로</Button>
       );
   } else if (variant === 'maintenance') {
@@ -330,7 +307,7 @@ export function ErrorPage({
       </>
     );
   } else {
-    // server-error · offline — 수동 재시도만. 정본: "자동 재시도는 하지 않습니다."
+    // server-error · offline 는 자동 재시도를 걸지 않는다 — 수동 재시도만 제공한다.
     actions = (
       <>
         <Button onClick={handleRetry}>다시 시도</Button>
@@ -342,13 +319,12 @@ export function ErrorPage({
   const body = <ErrorBody copy={copy} actions={actions} extra={extra} wide={escalated} />;
 
   if (!flat) {
-    // 셸 안 — 본문 영역만 교체한다. 랜드마크는 셸이 이미 갖고 있다.
+    // 셸에 이미 <main> 이 있으므로, 여기서는 본문 영역만 교체하고 랜드마크는 새로 만들지 않는다.
     return <div className="flex min-h-[60vh] items-center justify-center px-6 py-12">{body}</div>;
   }
 
   return (
     <div className="bg-canvas flex min-h-screen flex-col">
-      {/* 정본 S-11-01 의 상단바 — height 68, 좌우 64, 하단 hairline, 흰 서피스. */}
       <div className="border-hairline bg-surface flex h-17 shrink-0 items-center justify-between border-b px-6 md:px-16">
         <div className="flex items-center gap-2">
           <span aria-hidden="true" className="bg-primary h-[19px] w-[19px] rounded-[5.32px]" />

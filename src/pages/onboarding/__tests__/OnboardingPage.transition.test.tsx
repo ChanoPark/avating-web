@@ -66,8 +66,6 @@ describe('OnboardingPage 스텝 전환 — 전환 플래시(크롬/콘텐츠 비
 
     await user.click(screen.getByText('go-intro'));
 
-    // 클릭 직후 커밋된 프레임: 스텝 레일이 welcome 위에 잠깐 뜨는 전환 프레임이 없어야 한다.
-    // 목적지(intro)와 레일은 함께 즉시 나타나고, 이전 스텝(welcome)은 잔류하지 않는다.
     expect(screen.queryByTestId('welcome-content')).not.toBeInTheDocument();
     expect(screen.getByTestId('intro-content')).toBeInTheDocument();
     expect(screen.getByRole('navigation', { name: '온보딩 단계' })).toBeInTheDocument();

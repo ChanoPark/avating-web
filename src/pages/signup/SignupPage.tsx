@@ -6,7 +6,6 @@ import { clearDraft } from '@features/persona-survey/lib/draftStorage';
 import { clearOnboardingProgress } from '@entities/onboarding';
 import { useAuthStore } from '@entities/auth/store';
 
-// 정본 `ScreenSignup` 의 AuthAside 3항목.
 const ASIDE_ITEMS: readonly AuthAsideItem[] = [
   // 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
   { title: '아바타 생성', description: '성향 설문 또는 Bot 연동' },
@@ -25,7 +24,6 @@ export function SignupPage() {
     }
   }, [status, navigate]);
 
-  // 정본 v2 `ScreenSignup`: 좌 폼 페인 + 우 AuthAside 340 의 2단 구성.
   return (
     <AuthLayout
       headingId="signup-heading"
@@ -37,8 +35,7 @@ export function SignupPage() {
     >
       <SignupForm
         onSuccess={() => {
-          // 온보딩 로컬 상태는 브라우저 단위라 계정이 바뀌어도 남는다.
-          // 새 계정이 앞사람의 진행도·입력을 물려받지 않도록 여기서 끊는다.
+          // 온보딩 로컬 상태는 브라우저 단위로 남으므로, 새 계정이 앞사람 진행도를 물려받지 않도록 여기서 지운다.
           clearOnboardingProgress();
           clearDraft();
           void navigate('/onboarding');
