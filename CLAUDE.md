@@ -121,7 +121,7 @@ wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md)
 
 지켜야 하는 것들 — 괄호 안이 이걸 실제로 막는 게이트다:
 
-- **커밋 승인은 세션당 한 번이다.** 세션 첫 커밋에서 `commit-approval-gate.sh` 가 `ask` 를 돌려주고, 사용자가 승인하면 `commit-autoapprove-mark.sh`(PostToolUse)가 `/tmp/claude-commit-autoapprove-<session_id>` 마커를 만든다. 이후 같은 세션의 커밋은 게이트가 `allow` 로 통과시킨다. session_id 가 바뀌면 마커가 무효해지므로 **다음 세션으로 이월되지 않는다**. 세션 시작부터 자동 진행하려면 사용자 지시 후 그 경로를 직접 `touch`, 되돌리려면 `rm`. 자동 승인은 "묻는 단계"만 생략할 뿐 아래 게이트들은 그대로 돈다 (매칭 훅은 전부 병렬 실행되고 첫 `allow` 로 끊기지 않는다). `settings.local.json` 의 `ask: Bash(git commit *)` 는 훅이 죽었을 때의 fail-open 백스톱이니 **지우지 않는다** — 게이트가 `exit 0` 으로 빠지면 이 규칙이 다시 물어준다.
+- **커밋 승인 정책의 정본은 git-flow-public-repo SKILL.md § 11.1 이다** (여기 옮겨 적지 않는다). 요지만: 사용자가 자동 진행을 명시하면 확인 0회, 명시가 없으면 세션 첫 커밋만 모델 레벨에서 승인을 받는다 — `commit-approval-gate.sh` 는 harness 프롬프트를 띄우지 않는다. `settings.local.json` 의 `ask: Bash(git commit *)` 는 훅이 죽었을 때의 fail-open 백스톱이니 **지우지 않는다**.
 - **`git commit --no-verify` 는 쓰지 않는다** (같은 훅이 `deny`).
 - **코드 수정은 gitflow 브랜치에서만 한다.** 보호 브랜치 직접 수정·prefix 위반·뒤처진 로컬 `develop` 은 git 명령이 아니라 **모든 Edit/Write 를 거부한다** (`gitflow-branch-gate.sh`, develop 검사는 세션당 1회). develop 이 뒤처졌으면 `git fetch origin develop:develop` 로 로컬 ref 만 fast-forward 한다 — 훅이 안내하는 `checkout develop && pull` 은 작업 트리가 더러우면 못 쓴다.
 - **PR 은 `--base develop --label AI` 로 만든다.** 본문은 `.claude/templates/pr-body.md` 형식이어야 하고, 첫 줄 AI 생성 인용 블록·`## Test Plan` 체크리스트가 없거나 `--fill`/`--web` 이면 거부된다. 라벨을 사후에 `gh pr edit` 로 붙이는 건 인정되지 않는다 (`pre-pr-gate.sh` — 리뷰 토큰을 소비하기 전에 형식부터 본다).
