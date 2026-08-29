@@ -52,7 +52,6 @@ describe('SuspenseRoute', () => {
     spy.mockRestore();
   });
 
-  // 정본 S-11-04 는 1차 실패에 문의 경로를 두지 않는다 — 3회 실패(S-11-05)에서만 나온다.
   it('500 은 수동 재시도만 주고 문의 경로는 아직 노출하지 않는다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
@@ -96,7 +95,6 @@ describe('SuspenseRoute', () => {
     spy.mockRestore();
   });
 
-  // 401 과 403 은 정본에서 서로 다른 화면이다 — 예전엔 둘 다 forbidden 으로 뭉개졌다.
   it('401 ApiError 는 S-11-01 세션 만료 화면으로 떨어진다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {

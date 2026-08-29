@@ -19,7 +19,6 @@ const REFRESHED = {
 
 type Counter = { calls: number };
 
-/** 저장된 accessToken 을 그대로 인정하는 서버. */
 function meOk(counter: Counter) {
   return mswHttp.get(`${BASE_URL}/api/auth/me`, () => {
     counter.calls += 1;
@@ -27,7 +26,6 @@ function meOk(counter: Counter) {
   });
 }
 
-/** 재발급된 토큰만 인정하는 서버 — 저장된 accessToken 은 모른다(서버 재기동·회수). */
 function meAcceptsRefreshedOnly(counter: Counter) {
   return mswHttp.get(`${BASE_URL}/api/auth/me`, ({ request }) => {
     counter.calls += 1;
@@ -38,7 +36,6 @@ function meAcceptsRefreshedOnly(counter: Counter) {
   });
 }
 
-/** 어떤 토큰도 인정하지 않는 서버. */
 function meUnauthorized(counter: Counter) {
   return mswHttp.get(`${BASE_URL}/api/auth/me`, () => {
     counter.calls += 1;
@@ -63,7 +60,6 @@ function refreshRejected(counter: Counter) {
   });
 }
 
-/** 로컬 기준으로는 아직 유효한 세션을 심는다. */
 function seedLiveSession() {
   useAuthStore.getState().setToken({
     accessToken: 'stored-access-token',
@@ -112,7 +108,6 @@ describe('bootstrapAuth — 부팅 시 서버 검증', () => {
   });
 
   it('검증 왕복 중에 로컬 만료 시각이 지나도 authenticated 를 유지한다', async () => {
-    // 서버가 방금 인정한 세션이다. 여기서 anonymous 로 내리면 새로고침이 곧 로그아웃이 된다.
     server.use(
       mswHttp.get(`${BASE_URL}/api/auth/me`, () => {
         useAuthStore.setState({ expiresAt: Date.now() - 1 });

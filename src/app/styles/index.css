@@ -1,7 +1,5 @@
 /* Avating 디자인 시스템 v2.5 — 라이트 베이스 (흰 서피스 + 네이비 틴트 캔버스 + hairline).
-   tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다.
-   출처: 색·그림자는 .claude/design/2026-08-18-wireframe-v2.5/tokens/,
-        나머지(타이포·간격·반경·폰트)는 .claude/design/2026-07-26-wireframe-v2/tokens/ */
+   tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다. */
 @import './avating/tokens/colors.css';
 @import './avating/tokens/typography.css';
 @import './avating/tokens/spacing.css';
@@ -9,11 +7,8 @@
 @import './avating/tokens/effects.css';
 @import 'tailwindcss';
 
-/* z-index 스케일 — **핸드오프에 없는 앱 자체 관심사다.**
-   v2 토큰은 시각 값(색·타입·간격·반경·효과)만 다루고 레이어 순서를 정의하지 않는다.
-   다크 시절 `tokens.css` 에 있던 값을 그대로 옮겨 왔다 — 이걸 빼면 `var(--z-modal)`
-   을 참조하는 9곳(Modal · Toast · MatchRequestModal · AppShellLayout · CompleteStep)의
-   `z-index` 가 `auto` 로 계산돼 모달·토스트 스태킹이 무너진다. */
+/* z-index 스케일 — 핸드오프에 없는 앱 자체 관심사다. 빼면 var(--z-modal) 을 참조하는 9곳의
+   z-index 가 auto 로 계산돼 모달·토스트 스태킹이 무너진다. */
 :root {
   --z-dropdown: 10;
   --z-sticky: 20;
@@ -25,25 +20,19 @@
   --z-tooltip: 80;
 }
 
-/* 토큰을 Tailwind 4 theme 레이어에 노출해 `bg-surface`, `text-ink-mute`,
-   `border-hairline`, `rounded-lg`, `shadow-card` 같은 유틸로 쓸 수 있게 한다.
-   여기서 새 값을 만들지 않는다 — 전부 tokens/ 의 변수를 가리킬 뿐이다. */
+/* @theme 에는 새 값을 만들지 않는다 — 전부 tokens/ 의 변수를 가리키기만 한다. */
 @theme {
-  /* ── 서피스 ── */
   --color-surface: var(--surface);
   --color-surface-inset: var(--surface-inset);
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
-  /* 인터루드 밴드 — v2.4 에서 크림(`--canvas-cream`)이 딥 네이비로 교체됐다. */
   --color-canvas-deep: var(--canvas-deep);
 
-  /* ── 선 ── */
   --color-hairline: var(--hairline);
   --color-hairline-input: var(--hairline-input);
-  /* 딥 밴드 위에서는 밝은 1px 선이 구분선 역할을 한다. */
   --color-hairline-deep: var(--hairline-deep);
 
-  /* ── 잉크 (ink-faint 는 장식 전용 — 본문·placeholder 금지) ── */
+  /* ink-faint 는 장식 전용이다 — 본문이나 placeholder 에 쓰지 않는다. */
   --color-ink: var(--ink);
   --color-ink-secondary: var(--ink-secondary);
   --color-ink-mute: var(--ink-mute);
@@ -51,7 +40,6 @@
   --color-ink-on-deep: var(--ink-on-deep);
   --color-ink-on-deep-mute: var(--ink-on-deep-mute);
 
-  /* ── 브랜드 · 단일 CTA 색 ── */
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-press: var(--primary-press);
@@ -63,11 +51,10 @@
   --color-on-brand-dark: var(--on-brand-dark);
   --color-link: var(--link);
 
-  /* ── 액센트 (데이터 시리즈·희소 라벨 전용) ──
-     v2.4 에서 마젠타 계열이 삭제됐다 — 장식용 다색 팔레트는 쓰지 않는다. */
+  /* 장식용 다색 팔레트는 쓰지 않는다 — 액센트는 데이터 시리즈·희소 라벨 전용이다. */
   --color-accent-ruby: var(--accent-ruby);
 
-  /* ── 상태 · 긍정=파랑 · 주의=앰버 · 위험=루비 (초록·보라 없음) ── */
+  /* 상태 색상은 긍정=파랑, 주의=앰버, 위험=루비다 — 초록·보라는 쓰지 않는다. */
   --color-success: var(--success);
   --color-success-wash: var(--success-wash);
   --color-warning: var(--warning);
@@ -75,16 +62,11 @@
   --color-danger: var(--danger);
   --color-danger-wash: var(--danger-wash);
 
-  /* ── 폰트 · Pretendard 단독 (mono 없음 — v2.0 Breaking) ──
-     `--font-sans` 는 tokens/typography.css 가 :root 에 정의한다. 여기서 다시
-     선언하면 `--font-sans: var(--font-sans)` 자기참조로 무효화된다. 그렇다고
-     두지도 못하는 이유는 Tailwind 기본 theme 의 `--font-sans: ui-sans-serif…`
-     가 토큰 파일보다 **뒤에** 방출되어 Pretendard 를 덮어쓰기 때문이다.
-     그래서 기본 font 네임스페이스를 통째로 비우고 토큰만 남긴다. */
+  /* --font-*: initial 로 Tailwind 기본 font 네임스페이스를 비운다 — 안 비우면 Tailwind 의
+     --font-sans 가 토큰보다 뒤에 방출되어 Pretendard 를 덮어쓴다. */
   --font-*: initial;
   --default-font-family: var(--font-sans);
 
-  /* ── 반경 ── */
   --radius-xs: var(--r-xs);
   --radius-sm: var(--r-sm);
   --radius-md: var(--r-md);
@@ -92,7 +74,7 @@
   --radius-xl: var(--r-xl);
   --radius-pill: var(--r-pill);
 
-  /* ── 그림자 · 컬러 그림자 금지 ── */
+  /* 그림자에 색을 넣지 않는다. */
   --shadow-1: var(--shadow-1);
   --shadow-2: var(--shadow-2);
   --shadow-3: var(--shadow-3);
@@ -102,13 +84,10 @@
   --shadow-glow: var(--shadow-glow);
   --shadow-focus: var(--focus-ring);
 
-  /* ── 모션 ── */
   --ease-brand: var(--ease);
   --ease-brand-out: var(--ease-out);
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
 
-  /* ── 타입 스케일 · tokens/typography.css 의 role 별 값 ──
-     display 티어의 weight 300 이 브랜드 시그니처다. */
   --text-display-xxl: var(--fs-display-xxl);
   --text-display-xxl--line-height: var(--lh-display-xxl);
   --text-display-xxl--letter-spacing: var(--ls-display-xxl);
@@ -129,8 +108,6 @@
   --text-display-md--letter-spacing: var(--ls-display-md);
   --text-display-md--font-weight: var(--fw-thin);
 
-  /* heading-lg 만 regular(400) 다 — css/type.css `.t-heading-lg` 기준.
-     md·sm 은 medium(500). INDEX.md 우선순위상 type.css 가 정본이다. */
   --text-heading-lg: var(--fs-heading-lg);
   --text-heading-lg--line-height: var(--lh-heading-lg);
   --text-heading-lg--letter-spacing: var(--ls-heading-lg);
@@ -252,10 +229,8 @@
     height: 100%;
   }
 
-  /* `html` 에 font-size 를 주지 않는다. 1rem 을 15px 로 바꾸면 Tailwind 의
-     `--spacing: .25rem` 이 3.75px 가 되어 **간격·크기 유틸 전체가 6.25% 축소된다**
-     (사이드바 232→217.5 · 버튼 40→37.5 · 모달 560→525 실측). 사용자의 브라우저
-     글꼴 크기 설정도 함께 무시된다. 본문 크기는 body 에 준다. */
+  /* html 에 font-size 를 주지 않는다 — 1rem 을 바꾸면 Tailwind 의 spacing 유틸 전체가 같은
+     비율로 줄어들고, 사용자의 브라우저 글꼴 크기 설정도 무시된다. 본문 크기는 body 에 준다. */
   html {
     color-scheme: light;
     background-color: var(--canvas);
@@ -264,7 +239,7 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    /* 한국어 필수 — 어절 중간에서 끊기는 것을 막는다 (v2.0). */
+    /* 한국어 어절이 중간에서 끊기지 않게 한다. */
     word-break: keep-all;
     /* Pretendard 가 이미 제공하는 weight 를 브라우저가 합성하지 않게 한다. */
     font-synthesis: none;
@@ -278,18 +253,14 @@
     line-height: var(--lh-body);
   }
 
-  /* 포커스 링은 그림자만 건다. `border-color` 를 함께 바꾸면 ghost 버튼·테두리 없는
-     요소가 포커스 시 난데없이 파란 테두리를 얻는다 — components.css 의
-     `.av-btn:focus-visible{outline:none;box-shadow:var(--focus-ring)}` 계약과도 어긋난다.
-     입력처럼 포커스 시 테두리도 바뀌어야 하는 요소는 각자 `focus:border-primary` 를 건다. */
+  /* 포커스 링은 그림자만 건다 — border-color 까지 바꾸면 테두리 없는 요소가 포커스 시 갑자기
+     테두리를 얻는다. 테두리도 바뀌어야 하는 요소는 각자 focus:border-primary 를 따로 건다. */
   *:focus-visible {
     outline: none;
     box-shadow: var(--focus-ring);
   }
 }
 
-/* 금액·스탯·카운트·시각에 쓰는 tabular numerals.
-   와이어프레임의 `tnum` 클래스와 같은 계약이다. */
 @utility tnum {
   font-variant-numeric: tabular-nums;
 }
