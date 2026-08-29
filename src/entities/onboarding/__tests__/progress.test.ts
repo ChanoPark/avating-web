@@ -19,13 +19,31 @@ describe('getOnboardingProgress', () => {
     expect(getOnboardingProgress()).toBe('welcome');
   });
 
-  it('유효한 값(method/creating/complete)을 그대로 반환한다', () => {
-    localStorage.setItem(PROGRESS_KEY, 'method');
-    expect(getOnboardingProgress()).toBe('method');
+  it('유효한 값(intro/creating/complete)을 그대로 반환한다', () => {
+    localStorage.setItem(PROGRESS_KEY, 'intro');
+    expect(getOnboardingProgress()).toBe('intro');
     localStorage.setItem(PROGRESS_KEY, 'creating');
     expect(getOnboardingProgress()).toBe('creating');
     localStorage.setItem(PROGRESS_KEY, 'complete');
     expect(getOnboardingProgress()).toBe('complete');
+  });
+
+  // v2.6 에서 생성 방법 선택 화면이 사라졌다. 'method' 는 "intro 를 끝내고 방법을 고르던 중" 이었고,
+  // 그 시점에 METHOD_KEY 는 이미 환영 화면에서 채워져 있으므로 creating 과 같은 자리다.
+  it('레거시 "method" 값을 발견하면 "creating" 으로 즉시 마이그레이션한다 (read-side write)', () => {
+    localStorage.setItem(PROGRESS_KEY, 'method');
+    expect(getOnboardingProgress()).toBe('creating');
+    expect(localStorage.getItem(PROGRESS_KEY)).toBe('creating');
+  });
+
+  it('레거시 "method" + setItem 실패 환경에서도 crash 없이 "creating" 을 반환한다', () => {
+    localStorage.setItem(PROGRESS_KEY, 'method');
+    const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+    expect(() => getOnboardingProgress()).not.toThrow();
+    expect(getOnboardingProgress()).toBe('creating');
+    setItemSpy.mockRestore();
   });
 
   it('레거시 "connect" 값을 발견하면 "creating" 으로 즉시 마이그레이션한다 (read-side write)', () => {
@@ -74,9 +92,9 @@ describe('setOnboardingProgress', () => {
   });
 
   it('현재 단계보다 앞으로만 진행한다 (역방향 무시)', () => {
-    setOnboardingProgress('method');
+    setOnboardingProgress('creating');
     setOnboardingProgress('welcome');
-    expect(getOnboardingProgress()).toBe('method');
+    expect(getOnboardingProgress()).toBe('creating');
   });
 
   it('동일 단계 재설정은 무시된다', () => {
@@ -86,7 +104,7 @@ describe('setOnboardingProgress', () => {
   });
 
   it('순방향 진행이 정상 동작한다', () => {
-    setOnboardingProgress('method');
+    setOnboardingProgress('intro');
     setOnboardingProgress('creating');
     setOnboardingProgress('complete');
     expect(getOnboardingProgress()).toBe('complete');
@@ -154,15 +172,14 @@ describe('intro 단계 (와이어프레임 v2 — 이름·설명 step)', () => {
     expect(getOnboardingProgress()).toBe('intro');
   });
 
-  it('intro 단계에서 method 로 순방향 진행한다', () => {
+  it('intro 단계에서 creating 으로 순방향 진행한다', () => {
     setOnboardingProgress('intro');
-    setOnboardingProgress('method');
-    expect(getOnboardingProgress()).toBe('method');
+    setOnboardingProgress('creating');
+    expect(getOnboardingProgress()).toBe('creating');
   });
 
-  it('welcome → intro → method → creating → complete 전체 순방향 진행', () => {
+  it('welcome → intro → creating → complete 전체 순방향 진행', () => {
     setOnboardingProgress('intro');
-    setOnboardingProgress('method');
     setOnboardingProgress('creating');
     setOnboardingProgress('complete');
     expect(getOnboardingProgress()).toBe('complete');

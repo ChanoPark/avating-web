@@ -10,7 +10,6 @@ function renderAt(initialRoute: string) {
       <Route path="/onboarding" element={<OnboardingPage />}>
         <Route path="welcome" element={<div data-testid="step-welcome">welcome</div>} />
         <Route path="intro" element={<div data-testid="step-intro">intro</div>} />
-        <Route path="method" element={<div data-testid="step-method">method</div>} />
         <Route path="survey" element={<div data-testid="step-survey">survey</div>} />
         <Route path="connect" element={<div data-testid="step-connect">connect</div>} />
         <Route path="complete" element={<div data-testid="step-complete">complete</div>} />
@@ -37,9 +36,7 @@ describe('OnboardingPage (WizardShell)', () => {
   it('/onboarding/welcome 의 각주는 레일이 아니라 폼 카드 바깥 아래에 렌더된다', () => {
     renderAt('/onboarding/welcome');
     expect(
-      screen.getByText(
-        '어느 방법을 골라도 아래 4단계를 거칩니다 · 시작 후 2단계에서 방법을 바꿀 수 있어요'
-      )
+      screen.getByText('어느 방법을 골라도 아래 3단계를 거칩니다 · 방법은 여기서만 선택합니다')
     ).toBeInTheDocument();
   });
 
@@ -65,17 +62,22 @@ describe('OnboardingPage (WizardShell)', () => {
     ).toBeInTheDocument();
   });
 
-  it('레일이 표시되는 단계에서는 스텝 4개가 고정 라벨로 렌더된다', () => {
+  it('레일이 표시되는 단계에서는 스텝 3개가 고정 라벨로 렌더된다', () => {
     renderAt('/onboarding/intro');
     const items = within(rail()).getAllByRole('listitem');
-    expect(items).toHaveLength(4);
+    expect(items).toHaveLength(3);
     // 텍스트는 [순번 마커][라벨][sr-only 상태] 순으로 이어진다.
     expect(items.map((li) => li.textContent)).toEqual([
       '1아바타 기본 정보진행 중',
-      '2생성 방법 선택예정',
-      '3성향 설문예정',
-      '4아바타 확인예정',
+      '2성향 설문예정',
+      '3아바타 확인예정',
     ]);
+  });
+
+  // v2.6 에서 생성 방법 선택 화면이 삭제됐다 — 레일에도 그 단계가 없다.
+  it('레일에 생성 방법 선택 단계가 없다', () => {
+    renderAt('/onboarding/intro');
+    expect(within(rail()).queryByText('생성 방법 선택')).not.toBeInTheDocument();
   });
 
   it('/onboarding/intro 진입 시 1번째 스텝이 현재 단계다', () => {
@@ -86,26 +88,18 @@ describe('OnboardingPage (WizardShell)', () => {
     expect(screen.getByTestId('step-intro')).toBeInTheDocument();
   });
 
-  it('/onboarding/method 진입 시 2번째 스텝이 현재 단계이고 1번째는 완료다', () => {
-    renderAt('/onboarding/method');
+  it('/onboarding/survey 진입 시 2번째 스텝이 현재 단계이고 1번째는 완료다', () => {
+    renderAt('/onboarding/survey');
     const items = within(rail()).getAllByRole('listitem');
     expect(items[0]).toHaveTextContent('완료');
-    expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
-      '생성 방법 선택'
-    );
-    expect(screen.getByTestId('step-method')).toBeInTheDocument();
-  });
-
-  it('/onboarding/survey 진입 시 3번째 스텝이 현재 단계다', () => {
-    renderAt('/onboarding/survey');
     expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
       '성향 설문'
     );
     expect(screen.getByTestId('step-survey')).toBeInTheDocument();
   });
 
-  // 같은 3단계를 공유하되 라벨은 경로를 따라간다 — Bot 연동 중에 `성향 설문` 이 뜨면 안 된다(QA S8-3).
-  it('/onboarding/connect 는 3번째 스텝을 공유하되 라벨은 ChatGPT Bot 대화다', () => {
+  // 같은 2단계를 공유하되 라벨은 경로를 따라간다 — Bot 연동 중에 `성향 설문` 이 뜨면 안 된다(QA S8-3).
+  it('/onboarding/connect 는 2번째 스텝을 공유하되 라벨은 ChatGPT Bot 대화다', () => {
     renderAt('/onboarding/connect');
     const current = within(rail()).getByRole('listitem', { current: 'step' });
     expect(current).toHaveTextContent('ChatGPT Bot 대화');
@@ -120,7 +114,7 @@ describe('OnboardingPage (WizardShell)', () => {
     );
   });
 
-  it('/onboarding/complete 진입 시 4번째 스텝이 현재 단계다', () => {
+  it('/onboarding/complete 진입 시 3번째 스텝이 현재 단계다', () => {
     renderAt('/onboarding/complete');
     expect(within(rail()).getByRole('listitem', { current: 'step' })).toHaveTextContent(
       '아바타 확인'
@@ -150,8 +144,8 @@ describe('OnboardingPage (WizardShell)', () => {
       ).toBeInTheDocument();
     });
 
-    it('/onboarding/method 에는 각주가 없다', () => {
-      renderAt('/onboarding/method');
+    it('/onboarding/survey 에는 각주가 없다', () => {
+      renderAt('/onboarding/survey');
       expect(within(rail()).queryByText(/각주|소요|수정할 수 있어요/)).not.toBeInTheDocument();
     });
   });

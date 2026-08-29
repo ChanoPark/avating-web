@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, useOutlet } from 'react-router';
 import {
@@ -6,7 +6,6 @@ import {
   ChevronRight,
   Clock,
   Compass,
-  Diamond,
   Heart,
   Menu,
   MessageCircle,
@@ -14,12 +13,9 @@ import {
   Users,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ErrorBoundary } from 'react-error-boundary';
-import { handleAppCrash } from '../handleAppCrash';
 import { RouteErrorBoundary } from '../providers/RouteErrorBoundary';
+import { SidebarAccountRow } from './SidebarAccountRow';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
-import { useDashboardStats } from '@features/dashboard/api/useDashboardStats';
-import { useMyAvatars } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { cn } from '@shared/lib/cn';
 
@@ -64,66 +60,6 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
         })}
       </ol>
     </nav>
-  );
-}
-
-// 크레딧 표기 — Diamond 아이콘(fontSize × 0.86 = 10.32) + tnum 숫자, gap 4
-// (LAYOUT-NUMBERS § 아이콘). `◇` 글리프는 Pretendard 에 없어 쓰지 않는다.
-function AccountCredit() {
-  const stats = useDashboardStats();
-  return (
-    <div className="text-ink-mute flex items-center gap-1 text-[12px]">
-      <Diamond size={10.32} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
-      <span className="sr-only">잔여 다이아</span>
-      <span className="tnum">{stats.gemsBalance.toLocaleString()}</span>
-    </div>
-  );
-}
-
-function AccountCreditFallback() {
-  return (
-    <div className="text-ink-mute flex items-center gap-1 text-[12px]">
-      <Diamond size={10.32} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
-      <span className="sr-only">잔여 다이아</span>
-      <span className="tnum">—</span>
-    </div>
-  );
-}
-
-// 사이드바 하단 계정 행 — 상단 hairline, padding 10, 내부 padding 4px 6px,
-// 아바타 26 circle, 닉네임 13px, 크레딧 12px (LAYOUT-NUMBERS § AppShell).
-// 코치 프로필 API 가 아직 없어 대표 아바타를 계정 식별자로 쓴다.
-function SidebarAccountRow({ expanded }: { expanded: boolean }) {
-  const { data } = useMyAvatars();
-  const primary = data?.items.find((a) => a.isPrimary) ?? data?.items[0];
-
-  return (
-    <div className="border-hairline mt-auto border-t p-2.5">
-      <div
-        className={cn(
-          'flex items-center gap-2 px-1.5 py-1',
-          expanded ? '' : 'justify-center lg:justify-start'
-        )}
-      >
-        {primary && (
-          // 아바타 tone=wash — `--primary-wash` 배경 + `--primary` 텍스트, 테두리 없음.
-          // fontSize = max(10, 26 × 0.34) = 10.
-          <span className="bg-primary-wash text-primary flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase">
-            {primary.initials}
-          </span>
-        )}
-        <div className={cn('min-w-0 flex-1', expanded ? '' : 'hidden lg:block')}>
-          {primary && <div className="text-ink truncate text-[13px]">{primary.name}</div>}
-          {/* 잔액은 부수 정보다. 통계 조회 하나가 실패했다고 셸 전체(사이드바·상단바·본문)가
-              날아가면 안 된다 — Suspense 만으로는 rejected 쿼리를 못 막아 경계가 따로 필요하다. */}
-          <ErrorBoundary FallbackComponent={AccountCreditFallback} onError={handleAppCrash}>
-            <Suspense fallback={<AccountCreditFallback />}>
-              <AccountCredit />
-            </Suspense>
-          </ErrorBoundary>
-        </div>
-      </div>
-    </div>
   );
 }
 

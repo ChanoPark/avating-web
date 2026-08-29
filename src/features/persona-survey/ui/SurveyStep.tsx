@@ -45,15 +45,13 @@ export function SurveyStep() {
     refetch,
   } = useSurveyQuestions({ enabled: !guardFailed });
 
-  // 단계 순서: welcome → intro → method → (creating)survey/connect → complete.
+  // 단계 순서: welcome → intro → (creating)survey/connect → complete.
   useEffect(() => {
     if (!guardFailed) return;
     if (onboardingProgress === 'welcome') {
       void navigate('/onboarding/welcome', { replace: true });
     } else if (onboardingProgress === 'intro') {
       void navigate('/onboarding/intro', { replace: true });
-    } else if (onboardingProgress === 'method') {
-      void navigate('/onboarding/method', { replace: true });
     } else {
       void navigate('/onboarding/complete', { replace: true });
     }

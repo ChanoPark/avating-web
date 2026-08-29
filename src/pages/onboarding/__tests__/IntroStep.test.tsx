@@ -15,6 +15,7 @@ vi.mock('react-router', async (importOriginal) => ({
 }));
 
 const PROGRESS_KEY = 'avating:onboarding:progress';
+const METHOD_KEY = 'avating:onboarding:method';
 
 // 기본은 "대표 아바타 없음" — 온보딩 도중의 정상 상태다.
 function renderIntro(primary: AvatarSummary | null = null) {
@@ -117,7 +118,10 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('이름 입력 후 다음 → draft 저장 + progress=method + /onboarding/method 이동', async () => {
+    // v2.6: 생성 방법 선택 화면이 사라져 Step 1 다음은 곧장 Step 2(설문 · Bot)다.
+    // 방법은 환영 화면에서 이미 골라 METHOD_KEY 에 들어 있다.
+    it('이름 입력 후 다음 → draft 저장 + progress=creating + 고른 방법 화면(설문) 이동', async () => {
+      localStorage.setItem(METHOD_KEY, 'survey');
       const user = userEvent.setup();
       renderIntro();
 
@@ -125,11 +129,40 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣고 깊게 답합니다');
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
-      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method');
-      expect(localStorage.getItem(PROGRESS_KEY)).toBe('method');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey');
+      expect(localStorage.getItem(PROGRESS_KEY)).toBe('creating');
       const draft = loadDraft();
       expect(draft?.avatarName).toBe('hyunwoo');
       expect(draft?.description).toBe('차분히 듣고 깊게 답합니다');
+    });
+
+    it('Bot 을 골랐으면 다음 → /onboarding/connect 로 이동', async () => {
+      localStorage.setItem(METHOD_KEY, 'connect');
+      const user = userEvent.setup();
+      renderIntro();
+
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣고 깊게 답합니다');
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+      expect(localStorage.getItem(PROGRESS_KEY)).toBe('creating');
+    });
+
+    // URL 직접 진입 등으로 방법을 고른 적이 없으면 고르는 자리(환영)로 되돌린다 —
+    // 둘 중 하나를 임의로 택하면 사용자가 고르지 않은 경로로 밀어넣게 된다.
+    it('방법을 고른 기록이 없으면 다음 → 환영 화면으로 되돌린다', async () => {
+      const user = userEvent.setup();
+      renderIntro();
+
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣고 깊게 답합니다');
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/welcome');
+      expect(localStorage.getItem(PROGRESS_KEY)).not.toBe('creating');
+      // draft 는 저장한다 — 되돌아가도 입력이 날아가면 안 된다.
+      expect(loadDraft()?.avatarName).toBe('hyunwoo');
     });
 
     it('이전 → /onboarding/welcome 으로 이동', async () => {

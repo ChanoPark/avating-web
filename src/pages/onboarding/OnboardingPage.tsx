@@ -17,8 +17,8 @@ const WELCOME_ROUTE = '/onboarding/welcome';
 
 // S-02-01 환영은 레일이 없어 각주가 폼 카드 아래로 내려가고(정본 `Page` 의 `!steps` 분기),
 // 생성 방법 카드 3열을 담느라 카드가 넓다 (`max={780}` → 868).
-const WELCOME_NOTE =
-  '어느 방법을 골라도 아래 4단계를 거칩니다 · 시작 후 2단계에서 방법을 바꿀 수 있어요';
+// v2.6 에서 방법 선택 화면이 사라져 각주도 "여기서만 고른다" 로 바뀌었다.
+const WELCOME_NOTE = '어느 방법을 골라도 아래 3단계를 거칩니다 · 방법은 여기서만 선택합니다';
 
 export function OnboardingPage() {
   const location = useLocation();

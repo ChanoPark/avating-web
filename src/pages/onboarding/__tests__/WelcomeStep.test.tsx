@@ -100,14 +100,20 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       }
     });
 
-    it('앞으로 할 일 4단계 체크리스트가 렌더된다 — 3번은 세 방법을 아우르는 라벨이다', () => {
+    // v2.6: 생성 방법 선택은 이 화면의 카드가 됐다. 각주·레일이 말하는 3단계와 숫자를 맞춘다
+    // (정본 리스트는 아직 4항목이라 어긋나 있다 — 2026-08-21 사용자 결정으로 3항목이 정답).
+    it('앞으로 할 일 3단계 체크리스트가 렌더된다 — 2번은 세 방법을 아우르는 라벨이다', () => {
       renderWithProviders(<WelcomeStep />);
       expect(screen.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
         '1기본 정보 입력',
-        '2생성 방법 선택',
-        '3성향 분석 (설문 · Bot 대화 · 프롬프트)',
-        '4아바타 확인',
+        '2성향 분석 (설문 · Bot 대화 · 프롬프트)',
+        '3아바타 확인',
       ]);
+    });
+
+    it('체크리스트에 생성 방법 선택 항목이 없다 — 이 화면에서 하는 일이다', () => {
+      renderWithProviders(<WelcomeStep />);
+      expect(screen.queryByText('생성 방법 선택')).not.toBeInTheDocument();
     });
 
     it('하단 액션 바가 없다 — CTA 는 카드마다 하나씩이다', () => {
@@ -190,14 +196,16 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
   // 예전에는 무조건 /onboarding/intro 로 보냈고, intro 가드가 그걸 다시 튕겨내
   // 사용자 눈에는 버튼이 죽은 것처럼 보였다.
   describe('진행 기록이 있을 때 이어서 진행', () => {
-    it('method 까지 진행했으면 방법 선택 화면으로 이어진다', async () => {
+    // v2.6: 방법 선택 화면이 사라져 레거시 'method' 기록은 creating 으로 마이그레이션된다.
+    // 카드를 다시 고르면 그 방법의 화면으로 이어진다.
+    it('레거시 method 기록이 있어도 방금 고른 방법의 화면으로 이어진다', async () => {
       localStorage.setItem(PROGRESS_KEY, 'method');
       const user = userEvent.setup();
       renderWithPrimary();
 
       await user.click(surveyCta());
 
-      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/method');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/survey');
     });
 
     it('설문 진행 중이었으면 설문 화면으로 이어진다', async () => {

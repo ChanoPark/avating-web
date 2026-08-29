@@ -40,7 +40,7 @@ function stepStateOf(index: number, currentStep: number): StepState {
 }
 
 /**
- * 현재 단계의 라벨만 경로에서 받아 덮는다. Step 3 은 설문(`성향 설문`)과
+ * 현재 단계의 라벨만 경로에서 받아 덮는다. Step 2 는 설문(`성향 설문`)과
  * Bot 연동(`ChatGPT Bot 대화`) 두 경로가 공유하는데, 레일이 fallback 만 그리면
  * Bot 연동 중에도 `성향 설문 진행 중` 이 뜬다(실서버 QA S8-3).
  */
@@ -130,8 +130,8 @@ const FORM_MAX_WIDTH = {
 } as const;
 
 type WizardShellProps = {
-  /** 1~4 = 레일 있는 형태, null = 레일 없는 플랫 형태(S-02-01 환영). */
-  currentStep: 1 | 2 | 3 | 4 | null;
+  /** 1~3 = 레일 있는 형태, null = 레일 없는 플랫 형태(S-02-01 환영). */
+  currentStep: 1 | 2 | 3 | null;
   /** 현재 경로의 라벨. 같은 단계를 공유하는 경로(설문 / Bot 연동)를 구분한다. */
   currentStepLabel?: string;
   /**
