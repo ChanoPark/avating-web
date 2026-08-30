@@ -60,7 +60,6 @@ export const mockGeneratedAvatar = {
   data: {
     initials: 'LN',
     name: '루나',
-    handle: '@luna_av',
     level: 3,
     type: '내향 · 분석형',
     stats: {

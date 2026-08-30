@@ -34,7 +34,7 @@ describe('AvatarDetailPage', () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
-    expect(screen.getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
+    expect(screen.getByText('내향·낭만형')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '아바타 스탯' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '공개 정보' })).toBeInTheDocument();
   });

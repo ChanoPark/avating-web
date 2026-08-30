@@ -12,7 +12,6 @@ const validAvatarBase = {
   id: 'avatar-1',
   initials: 'HW',
   name: 'Moonlit',
-  handle: '@moonlit',
   level: 3,
   status: 'online' as const,
   verified: true,
@@ -88,8 +87,10 @@ describe('avatarBaseSchema', () => {
     expect(() => avatarBaseSchema.parse({ ...validAvatarBase, name: '' })).toThrow();
   });
 
-  it('handle 이 빈 문자열이면 실패한다', () => {
-    expect(() => avatarBaseSchema.parse({ ...validAvatarBase, handle: '' })).toThrow();
+  it('handle 은 스키마에 없다 — 응답에 남아 있어도 결과에서 빠진다', () => {
+    expect(avatarBaseSchema.parse({ ...validAvatarBase, handle: '@moonlit' })).not.toHaveProperty(
+      'handle'
+    );
   });
 
   it('verified 가 없으면 실패한다', () => {

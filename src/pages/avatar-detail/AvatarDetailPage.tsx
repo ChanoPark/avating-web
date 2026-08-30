@@ -21,7 +21,6 @@ function toPartnerSummary(avatar: AvatarDetail): PartnerAvatarSummary {
   return {
     initials: avatar.initials,
     name: avatar.name,
-    handle: avatar.handle,
     type: avatar.type,
     verified: avatar.verified,
     status: avatar.status,

@@ -5,7 +5,6 @@ import type { AvatarStatus } from '@entities/avatar';
 export type PartnerAvatarSummary = {
   initials: string;
   name: string;
-  handle: string;
   type: string;
   verified: boolean;
   status: AvatarStatus;
@@ -35,9 +34,7 @@ export function PartnerAvatarCard({ partner }: Props) {
             </Badge>
           )}
         </div>
-        <span className="text-micro text-ink-mute truncate">
-          {partner.handle} · {partner.type}
-        </span>
+        <span className="text-micro text-ink-mute truncate">{partner.type}</span>
       </div>
       {partner.status === 'online' && (
         <Badge variant="success" dot className="shrink-0">

@@ -101,7 +101,6 @@ describe('myAvatarSchema', () => {
       id: 'me-1',
       initials: 'HW',
       name: 'hyunwoo',
-      handle: '@hyunwoo',
       level: 1,
       status: 'online',
       verified: true,

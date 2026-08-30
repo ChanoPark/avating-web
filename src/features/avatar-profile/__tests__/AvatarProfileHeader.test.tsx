@@ -7,7 +7,6 @@ const avatar: AvatarDetail = {
   id: 'avatar-1',
   initials: 'MN',
   name: 'Moonlit Narrator',
-  handle: '@moonlit',
   level: 6,
   status: 'online',
   verified: true,
@@ -31,7 +30,7 @@ describe('AvatarProfileHeader', () => {
     expect(screen.getByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
     expect(screen.getByText('인증')).toBeInTheDocument();
     expect(screen.queryByText(/^Lv\./)).not.toBeInTheDocument();
-    expect(screen.getByText('@moonlit · 내향·낭만형')).toBeInTheDocument();
+    expect(screen.getByText('내향·낭만형')).toBeInTheDocument();
     expect(screen.getByText('심야의 책방을 좋아하는 낭만가.')).toBeInTheDocument();
     expect(screen.getByText('독립서점')).toBeInTheDocument();
     expect(screen.getByText('심야 카페')).toBeInTheDocument();

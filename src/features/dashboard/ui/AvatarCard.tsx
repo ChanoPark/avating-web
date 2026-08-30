@@ -40,9 +40,7 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
               </Badge>
             )}
           </span>
-          <span className="text-micro text-ink-mute truncate">
-            {avatar.handle} · {avatar.type}
-          </span>
+          <span className="text-micro text-ink-mute truncate">{avatar.type}</span>
         </span>
       </div>
 

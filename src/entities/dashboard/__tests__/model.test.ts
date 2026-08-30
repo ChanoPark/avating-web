@@ -27,7 +27,6 @@ const validRecommendedAvatar = {
   id: 'avatar-1',
   initials: 'HW',
   name: 'Moonlit',
-  handle: '@moonlit',
   level: 3,
   status: 'online' as const,
   verified: true,

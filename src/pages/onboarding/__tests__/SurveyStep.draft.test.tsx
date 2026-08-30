@@ -105,12 +105,13 @@ describe('SurveyStep — draft', () => {
       expect(radio.checked).toBe(true);
     });
 
-    it('draft 의 expressions(자주 쓰는 표현) 가 표현 페이지에서 복원된다', async () => {
+    it('draft 의 interestTags·expressions 가 선택 문항 페이지에서 복원된다', async () => {
       saveDraft({
         answers: {},
         avatarName: '루나',
         description: '차분히 듣고 깊게 답합니다',
-        expressions: ['그치 그치', '🥲'],
+        interestTags: ['심야 산책'],
+        expressions: ['그치 그치', '~인 듯'],
       });
 
       const user = userEvent.setup();
@@ -131,7 +132,8 @@ describe('SurveyStep — draft', () => {
       await waitFor(() => {
         expect(screen.getByRole('button', { name: '그치 그치 삭제' })).toBeInTheDocument();
       });
-      expect(screen.getByRole('button', { name: '🥲 삭제' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '~인 듯 삭제' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '심야 산책 삭제' })).toBeInTheDocument();
     });
   });
 });

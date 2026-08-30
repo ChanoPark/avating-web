@@ -29,9 +29,7 @@ export function AvatarProfileHeader({ avatar }: Props) {
               </Badge>
             )}
           </div>
-          <p className="text-caption text-ink-mute">
-            {avatar.handle} · {avatar.type}
-          </p>
+          <p className="text-caption text-ink-mute">{avatar.type}</p>
         </div>
       </div>
       {avatar.description.length > 0 && (

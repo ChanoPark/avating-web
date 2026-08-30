@@ -23,7 +23,9 @@ export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [interestTags, setInterestTags] = useState<string[]>(() => loadDraft()?.interestTags ?? []);
   const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
+  const interestTagsRef = useRef<string[]>(interestTags);
   const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -84,6 +86,11 @@ export function SurveyStep() {
       answers: restoredAnswers,
     });
 
+    if (draft.interestTags && draft.interestTags.length > 0) {
+      setInterestTags(draft.interestTags);
+      interestTagsRef.current = draft.interestTags;
+    }
+
     if (draft.expressions && draft.expressions.length > 0) {
       setExpressions(draft.expressions);
       expressionsRef.current = draft.expressions;
@@ -102,7 +109,8 @@ export function SurveyStep() {
           answers: answersMap,
           avatarName: values.avatarName ?? '',
           description: values.description ?? '',
-          // 표현은 RHF 폼 밖 로컬 상태라 ref 로 보존한다.
+          // 관심사·표현은 RHF 폼 밖 로컬 상태라 ref 로 보존한다.
+          interestTags: interestTagsRef.current,
           expressions: expressionsRef.current,
         });
       }, 300);
@@ -176,9 +184,11 @@ export function SurveyStep() {
     setPageIndex((p) => p - 1);
   };
 
-  const persistExpressions = (next: string[]) => {
-    setExpressions(next);
-    expressionsRef.current = next;
+  const persistOptionalTraits = (nextTags: string[], nextExpressions: string[]) => {
+    setInterestTags(nextTags);
+    interestTagsRef.current = nextTags;
+    setExpressions(nextExpressions);
+    expressionsRef.current = nextExpressions;
     const values = form.getValues();
     const answersMap = values.answers.reduce<Record<string, string>>((acc, ans) => {
       if (ans.questionId && ans.answerId) acc[ans.questionId] = ans.answerId;
@@ -188,7 +198,8 @@ export function SurveyStep() {
       answers: answersMap,
       avatarName: values.avatarName,
       description: values.description,
-      expressions: next,
+      interestTags: nextTags,
+      expressions: nextExpressions,
     });
   };
 
@@ -219,7 +230,7 @@ export function SurveyStep() {
   }, onInvalid);
 
   const handleSkip = () => {
-    persistExpressions([]);
+    persistOptionalTraits([], []);
     void onSubmit();
   };
 
@@ -243,7 +254,7 @@ export function SurveyStep() {
       <div className={WIZARD_BODY}>
         <p role="status" aria-live="polite" className="sr-only">
           {isExpressionsPage
-            ? `자주 쓰는 표현 입력 (선택) ${progressLabel}`
+            ? `관심사 태그와 자주 쓰는 표현 입력 (선택) ${progressLabel}`
             : `질문 ${progressLabel}`}
         </p>
 
@@ -251,10 +262,12 @@ export function SurveyStep() {
           {isExpressionsPage ? (
             <>
               <span className="text-micro-cap text-ink-mute uppercase">
-                자주 쓰는 표현 · 선택 문항
+                A · 설문으로 만들기 — 선택 문항
               </span>
-              <h1 className="text-heading-lg text-ink">평소 자주 쓰는 말투를 알려주세요</h1>
-              <p className="text-body-sm text-ink-mute">아바타가 더 나답게 말할 수 있어요.</p>
+              <h1 className="text-heading-lg text-ink">관심사와 자주 쓰는 말투를 알려주세요</h1>
+              <p className="text-body-sm text-ink-mute">
+                아바타가 더 나답게 말하고, 결이 맞는 상대를 찾는 데 쓰여요.
+              </p>
             </>
           ) : (
             <h1 className="text-heading-lg text-ink">{currentQuestion?.title ?? '질문'}</h1>
@@ -280,7 +293,16 @@ export function SurveyStep() {
         </div>
 
         {isExpressionsPage ? (
-          <ExpressionsField value={expressions} onChange={persistExpressions} />
+          <ExpressionsField
+            interestTags={interestTags}
+            onInterestTagsChange={(next) => {
+              persistOptionalTraits(next, expressionsRef.current);
+            }}
+            expressions={expressions}
+            onExpressionsChange={(next) => {
+              persistOptionalTraits(interestTagsRef.current, next);
+            }}
+          />
         ) : currentQuestion ? (
           <SurveyQuestion
             name={currentQuestion.id}

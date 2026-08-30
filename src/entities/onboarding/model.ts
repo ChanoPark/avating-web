@@ -38,8 +38,9 @@ export const surveyDraftSchema = z.object({
   answers: z.record(z.string(), z.string()),
   avatarName: z.string().optional(),
   description: z.string().optional(),
-  // 자주 쓰는 표현(선택). 백엔드 제출 계약이 아직 정해지지 않아(spec-gap) draft 로만 로컬에
-  // 보관하고 제출 payload 에는 포함하지 않는다.
+  // 관심사 태그·자주 쓰는 표현(선택). SurveyAvatarCreateRequest 에 대응 필드가 없어(spec-gap)
+  // draft 로만 로컬에 보관하고 제출 payload 에는 포함하지 않는다.
+  interestTags: z.array(z.string()).optional(),
   expressions: z.array(z.string()).optional(),
 });
 export type SurveyDraft = z.infer<typeof surveyDraftSchema>;
@@ -74,7 +75,6 @@ export const generatedAvatarStatsSchema = z.object({
 export const generatedAvatarSchema = z.object({
   initials: z.string().min(1).max(4),
   name: z.string().min(1).max(30),
-  handle: z.string().regex(/^@[a-zA-Z0-9_]{2,30}$/),
   level: z.number().int().nonnegative(),
   type: z.string().min(1),
   stats: generatedAvatarStatsSchema,

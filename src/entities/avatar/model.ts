@@ -7,7 +7,6 @@ export const avatarBaseSchema = z.object({
   id: z.string().min(1),
   initials: z.string().min(1).max(2),
   name: z.string().min(1),
-  handle: z.string().min(1),
   level: z.number().int().min(1),
   status: avatarStatusSchema,
   verified: z.boolean(),
