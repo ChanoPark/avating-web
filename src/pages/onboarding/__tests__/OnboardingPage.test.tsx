@@ -130,10 +130,10 @@ describe('OnboardingPage (WizardShell)', () => {
       ).toBeInTheDocument();
     });
 
-    it('/onboarding/complete 에는 튜닝 안내 각주가 붙는다', () => {
+    it('/onboarding/complete 에는 확인 안내 각주가 붙는다 (튜닝 문구는 기능 제거로 교체)', () => {
       renderAt('/onboarding/complete');
       expect(
-        within(rail()).getByText('확정 이후 스탯은 튜닝 기능으로만 조정할 수 있어요.')
+        within(rail()).getByText('생성된 아바타를 확인한 뒤 완료를 눌러 주세요.')
       ).toBeInTheDocument();
     });
 

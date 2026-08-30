@@ -56,26 +56,20 @@ export const mockConnectStatusExpired = {
   data: { status: 'expired' as const },
 };
 
-export const mockGeneratedAvatar = {
-  data: {
-    initials: 'LN',
-    name: '루나',
-    level: 3,
-    type: '내향 · 분석형',
-    stats: {
-      empathy: 72,
-      proactivity: 45,
-      humor: 58,
-      sensitivity: 65,
-      listening: 80,
-      expressiveness: 53,
-    },
-    tags: ['독서', '카페투어', '음악감상', '전시관람'],
+// POST /api/avatars/survey 201 의 고정 부분 — name/description/tags 는 요청을 되울려
+// 사용자가 입력한 값이 완료 화면에 그대로 보이게 한다.
+export const mockCreatedAvatarSummaryBase = {
+  schemaVersion: 1,
+  avatarId: 'a2222222-2222-4222-8222-222222222222',
+  stats: {
+    OPENNESS: 72.5,
+    IMAGINATION: 68,
+    EXTROVERSION: 80,
+    EMPATHY: 65,
+    PLANNING_LEVEL: 45,
+    HUMOROUS: 88,
+    AFFECTION_EXPRESSION: 55,
   },
-};
-
-export const mockCompleteOnboardingResponse = {
-  data: { completedAt: '2026-05-01T12:00:00.000Z' },
 };
 
 export const surveyQuestionsHandlers = {
@@ -88,13 +82,24 @@ export const surveyQuestionsHandlers = {
   }),
 };
 
-const mockAvatarCreateFromSurveyResponse = {
-  data: { avatarId: 'avatar-generated-001' },
-};
-
 export const surveySubmitHandlers = {
-  success: http.post(`${BASE_URL}/api/avatars/survey`, () => {
-    return HttpResponse.json(mockAvatarCreateFromSurveyResponse, { status: 201 });
+  success: http.post(`${BASE_URL}/api/avatars/survey`, async ({ request }) => {
+    const body = (await request.json()) as {
+      avatarName?: string;
+      description?: string;
+      tags?: string[];
+    };
+    return HttpResponse.json(
+      {
+        data: {
+          ...mockCreatedAvatarSummaryBase,
+          name: body.avatarName ?? '루나',
+          description: body.description ?? '',
+          tags: body.tags ?? [],
+        },
+      },
+      { status: 201 }
+    );
   }),
 
   validationError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
@@ -152,42 +157,12 @@ export const connectStatusHandlers = {
   }),
 };
 
-export const generatedAvatarHandlers = {
-  success: http.get(`${BASE_URL}/api/onboarding/avatar`, () => {
-    return HttpResponse.json(mockGeneratedAvatar);
-  }),
-
-  notFound: http.get(`${BASE_URL}/api/onboarding/avatar`, () => {
-    return HttpResponse.json({ message: '아바타를 찾을 수 없습니다.' }, { status: 404 });
-  }),
-
-  serverError: http.get(`${BASE_URL}/api/onboarding/avatar`, () => {
-    return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-  }),
-};
-
-export const completeOnboardingHandlers = {
-  success: http.post(`${BASE_URL}/api/onboarding/complete`, () => {
-    return HttpResponse.json(mockCompleteOnboardingResponse);
-  }),
-
-  conflict: http.post(`${BASE_URL}/api/onboarding/complete`, () => {
-    return HttpResponse.json(
-      { message: '이미 온보딩이 완료되었습니다.', code: 'ONBOARDING_ALREADY_COMPLETED' },
-      { status: 409 }
-    );
-  }),
-
-  serverError: http.post(`${BASE_URL}/api/onboarding/complete`, () => {
-    return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-  }),
-};
+// POST /api/onboarding/complete 핸들러는 2026-08-30 제거 — 완료 버튼이 API 호출 없이
+// 대시보드로 직행한다 (완료 판정의 정본은 대표 아바타 보유).
 
 export const onboardingHandlers = [
   surveyQuestionsHandlers.success,
   surveySubmitHandlers.success,
   connectCodeHandlers.success,
   connectStatusHandlers.active,
-  generatedAvatarHandlers.success,
-  completeOnboardingHandlers.success,
 ];

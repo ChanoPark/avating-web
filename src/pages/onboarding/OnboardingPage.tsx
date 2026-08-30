@@ -9,7 +9,8 @@ function isOnboardingRoute(pathname: string): pathname is OnboardingRoute {
 const RAIL_NOTES: Partial<Record<OnboardingRoute, string>> = {
   '/onboarding/intro': '이름과 설명은 나중에 프로필에서 수정할 수 있어요.',
   '/onboarding/connect': '약 10분 소요 · 대화가 길수록 아바타가 정확해집니다.',
-  '/onboarding/complete': '확정 이후 스탯은 튜닝 기능으로만 조정할 수 있어요.',
+  // 스탯 튜닝(스탯 다듬기) UI 는 2026-08-30 서버 7지표 전환으로 제거돼 안내도 확인 문구로 교체.
+  '/onboarding/complete': '생성된 아바타를 확인한 뒤 완료를 눌러 주세요.',
 };
 
 const WELCOME_ROUTE = '/onboarding/welcome';

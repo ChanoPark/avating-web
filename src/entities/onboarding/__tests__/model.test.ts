@@ -3,16 +3,12 @@ import {
   surveyQuestionSchema,
   surveyAnswerRequestSchema,
   avatarCreateFromSurveyRequestSchema,
-  avatarCreateFromSurveyResponseSchema,
   apiResponseSurveyQuestionsSchema,
   surveyDraftSchema,
   connectCodeSchema,
   connectStatusSchema,
-  generatedAvatarSchema,
   apiResponseConnectCode,
   apiResponseConnectStatus,
-  apiResponseGeneratedAvatar,
-  apiResponseCompleteOnboarding,
 } from '../model';
 
 describe('surveyQuestionSchema', () => {
@@ -151,21 +147,7 @@ describe('apiResponseSurveyQuestionsSchema', () => {
   });
 });
 
-describe('avatarCreateFromSurveyResponseSchema', () => {
-  it('avatarId 가 있는 유효한 응답은 파싱에 성공한다', () => {
-    expect(
-      avatarCreateFromSurveyResponseSchema.safeParse({ data: { avatarId: 'avatar-001' } }).success
-    ).toBe(true);
-  });
-
-  it('avatarId 가 빈 문자열이면 throw 한다', () => {
-    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: { avatarId: '' } })).toThrow();
-  });
-
-  it('avatarId 필드가 없으면 throw 한다', () => {
-    expect(() => avatarCreateFromSurveyResponseSchema.parse({ data: {} })).toThrow();
-  });
-});
+// 생성 응답 스키마는 @entities/avatar 의 avatarSummarySchema 로 옮겨졌다 — 테스트도 entities/avatar/__tests__/summary.test.ts 가 담당한다.
 
 describe('surveyDraftSchema', () => {
   it('answers 와 선택적 필드가 있는 유효한 draft 는 파싱에 성공한다', () => {
@@ -248,101 +230,6 @@ describe('connectStatusSchema', () => {
   });
 });
 
-describe('generatedAvatarSchema', () => {
-  const validAvatar = {
-    initials: 'AB',
-    name: '루나',
-    level: 3,
-    type: '내향 · 분석형',
-    stats: {
-      empathy: 72,
-      proactivity: 45,
-      humor: 58,
-      sensitivity: 65,
-      listening: 80,
-      expressiveness: 53,
-    },
-    tags: ['독서', '카페투어', '음악감상'],
-  };
-
-  it('유효한 아바타 데이터는 파싱에 성공한다', () => {
-    expect(generatedAvatarSchema.safeParse(validAvatar).success).toBe(true);
-  });
-
-  it('tags 가 6개이면 파싱에 성공한다', () => {
-    const result = generatedAvatarSchema.safeParse({
-      ...validAvatar,
-      tags: ['태그1', '태그2', '태그3', '태그4', '태그5', '태그6'],
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('tags 가 7개이면 throw 한다', () => {
-    expect(() =>
-      generatedAvatarSchema.parse({
-        ...validAvatar,
-        tags: ['태그1', '태그2', '태그3', '태그4', '태그5', '태그6', '태그7'],
-      })
-    ).toThrow();
-  });
-
-  it('stats.empathy 가 100 초과이면 throw 한다', () => {
-    expect(() =>
-      generatedAvatarSchema.parse({
-        ...validAvatar,
-        stats: { ...validAvatar.stats, empathy: 101 },
-      })
-    ).toThrow();
-  });
-
-  it('stats.sensitivity 가 0 미만이면 throw 한다', () => {
-    expect(() =>
-      generatedAvatarSchema.parse({
-        ...validAvatar,
-        stats: { ...validAvatar.stats, sensitivity: -1 },
-      })
-    ).toThrow();
-  });
-
-  it('stats 가 소수여도 파싱에 성공한다', () => {
-    expect(
-      generatedAvatarSchema.safeParse({
-        ...validAvatar,
-        stats: { ...validAvatar.stats, humor: 55.5 },
-      }).success
-    ).toBe(true);
-  });
-
-  it('stats 가 범위를 벗어나면 throw 한다', () => {
-    expect(() =>
-      generatedAvatarSchema.parse({
-        ...validAvatar,
-        stats: { ...validAvatar.stats, humor: 100.5 },
-      })
-    ).toThrow();
-  });
-
-  it('handle 은 스키마에 없다 — 응답에 남아 있어도 결과에서 빠진다', () => {
-    expect(generatedAvatarSchema.parse({ ...validAvatar, handle: '@luna_av' })).not.toHaveProperty(
-      'handle'
-    );
-  });
-
-  it('initials 가 빈 문자열이면 throw 한다', () => {
-    expect(() => generatedAvatarSchema.parse({ ...validAvatar, initials: '' })).toThrow();
-  });
-
-  it('initials 가 4자이면 파싱에 성공한다', () => {
-    expect(generatedAvatarSchema.safeParse({ ...validAvatar, initials: 'ABCD' }).success).toBe(
-      true
-    );
-  });
-
-  it('initials 가 5자이면 throw 한다', () => {
-    expect(() => generatedAvatarSchema.parse({ ...validAvatar, initials: 'ABCDE' })).toThrow();
-  });
-});
-
 describe('apiResponseConnectCode', () => {
   it('data 필드가 있는 유효한 응답은 파싱에 성공한다', () => {
     const result = apiResponseConnectCode.safeParse({
@@ -382,44 +269,5 @@ describe('apiResponseConnectStatus', () => {
   });
 });
 
-describe('apiResponseGeneratedAvatar', () => {
-  it('유효한 아바타 응답 envelope 은 파싱에 성공한다', () => {
-    const result = apiResponseGeneratedAvatar.safeParse({
-      data: {
-        initials: 'AB',
-        name: '루나',
-        level: 3,
-        type: '내향 · 분석형',
-        stats: {
-          empathy: 72,
-          proactivity: 45,
-          humor: 58,
-          sensitivity: 65,
-          listening: 80,
-          expressiveness: 53,
-        },
-        tags: ['독서'],
-      },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('data 필드가 없으면 throw 한다', () => {
-    expect(() => apiResponseGeneratedAvatar.parse({ name: '루나' })).toThrow();
-  });
-});
-
-describe('apiResponseCompleteOnboarding', () => {
-  it('유효한 completedAt 응답은 파싱에 성공한다', () => {
-    const result = apiResponseCompleteOnboarding.safeParse({
-      data: { completedAt: '2026-05-01T12:00:00.000Z' },
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('data 필드가 없으면 throw 한다', () => {
-    expect(() =>
-      apiResponseCompleteOnboarding.parse({ completedAt: '2026-05-01T12:00:00.000Z' })
-    ).toThrow();
-  });
-});
+// apiResponseCompleteOnboarding 은 2026-08-30 제거 — 완료 버튼이 POST /api/onboarding/complete 를
+// 호출하지 않고 대시보드로 직행한다.

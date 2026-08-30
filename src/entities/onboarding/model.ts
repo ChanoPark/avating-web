@@ -60,39 +60,9 @@ export const connectStatusSchema = z.object({
 });
 export type ConnectStatus = z.infer<typeof connectStatusSchema>;
 
-// 서버 stats 는 double 이다(avatarStatsSchema 와 동일 근거로 소수 허용).
-const generatedStatValue = z.number().min(0).max(100);
-
-export const generatedAvatarStatsSchema = z.object({
-  empathy: generatedStatValue,
-  proactivity: generatedStatValue,
-  humor: generatedStatValue,
-  sensitivity: generatedStatValue,
-  listening: generatedStatValue,
-  expressiveness: generatedStatValue,
-});
-
-export const generatedAvatarSchema = z.object({
-  initials: z.string().min(1).max(4),
-  name: z.string().min(1).max(30),
-  level: z.number().int().nonnegative(),
-  type: z.string().min(1),
-  stats: generatedAvatarStatsSchema,
-  tags: z.array(z.string().min(1)).max(6),
-});
-export type GeneratedAvatar = z.infer<typeof generatedAvatarSchema>;
-
-export const avatarCreateFromSurveyResponseSchema = z.object({
-  data: z.object({ avatarId: z.string().min(1) }),
-});
-export type AvatarCreateFromSurveyResponse = z.infer<
-  typeof avatarCreateFromSurveyResponseSchema
->['data'];
+// 생성 응답(AvatarSummaryResponse)은 @entities/avatar 의 avatarSummarySchema 가 정본이다.
+// 2026-08-30 서버 계약 변경으로 POST /api/avatars/survey 가 avatarId 대신 요약 전체를 돌려주면서
+// generatedAvatarSchema(6축 mock 계열)와 avatarCreateFromSurveyResponseSchema 는 제거됐다.
 
 export const apiResponseConnectCode = z.object({ data: connectCodeSchema });
 export const apiResponseConnectStatus = z.object({ data: connectStatusSchema });
-export const apiResponseGeneratedAvatar = z.object({ data: generatedAvatarSchema });
-export const apiResponseCompleteOnboarding = z.object({
-  // connectCode.expiresAt 과 같은 이유로 offset 을 허용한다 (서버 OffsetDateTime).
-  data: z.object({ completedAt: z.string().datetime({ offset: true }) }),
-});

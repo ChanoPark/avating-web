@@ -15,6 +15,8 @@ export const worker = setupWorker(
   ...onboardingHandlers,
   ...matchRequestHandlers,
   ...inboxHandlers,
-  ...avatarDetailHandlers,
-  ...primaryAvatarDefaultHandlers
+  // /api/avatars/primary 가 /api/avatars/:id 보다 먼저 와야 한다 — MSW 는 등록 순서로
+  // 매칭하므로 detail 이 앞서면 :id=primary 를 삼켜 detail 응답이 내려온다.
+  ...primaryAvatarDefaultHandlers,
+  ...avatarDetailHandlers
 );

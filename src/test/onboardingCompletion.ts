@@ -27,4 +27,5 @@ export const SAMPLE_PRIMARY_AVATAR: AvatarSummary = {
     HUMOROUS: 88,
     AFFECTION_EXPRESSION: 55,
   },
+  tags: ['독서', '카페투어'],
 };
