@@ -25,7 +25,7 @@ export function ExpressionsField({
     <div className="flex flex-col gap-4">
       <ChipInputField
         label="관심사 태그"
-        placeholder="입력하고 Enter — 예) 심야 산책"
+        placeholder="입력하고 엔터를 눌러주세요."
         value={interestTags}
         onChange={onInterestTagsChange}
         max={CHIP_MAX}
@@ -37,7 +37,7 @@ export function ExpressionsField({
 
       <ChipInputField
         label="자주 쓰는 표현"
-        placeholder="입력하고 Enter"
+        placeholder="입력하고 엔터를 눌러주세요."
         value={expressions}
         onChange={onExpressionsChange}
         max={CHIP_MAX}
@@ -45,9 +45,8 @@ export function ExpressionsField({
         suggestionsLabel="자주 쓰이는 표현"
       />
 
-      <p className="text-micro text-ink-mute leading-[1.5]">
-        관심사 태그와 표현 모두 최대 10개 · 이모지 입력은 받지 않습니다.
-      </p>
+      {/* "이모지 입력은 받지 않습니다" 문구는 2026-08-30 사용자 결정으로 제거 — 입력 차단은 유지 */}
+      <p className="text-micro text-ink-mute leading-[1.5]">관심사 태그와 표현 모두 최대 10개</p>
     </div>
   );
 }
