@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import { z } from 'zod';
 
 // endpoint prefix 가 두 갈래다 — 설문·아바타 생성은 /api/persona·avatars, 계정 라이프사이클
 // (연결 상태·온보딩 완료)은 /api/onboarding 그대로다. 백엔드가 의도적으로 나눠 둔 것이라
@@ -82,13 +83,17 @@ export const surveyQuestionsHandlers = {
   }),
 };
 
+// 되울림에 필요한 필드만 loose 하게 받는다 — 요청 전체 검증은 서버 몫이고 mock 은 echo 만 한다.
+const surveySubmitEchoSchema = z.object({
+  avatarName: z.string().optional(),
+  description: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+});
+
 export const surveySubmitHandlers = {
   success: http.post(`${BASE_URL}/api/avatars/survey`, async ({ request }) => {
-    const body = (await request.json()) as {
-      avatarName?: string;
-      description?: string;
-      tags?: string[];
-    };
+    const raw: unknown = await request.json();
+    const body = surveySubmitEchoSchema.parse(raw);
     return HttpResponse.json(
       {
         data: {
