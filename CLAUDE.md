@@ -30,14 +30,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 불변성, Zod 경계 파싱, 상태 분리, 에러 경계, 민감정보, 접근성, 주석 같은 공통 규율은 [skills/README.md 의 규율 절](.claude/skills/README.md)과 각 SKILL.md 에 있다. 여기엔 이 프로젝트에만 해당하는 값만 둔다.
 
-- **진입점**: `src/main.tsx` → `src/app/App.tsx` → `src/app/router.tsx`
-- **레이어 방향**: `app → pages → features → entities → shared`. 역방향과 동일 층 의존은 `eslint-plugin-boundaries` 가 막는다.
-- **레이어별 디렉터리**:
-  - `app/` — providers · layouts · styles · router
-  - `pages/` — login · signup · onboarding · dashboard · avatar-detail · service-intro · error
-  - `features/` — auth · onboarding-complete · persona-survey · connect-code · dashboard · match-request · avatar-profile
-  - `entities/` — auth · avatar · onboarding · dashboard · inbox · match-request (각 `model.ts` 의 Zod 가 타입의 출발점)
-  - `shared/` — ui · api · lib · config · mocks
+- **레이어 방향**: `app → pages → features → entities → shared`. 역방향과 동일 층 의존은 `eslint-plugin-boundaries` 가 막는다. 각 레이어의 하위 디렉터리 구성은 `ls src/<layer>` 로 확인하고, `entities/*/model.ts` 의 Zod 가 타입의 출발점이다.
 - **MSW 는 `src/shared/mocks/`** 에 있다 (`browser.ts` · `server.ts` · `handlers/<domain>.ts`). `src/mocks/` 는 옛 경로다. 이 위치가 문서에 없던 탓에 `knip.config.ts` 와 `vitest.config.ts` 가 한동안 죽은 경로를 들고 있었다.
 - **경로 별칭**: `@/`(src), `@app/`, `@pages/`, `@features/`, `@entities/`, `@shared/` — 정의처는 `tsconfig.app.json`, `tsconfig.e2e.json`, `vitest.config.ts` 세 곳이다. `vite.config.ts` 는 `vite-tsconfig-paths` 로 tsconfig 에서 파생받으므로 alias 블록을 따로 두지 않는다.
 - **레이아웃은 디자인 확정 후에만** 손댄다. 섹션 구조·그리드·컬럼·배경 등 시각 구성이 대상이고, 이벤트 핸들러나 `select-none` 같은 동작 수정은 해당 없다.
@@ -46,15 +39,10 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 ## 자주 쓰는 명령어
 
-패키지 매니저는 `pnpm` 고정. 프로젝트 루트에서 실행하고, 처음이면 `pnpm install` 부터.
+패키지 매니저는 `pnpm` 고정. 프로젝트 루트에서 실행하고, 처음이면 `pnpm install` 부터. 표준 스크립트(`dev` · `build` · `typecheck` · `lint` · `format` · `preview`)는 `package.json` 그대로다. 틀리기 쉬운 것만 적는다.
 
 | 영역             | 명령                                                                      | 비고                                               |
 | ---------------- | ------------------------------------------------------------------------- | -------------------------------------------------- |
-| 개발 서버        | `pnpm dev`                                                                | Vite + MSW                                         |
-| 타입 체크        | `pnpm typecheck`                                                          | `tsc -b --noEmit`                                  |
-| 빌드             | `pnpm build`                                                              | typecheck → vite build                             |
-| 린트             | `pnpm lint` / `pnpm lint:fix`                                             | `--max-warnings=0`                                 |
-| 포맷             | `pnpm format` / `pnpm format:check`                                       | Prettier 3                                         |
 | 단위·통합 테스트 | `pnpm test` / `pnpm test:watch`                                           | Vitest + RTL, `src/**` 만 수집                     |
 | 커버리지         | `pnpm test:coverage`                                                      | v8, lines·functions·branches·statements 각 80%     |
 | E2E              | `pnpm e2e`                                                                | `test:e2e` 가 아니다. Playwright chromium + webkit |
@@ -62,7 +50,6 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 | E2E 타입체크     | `pnpm typecheck:e2e`                                                      | `tsconfig.e2e.json`                                |
 | 화면 코드맵      | `pnpm wiki:codemap` / `:check`                                            | `wiki/screens/` 의 codemap 마커                    |
 | 스크립트 테스트  | `pnpm test:scripts`                                                       | `node --test scripts/**`                           |
-| 프리뷰           | `pnpm preview`                                                            | 포트 4173                                          |
 
 의존성 추가는 사용자 승인을 받고 `pnpm add`.
 
@@ -81,8 +68,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 - 순서는 Zod 스키마 → 실패하는 테스트(RED) → 구현(GREEN) → 리팩터 → 커버리지 확인.
 - 테스트는 실제 사용자 플로우를 본다. 입력 → 제출 → 성공/에러까지 가고, 에러 상태 스타일(`border-danger` 등)과 트리거 타이밍(blur/change), MSW 가로채기 후 상태 변화(`waitFor`)를 확인한다. 렌더만 확인하고 끝내지 않는다.
-- `tsc --noEmit` strict + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` + `noImplicitOverride`.
-- ESLint `--max-warnings=0`, Prettier `--check`, Vitest 커버리지 80% 이상.
+- ESLint `--max-warnings=0`, Prettier `--check`, Vitest 커버리지 80% 이상. strict 계열 컴파일러 옵션은 `tsconfig.app.json` 이 정본이다.
 - Playwright 는 chromium 과 webkit 둘 다 (iOS Safari 호환 확인용).
 - 성능 목표는 LCP 2.5s · CLS 0.1 · INP 200ms 미만인데, **재는 도구가 없다.** `size-limit` 과 Lighthouse CI 둘 다 설치돼 있지 않다. 도입 전까지 성능과 번들 크기는 눈으로 판단한다.
 
