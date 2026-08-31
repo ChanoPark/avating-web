@@ -15,6 +15,7 @@ const valid = {
     HUMOROUS: 88.0,
     AFFECTION_EXPRESSION: 55.0,
   },
+  tags: ['운동', '여행'],
 };
 
 describe('avatarSummarySchema (서버 AvatarSummaryResponse)', () => {
@@ -28,6 +29,15 @@ describe('avatarSummarySchema (서버 AvatarSummaryResponse)', () => {
 
   it('stats 의 소수 값을 보존한다', () => {
     expect(avatarSummarySchema.parse(valid).stats.OPENNESS).toBe(72.5);
+  });
+
+  it('tags 를 보존한다', () => {
+    expect(avatarSummarySchema.parse(valid).tags).toEqual(['운동', '여행']);
+  });
+
+  it('tags 키가 없는 구버전 서버 응답은 빈 배열로 기본 처리한다', () => {
+    const { tags: _omitted, ...withoutTags } = valid;
+    expect(avatarSummarySchema.parse(withoutTags).tags).toEqual([]);
   });
 
   it('stats 값이 범위를 벗어나면 거부한다', () => {

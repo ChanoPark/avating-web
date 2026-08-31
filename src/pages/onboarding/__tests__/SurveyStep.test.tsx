@@ -258,7 +258,20 @@ describe('SurveyStep', () => {
         surveyQuestionsHandlers.success,
         http.post(`${BASE_URL}/api/avatars/survey`, () => {
           createCallCount++;
-          return HttpResponse.json({ data: { avatarId: 'avatar-001' } }, { status: 201 });
+          // 2026-08-30 계약: 생성 응답은 AvatarSummaryResponse 전체다.
+          return HttpResponse.json(
+            {
+              data: {
+                schemaVersion: 1,
+                avatarId: 'a1111111-1111-4111-8111-111111111111',
+                name: '루나',
+                description: '소개글',
+                stats: { OPENNESS: 70, EMPATHY: 60 },
+                tags: [],
+              },
+            },
+            { status: 201 }
+          );
         })
       );
 

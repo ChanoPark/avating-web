@@ -50,11 +50,15 @@ describe('ExpressionsField (관심사 태그 + 자주 쓰는 표현)', () => {
     expect(screen.queryByRole('button', { name: '😄 추가' })).not.toBeInTheDocument();
   });
 
-  it('정본 안내 문구가 렌더된다', () => {
+  it('안내 문구는 최대 개수만 안내한다 (이모지 문구 제거 — 2026-08-30 사용자 결정)', () => {
     render(<Harness />);
-    expect(
-      screen.getByText('관심사 태그와 표현 모두 최대 10개 · 이모지 입력은 받지 않습니다.')
-    ).toBeInTheDocument();
+    expect(screen.getByText('관심사 태그와 표현 모두 최대 10개')).toBeInTheDocument();
+    expect(screen.queryByText(/이모지 입력은 받지 않습니다/)).not.toBeInTheDocument();
+  });
+
+  it('두 입력 모두 placeholder 가 "입력하고 엔터를 눌러주세요." 다', () => {
+    render(<Harness />);
+    expect(screen.getAllByPlaceholderText('입력하고 엔터를 눌러주세요.')).toHaveLength(2);
   });
 
   it('두 입력의 칩은 서로 섞이지 않는다', async () => {

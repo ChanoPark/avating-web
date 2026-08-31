@@ -66,7 +66,7 @@ export type AvatarDetail = z.infer<typeof avatarDetailSchema>;
 
 export const apiResponseAvatarDetail = z.object({ data: avatarDetailSchema });
 
-/** 서버 AvatarSummaryResponse(GET .../summary, GET .../primary) — stats 는 PersonaStatType 키가 늘거나 바뀌어도 깨지지 않게 고정 키가 아닌 record 로 받는다(위 6축 avatarStatsSchema 와 다른 계열). */
+/** 서버 AvatarSummaryResponse(POST /avatars/survey, GET .../summary, GET .../primary) — stats 는 PersonaStatType 키가 늘거나 바뀌어도 깨지지 않게 고정 키가 아닌 record 로 받는다(위 6축 avatarStatsSchema 와 다른 계열). */
 export const avatarSummarySchema = z.object({
   schemaVersion: z.number().int(),
   avatarId: z.string().min(1),
@@ -74,7 +74,31 @@ export const avatarSummarySchema = z.object({
   // 계약상 "저장된 값이 없으면 빈 문자열" 이라 min(1) 을 걸면 실응답이 떨어진다.
   description: z.string(),
   stats: z.record(z.string(), statValue),
+  // 계약상 non-null 이지만 tags 도입 전 서버 배포본은 키 자체가 없으므로 default 로 흡수한다.
+  tags: z.array(z.string()).default([]),
 });
 export type AvatarSummary = z.infer<typeof avatarSummarySchema>;
 
 export const apiResponseAvatarSummary = z.object({ data: avatarSummarySchema });
+
+// 서버 PersonaStatType 7종. 파싱은 record 로 느슨하게 받고, 표시할 때만 이 목록·순서를 쓴다.
+export const PERSONA_STAT_KEYS = [
+  'OPENNESS',
+  'IMAGINATION',
+  'EXTROVERSION',
+  'EMPATHY',
+  'PLANNING_LEVEL',
+  'HUMOROUS',
+  'AFFECTION_EXPRESSION',
+] as const satisfies readonly string[];
+export type PersonaStatKey = (typeof PERSONA_STAT_KEYS)[number];
+
+export const PERSONA_STAT_LABELS: Record<PersonaStatKey, string> = {
+  OPENNESS: '개방성',
+  IMAGINATION: '상상력',
+  EXTROVERSION: '외향성',
+  EMPATHY: '공감',
+  PLANNING_LEVEL: '계획성',
+  HUMOROUS: '유머',
+  AFFECTION_EXPRESSION: '애정표현',
+};

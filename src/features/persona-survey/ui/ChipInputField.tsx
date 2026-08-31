@@ -45,11 +45,21 @@ export function ChipInputField({
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
+    if (e.key !== 'Enter') return;
+    // 한글 IME 조합을 끝내는 Enter(keydown isComposing=true)를 처리하면 조합 중 글자가
+    // 잘린 값이 추가되고 입력만 지워진다 — 조합 확정 후의 Enter 만 받는다.
+    if (e.nativeEvent.isComposing) return;
+    e.preventDefault();
+    add(input);
+    setInput('');
+  };
+
+  const handleAddClick = () => {
+    if (input.trim() !== '') {
       add(input);
       setInput('');
     }
+    inputRef.current?.focus();
   };
 
   return (
@@ -102,9 +112,7 @@ export function ChipInputField({
         <button
           type="button"
           aria-label={`${label} 추가`}
-          onClick={() => {
-            inputRef.current?.focus();
-          }}
+          onClick={handleAddClick}
           className={cn(
             CHIP_BASE,
             'text-ink-mute hover:border-primary hover:text-ink cursor-pointer px-3'

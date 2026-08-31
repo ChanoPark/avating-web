@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { useState } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ChipInputField } from '../ChipInputField';
 
@@ -41,6 +41,31 @@ describe('ChipInputField', () => {
     await user.type(screen.getByLabelText('관심사 태그 입력'), '심야 산책{Enter}');
 
     expect(screen.getByRole('button', { name: '심야 산책 삭제' })).toBeInTheDocument();
+  });
+
+  // 한글 IME 조합을 마치는 Enter 는 keydown 에 isComposing=true 로 온다 — 이때 추가하면
+  // 조합 중인 마지막 글자가 잘린 값이 들어가고 입력만 지워져 "추가가 안 되는" 증상이 된다.
+  it('IME 조합 중 Enter 는 무시한다 (입력 유지, 칩 미추가)', () => {
+    render(<Harness />);
+    const input = screen.getByLabelText('관심사 태그 입력');
+
+    fireEvent.change(input, { target: { value: '심야 산챇' } });
+    fireEvent.keyDown(input, { key: 'Enter', isComposing: true });
+
+    expect(screen.queryByRole('button', { name: /삭제$/ })).not.toBeInTheDocument();
+    expect(input).toHaveValue('심야 산챇');
+  });
+
+  it('"추가" 버튼 클릭 시 현재 입력값이 칩으로 추가되고 입력이 비워진다', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+    const input = screen.getByLabelText('관심사 태그 입력');
+
+    await user.type(input, '심야 산책');
+    await user.click(screen.getByRole('button', { name: '관심사 태그 추가' }));
+
+    expect(screen.getByRole('button', { name: '심야 산책 삭제' })).toBeInTheDocument();
+    expect(input).toHaveValue('');
   });
 
   it('공백만 입력 후 Enter 시 칩이 추가되지 않는다', async () => {

@@ -5,20 +5,16 @@ import {
   surveySubmitHandlers,
   connectCodeHandlers,
   connectStatusHandlers,
-  generatedAvatarHandlers,
-  completeOnboardingHandlers,
   mockSurveyQuestionsResponse,
   mockConnectCodeResponse,
   mockConnectStatusConnected,
-  mockGeneratedAvatar,
-  mockCompleteOnboardingResponse,
 } from '../onboarding';
 import {
   apiResponseConnectCode,
   apiResponseConnectStatus,
-  apiResponseGeneratedAvatar,
   apiResponseSurveyQuestionsSchema,
 } from '@entities/onboarding/model';
+import { apiResponseAvatarSummary } from '@entities/avatar';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -59,7 +55,7 @@ describe('onboarding MSW 핸들러', () => {
   });
 
   describe('POST /api/avatars/survey', () => {
-    it('success 핸들러는 201 을 반환한다', async () => {
+    it('success 핸들러는 201 + AvatarSummaryResponse 를 반환하고 요청의 이름·소개를 되울린다', async () => {
       server.use(surveySubmitHandlers.success);
 
       const res = await fetch(`${BASE_URL}/api/avatars/survey`, {
@@ -75,6 +71,14 @@ describe('onboarding MSW 핸들러', () => {
       });
 
       expect(res.status).toBe(201);
+      const json = await res.json();
+      const parsed = apiResponseAvatarSummary.safeParse(json);
+      expect(parsed.success).toBe(true);
+      if (parsed.success) {
+        expect(parsed.data.data.name).toBe('루나');
+        expect(parsed.data.data.description).toBe('소개글');
+        expect(Object.keys(parsed.data.data.stats)).toHaveLength(7);
+      }
     });
 
     it('validationError 핸들러는 400 을 반환한다', async () => {
@@ -193,81 +197,10 @@ describe('onboarding MSW 핸들러', () => {
     });
   });
 
-  describe('GET /api/onboarding/avatar', () => {
-    it('success 핸들러는 200 + GeneratedAvatar 를 반환한다', async () => {
-      server.use(generatedAvatarHandlers.success);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/avatar`);
-
-      expect(res.status).toBe(200);
-      const json = await res.json();
-      const parsed = apiResponseGeneratedAvatar.safeParse(json);
-      expect(parsed.success).toBe(true);
-    });
-
-    it('success 응답 데이터는 mockGeneratedAvatar 와 일치한다', async () => {
-      server.use(generatedAvatarHandlers.success);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/avatar`);
-      const json = await res.json();
-
-      expect(json.data.name).toBe(mockGeneratedAvatar.data.name);
-      expect(json.data.tags.length).toBeGreaterThan(0);
-      expect(json.data.tags.length).toBeLessThanOrEqual(6);
-    });
-
-    it('notFound 핸들러는 404 를 반환한다', async () => {
-      server.use(generatedAvatarHandlers.notFound);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/avatar`);
-
-      expect(res.status).toBe(404);
-    });
-
-    it('serverError 핸들러는 500 을 반환한다', async () => {
-      server.use(generatedAvatarHandlers.serverError);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/avatar`);
-
-      expect(res.status).toBe(500);
-    });
-  });
-
-  describe('POST /api/onboarding/complete', () => {
-    it('success 핸들러는 200 + completedAt 을 반환한다', async () => {
-      server.use(completeOnboardingHandlers.success);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-
-      expect(res.status).toBe(200);
-      const json = await res.json();
-      expect(json).toEqual(mockCompleteOnboardingResponse);
-      expect(new Date(json.data.completedAt).getTime()).not.toBeNaN();
-    });
-
-    it('conflict 핸들러는 409 를 반환한다', async () => {
-      server.use(completeOnboardingHandlers.conflict);
-
-      const res = await fetch(`${BASE_URL}/api/onboarding/complete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: '{}',
-      });
-
-      expect(res.status).toBe(409);
-      const json = await res.json();
-      expect(json).toHaveProperty('code', 'ONBOARDING_ALREADY_COMPLETED');
-    });
-  });
-
   describe('onboardingHandlers 기본 export', () => {
-    it('6개 핸들러로 구성되어 있다', async () => {
+    it('4개 핸들러로 구성되어 있다 (onboarding/avatar 는 생성 응답 재사용, onboarding/complete 는 미호출로 폐지)', async () => {
       const { onboardingHandlers } = await import('../onboarding');
-      expect(onboardingHandlers).toHaveLength(6);
+      expect(onboardingHandlers).toHaveLength(4);
     });
   });
 });
