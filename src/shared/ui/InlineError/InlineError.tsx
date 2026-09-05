@@ -1,7 +1,7 @@
 import { cn } from '@shared/lib/cn';
 
 // panel = 카드·패널 안, table = 표 본문 자리.
-export type InlineErrorKind = 'panel' | 'table';
+type InlineErrorKind = 'panel' | 'table';
 
 type InlineErrorProps = {
   kind?: InlineErrorKind;

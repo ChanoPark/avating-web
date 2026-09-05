@@ -2,38 +2,26 @@ import type { KnipConfig } from 'knip';
 
 const config: KnipConfig = {
   entry: [
-    'src/main.tsx',
     'src/app/App.tsx',
     'src/app/router.tsx',
     'src/shared/mocks/browser.ts',
     'src/shared/mocks/server.ts',
     'src/shared/mocks/handlers/**/*.ts',
     'src/test/**/*.ts',
-    'vite.config.ts',
-    'vitest.config.ts',
   ],
   project: ['src/**/*.{ts,tsx}'],
-  ignore: [
-    'src/**/*.stories.tsx',
-    'src/**/*.test.{ts,tsx}',
-    'src/**/__tests__/**',
-    'src/**/*.fixtures.ts',
-  ],
   ignoreDependencies: [
     // ESLint v4 호환 미흡으로 미배선 — 도입 시점에 제거
     'eslint-plugin-tailwindcss',
-    // PostCSS·Prettier 가 동적 로드, knip 정적 분석 미검출
-    'prettier-plugin-tailwindcss',
-    '@tailwindcss/postcss',
     // Tailwind v4 엔진. @tailwindcss/postcss 의 peer — knip 정적 미검출
     'tailwindcss',
     // CLI 전용 (pnpm exec depcruise) — 코드맵 생성 스크립트가 spawn, knip 정적 미검출
     'dependency-cruiser',
   ],
-  // Phase 3 전환 정책: 사전 존재 unused exports/types 는 warn (게이트 비차단),
+  // exports/types 는 warn 유지 (게이트 비차단). 남은 4건(refreshRequestSchema,
+  // PublicKeyResponse, LoginRequest, SignupRequest)은 .claude/api/openapi.yaml 의
+  // 라이브 엔드포인트를 미러링하는 의도적 계약 스키마라 삭제하지 않는다.
   // 신규 unused files / unlisted dependencies / duplicates 는 error (차단).
-  // StatBar-style 모듈 단위 누락 (b0129d9) 은 files 룰로 즉시 차단된다.
-  // exports/types 정리는 별도 후속 PR (entities/*/index.ts 일괄 정리) 로 분리.
   rules: {
     files: 'error',
     dependencies: 'error',

@@ -11,7 +11,6 @@ export const avatarBaseSchema = z.object({
   status: avatarStatusSchema,
   verified: z.boolean(),
 });
-export type AvatarBase = z.infer<typeof avatarBaseSchema>;
 
 // 6축 스탯(domains/avatar §5.3) — 확정 사양은 5종이지만 wiki·온보딩 스키마와 함께 옮겨야 해 지금은 6축을 유지한다(spec-divergence #4).
 export const AVATAR_STAT_KEYS = [
@@ -91,7 +90,7 @@ export const PERSONA_STAT_KEYS = [
   'HUMOROUS',
   'AFFECTION_EXPRESSION',
 ] as const satisfies readonly string[];
-export type PersonaStatKey = (typeof PERSONA_STAT_KEYS)[number];
+type PersonaStatKey = (typeof PERSONA_STAT_KEYS)[number];
 
 export const PERSONA_STAT_LABELS: Record<PersonaStatKey, string> = {
   OPENNESS: '개방성',

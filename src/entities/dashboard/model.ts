@@ -36,7 +36,6 @@ export const recommendedAvatarsResponseSchema = z.object({
 export type RecommendedAvatarsResponse = z.infer<typeof recommendedAvatarsResponseSchema>;
 
 export const createSessionRequestSchema = z.object({ avatarId: z.string().min(1) });
-export type CreateSessionRequest = z.infer<typeof createSessionRequestSchema>;
 
 export const createSessionResponseSchema = z.object({
   sessionId: z.string().min(1),

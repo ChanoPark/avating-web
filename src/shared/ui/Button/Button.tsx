@@ -1,8 +1,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@shared/lib/cn';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'dark' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'dark' | 'danger';
+type ButtonSize = 'sm' | 'md' | 'lg';
 
 type ButtonProps = {
   variant?: ButtonVariant;

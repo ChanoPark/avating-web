@@ -24,7 +24,7 @@ function hasAllRequiredCategories(password: string): boolean {
   return /[A-Za-z]/.test(password) && /[0-9]/.test(password) && hasAsciiSpecial(password);
 }
 
-export const emailSchema = z
+const emailSchema = z
   .string()
   .min(1, '이메일을 입력해주세요')
   .email('올바른 이메일 형식이 아닙니다');
@@ -37,7 +37,7 @@ export const rawPasswordSchema = z
   .refine(hasAllRequiredCategories, '영문자·숫자·특수문자를 각각 1개 이상 포함해주세요');
 
 // 서버 상한은 2–30자이지만(실서버 /v3/api-docs) 카드·사이드바 슬롯이 12자 기준이라 폼 상한은 12자로 좁힌다.
-export const nicknameSchema = z
+const nicknameSchema = z
   .string()
   .trim()
   .min(1, '닉네임을 입력해주세요')
@@ -45,7 +45,7 @@ export const nicknameSchema = z
   .max(12, '12자 이하로 입력해주세요');
 
 // 로그인은 존재 여부만 본다 — 서버도 로그인(api-guide §2.3)에서는 비밀번호 정책을 안 본다(AUTH_422_001/002 는 §2.2 가입 전용). 여기서 걸면 옛 규칙 계정이 클라이언트에서만 막힌다.
-export const loginPasswordSchema = z.string().min(1, '비밀번호를 입력해주세요');
+const loginPasswordSchema = z.string().min(1, '비밀번호를 입력해주세요');
 
 export const loginFormSchema = z.object({
   email: emailSchema,

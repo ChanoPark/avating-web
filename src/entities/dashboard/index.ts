@@ -1,10 +1,4 @@
 export {
-  dashboardStatsSchema,
-  recommendedAvatarSchema,
-  recommendedAvatarFilterSchema,
-  recommendedAvatarsResponseSchema,
-  createSessionRequestSchema,
-  createSessionResponseSchema,
   apiResponseDashboardStats,
   apiResponseRecommendedAvatars,
   apiResponseCreateSession,
@@ -14,7 +8,6 @@ export type {
   RecommendedAvatar,
   RecommendedAvatarFilter,
   RecommendedAvatarsResponse,
-  CreateSessionRequest,
   CreateSessionResponse,
 } from './model';
 export { dashboardKeys } from './queryKeys';
