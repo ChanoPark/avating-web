@@ -102,14 +102,14 @@ describe('DashboardPage 통합 시나리오', () => {
   });
 
   describe('AC-2. 초기 진입 — 데이터 표시', () => {
-    it('인증 상태에서 Stats 4개 카드가 렌더된다', async () => {
+    it('인증 상태에서 Stats 3개 카드가 렌더된다', async () => {
       renderDashboard();
       await waitFor(() => {
         expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
       });
       expect(screen.getByText('평균 호감도')).toBeInTheDocument();
       expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-      expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
+      expect(screen.queryByText('잔여 다이아')).not.toBeInTheDocument();
     });
 
     it('인증 상태에서 추천 아바타 리스트가 렌더된다', async () => {
@@ -122,7 +122,7 @@ describe('DashboardPage 통합 시나리오', () => {
   });
 
   describe('AC-3. Stats 카드 부분 실패', () => {
-    it('Zod 검증 실패(avgAffinity>100) 시 공유 쿼리 전체 실패로 4개 카드 모두 fallback 표시', async () => {
+    it('Zod 검증 실패(avgAffinity>100) 시 공유 쿼리 전체 실패로 3개 카드 모두 fallback 표시', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       server.use(
         http.get(`${BASE_URL}/api/dashboard/stats`, () => {
@@ -146,8 +146,29 @@ describe('DashboardPage 통합 시나리오', () => {
 
       await waitFor(() => {
         const fallbacks = screen.queryAllByText('—');
-        expect(fallbacks.length).toBe(4);
+        expect(fallbacks.length).toBe(3);
       });
+    });
+
+    // 재시도 액션은 두 열(내 아바타 | 통계·알림) 바깥에 있어야 한다 — 열 안에 두면 stat 카드만
+    // 내려가 좌측 카드와 윗단이 어긋나고, stat↔알림 세로 간격이 가로 간격(14px)과 달라진다.
+    it('stat 카드 실패 시 "통계 다시 불러오기" 액션이 두 열 바깥에 렌더된다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      server.use(
+        http.get(`${BASE_URL}/api/dashboard/stats`, () => {
+          return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+        })
+      );
+
+      renderDashboard();
+
+      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
+      const statsRegion = screen.getByText('총 매칭 횟수').closest('div.grid');
+      expect(statsRegion).not.toBeNull();
+      expect(statsRegion?.contains(retry)).toBe(false);
+      expect(retry.compareDocumentPosition(screen.getByRole('region', { name: '내 아바타' }))).toBe(
+        Node.DOCUMENT_POSITION_FOLLOWING
+      );
     });
   });
 
