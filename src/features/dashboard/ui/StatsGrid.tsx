@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Send, Heart, Users } from 'lucide-react';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { StatsCard } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
@@ -98,12 +99,18 @@ type StatsGridProps = {
 // 우측 열 안에 두면 stat 카드만 아래로 밀려 좌측 '내 아바타' 카드와 윗단이 어긋나고,
 // stat↔알림 세로 간격도 가로 간격(14px)과 달라진다.
 export function StatsGrid({ resetKey, onCardFailed }: StatsGridProps) {
+  // suspense 쿼리는 error reset boundary 가 리셋되기 전까지 retryOnMount=false 다.
+  // ErrorBoundary 만 resetKeys 로 되살리면 재마운트된 카드가 캐시된 에러를 다시 던져
+  // 재요청 없이 실패 상태로 돌아온다 — reset 을 함께 걸어야 재시도가 실제 fetch 가 된다.
+  const { reset } = useQueryErrorResetBoundary();
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {CARD_CONFIGS.map((config) => (
         <ErrorBoundary
           key={config.label}
           resetKeys={[resetKey]}
+          onReset={reset}
           onError={onCardFailed}
           fallbackRender={() => <StatsFallback config={config} />}
         >

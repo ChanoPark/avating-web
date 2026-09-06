@@ -170,6 +170,55 @@ describe('DashboardPage 통합 시나리오', () => {
         Node.DOCUMENT_POSITION_FOLLOWING
       );
     });
+
+    it('"통계 다시 불러오기" 클릭 시 재요청해 통계가 복구된다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      const user = userEvent.setup();
+      server.use(
+        http.get(`${BASE_URL}/api/dashboard/stats`, () =>
+          HttpResponse.json({ message: '서버 오류' }, { status: 500 })
+        )
+      );
+
+      renderDashboard();
+
+      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
+      server.use(statsHandlers.success);
+      await user.click(retry);
+
+      await waitFor(() => {
+        expect(screen.getByLabelText(/총 매칭 횟수 47회/)).toBeInTheDocument();
+      });
+      expect(screen.queryAllByText('—')).toHaveLength(0);
+      expect(screen.queryByRole('button', { name: '통계 다시 불러오기' })).not.toBeInTheDocument();
+    });
+
+    it('재시도 후에도 실패하면 재요청이 나가고 액션이 다시 노출된다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      const user = userEvent.setup();
+      let callCount = 0;
+      server.use(
+        http.get(`${BASE_URL}/api/dashboard/stats`, () => {
+          callCount++;
+          return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+        })
+      );
+
+      renderDashboard();
+
+      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
+      expect(callCount).toBe(1);
+
+      await user.click(retry);
+
+      await waitFor(() => {
+        expect(callCount).toBe(2);
+      });
+      expect(await screen.findByRole('button', { name: '통계 다시 불러오기' })).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryAllByText('—')).toHaveLength(3);
+      });
+    });
   });
 
   describe('AC-5. 필터 클릭 → 리스트 갱신', () => {
