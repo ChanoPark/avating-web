@@ -9,7 +9,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 | 알고 싶은 것                                                   | 볼 곳                                                                                         |
 | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | 지금 코드가 무엇을 하고 있나 (도메인·플로우·엔티티·API·UI·ADR) | [.claude/wiki/index.md](.claude/wiki/index.md) — sub-agent 는 작업 직전 wiki-maintainer QUERY |
-| 앞으로 어떻게 할 것인가 (사람이 검수한 기능 명세)              | `docs/spec/`, `.claude/docs/`                                                                 |
+| 앞으로 어떻게 할 것인가 (사람이 검수한 기능 명세)              | `.claude/docs/`                                                                               |
 | 스택별 규칙과 안티패턴                                         | [.claude/skills/README.md](.claude/skills/README.md) — 해당 영역 수정 전                      |
 | 서버 API 계약 (엔드포인트·필드·에러코드)                       | `.claude/api/openapi.yaml` · `api-guide.md`                                                   |
 
@@ -78,7 +78,9 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 ## wiki 와 docs (ADR-001)
 
-`.claude/wiki/` 는 지금 코드가 어떤 상태인지 적어둔 곳이다. AI 가 가장 먼저 읽는 컨텍스트고, 새 세션이 매번 `src/` 를 처음부터 훑지 않아도 되게 해준다. `docs/spec/` 과 `.claude/docs/` 는 반대로 앞으로의 방향을 담은 사람 검수 문서다.
+`.claude/wiki/` 는 지금 코드가 어떤 상태인지 적어둔 곳이다. AI 가 가장 먼저 읽는 컨텍스트고, 새 세션이 매번 `src/` 를 처음부터 훑지 않아도 되게 해준다. `.claude/docs/` 는 반대로 앞으로의 방향을 담은 사람 검수 문서다.
+
+옛 plans·notes·wiki 에 남은 `docs/spec/` 표기는 지금의 `.claude/docs/` 를 가리킨다. `docs/` 디렉터리는 워킹트리에 없다.
 
 wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md) 을 거쳐야 한다. 훅 두 개(`wiki-write-gate.sh` 가 Edit/Write, `wiki-bash-gate.sh` 가 Bash)가 토큰 없는 편집·이동·삭제를 실제로 막는다. INGEST / UPDATE / LINT / QUERY 네 모드의 트리거와 절차는 스킬 § 1 에 있다.
 
@@ -86,8 +88,8 @@ wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md)
 
 - 구현된 사실은 wiki 를, 앞으로의 결정은 docs 를 따른다.
 - 양쪽이 모순되면 AI 가 임의로 봉합하지 않는다.
-- INGEST 중 docs 와 어긋나거나 빠진 게 보이면 `spec-divergence` 나 `spec-gap` 을 보고에 달고 사용자에게 docs 갱신을 요청한다. **AI 는 `docs/spec/` 를 직접 쓰거나 고치지 않는다.**
-- 사용자가 새 기능 플로우를 설명하면 구현 전에 `docs/spec/<feature>.md` 작성을 요청한다.
+- INGEST 중 docs 와 어긋나거나 빠진 게 보이면 `spec-divergence` 나 `spec-gap` 을 보고에 달고 사용자에게 docs 갱신을 요청한다. **AI 는 `.claude/docs/` 를 직접 쓰거나 고치지 않는다.**
+- 사용자가 새 기능 플로우를 설명하면 구현 전에 `.claude/docs/<feature>.md` 작성을 요청한다.
 
 ---
 
@@ -96,7 +98,7 @@ wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md)
 - 전부 프로젝트 안 `.claude/` 아래에 둔다. 계획과 설계는 `.claude/plans/`, 리서치 노트는 `.claude/notes/`.
 - 계획이 끝나면 `.claude/deprecated/plans/` 로 옮긴다. status 규칙은 [.claude/plans/README.md](.claude/plans/README.md) 에 있다.
 - `~/.claude/*` 같은 프로젝트 밖 경로에는 저장하지 않는다.
-- `docs/` 와 `.claude/docs/` 는 사람 전용이라 읽기만 한다. AI 산출물을 정식 문서로 올리려면 사용자가 직접 옮긴다.
+- `.claude/docs/` 는 사람 전용이라 읽기만 한다. AI 산출물을 정식 문서로 올리려면 사용자가 직접 옮긴다.
 - 새 문서를 만들기 전에 같은 주제의 기존 문서를 먼저 찾는다. 있으면 갱신하고, 굳이 새로 쓴다면 이유를 상단에 적는다. `.claude/` 는 gitignore 대상이라 삭제하면 되돌릴 수 없으니 정리는 이동으로만 한다.
 
 ---

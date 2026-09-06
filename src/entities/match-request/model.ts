@@ -7,7 +7,6 @@ import {
 } from './constants';
 
 export const matchRequestStatusSchema = z.enum(['pending', 'accepted', 'rejected', 'expired']);
-export type MatchRequestStatus = z.infer<typeof matchRequestStatusSchema>;
 
 export const matchRequestSchema = z.object({
   id: z.string().min(1),
@@ -50,6 +49,6 @@ export const myAvatarSchema = avatarBaseSchema.extend({
 });
 export type MyAvatar = z.infer<typeof myAvatarSchema>;
 
-export const myAvatarsResponseSchema = z.object({ items: z.array(myAvatarSchema) });
+const myAvatarsResponseSchema = z.object({ items: z.array(myAvatarSchema) });
 export const apiResponseMyAvatars = z.object({ data: myAvatarsResponseSchema });
 export type MyAvatarsResponse = z.infer<typeof myAvatarsResponseSchema>;

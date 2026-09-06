@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const inboxItemSchema = z.object({
+const inboxItemSchema = z.object({
   id: z.string().min(1),
   sender: z.object({
     initials: z.string().min(1).max(2),
@@ -12,7 +12,7 @@ export const inboxItemSchema = z.object({
 });
 export type InboxItem = z.infer<typeof inboxItemSchema>;
 
-export const inboxResponseSchema = z.object({
+const inboxResponseSchema = z.object({
   items: z.array(inboxItemSchema),
   unreadCount: z.number().int().nonnegative(),
 });

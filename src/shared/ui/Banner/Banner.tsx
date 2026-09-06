@@ -3,7 +3,7 @@ import { CircleAlert, Check, Info, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
 
-export type BannerTone = 'info' | 'success' | 'warning' | 'danger';
+type BannerTone = 'info' | 'success' | 'warning' | 'danger';
 
 type BannerProps = {
   tone: BannerTone;

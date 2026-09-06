@@ -1,10 +1,9 @@
 import { z } from 'zod';
 
-export const surveyQuestionAnswerSchema = z.object({
+const surveyQuestionAnswerSchema = z.object({
   answerId: z.string(),
   text: z.string(),
 });
-export type SurveyQuestionAnswer = z.infer<typeof surveyQuestionAnswerSchema>;
 
 export const surveyQuestionSchema = z.object({
   id: z.string(),
@@ -24,7 +23,6 @@ export const surveyAnswerRequestSchema = z.object({
   questionType: z.literal('SINGLE_CHOICE_5'),
   answerId: z.string(),
 });
-export type SurveyAnswerRequest = z.infer<typeof surveyAnswerRequestSchema>;
 
 export const avatarCreateFromSurveyRequestSchema = z.object({
   avatarName: z.string().min(1).max(50),
