@@ -18,9 +18,8 @@ const config: KnipConfig = {
     // CLI 전용 (pnpm exec depcruise) — 코드맵 생성 스크립트가 spawn, knip 정적 미검출
     'dependency-cruiser',
   ],
-  // exports/types 는 warn 유지 (게이트 비차단). 남은 4건(refreshRequestSchema,
-  // PublicKeyResponse, LoginRequest, SignupRequest)은 .claude/api/openapi.yaml 의
-  // 라이브 엔드포인트를 미러링하는 의도적 계약 스키마라 삭제하지 않는다.
+  // exports/types 는 warn (게이트 비차단) — 잔여 항목은 openapi 의 라이브
+  // 엔드포인트를 미러링하는 계약 스키마라 참조가 없어도 유지한다.
   // 신규 unused files / unlisted dependencies / duplicates 는 error (차단).
   rules: {
     files: 'error',

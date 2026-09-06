@@ -80,7 +80,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 `.claude/wiki/` 는 지금 코드가 어떤 상태인지 적어둔 곳이다. AI 가 가장 먼저 읽는 컨텍스트고, 새 세션이 매번 `src/` 를 처음부터 훑지 않아도 되게 해준다. `.claude/docs/` 는 반대로 앞으로의 방향을 담은 사람 검수 문서다.
 
-사람 검수 문서는 2026-08-02 에 `docs/spec/` 에서 `.claude/docs/` 로 옮겨졌다 (커밋 `fa4992e`). 옛 plans·notes·wiki 에 남은 `docs/spec/` 표기는 그 시점의 기록이니 `.claude/docs/` 로 읽는다.
+옛 plans·notes·wiki 에 남은 `docs/spec/` 표기는 지금의 `.claude/docs/` 를 가리킨다. `docs/` 디렉터리는 워킹트리에 없다.
 
 wiki 쓰기는 [wiki-maintainer 스킬](.claude/skills/wiki-maintainer/SKILL.md) 을 거쳐야 한다. 훅 두 개(`wiki-write-gate.sh` 가 Edit/Write, `wiki-bash-gate.sh` 가 Bash)가 토큰 없는 편집·이동·삭제를 실제로 막는다. INGEST / UPDATE / LINT / QUERY 네 모드의 트리거와 절차는 스킬 § 1 에 있다.
 
