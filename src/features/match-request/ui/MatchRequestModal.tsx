@@ -10,7 +10,6 @@ import { isApiError } from '@shared/lib/errors';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import {
-  MATCH_REQUEST_COST_GEMS,
   MATCH_REQUEST_GREETING_HARD_LIMIT,
   MATCH_REQUEST_GREETING_MAX,
 } from '@entities/match-request';
@@ -20,13 +19,10 @@ import { useMyAvatars } from '@entities/avatar';
 import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
-import { InlineErrorPanel, type InlineErrorKind } from './InlineErrorPanel';
-import { CreditAmount } from './CreditAmount';
+import { InlineErrorPanel } from './InlineErrorPanel';
 
 // 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
 const NOTICE_CLASS = 'text-caption border-hairline bg-surface rounded-lg border p-3';
-
-type InlineError = { kind: InlineErrorKind };
 
 type Props = {
   open: boolean;
@@ -42,7 +38,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
   const greetingHelpId = useId();
-  const costNoteId = useId();
   const inlineErrorId = useId();
 
   const { show: showToast } = useToast();
@@ -57,7 +52,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const myAvatars = myAvatarsData?.items ?? [];
   const firstSelectableId = myAvatars.find((a) => !a.busy)?.id ?? '';
 
-  const [inlineError, setInlineError] = useState<InlineError | null>(null);
+  const [inlineError, setInlineError] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
 
@@ -98,7 +93,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   useEffect(() => {
     if (!open) {
       reset();
-      setInlineError(null);
+      setInlineError(false);
     }
   }, [open, reset]);
 
@@ -143,7 +138,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
-    setInlineError(null);
+    setInlineError(false);
     try {
       await mutateAsync({
         partnerAvatarId,
@@ -155,10 +150,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
       onClose();
     } catch (err) {
       if (isApiError(err)) {
-        if (err.statusCode === 402 && err.code === 'INSUFFICIENT_GEMS') {
-          setInlineError({ kind: 'insufficient-gems' });
-          return;
-        }
         if (err.statusCode === 409 && err.code === 'PARTNER_BLOCKED') {
           showToast({ variant: 'error', title: '이 사용자에게는 요청을 보낼 수 없어요' });
           onClose();
@@ -180,7 +171,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           return;
         }
       }
-      setInlineError({ kind: 'network' });
+      setInlineError(true);
       showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
     }
   };
@@ -339,30 +330,15 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               )}
             </div>
 
-            {inlineError !== null && (
+            {inlineError && (
               <InlineErrorPanel
                 id={inlineErrorId}
-                kind={inlineError.kind}
                 retryDisabled={isLoading}
                 onRetry={() => {
                   void handleSubmit(onSubmit)();
                 }}
               />
             )}
-
-            <div
-              id={costNoteId}
-              className="bg-canvas border-hairline flex items-center justify-between gap-3 rounded-lg border p-3"
-            >
-              <span className="flex flex-col gap-0.5">
-                <span className="text-caption text-ink font-medium">요청 비용</span>
-                <span className="text-micro text-ink-mute">상대가 수락할 때만 차감돼요</span>
-              </span>
-              <CreditAmount
-                amount={MATCH_REQUEST_COST_GEMS}
-                className="text-body text-ink font-medium"
-              />
-            </div>
           </div>
 
           <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
@@ -384,8 +360,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               aria-describedby={[
                 errors.requesterAvatarId ? requesterAvatarErrorId : null,
                 errors.greeting ? greetingErrorId : null,
-                inlineError !== null ? inlineErrorId : null,
-                costNoteId,
+                inlineError ? inlineErrorId : null,
               ]
                 .filter((id): id is string => id !== null)
                 .join(' ')}

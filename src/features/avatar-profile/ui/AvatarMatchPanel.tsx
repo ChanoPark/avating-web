@@ -1,7 +1,5 @@
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
-import { MATCH_REQUEST_COST_GEMS } from '@entities/match-request';
-import { CreditAmount } from '@features/match-request';
 
 type Props = {
   onRequest: () => void;
@@ -36,11 +34,6 @@ export function AvatarMatchPanel({
         매칭 요청 보내기
         <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
       </Button>
-      <div className="flex items-center justify-center gap-1.5">
-        <span className="text-micro text-ink-mute">요청 비용</span>
-        {/* 정본 Credit size 12 — micro(11)/caption(13) 사이의 지정 값이다. */}
-        <CreditAmount amount={MATCH_REQUEST_COST_GEMS} className="text-ink-secondary text-[12px]" />
-      </div>
     </section>
   );
 }

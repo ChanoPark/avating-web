@@ -2,12 +2,7 @@ import { http, HttpResponse } from 'msw';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
-export type DashboardScenario =
-  | 'success'
-  | 'partial-fail'
-  | 'empty'
-  | 'insufficient-gems'
-  | 'server-error';
+export type DashboardScenario = 'success' | 'partial-fail' | 'empty' | 'server-error';
 
 export const mockDashboardStats = {
   data: {
@@ -18,8 +13,6 @@ export const mockDashboardStats = {
     matches: 3,
     matchRate: 6.4,
     interventionsThisWeek: 21,
-    gemsUsed: 153,
-    gemsBalance: 1240,
   },
 };
 
@@ -33,8 +26,6 @@ export const mockDashboardStatsPartialFail = {
     matches: 3,
     matchRate: 6.4,
     interventionsThisWeek: 21,
-    gemsUsed: 153,
-    gemsBalance: 1240,
   },
 };
 
@@ -116,14 +107,6 @@ export const getRecommendedAvatarsHandler = (scenario: DashboardScenario = 'succ
 };
 
 export const postSessionHandler = (scenario: DashboardScenario = 'success') => {
-  if (scenario === 'insufficient-gems') {
-    return http.post(`${BASE_URL}/api/sessions`, () => {
-      return HttpResponse.json(
-        { message: '다이아가 부족해요. 충전 페이지로 이동해주세요.', code: 'INSUFFICIENT_GEMS' },
-        { status: 402 }
-      );
-    });
-  }
   if (scenario === 'server-error') {
     return http.post(`${BASE_URL}/api/sessions`, () => {
       return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
@@ -154,6 +137,5 @@ export const recommendedHandlers = {
 
 export const sessionHandlers = {
   success: postSessionHandler('success'),
-  insufficientGems: postSessionHandler('insufficient-gems'),
   serverError: postSessionHandler('server-error'),
 };

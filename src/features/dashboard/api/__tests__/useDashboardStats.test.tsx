@@ -35,7 +35,6 @@ describe('useDashboardStats', () => {
 
     expect(result.current.totalDispatched).toBe(47);
     expect(result.current.avgAffinity).toBe(64);
-    expect(result.current.gemsBalance).toBe(1240);
   });
 
   it('필드 누락(잘못된 응답) 시 Zod 파싱 실패로 throw 한다', async () => {

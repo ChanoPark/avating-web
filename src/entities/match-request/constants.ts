@@ -1,4 +1,3 @@
-export const MATCH_REQUEST_COST_GEMS = 30;
 export const MATCH_REQUEST_GREETING_MAX = 100;
 
 // 카운터가 빨강으로 바뀐 뒤에도 사용자가 잠깐 더 입력할 수 있도록 maxLength 에 20자 여유를 둔다.

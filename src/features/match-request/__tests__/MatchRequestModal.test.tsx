@@ -65,16 +65,6 @@ describe('MatchRequestModal', () => {
       expect(onlineDot?.className).toContain('rounded-full');
     });
 
-    // `◇` 는 Pretendard 에 없어 자간이 깨진다 — Diamond 아이콘 + tnum 숫자로 표기한다.
-    it('요청 비용이 다이아 수치로 표시되고 ◇ 문자 글리프를 쓰지 않는다', async () => {
-      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
-      const dialog = await screen.findByRole('dialog');
-      expect(within(dialog).getByText('요청 비용')).toBeInTheDocument();
-      expect(within(dialog).getByText('30')).toHaveClass('tnum');
-      expect(within(dialog).getByText('상대가 수락할 때만 차감돼요')).toBeInTheDocument();
-      expect(dialog.textContent).not.toContain('◇');
-    });
-
     it('Sheet 규격(560 · radius 16 · shadow-float)과 각주가 적용된다', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
@@ -406,21 +396,6 @@ describe('MatchRequestModal', () => {
   });
 
   describe('에러 플로우', () => {
-    it('402 INSUFFICIENT_GEMS → 다이아 부족 인라인 알림 + 충전 링크, 모달 유지', async () => {
-      setMatchRequestScenario('insufficient-gems');
-      const onClose = vi.fn();
-      const user = userEvent.setup();
-      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
-      await screen.findByRole('radiogroup');
-      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('다이아가 부족해요')).toBeInTheDocument();
-      });
-      expect(screen.getByRole('link', { name: /충전하러 가기/ })).toHaveAttribute('href', '/shop');
-      expect(onClose).not.toHaveBeenCalled();
-    });
-
     it('409 PARTNER_BLOCKED → 안내 토스트, 모달 닫힘', async () => {
       setMatchRequestScenario('partner-blocked');
       const onClose = vi.fn();

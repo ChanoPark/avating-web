@@ -12,7 +12,6 @@ const matchRequestBodySchema = z.object({
 
 export type MatchRequestScenario =
   | 'success'
-  | 'insufficient-gems'
   | 'partner-blocked'
   | 'duplicate-request'
   | 'avatar-not-found'
@@ -114,12 +113,6 @@ export const matchRequestHandlers = [
     const raw: unknown = await request.json();
     const body = matchRequestBodySchema.parse(raw);
 
-    if (scenario === 'insufficient-gems') {
-      return HttpResponse.json(
-        { message: '다이아가 부족해요', code: 'INSUFFICIENT_GEMS' },
-        { status: 402 }
-      );
-    }
     if (scenario === 'partner-blocked') {
       return HttpResponse.json(
         { message: '이 사용자에게는 요청을 보낼 수 없어요', code: 'PARTNER_BLOCKED' },

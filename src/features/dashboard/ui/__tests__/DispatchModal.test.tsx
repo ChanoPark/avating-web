@@ -121,44 +121,6 @@ describe('DispatchModal', () => {
     });
   });
 
-  describe('402 에러 (다이아 부족)', () => {
-    it('402 응답 시 인라인 에러 메시지가 표시된다', async () => {
-      const user = userEvent.setup();
-      server.use(sessionHandlers.insufficientGems);
-      renderWithProviders(createElement(DispatchModal, { ...defaultProps }));
-
-      await user.click(screen.getByRole('button', { name: /매칭하기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('다이아가 부족해요.')).toBeInTheDocument();
-      });
-    });
-
-    it('402 응답 시 "다이아가 부족해요" 토스트가 노출된다', async () => {
-      const user = userEvent.setup();
-      server.use(sessionHandlers.insufficientGems);
-      renderWithProviders(createElement(DispatchModal, { ...defaultProps }));
-
-      await user.click(screen.getByRole('button', { name: /매칭하기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('다이아가 부족해요. 충전 페이지로 이동')).toBeInTheDocument();
-      });
-    });
-
-    it('402 응답 시 "충전" 안내 버튼이 노출된다', async () => {
-      const user = userEvent.setup();
-      server.use(sessionHandlers.insufficientGems);
-      renderWithProviders(createElement(DispatchModal, { ...defaultProps }));
-
-      await user.click(screen.getByRole('button', { name: /매칭하기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /충전/ })).toBeInTheDocument();
-      });
-    });
-  });
-
   describe('5xx 에러', () => {
     it('500 응답 시 에러 토스트가 노출된다', async () => {
       const user = userEvent.setup();
