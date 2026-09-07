@@ -1,10 +1,8 @@
-import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Modal } from '@shared/ui/Modal';
 import { Button } from '@shared/ui/Button';
 import { useToast } from '@shared/ui/Toast';
 import { useCreateSession } from '../api/useCreateSession';
-import { isApiError } from '@shared/lib/errors';
 
 type DispatchModalProps = {
   open: boolean;
@@ -16,10 +14,8 @@ type DispatchModalProps = {
 export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchModalProps) {
   const { show } = useToast();
   const { mutate, isPending } = useCreateSession();
-  const [inlineError, setInlineError] = useState<string | null>(null);
 
   function handleConfirm() {
-    setInlineError(null);
     mutate(
       { avatarId },
       {
@@ -27,16 +23,11 @@ export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchM
           show({ variant: 'success', title: '매칭 요청을 보냈어요' });
           onClose();
         },
-        onError: (err) => {
-          if (isApiError(err) && err.statusCode === 402 && err.code === 'INSUFFICIENT_GEMS') {
-            setInlineError('다이아가 부족해요.');
-            show({ variant: 'error', title: '다이아가 부족해요. 충전 페이지로 이동' });
-          } else {
-            show({
-              variant: 'error',
-              title: '매칭 요청에 실패했어요. 잠시 후 다시 시도해주세요.',
-            });
-          }
+        onError: () => {
+          show({
+            variant: 'error',
+            title: '매칭 요청에 실패했어요. 잠시 후 다시 시도해주세요.',
+          });
         },
       }
     );
@@ -63,24 +54,6 @@ export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchM
           </Button>
         </>
       }
-    >
-      {inlineError !== null ? (
-        <div
-          role="alert"
-          className="border-danger bg-surface text-caption text-ink flex items-center justify-between gap-2 rounded-lg border p-3"
-        >
-          <span>{inlineError}</span>
-          <button
-            type="button"
-            className="text-primary hover:text-primary-hover cursor-pointer font-medium"
-            onClick={() => {
-              onClose();
-            }}
-          >
-            충전
-          </button>
-        </div>
-      ) : undefined}
-    </Modal>
+    />
   );
 }

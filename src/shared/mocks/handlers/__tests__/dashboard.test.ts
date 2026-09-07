@@ -27,11 +27,6 @@ describe('dashboard MSW 핸들러 픽스처 정합성', () => {
       expect(mockDashboardStats.data.matches).toBeGreaterThanOrEqual(0);
       expect(Number.isInteger(mockDashboardStats.data.matches)).toBe(true);
     });
-
-    it('gemsBalance 는 nonnegative integer 이다', () => {
-      expect(mockDashboardStats.data.gemsBalance).toBeGreaterThanOrEqual(0);
-      expect(Number.isInteger(mockDashboardStats.data.gemsBalance)).toBe(true);
-    });
   });
 
   describe('mockDashboardStatsPartialFail', () => {

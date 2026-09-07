@@ -56,8 +56,6 @@ describe('StatsGrid', () => {
             matches: 3,
             matchRate: 6.4,
             interventionsThisWeek: 21,
-            gemsUsed: 153,
-            gemsBalance: 1240,
           },
         });
       })
@@ -100,8 +98,6 @@ describe('StatsGrid', () => {
             matches: 1,
             matchRate: 10,
             interventionsThisWeek: 5,
-            gemsUsed: 30,
-            gemsBalance: 500,
           },
         });
       })
@@ -130,8 +126,6 @@ describe('StatsGrid', () => {
             matches: 1,
             matchRate: 10,
             interventionsThisWeek: 5,
-            gemsUsed: 30,
-            gemsBalance: 500,
           },
         });
       })

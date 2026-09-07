@@ -40,10 +40,8 @@ describe('StatsCard', () => {
     });
 
     it('delta.tone="negative" 시 text-danger 클래스가 적용된다', () => {
-      render(
-        <StatsCard {...defaultProps} delta={{ text: '-153 다이아 사용', tone: 'negative' }} />
-      );
-      const delta = screen.getByText('-153 다이아 사용');
+      render(<StatsCard {...defaultProps} delta={{ text: '-3 지난주 대비', tone: 'negative' }} />);
+      const delta = screen.getByText('-3 지난주 대비');
       expect(delta.className).toContain('text-danger');
     });
 

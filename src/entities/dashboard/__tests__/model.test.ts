@@ -19,8 +19,6 @@ const validDashboardStats = {
   matches: 3,
   matchRate: 6.4,
   interventionsThisWeek: 21,
-  gemsUsed: 153,
-  gemsBalance: 1240,
 };
 
 const validRecommendedAvatar = {
@@ -40,7 +38,6 @@ describe('dashboardStatsSchema', () => {
     const result = dashboardStatsSchema.parse(validDashboardStats);
     expect(result.totalDispatched).toBe(47);
     expect(result.avgAffinity).toBe(64);
-    expect(result.gemsBalance).toBe(1240);
   });
 
   it('totalDispatched 음수는 실패한다 (nonnegative)', () => {
@@ -57,10 +54,6 @@ describe('dashboardStatsSchema', () => {
     expect(() =>
       dashboardStatsSchema.parse({ ...validDashboardStats, interventionsThisWeek: -1 })
     ).toThrow();
-  });
-
-  it('gemsBalance 음수는 실패한다 (nonnegative)', () => {
-    expect(() => dashboardStatsSchema.parse({ ...validDashboardStats, gemsBalance: -1 })).toThrow();
   });
 
   it('avgAffinity 101 은 실패한다 (max 100)', () => {

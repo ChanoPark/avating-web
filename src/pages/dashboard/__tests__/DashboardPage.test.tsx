@@ -135,8 +135,6 @@ describe('DashboardPage 통합 시나리오', () => {
               matches: 3,
               matchRate: 6.4,
               interventionsThisWeek: 21,
-              gemsUsed: 153,
-              gemsBalance: 1240,
             },
           });
         })
@@ -309,31 +307,6 @@ describe('DashboardPage 통합 시나리오', () => {
 
       await waitFor(() => {
         expect(screen.getByText(/매칭 요청을 보냈어요/)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('AC-8. 402 다이아 부족', () => {
-    it('402 응답 시 "다이아가 부족해요" 토스트 + 충전 버튼', async () => {
-      server.use(sessionHandlers.insufficientGems);
-      const user = userEvent.setup();
-      renderDashboard();
-
-      await waitFor(() => {
-        expect(screen.getAllByRole('button', { name: /매칭/ }).length).toBeGreaterThan(0);
-      });
-
-      const matchButtons = screen.getAllByRole('button', { name: /매칭/ });
-      await user.click(matchButtons[0]!);
-
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /매칭하기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('다이아가 부족해요. 충전 페이지로 이동')).toBeInTheDocument();
       });
     });
   });

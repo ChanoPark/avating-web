@@ -58,29 +58,6 @@ describe('useCreateSession', () => {
     );
   });
 
-  it('402 INSUFFICIENT_GEMS 응답 시 statusCode 와 code 가 에러에 포함된다', async () => {
-    server.use(sessionHandlers.insufficientGems);
-    const queryClient = new QueryClient({
-      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-    });
-    const { result } = renderHook(() => useCreateSession(), {
-      wrapper: createWrapper(queryClient),
-    });
-
-    act(() => {
-      result.current.mutate({ avatarId: 'avatar-1' });
-    });
-
-    await waitFor(() => {
-      expect(result.current.isError).toBe(true);
-    });
-
-    const error = result.current.error;
-    expect(error).not.toBeNull();
-    expect(error?.statusCode).toBe(402);
-    expect(error?.code).toBe('INSUFFICIENT_GEMS');
-  });
-
   it('500 응답 시 일반 ApiError 를 반환한다', async () => {
     server.use(sessionHandlers.serverError);
     const queryClient = new QueryClient({

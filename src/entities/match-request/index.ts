@@ -2,7 +2,6 @@ export { sendMatchRequestSchema, apiResponseMatchRequest, apiResponseMyAvatars }
 export type { MatchRequest, SendMatchRequestInput, MyAvatar, MyAvatarsResponse } from './model';
 export { matchRequestKeys } from './queryKeys';
 export {
-  MATCH_REQUEST_COST_GEMS,
   MATCH_REQUEST_GREETING_MAX,
   MATCH_REQUEST_GREETING_HARD_LIMIT,
   MATCH_REQUEST_ERROR_REQUESTER_EMPTY,

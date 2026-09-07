@@ -219,12 +219,12 @@ describe('Modal', () => {
           onClose={() => undefined}
           title="각주"
           footer={<button type="button">확인</button>}
-          footnote="다이아 30개가 차감됩니다."
+          footnote="수락 시 매칭이 시작됩니다."
         >
           body
         </Modal>
       );
-      const note = screen.getByText('다이아 30개가 차감됩니다.');
+      const note = screen.getByText('수락 시 매칭이 시작됩니다.');
       expect(note.className).toContain('text-micro');
       expect(note.className).toContain('text-center');
     });
