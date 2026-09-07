@@ -7,6 +7,8 @@ import { server } from '@shared/mocks/server';
 import { statsHandlers } from '@shared/mocks/handlers/dashboard';
 import { StatsGrid } from '../StatsGrid';
 
+const gridProps = { resetKey: 0, onCardFailed: () => {} };
+
 function renderWithProviders(ui: React.ReactNode) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -25,9 +27,9 @@ function renderWithProviders(ui: React.ReactNode) {
 }
 
 describe('StatsGrid', () => {
-  it('정상 응답 시 4개 카드 라벨이 모두 렌더된다', async () => {
+  it('정상 응답 시 3개 카드 라벨이 모두 렌더된다', async () => {
     server.use(statsHandlers.success);
-    renderWithProviders(createElement(StatsGrid, null));
+    renderWithProviders(createElement(StatsGrid, gridProps));
 
     await waitFor(() => {
       expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
@@ -36,8 +38,7 @@ describe('StatsGrid', () => {
     expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
     expect(screen.getByText('평균 호감도')).toBeInTheDocument();
     expect(screen.getByText('에프터 연결')).toBeInTheDocument();
-    expect(screen.getByText('잔여 다이아')).toBeInTheDocument();
-    expect(screen.getByLabelText(/잔여 다이아 1240개/)).toBeInTheDocument();
+    expect(screen.queryByText('잔여 다이아')).not.toBeInTheDocument();
   });
 
   it('/api/dashboard/stats 를 단 1번만 호출한다 (single fetch + select 패턴)', async () => {
@@ -62,7 +63,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, null));
+    renderWithProviders(createElement(StatsGrid, gridProps));
 
     await waitFor(() => {
       expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
@@ -71,14 +72,14 @@ describe('StatsGrid', () => {
     expect(callCount).toBe(1);
   });
 
-  it('API 응답 Zod 검증 실패 시 4개 카드 모두 fallback("—") 표시', async () => {
+  it('API 응답 Zod 검증 실패 시 3개 카드 모두 fallback("—") 표시', async () => {
     server.use(statsHandlers.partialFail);
 
-    renderWithProviders(createElement(StatsGrid, null));
+    renderWithProviders(createElement(StatsGrid, gridProps));
 
     await waitFor(() => {
       const fallbacks = screen.queryAllByText('—');
-      expect(fallbacks.length).toBe(4);
+      expect(fallbacks.length).toBe(3);
     });
   });
 
@@ -106,7 +107,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, null));
+    renderWithProviders(createElement(StatsGrid, gridProps));
 
     await waitFor(() => {
       expect(screen.getByText(/-3 지난주 대비/)).toBeInTheDocument();
@@ -136,7 +137,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, null));
+    renderWithProviders(createElement(StatsGrid, gridProps));
 
     await waitFor(() => {
       expect(screen.getByText(/\+0 지난주 대비/)).toBeInTheDocument();

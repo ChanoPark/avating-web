@@ -8,8 +8,10 @@ import type { MyAvatar } from '@entities/match-request';
 import type { AvatarStatus } from '@entities/avatar';
 
 // 폭 300 고정은 페이지(부모)가 준다 — 여기서는 지정하지 않는다.
+// 높이는 h-full 로 부모 행(items-stretch)에 맞춘다 — 정본 wf-s2-core ScreenDashboard 의
+// `<Row align="stretch">` 직속 Card 와 같은 결과다. 감싸는 div 만 늘어나고 카드가 남으면 우측 열과 밑단이 어긋난다.
 const CARD_CLASS =
-  'border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4';
+  'border-hairline bg-surface shadow-card flex h-full flex-col gap-3 rounded-lg border p-4';
 
 // 정본은 `활성` 배지만 정의한다 — 나머지 두 상태는 같은 문법에 색만 바꾸고, 기존 표현을 그대로 쓴다.
 const STATUS_BADGE: Record<

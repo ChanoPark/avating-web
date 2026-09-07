@@ -1,6 +1,7 @@
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Send, Heart, Users, Diamond } from 'lucide-react';
+import { Send, Heart, Users } from 'lucide-react';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { StatsCard } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
@@ -22,7 +23,7 @@ function StatsSkeleton() {
   );
 }
 
-// 정본 S-11-06 STAT — 재시도 버튼은 카드 안이 아니라 묶음 상단 액션에서 한 번에 처리한다.
+// 정본 S-11-06 STAT — 재시도 버튼은 카드 안이 아니라 묶음 단위 액션에서 한 번에 처리한다.
 function StatsFallback({ config }: { config: CardConfig }) {
   return <StatsCard failed icon={config.Icon} label={config.label} value="" ariaLabel="" />;
 }
@@ -74,17 +75,6 @@ const CARD_CONFIGS: CardConfig[] = [
     }),
     getAriaLabel: (s) => `에프터 연결 ${s.matches}건, 매칭 성공률 ${s.matchRate.toFixed(1)}%`,
   },
-  {
-    label: '잔여 다이아',
-    Icon: Diamond,
-    getValue: (s) => String(s.gemsBalance),
-    getDelta: (s) => ({
-      // 다이아 사용량은 부정 신호가 아닌 단순 메타 → 중립색 (design-v2 §04)
-      text: `-${s.gemsUsed} 이번 주 사용`,
-      tone: 'neutral',
-    }),
-    getAriaLabel: (s) => `잔여 다이아 ${s.gemsBalance}개, 이번 주 ${s.gemsUsed} 사용`,
-  },
 ];
 
 function SingleStatCard({ config }: { config: CardConfig }) {
@@ -100,43 +90,49 @@ function SingleStatCard({ config }: { config: CardConfig }) {
   );
 }
 
-export function StatsGrid() {
-  // 카드마다 경계를 따로 두되 재시도는 묶음 단위다(정본 S-11-06).
-  const [resetKey, setResetKey] = useState(0);
-  const [failedCount, setFailedCount] = useState(0);
+type StatsGridProps = {
+  resetKey: number;
+  onCardFailed: () => void;
+};
+
+// 재시도 액션(StatsRetryAction)은 이 컴포넌트가 아니라 대시보드 상단, 두 열 바깥에서 렌더된다.
+// 우측 열 안에 두면 stat 카드만 아래로 밀려 좌측 '내 아바타' 카드와 윗단이 어긋나고,
+// stat↔알림 세로 간격도 가로 간격(14px)과 달라진다.
+export function StatsGrid({ resetKey, onCardFailed }: StatsGridProps) {
+  // suspense 쿼리는 error reset boundary 가 리셋되기 전까지 retryOnMount=false 다.
+  // ErrorBoundary 만 resetKeys 로 되살리면 재마운트된 카드가 캐시된 에러를 다시 던져
+  // 재요청 없이 실패 상태로 돌아온다 — reset 을 함께 걸어야 재시도가 실제 fetch 가 된다.
+  const { reset } = useQueryErrorResetBoundary();
 
   return (
-    <div className="flex flex-col gap-2">
-      {failedCount > 0 && (
-        <div className="flex justify-end">
-          <button
-            type="button"
-            className="text-caption text-primary hover:text-primary-hover focus-visible:shadow-focus rounded-pill cursor-pointer px-1 font-medium"
-            onClick={() => {
-              setFailedCount(0);
-              setResetKey((k) => k + 1);
-            }}
-          >
-            통계 다시 불러오기
-          </button>
-        </div>
-      )}
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {CARD_CONFIGS.map((config) => (
-          <ErrorBoundary
-            key={config.label}
-            resetKeys={[resetKey]}
-            onError={() => {
-              setFailedCount((c) => c + 1);
-            }}
-            fallbackRender={() => <StatsFallback config={config} />}
-          >
-            <Suspense fallback={<StatsSkeleton />}>
-              <SingleStatCard config={config} />
-            </Suspense>
-          </ErrorBoundary>
-        ))}
-      </div>
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {CARD_CONFIGS.map((config) => (
+        <ErrorBoundary
+          key={config.label}
+          resetKeys={[resetKey]}
+          onReset={reset}
+          onError={onCardFailed}
+          fallbackRender={() => <StatsFallback config={config} />}
+        >
+          <Suspense fallback={<StatsSkeleton />}>
+            <SingleStatCard config={config} />
+          </Suspense>
+        </ErrorBoundary>
+      ))}
+    </div>
+  );
+}
+
+export function StatsRetryAction({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="flex justify-end">
+      <button
+        type="button"
+        className="text-caption text-primary hover:text-primary-hover focus-visible:shadow-focus rounded-pill cursor-pointer px-1 font-medium"
+        onClick={onRetry}
+      >
+        통계 다시 불러오기
+      </button>
     </div>
   );
 }
