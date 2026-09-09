@@ -84,7 +84,7 @@ export function ChipInputField({
             setInput(e.target.value);
           }}
           onKeyDown={handleKeyDown}
-          className="bg-canvas text-caption text-primary placeholder:text-secondary border-field focus:border-mark ease-standard rounded-chip w-full border px-3 py-2.25 transition-colors duration-[var(--dur-fast)]"
+          className="bg-canvas text-caption text-primary placeholder:text-secondary border-field ease-standard rounded-chip w-full border px-3 py-2.25 transition-colors duration-[var(--dur-fast)] focus-visible:outline-offset-0"
         />
       </div>
 

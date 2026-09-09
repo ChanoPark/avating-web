@@ -187,7 +187,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         onClick={() => {
           if (!isPending) onClose();
         }}
-        className="bg-overlay absolute inset-0 cursor-default backdrop-blur-sm"
+        className="bg-overlay absolute inset-0 cursor-default"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
@@ -197,7 +197,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="border-subtle bg-canvas rounded-card relative w-full max-w-140 overflow-hidden border"
+        className="bg-canvas border-subtle relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
@@ -316,7 +316,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   'bg-canvas text-body text-primary rounded-chip min-h-23 w-full resize-y border px-3 py-2.25 leading-[1.55]',
                   'ease-standard transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
                   errors.greeting ? 'border-danger-mark' : 'border-field',
-                  'focus:border-mark'
+                  'focus-visible:outline-offset-0'
                 )}
               />
               {errors.greeting?.message ? (

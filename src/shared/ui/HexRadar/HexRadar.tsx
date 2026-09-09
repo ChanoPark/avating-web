@@ -73,14 +73,14 @@ export function HexRadar({ stats, labels, size = 160 }: HexRadarProps) {
       {/* 반투명 채움이라 아래 그리드가 비쳐 보인다 — 불투명 wash 를 쓰면 격자가 가려진다. */}
       <path
         d={buildPath(cx, cy, r, dataFracs)}
-        fill="var(--action-bg)"
+        fill="var(--data-fill)"
         fillOpacity={0.15}
-        stroke="var(--action-bg)"
+        stroke="var(--data-fill)"
         strokeWidth={1.5}
       />
       {dataFracs.map((frac, i) => {
         const p = point(cx, cy, r, i, frac);
-        return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="var(--action-bg)" />;
+        return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="var(--data-fill)" />;
       })}
       {labels.map((label, i) => {
         const p = point(cx, cy, r, i, 1.22);

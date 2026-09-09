@@ -14,8 +14,8 @@ type BannerProps = {
   className?: string;
 };
 
-// wash 배경일 때는 테두리를 항상 transparent 로 둔다 — 틴트 채움과 동색 테두리를 같이
-// 쓰면 v2 절대 규칙 ③ 위반이다.
+// 틴트 채움에 같은 색 테두리를 겹치지 않는다. 톤 배경은 무채색이고 파괴적 알림만
+// 틴트를 갖는다 (Codex 절대 규칙 ④).
 const toneSurface: Record<BannerTone, string> = {
   info: 'bg-raised border-transparent',
   success: 'bg-raised border-transparent',

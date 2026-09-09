@@ -65,11 +65,11 @@ describe('MatchRequestModal', () => {
       expect(onlineDot?.className).toContain('rounded-full');
     });
 
-    it('Sheet 규격(560 · radius 10 · hairline)과 각주가 적용된다', async () => {
+    it('Sheet 규격(560 · radius 16 · hairline)과 각주가 적용된다 — 640 아래에선 화면 전체', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
-      expect(dialog).toHaveClass('max-w-140');
-      expect(dialog).toHaveClass('rounded-card');
+      expect(dialog).toHaveClass('sm:max-w-140');
+      expect(dialog).toHaveClass('sm:rounded-[16px]');
       expect(dialog).toHaveClass('border-subtle');
       expect(
         within(dialog).getByText('24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.')

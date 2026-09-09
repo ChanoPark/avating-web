@@ -74,7 +74,7 @@ describe('Button', () => {
     const cls = screen.getByRole('button', { name: '삭제' }).className;
     expect(cls).toContain('text-danger');
     expect(cls).toContain('bg-transparent');
-    expect(cls).not.toContain('bg-danger ');
+    expect(cls.split(' ')).not.toContain('bg-danger');
   });
 
   it('비활성은 opacity 가 아니라 색 토큰으로 표현한다', () => {

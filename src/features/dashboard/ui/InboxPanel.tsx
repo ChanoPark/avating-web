@@ -94,7 +94,7 @@ function InboxPanelContent() {
             <li
               key={item.id}
               data-unread={!item.read}
-              // 읽지 않음 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
+              // 읽지 않음은 시스템이 알려주는 상태라 무채색 선택 판으로만 구분한다 — 파란 테두리가 아니다.
               className={cn(
                 'rounded-card flex items-center gap-2.5 border px-3 py-2.5',
                 item.read ? 'border-transparent bg-transparent' : 'bg-selected border-transparent'

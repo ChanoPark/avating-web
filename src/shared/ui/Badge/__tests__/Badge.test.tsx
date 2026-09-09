@@ -33,7 +33,7 @@ describe('Badge', () => {
     const badge = screen.getByText('대기');
     expect(badge.className).toContain('bg-raised');
     expect(badge.className).toContain('text-secondary');
-    expect(badge.className).not.toContain('border');
+    expect(badge.className.split(' ')).not.toContain('border');
   });
 
   it.each([

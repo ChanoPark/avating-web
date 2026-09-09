@@ -276,7 +276,7 @@ export function SurveyStep() {
 
         <div className="flex items-center justify-between gap-2">
           <span className="text-caption text-secondary tnum">{progressLabel}</span>
-          <span className="text-caption text-action tnum">{percent}%</span>
+          <span className="text-caption text-primary tnum">{percent}%</span>
         </div>
         <div
           role="progressbar"

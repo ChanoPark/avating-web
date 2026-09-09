@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { useMemo, useState } from 'react';
 import { ArrowRight, CircleAlert, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { mapServerError } from '../lib/mapServerError';
@@ -48,9 +49,6 @@ const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
   3: 'text-success',
   4: 'text-success',
 };
-
-const inputBase =
-  'bg-surface text-body text-primary placeholder:text-secondary h-9 w-full rounded-chip border-0 px-3 transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard hover:bg-raised focus-visible:outline-offset-0 disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed';
 
 // 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 aria-label (레포 공통 관례).
 const oauthButton =
@@ -168,7 +166,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="you@example.com"
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? 'signup-email-error' : undefined}
-              className={`${inputBase} ${errors.email ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
+              className={`${FIELD_CLASS} ${errors.email ? FIELD_ERROR_CLASS : ''}`}
               {...register('email')}
             />
             {errors.email?.message && (
@@ -199,7 +197,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                     : 'signup-password-help signup-password-strength'
                 }
                 placeholder="8자 이상, 영문·숫자·특수문자 포함"
-                className={`${inputBase} pr-10 ${errors.password ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
+                className={`${FIELD_CLASS} pr-10 ${errors.password ? FIELD_ERROR_CLASS : ''}`}
                 {...register('password')}
               />
               <button
@@ -270,7 +268,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="아바타 프로필에 표시됩니다"
               aria-invalid={errors.nickname ? true : undefined}
               aria-describedby={errors.nickname ? 'signup-nickname-error' : 'signup-nickname-help'}
-              className={`${inputBase} ${errors.nickname ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
+              className={`${FIELD_CLASS} ${errors.nickname ? FIELD_ERROR_CLASS : ''}`}
               {...register('nickname')}
             />
             {errors.nickname?.message ? (

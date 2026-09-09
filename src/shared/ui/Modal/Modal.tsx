@@ -79,7 +79,7 @@ export function Modal({
         aria-label="모달 닫기"
         tabIndex={-1}
         onClick={onClose}
-        className="bg-overlay absolute inset-0 cursor-default backdrop-blur-sm"
+        className="bg-overlay absolute inset-0 cursor-default"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div

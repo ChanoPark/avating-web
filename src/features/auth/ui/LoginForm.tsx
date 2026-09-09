@@ -3,6 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'react-router';
 import { ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { Banner } from '@shared/ui/Banner';
 import { useLogin } from '../api/useLogin';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -13,9 +14,6 @@ import type { LoginForm as LoginFormValues } from '@entities/auth/model';
 type LoginFormProps = {
   onSuccess?: () => void;
 };
-
-const inputBase =
-  'bg-surface text-body text-primary placeholder:text-secondary h-9 w-full rounded-chip border-0 px-3 transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard hover:bg-raised focus-visible:outline-offset-0 disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed';
 
 // 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 title (레포 공통 관례).
 const oauthButton =
@@ -98,7 +96,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               placeholder="you@example.com"
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? 'login-email-error' : undefined}
-              className={`${inputBase} ${errors.email ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
+              className={`${FIELD_CLASS} ${errors.email ? FIELD_ERROR_CLASS : ''}`}
               {...register('email')}
             />
             {errors.email?.message && (
@@ -124,7 +122,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               placeholder="비밀번호 입력"
               aria-invalid={errors.password ? true : undefined}
               aria-describedby={errors.password ? 'login-password-error' : undefined}
-              className={`${inputBase} ${errors.password ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
+              className={`${FIELD_CLASS} ${errors.password ? FIELD_ERROR_CLASS : ''}`}
               {...register('password')}
             />
             {errors.password?.message && (

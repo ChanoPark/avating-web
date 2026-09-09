@@ -13,7 +13,10 @@ type InputProps = {
 // `.cx-input` — 필드는 상자가 아니라 톤이다: 회색 채움에 테두리가 없다.
 // 포커스는 링 하나뿐이고 offset 0 이라 필드 가장자리에 딱 붙는다 (전역은 offset 2).
 // placeholder 는 사용자가 읽는 문장이라 secondary(5.73:1)다 — muted(3.94:1)가 아니다.
-const base = cn(
+/** 오류 표시는 1px 안쪽 선이다 — 필드에 테두리가 없어서 border-color 는 아무 효과가 없다. */
+export const FIELD_ERROR_CLASS = 'shadow-[inset_0_0_0_1px_var(--danger-text)]';
+
+export const FIELD_CLASS = cn(
   'bg-surface text-primary text-body w-full rounded-chip border-0 px-3',
   'h-9 placeholder:text-secondary',
   'transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard',
@@ -45,9 +48,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={isError || undefined}
           aria-describedby={errId ?? helpId}
           className={cn(
-            base,
+            FIELD_CLASS,
             // 오류는 1px 안쪽 선이다 — 링을 두 겹으로 얹지 않는다.
-            isError ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : null,
+            isError ? FIELD_ERROR_CLASS : null,
             trailingSlot ? 'pr-10' : null,
             className
           )}

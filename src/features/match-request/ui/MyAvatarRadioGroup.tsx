@@ -62,7 +62,7 @@ export function MyAvatarRadioGroup({
               aria-hidden="true"
               className={cn(
                 'relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                checked ? 'border-ink bg-ink' : 'border-field bg-transparent'
+                checked ? 'border-mark bg-mark' : 'border-field bg-transparent'
               )}
             >
               {checked && <span className="bg-canvas h-1.5 w-1.5 rounded-full" />}

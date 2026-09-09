@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
+import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { cn } from '@shared/lib/cn';
 import { getOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -21,9 +22,6 @@ const introFormSchema = z.object({
   description: z.string().trim().min(1, '아바타 설명을 입력해주세요').max(DESC_MAX),
 });
 type IntroFormValues = z.infer<typeof introFormSchema>;
-
-const FIELD_INPUT =
-  'bg-surface text-body text-primary placeholder:text-secondary h-9 w-full rounded-chip border-0 px-3 transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard hover:bg-raised focus-visible:outline-offset-0 disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed';
 
 export function IntroStep() {
   const navigate = useNavigate();
@@ -107,10 +105,7 @@ export function IntroStep() {
               aria-required="true"
               aria-invalid={errors.avatarName ? 'true' : undefined}
               aria-describedby={errors.avatarName ? 'intro-name-error' : undefined}
-              className={cn(
-                FIELD_INPUT,
-                errors.avatarName ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : null
-              )}
+              className={cn(FIELD_CLASS, errors.avatarName ? FIELD_ERROR_CLASS : null)}
               {...register('avatarName')}
             />
             {errors.avatarName?.message && (
@@ -142,9 +137,9 @@ export function IntroStep() {
               aria-invalid={errors.description ? true : undefined}
               aria-describedby={errors.description ? 'intro-desc-error' : 'intro-desc-help'}
               className={cn(
-                FIELD_INPUT,
+                FIELD_CLASS,
                 'resize-none',
-                errors.description ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : null
+                errors.description ? FIELD_ERROR_CLASS : null
               )}
               {...register('description')}
             />

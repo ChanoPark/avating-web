@@ -43,10 +43,10 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
               aria-hidden="true"
               className={cn(
                 'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                selected ? 'border-ink' : 'border-field'
+                selected ? 'border-mark' : 'border-field'
               )}
             >
-              {selected && <span className="bg-ink block h-2 w-2 rounded-full" />}
+              {selected && <span className="bg-mark block h-2 w-2 rounded-full" />}
             </span>
             <span className={cn('text-caption', selected ? 'text-primary' : 'text-secondary')}>
               {opt.text}

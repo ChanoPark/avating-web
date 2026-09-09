@@ -76,7 +76,7 @@ function StepRail({
               key={label}
               {...(state === 'current' ? { 'aria-current': 'step' as const } : {})}
               className={cn(
-                // 스텝 사이 커넥터 — 모바일은 가로선, 데스크톱은 세로선이며 지나온 구간만 파랗게 채운다.
+                // 스텝 사이 커넥터 — 모바일은 가로선, 데스크톱은 세로선이며 지나온 구간만 잉크로 채운다.
                 'relative flex flex-1 items-center gap-2.5 last:flex-none',
                 "after:bg-subtle after:block after:h-px after:flex-1 after:content-[''] last:after:hidden",
                 'md:flex-none md:gap-3 md:pb-5 md:last:pb-0',

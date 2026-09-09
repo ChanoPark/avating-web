@@ -39,8 +39,8 @@ export function InlineError({
       <div className="text-caption text-primary font-medium">{title}</div>
       <div className="text-meta text-secondary max-w-[250px] text-pretty">{body}</div>
       {onRetry && (
-        // 화면당 채워진 파란 CTA 는 하나여야 해서(v2 절대 규칙 ①) 재시도는 secondary(흰
-        // 서피스 + 파란 테두리)로 둔다.
+        // 화면당 파란 채움은 하나뿐이라(Codex 절대 규칙 ①) 재시도는 secondary
+        // — 무채색 약한 채움이다.
         <button
           type="button"
           onClick={onRetry}

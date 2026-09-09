@@ -43,7 +43,7 @@ describe('FilterChip', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     expect(chip.className).toContain('bg-surface');
-    expect(chip.className).not.toContain('border');
+    expect(chip.className.split(' ')).not.toContain('border');
   });
 
   it('focus-visible 포커스 링을 갖는다', () => {

@@ -21,16 +21,16 @@ describe('HexRadar', () => {
     expect(() => render(<HexRadar stats={[10, 20]} labels={LABELS} />)).toThrowError(/exactly 6/);
   });
 
-  // 죽은 토큰(--hairline/--ink/--primary/--brand)을 참조하면 색이 나오지 않는다.
+  // 여기서 쓰면 안 되는 토큰 — 옛 시스템 이름이거나 데이터 채움이 아닌 역할이다.
   it('Codex 역할 토큰만 참조한다 (죽은 옛 토큰 없음)', () => {
     const { container } = render(<HexRadar stats={[80, 60, 70, 50, 90, 40]} labels={LABELS} />);
     const svg = container.querySelector('svg');
     const markup = svg?.outerHTML ?? '';
-    for (const deadToken of ['--hairline', '--ink)', '--primary)', '--brand)', '--canvas)']) {
+    for (const deadToken of ['--hairline', '--primary)', '--brand)', '--canvas)']) {
       expect(markup).not.toContain(deadToken);
     }
     expect(markup).toContain('var(--border-subtle)');
-    expect(markup).toContain('var(--action-bg)');
+    expect(markup).toContain('var(--data-fill)');
     expect(markup).toContain('var(--text-secondary)');
   });
 });

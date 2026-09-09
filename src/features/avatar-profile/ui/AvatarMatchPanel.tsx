@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 
@@ -18,7 +19,7 @@ export function AvatarMatchPanel({
 }: Props) {
   // 비활성 버튼은 pointer-events 가 없어서 title 툴팁이 마우스로도 닿지 않는다 —
   // 못 누르는 이유는 보이는 문장으로 적고, 버튼과 aria-describedby 로 잇는다.
-  const reasonId = 'match-request-disabled-reason';
+  const reasonId = useId();
   const showReason = disabled && disabledReason !== undefined;
 
   return (

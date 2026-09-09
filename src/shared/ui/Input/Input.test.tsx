@@ -24,7 +24,7 @@ describe('Input', () => {
     expect(cls).not.toContain('focus:shadow-');
   });
 
-  describe('`.av-input` 규격 (forms.css)', () => {
+  describe('`.cx-input` 규격', () => {
     it('필드는 상자가 아니라 톤이다 — 회색 채움에 테두리가 없다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
@@ -58,7 +58,7 @@ describe('Input', () => {
     });
   });
 
-  describe('`.av-field` 규격 (forms.css)', () => {
+  describe('`.cx-field` 규격', () => {
     it('help·error 는 13px 이다 (12px meta 가 아니다)', () => {
       const { rerender } = render(<Input label="비밀번호" helperText="8자 이상" />);
       const help = screen.getByText('8자 이상');
