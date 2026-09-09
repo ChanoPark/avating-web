@@ -28,6 +28,8 @@ for (const route of GATED_ROUTES) {
   test(`a11y 위반 0 — ${route} (로그인 후)`, async ({ page }) => {
     await signIn(page);
     await page.goto(route);
+    // signIn 이 /onboarding 리다이렉트도 허용하므로, 실제로 그 라우트에 있는지 못박는다.
+    await expect(page).toHaveURL(new RegExp(`${route}$`));
     await expect(page.locator('#root')).not.toBeEmpty();
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
@@ -40,6 +42,10 @@ test('a11y 위반 0 — 매칭 요청 모달이 열린 상태', async ({ page })
   await page.goto('/avatars/avatar-1');
   await page.getByRole('button', { name: '매칭 요청 보내기' }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
+
+  // 640px 아래에서 다이얼로그는 화면 전체가 된다 — 본문이 스크롤되지 않으면 하단 액션이
+  // 뷰포트 밖으로 밀려 제출이 불가능해진다. jsdom 이 못 잡는 종류라 여기서 막는다.
+  await expect(page.getByRole('button', { name: '요청 보내기', exact: true })).toBeInViewport();
 
   const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(results.violations).toEqual([]);

@@ -51,9 +51,6 @@ const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
 };
 
 // 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 aria-label (레포 공통 관례).
-const oauthButton =
-  'bg-fill-weak text-primary text-btn rounded-card flex h-10 items-center justify-center disabled:bg-raised disabled:text-muted disabled:cursor-not-allowed';
-
 export function SignupForm({ onSuccess }: SignupFormProps) {
   const {
     register,
@@ -130,22 +127,24 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         )}
 
         <div className="flex flex-col gap-2">
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            block
             disabled
-            className={oauthButton}
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
+            block
             disabled
-            className={oauthButton}
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-3" aria-hidden="true">

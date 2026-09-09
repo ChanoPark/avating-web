@@ -193,7 +193,7 @@ export function ServiceIntroPage() {
 
           <div className="grid gap-4.5 md:grid-cols-3">
             {STEPS.map((step, index) => (
-              <Card key={step.title} className="flex flex-col gap-1.5 p-4.5">
+              <Card key={step.title} className="flex flex-col gap-1.5">
                 <span className="text-label text-action tnum uppercase">{`0${String(index + 1)}`}</span>
                 <div className="text-lead text-primary">{step.title}</div>
                 <p className="text-caption text-secondary tnum text-pretty">{step.body}</p>

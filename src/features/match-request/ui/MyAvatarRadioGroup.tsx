@@ -11,7 +11,8 @@ type Props = {
   'aria-describedby'?: string | undefined;
 };
 
-// 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + 1px inset 링이다.
+// 선택 상태는 --bg-selected 틴트 하나뿐이다 — 파란 테두리도 inset 링도 얹지 않는다
+// (Codex 절대 규칙 ③).
 export function MyAvatarRadioGroup({
   avatars,
   value,
