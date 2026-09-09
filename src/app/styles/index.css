@@ -36,9 +36,11 @@
   --color-selected: var(--bg-selected);
   --color-row-hover: var(--row-hover);
 
-  /* 아바타 identity — 서버에 색 필드가 없어 전부 --id-none 회색이다 (사용자 결정 2026-09-08). */
+  /* 아바타 identity — 서버에 색 필드가 없어 전부 --id-none 회색이다 (사용자 결정 2026-09-08).
+     짝 전경색은 정본이 --id-none-fg(흰색)로 두지만 #78818F 위 흰 글자는 3.94:1 로 AA 미만이라
+     --ink 를 쓴다(4.85:1). 정본도 밝은 identity 색(노랑·하늘·핑크)엔 --ink 를 짝지운다. */
   --color-id-none: var(--id-none);
-  --color-id-none-fg: var(--id-none-fg);
+  --color-id-none-fg: var(--ink);
 
   /* 선. bg-subtle 은 1px 구분선을 배경으로 그리는 자리에서 쓴다. */
   --color-subtle: var(--border-subtle);

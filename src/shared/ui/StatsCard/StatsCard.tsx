@@ -44,7 +44,7 @@ export function StatsCard({
             className="text-secondary shrink-0"
             aria-hidden="true"
           />
-          <span className="text-label text-muted uppercase">{label}</span>
+          <span className="text-label text-secondary uppercase">{label}</span>
         </div>
         <div className="text-figure text-secondary tnum font-bold">{FAILED_VALUE}</div>
         <div className="text-meta text-danger">{FAILED_DELTA}</div>
@@ -59,7 +59,7 @@ export function StatsCard({
     >
       <div className="flex items-center gap-2">
         <Icon size={13} strokeWidth={1.5} className="text-secondary shrink-0" aria-hidden="true" />
-        <span className="text-label text-muted uppercase">{label}</span>
+        <span className="text-label text-secondary uppercase">{label}</span>
       </div>
       <div className="text-figure text-ink tnum font-bold">{value}</div>
       {delta !== undefined && (
