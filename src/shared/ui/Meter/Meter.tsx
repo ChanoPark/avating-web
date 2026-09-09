@@ -3,30 +3,25 @@ import { cn } from '@shared/lib/cn';
 type MeterProps = {
   value: number;
   label?: string;
-  tone?: 'brand' | 'success' | 'warning' | 'danger';
   className?: string;
 };
 
-const toneClass = {
-  brand: 'bg-primary',
-  success: 'bg-success',
-  warning: 'bg-warning',
-  danger: 'bg-danger',
-} as const;
-
-export function Meter({ value, label, tone = 'brand', className }: MeterProps) {
+// `.cx-progress` — 막대엔 타입이 얹히지 않으므로 --data-fill(밝은 쪽 파랑)을 쓴다.
+// tone 별 색 구분은 없다: Codex 에 success·warning 색이 없고, 한계 도달만 danger 로 나뉜다.
+export function Meter({ value, label, className }: MeterProps) {
   const clamped = Math.max(0, Math.min(100, Math.round(value)));
+
   return (
     <div
       role="meter"
+      aria-valuenow={clamped}
       aria-valuemin={0}
       aria-valuemax={100}
-      aria-valuenow={clamped}
       aria-label={label}
-      className={cn('bg-canvas-soft h-1.5 w-full overflow-hidden rounded-full', className)}
+      className={cn('bg-data-track h-1.5 w-full overflow-hidden rounded-full', className)}
     >
       <div
-        className={cn('h-full rounded-full', toneClass[tone])}
+        className="bg-data-fill h-full rounded-full transition-[width] duration-[var(--dur-slow)] ease-out"
         style={{ width: `${String(clamped)}%` }}
       />
     </div>

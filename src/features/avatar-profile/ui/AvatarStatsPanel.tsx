@@ -10,9 +10,9 @@ export function AvatarStatsPanel({ stats }: Props) {
   return (
     <section
       aria-labelledby="avatar-stats-heading"
-      className="border-hairline bg-surface shadow-card flex flex-col gap-2.25 rounded-lg border p-4"
+      className="border-subtle bg-canvas rounded-card flex flex-col gap-2.25 border p-4"
     >
-      <h3 id="avatar-stats-heading" className="text-caption text-ink font-medium">
+      <h3 id="avatar-stats-heading" className="text-caption text-primary font-medium">
         아바타 스탯
       </h3>
       <ul className="flex flex-col gap-2.25">
@@ -21,9 +21,9 @@ export function AvatarStatsPanel({ stats }: Props) {
           const longLabel = AVATAR_STAT_LABELS[key].long;
           return (
             <li key={key} className="flex items-center gap-2.5">
-              <span className="text-micro text-ink-mute w-18 shrink-0">{longLabel}</span>
+              <span className="text-meta text-secondary w-18 shrink-0">{longLabel}</span>
               <Meter value={value} label={longLabel} className="flex-1" />
-              <span className="text-micro text-ink tnum w-6 shrink-0 text-right">{value}</span>
+              <span className="text-meta text-primary tnum w-6 shrink-0 text-right">{value}</span>
             </li>
           );
         })}

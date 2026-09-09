@@ -84,8 +84,8 @@ describe('SignupForm', () => {
     it('"로그인" 링크에 브랜드 컬러·hover 클래스가 적용된다', () => {
       renderWithProviders(<SignupForm />);
       const link = screen.getByRole('link', { name: /로그인/i });
-      expect(link).toHaveClass('text-primary');
-      expect(link).toHaveClass('hover:text-primary-hover');
+      expect(link).toHaveClass('text-action');
+      expect(link).toHaveClass('hover:text-action-hover');
     });
 
     it('필드 순서가 정본대로 이메일 → 비밀번호 → 닉네임 이다', () => {
@@ -181,8 +181,8 @@ describe('SignupForm', () => {
       await waitFor(() => {
         expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
         expect(termsCheckbox).toHaveAttribute('aria-invalid', 'true');
-        expect(termsCheckbox).toHaveClass('border-danger');
-        expect(termsCheckbox).toHaveClass('outline-danger');
+        expect(termsCheckbox).toHaveClass('border-danger-mark');
+        expect(termsCheckbox).toHaveClass('outline-danger-mark');
         expect(termsCheckbox).toHaveAttribute('aria-describedby', 'signup-terms-error');
         // aria-describedby 가 가리키는 id 를 에러 p 가 실제로 갖는지 — 양방향 정합.
         expect(screen.getByText(/약관에 동의해주세요/).closest('p')).toHaveAttribute(
@@ -471,7 +471,7 @@ describe('SignupForm', () => {
   });
 
   describe('에러 상태 스타일', () => {
-    it('이메일 형식 에러일 때 input 에 border-danger 클래스가 적용된다', async () => {
+    it('이메일 형식 에러일 때 input 에 border-danger-mark 클래스가 적용된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
@@ -480,14 +480,14 @@ describe('SignupForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(emailInput).toHaveClass('border-danger');
+        expect(emailInput).toHaveClass('border-danger-mark');
         expect(emailInput).toHaveAttribute('aria-invalid', 'true');
       });
     });
 
-    it('정상 상태에서는 border-danger 가 적용되지 않는다', () => {
+    it('정상 상태에서는 border-danger-mark 가 적용되지 않는다', () => {
       renderWithProviders(<SignupForm />);
-      expect(screen.getByLabelText(/이메일/i)).not.toHaveClass('border-danger');
+      expect(screen.getByLabelText(/이메일/i)).not.toHaveClass('border-danger-mark');
     });
   });
 

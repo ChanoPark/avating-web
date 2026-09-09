@@ -1,0 +1,223 @@
+/* Codex 디자인 시스템 — Claude Design 핸드오프에서 verbatim 이식.
+   값을 편집하지 않는다. 원본: .claude/design/2026-09-08-codex-wf2/_ds/tokens/colors.css
+   원본 끝의 Legacy aliases 블록만 제외했다 — 호환 계층이 아니라 의미 반전이라
+   (--primary 가 블루가 아니라 짙은 본문색, --ink 가 본문색이 아니라 CTA 채움색)
+   그대로 들이면 버튼이 검정이 되고 본문이 새까매진다. IMPORT.md 함정 1.
+
+   ⚠ 2026-09-09 — 포인트 색 남색 교체는 **원격 tokens/colors.css 에 아직 반영돼 있지 않다.**
+   사용자가 준 변경 요약 캡처를 근거로 수기 반영했다. 다음 임포트 때 원격이 여전히
+   --blue-*(#3182F6 · #1A6FE1)이면 이 파일을 덮어쓰지 말고 사용자에게 먼저 확인한다. */
+/* ============================================================
+   Avating colour tokens — TWO LAYERS.
+   Layer 1: raw palette. Never referenced by a component.
+   Layer 2: role tokens. Components use ONLY these.
+   Light mode is the default and the only theme defined here; adding dark
+   later means redefining Layer 2 inside a [data-theme="dark"] scope.
+   All neutrals sit on OKLCH hue 258, chroma 0.005-0.026.
+   ============================================================ */
+
+/* ---------------- Layer 1 — raw palette ---------------- */
+:root {
+  --white: #ffffff;
+  --neutral-25: #f8fafc;
+  --neutral-50: #f4f6f9;
+  --neutral-100: #e9edf2;
+  --neutral-200: #d8dde4;
+  --neutral-250: #dbdee3; /* weak-fill hover */
+  --neutral-275: #ced1d6; /* weak-fill press */
+  --neutral-300: #c5cbd4;
+  --neutral-500: #78818f;
+  --neutral-600: #5d6775;
+  --neutral-900: #1c222b;
+  --neutral-950: #0c1015; /* end of the H258 ramp — the ink */
+
+  /* Ink at low alpha. A translucent plane keeps its ratio to whatever is under it, so a
+     tinted pill sits correctly on white, on a grey panel, and later in dark mode. On white
+     --alpha-ink-4 lands on #F5F5F6 — a step lighter than the solid --neutral-50 fill. */
+  --alpha-ink-4: rgba(12, 16, 21, 0.04);
+  --alpha-ink-6: rgba(12, 16, 21, 0.06);
+  --alpha-ink-10: rgba(12, 16, 21, 0.1);
+
+  /* 포인트 색이 파랑 → 남색 램프로 교체됐다 (2026-09-09).
+     Layer 1 이름만 --blue-* → --navy-* 로 바뀌고 옛 이름은 alias 로 남으므로
+     Layer 2 역할 토큰과 컴포넌트는 그대로다. */
+  --navy-50: #e6ebf7;
+  --navy-400: #456ebb;
+  --navy-500: #2451a9; /* 포인트 마크 · 데이터 채움 · 포커스 링 — 7.43:1 */
+  --navy-600: #1a418d; /* Brand 채움 · 링크 · 탭 — 9.61:1 */
+  --navy-700: #123271;
+  --navy-800: #0b2455;
+
+  --blue-50: var(--navy-50);
+  --blue-400: var(--navy-400);
+  --blue-500: var(--navy-500);
+  --blue-600: var(--navy-600);
+  --blue-700: var(--navy-700);
+  --blue-800: var(--navy-800);
+
+  --red-500: #d64550;
+  --red-600: #b8323c;
+  --red-50: #fdecee;
+
+  /* Identity pool — an avatar OWNS its colour, and the colour has a NAME the user can say
+     out loud ("파랑 지민"). Ten colours, no index and no list order.
+     Each one is paired with a foreground token, and the pair is not optional: initials and
+     icons take --id-<name>-fg, never a hardcoded #fff. Seven carry white; 노랑, 하늘 and
+     핑크 are too light for white type (under 3:1) and carry --ink instead.
+     Ten names are told apart by NAME, not by hue alone: 보라 / 파랑 / 남색 converge under
+     protan and deutan simulation, so an identity colour never appears without the initial,
+     the face or the name beside it, and charts break the colour dependency separately
+     (line style + marker shape + direct end label — see LineChart).
+     --id-none is the unassigned / unnamed avatar, not an eleventh identity. */
+  --id-red: #c92f33;
+  --id-red-fg: var(--white);
+  --id-orange: #dc7100;
+  --id-orange-fg: var(--white);
+  --id-yellow: #e7c100;
+  --id-yellow-fg: var(--neutral-950);
+  --id-green: #33903c;
+  --id-green-fg: var(--white);
+  --id-blue: #2466c3;
+  --id-blue-fg: var(--white);
+  --id-navy: #2c3886;
+  --id-navy-fg: var(--white);
+  --id-violet: #9f50b7;
+  --id-violet-fg: var(--white);
+  --id-brown: #784c26;
+  --id-brown-fg: var(--white);
+  --id-sky: #67c4f2;
+  --id-sky-fg: var(--neutral-950);
+  --id-pink: #e887b6;
+  --id-pink-fg: var(--neutral-950);
+  --id-none: #78818f;
+  --id-none-fg: var(--white);
+}
+
+/* ---------------- Layer 2 — role tokens ---------------- */
+:root {
+  /* Surfaces: white canvas, grey planes divide regions */
+  --bg-canvas: var(--white);
+  --bg-surface: var(--neutral-50);
+  --bg-raised: var(--neutral-100);
+  --bg-subtle: var(--neutral-25);
+  /* Retired as a blue: a selected row is a state the system reports, not an action. */
+  --bg-selected: var(--bg-raised);
+  --field-bg: var(--white);
+  --field-bg-disabled: var(--bg-subtle);
+
+  /* Control boundaries are non-text UI under WCAG 1.4.11 and need 3:1 against the
+     surface behind them — --border-subtle (1.37:1) is a decorative rule, not a
+     control edge, so form controls carry their own firmer border tokens. */
+  --field-border: var(--neutral-500); /* 3.94:1 on white */
+  --field-border-hover: var(--neutral-600); /* 5.73:1 */
+  --field-border-focus: var(--action-mark); /* 7.43:1 */
+  --field-border-disabled: var(--neutral-300); /* a disabled control is exempt */
+
+  /* Ink — the darkest value in the system and the one that carries hierarchy.
+     Black leads the UI, blue is the rare mark. --ink is for: black button fills,
+     panel and stream titles, unread row names, the rail's active glyph/label/badge,
+     emphasised figures. Body copy stays --text-primary (#1C222B) — ink is for the
+     things that must out-rank body copy, so putting it on prose flattens the ladder. */
+  --ink: var(--neutral-950);
+  --ink-hover: #252930;
+  --ink-press: #040609;
+  --text-on-ink: var(--white);
+
+  /* Tint — a translucent plane LAID OVER the background (pills, hover plates).
+     Solid planes stay --bg-surface / --bg-raised; these two are for things that must
+     read as "on top of" rather than "cut into" the surface. */
+  --fill-tint: var(--alpha-ink-4);
+  --fill-tint-hover: var(--alpha-ink-6);
+
+  /* Weak fill — the achromatic "secondary button" plane (Toss's weak button). */
+  --fill-weak: var(--bg-raised);
+  --fill-weak-hover: var(--neutral-250);
+  --fill-weak-press: var(--neutral-275);
+
+  /* Text.
+     The point blue splits by WHETHER TYPE SITS ON IT, not by area.
+     A fill that carries a label needs 4.5:1 against that label, so anything
+     text-bearing uses --action-bg (#1A418D, 9.61:1 vs white). #2451A9 is 7.43:1
+     and is reserved for fills with no type on them: --action-mark, --data-fill.
+     Coloured type on a light surface uses --text-action (same #1A418D). */
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  /* --text-muted is 3.94:1: BELOW AA. Timestamps, axis labels, counts — never
+     placeholders, hints or any prose the user has to read. */
+  --text-muted: var(--neutral-500);
+  --text-on-action: var(--white);
+  --text-action: var(--blue-600); /* links + small coloured text, 9.61:1 */
+  --text-action-hover: var(--blue-700);
+  /* Disabled is the ONE text role allowed under 4.5:1 (WCAG exempts inactive
+     controls). Always a colour token, never opacity — opacity blends type into
+     whatever is behind it and makes the ratio impossible to state. */
+  --text-disabled: var(--neutral-500); /* 3.94:1, exempt */
+
+  /* Lines */
+  --border-subtle: var(--neutral-200);
+  --border-strong: var(--neutral-300);
+  --border-action: var(--blue-500);
+
+  /* Action — blue, never black.
+     --action-bg is the TEXT-BEARING fill: primary buttons, solid badges, checked
+     boxes, switch tracks. 9.61:1 against white type, so a 15px/500 label clears AA.
+     --action-mark is the same hue one step brighter for fills that carry NO type:
+     toggle-on tracks, checkbox/radio marks, focus rings, control borders. 7.43:1 on white
+     clears the 3:1 non-text minimum. Never put type on --action-mark, and never use it for
+     a state the system reports — status dots, selection edges and tab underlines are
+     achromatic (see the blue budget below). */
+  --action-bg: var(--blue-600);
+  --action-bg-hover: var(--blue-700);
+  --action-bg-press: var(--blue-800);
+  /* --action-tint is ACTION-ONLY: secondary/quiet button fill, text-action hover plate.
+     Never a selection, emphasis or status background — see the blue budget below. */
+  --action-tint: var(--blue-50);
+  --action-mark: var(--blue-500);
+
+  /* Blue budget — blue marks what the user can PRESS and what the user has TURNED ON:
+       press   → --text-action (link, text action) and the ONE Brand button per flow
+       turned on → --action-mark (toggle on, checkbox, radio), focus ring
+     The default CTA is BLACK (--ink), not blue: blue fill is the Brand button only.
+     Everything the SYSTEM reports — selected row, live/running, unread, tab position,
+     spectator intervention — is achromatic, and separates by weight and shape instead.
+     One blue fill per screen: the primary button. These are the roles that replace it. */
+  --row-hover: var(--bg-surface);
+  --row-selected: var(--bg-raised);
+  --status-live: var(--text-secondary); /* filled + pulsing status badges */
+  --status-ring: var(--border-strong); /* waiting: 2px ring, no fill */
+  --count-bg: var(--bg-raised);
+  --count-text: var(--text-primary);
+  --count-strong-bg: var(--ink); /* the one strong achromatic mark (rail unread) */
+  --count-strong-text: #ffffff;
+  --tab-line: var(--ink);
+
+  /* Destructive (the one hue outside blue + neutrals) */
+  --danger-text: var(--red-600);
+  --danger-border: var(--red-500);
+  --danger-tint: var(--red-50);
+
+  /* Data.
+     --data-fill is the SINGLE-series colour: progress bars, meters, one-line gauges.
+     A multi-series chart takes each line's colour from that avatar's --id-* directly.
+     There are no separate chart tokens: one avatar, one colour, everywhere it appears.
+     Colour is never the only channel: the session's first avatar draws solid 2px with round
+     markers, the second dashed 6 4 with square markers, and both lines are named at their
+     right end. Charts are drawn on white canvas only — 노랑, 하늘 and 핑크 lose their edge
+     on --bg-surface (#F4F6F9). */
+  --data-fill: var(--action-mark); /* no type ever sits on a bar or a line */
+  --data-fill-strong: var(--blue-700); /* emphasised single bar / latest column */
+  --data-fill-danger: var(--danger-border); /* a limit already reached, not a warning */
+  --data-track: var(--bg-raised);
+  --data-grid: var(--border-subtle);
+  --data-axis-text: var(--text-muted);
+
+  /* Misc roles */
+  /* ONE ring, 2px --action-mark at offset 2. The old canvas-gap double ring is gone. */
+  --focus-ring: 0 0 0 2px var(--action-mark);
+  --selection-bg: var(--action-tint);
+  --scrim: rgba(28, 34, 43, 0.4);
+  /* Modal dim. Darker than any --alpha-ink step on purpose: an --alpha-ink-10 veil reads as
+     a disabled region, while a modal has to read as "the page is behind this". */
+  --overlay: rgba(12, 16, 21, 0.32);
+  --overlay-scrim: var(--overlay);
+}

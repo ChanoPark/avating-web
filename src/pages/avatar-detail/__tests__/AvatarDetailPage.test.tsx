@@ -90,7 +90,7 @@ describe('AvatarDetailPage', () => {
     await screen.findByRole('heading', { name: 'Moonlit Narrator' });
     const filled = screen
       .getAllByRole('button')
-      .filter((btn) => btn.className.includes('bg-primary'));
+      .filter((btn) => btn.className.includes('bg-action'));
     expect(filled).toHaveLength(1);
     expect(filled[0]).toHaveAccessibleName(/매칭 요청 보내기/);
   });

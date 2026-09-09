@@ -6,7 +6,7 @@ import { cn } from '@shared/lib/cn';
 const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
 
 const CHIP_BASE =
-  'text-caption border-hairline bg-surface text-ink-secondary inline-flex h-[30px] items-center gap-1.5 rounded-pill border';
+  'text-caption border-subtle bg-canvas text-secondary inline-flex h-[30px] items-center gap-1.5 rounded-full border';
 
 type Props = {
   label: string;
@@ -66,14 +66,10 @@ export function ChipInputField({
     <div role="group" aria-labelledby={labelId} className="flex flex-col gap-3">
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
-          <label
-            id={labelId}
-            htmlFor={inputId}
-            className="text-caption text-ink-secondary font-medium"
-          >
+          <label id={labelId} htmlFor={inputId} className="text-caption text-secondary font-medium">
             {label}
           </label>
-          <span className="text-micro text-ink-mute tnum">
+          <span className="text-meta text-secondary tnum">
             {value.length} / {max}
           </span>
         </div>
@@ -88,7 +84,7 @@ export function ChipInputField({
             setInput(e.target.value);
           }}
           onKeyDown={handleKeyDown}
-          className="bg-canvas text-caption text-ink placeholder:text-ink-mute border-hairline-input focus:border-primary focus-visible:shadow-focus ease-brand w-full rounded-sm border px-3 py-2.25 transition-colors duration-[var(--dur-fast)] outline-none"
+          className="bg-canvas text-caption text-primary placeholder:text-secondary border-field focus:border-mark ease-standard rounded-chip w-full border px-3 py-2.25 transition-colors duration-[var(--dur-fast)]"
         />
       </div>
 
@@ -102,7 +98,7 @@ export function ChipInputField({
               onClick={() => {
                 remove(chip);
               }}
-              className="text-ink-mute hover:bg-hairline hover:text-ink flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-full"
+              className="text-secondary hover:bg-subtle hover:text-primary flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-full"
             >
               {/* 문자 글리프(✕) 대신 라인 아이콘 — Pretendard 에 없는 글자는 시스템 폰트로 폴백한다. */}
               <X size={11} strokeWidth={1.5} aria-hidden="true" />
@@ -115,7 +111,7 @@ export function ChipInputField({
           onClick={handleAddClick}
           className={cn(
             CHIP_BASE,
-            'text-ink-mute hover:border-primary hover:text-ink cursor-pointer px-3'
+            'text-secondary hover:border-strong hover:text-primary cursor-pointer px-3'
           )}
         >
           <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
@@ -124,7 +120,7 @@ export function ChipInputField({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <span className="text-micro text-ink-mute">{suggestionsLabel}</span>
+        <span className="text-meta text-secondary">{suggestionsLabel}</span>
         <div className="flex flex-wrap gap-1.5">
           {suggestions.map((suggestion) => {
             const selected = value.includes(suggestion);
@@ -142,7 +138,7 @@ export function ChipInputField({
                   'px-3',
                   selected
                     ? 'cursor-not-allowed opacity-40'
-                    : 'hover:border-primary hover:text-ink cursor-pointer'
+                    : 'hover:border-strong hover:text-primary cursor-pointer'
                 )}
               >
                 {suggestion}

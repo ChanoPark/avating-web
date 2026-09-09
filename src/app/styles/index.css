@@ -1,10 +1,13 @@
-/* Avating 디자인 시스템 v2.5 — 라이트 베이스 (흰 서피스 + 네이비 틴트 캔버스 + hairline).
-   tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다. */
-@import './avating/tokens/colors.css';
-@import './avating/tokens/typography.css';
-@import './avating/tokens/spacing.css';
-@import './avating/tokens/radius.css';
-@import './avating/tokens/effects.css';
+/* Codex 디자인 시스템 — 흰 canvas + 회색 면 3단 + 1px hairline. 그림자는 없다.
+   codex/tokens/ 는 Claude Design 핸드오프에서 verbatim 이식한 정본이다. 값을 편집하지 않는다.
+   import 순서는 원본 _ds/styles.css 그대로다 — typography.css 의 --font-primary 가 뒤에 와서
+   이겨야 원본과 같은 폰트 스택이 된다. */
+@import './codex/tokens/fonts.css';
+@import './codex/tokens/colors.css';
+@import './codex/tokens/typography.css';
+@import './codex/tokens/spacing.css';
+@import './codex/tokens/elevation.css';
+@import './codex/tokens/motion.css';
 @import 'tailwindcss';
 
 /* z-index 스케일 — 핸드오프에 없는 앱 자체 관심사다. 빼면 var(--z-modal) 을 참조하는 9곳의
@@ -20,133 +23,138 @@
   --z-tooltip: 80;
 }
 
-/* @theme 에는 새 값을 만들지 않는다 — 전부 tokens/ 의 변수를 가리키기만 한다. */
+/* @theme 에는 새 값을 만들지 않는다 — 전부 tokens/ 의 변수를 가리키기만 한다.
+   예외는 --text-meta(12px) 하나뿐이고, 그 근거는 바로 아래에 적었다. */
 @theme {
-  --color-surface: var(--surface);
-  --color-surface-inset: var(--surface-inset);
-  --color-canvas: var(--canvas);
-  --color-canvas-soft: var(--canvas-soft);
-  --color-canvas-deep: var(--canvas-deep);
+  /* ── 면 · 선 · 글자 ──────────────────────────────────────────────
+     이름이 아니라 역할로 잇는다. 옛 시스템의 surface(흰 카드)와 Codex 의
+     --bg-surface(회색 면)는 같은 글자에 반대 역할이라, 글자를 따라가면 화면이 뒤집힌다. */
+  --color-canvas: var(--bg-canvas); /* 흰 바탕 — 카드·필드·모달 */
+  --color-surface: var(--bg-surface); /* 회색 면 — 영역을 가르는 판 */
+  --color-raised: var(--bg-raised); /* 한 단계 더 진한 면 */
+  /* 선택된 행은 시스템이 알려주는 상태다 — 파란 테두리가 아니라 이 틴트 하나로만 표시한다. */
+  --color-selected: var(--bg-selected);
+  --color-row-hover: var(--row-hover);
 
-  --color-hairline: var(--hairline);
-  --color-hairline-input: var(--hairline-input);
-  --color-hairline-deep: var(--hairline-deep);
+  /* 아바타 identity — 서버에 색 필드가 없어 전부 --id-none 회색이다 (사용자 결정 2026-09-08). */
+  --color-id-none: var(--id-none);
+  --color-id-none-fg: var(--id-none-fg);
 
-  /* ink-faint 는 장식 전용이다 — 본문이나 placeholder 에 쓰지 않는다. */
+  /* 선. bg-subtle 은 1px 구분선을 배경으로 그리는 자리에서 쓴다. */
+  --color-subtle: var(--border-subtle);
+  --color-field: var(--field-border); /* 컨트롤 경계는 WCAG 1.4.11 로 3:1 이 필요하다 */
+
+  /* 글자. --text-muted(3.94:1)는 AA 미만이라 본문·placeholder 에 쓰지 않는다. */
+  --color-primary: var(--text-primary);
+  --color-secondary: var(--text-secondary);
+  --color-muted: var(--text-muted);
+  --color-on-action: var(--text-on-action);
+
+  /* 잉크 — 제목과 **기본 CTA 채움**이다. 본문에 쓰면 위계가 뭉갠다.
+     Codex 의 기본 버튼은 검정이고, 파랑 채움은 흐름당 하나뿐인 Brand 버튼에만 쓴다. */
   --color-ink: var(--ink);
-  --color-ink-secondary: var(--ink-secondary);
-  --color-ink-mute: var(--ink-mute);
-  --color-ink-faint: var(--ink-faint);
-  --color-ink-on-deep: var(--ink-on-deep);
-  --color-ink-on-deep-mute: var(--ink-on-deep-mute);
+  --color-ink-hover: var(--ink-hover);
+  --color-ink-press: var(--ink-press);
+  --color-on-ink: var(--text-on-ink);
 
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-press: var(--primary-press);
-  --color-primary-soft: var(--primary-soft);
-  --color-primary-subdued: var(--primary-subdued);
-  --color-primary-wash: var(--primary-wash);
-  --color-on-primary: var(--on-primary);
-  --color-brand-dark: var(--brand-dark);
-  --color-on-brand-dark: var(--on-brand-dark);
-  --color-link: var(--link);
+  /* 무채색 약한 채움 — secondary 버튼·아이콘 버튼의 판. 테두리를 쓰지 않는다. */
+  --color-fill-weak: var(--fill-weak);
+  --color-fill-weak-hover: var(--fill-weak-hover);
+  --color-fill-weak-press: var(--fill-weak-press);
 
-  /* 장식용 다색 팔레트는 쓰지 않는다 — 액센트는 데이터 시리즈·희소 라벨 전용이다. */
-  --color-accent-ruby: var(--accent-ruby);
+  /* 카운트 마크 — 시스템이 알려주는 수는 파랑이 아니라 무채색이다. */
+  --color-count: var(--count-bg);
+  --color-count-text: var(--count-text);
+  --color-count-strong: var(--count-strong-bg);
+  --color-count-strong-text: var(--count-strong-text);
 
-  /* 상태 색상은 긍정=파랑, 주의=앰버, 위험=루비다 — 초록·보라는 쓰지 않는다. */
-  --color-success: var(--success);
-  --color-success-wash: var(--success-wash);
-  --color-warning: var(--warning);
-  --color-warning-wash: var(--warning-wash);
-  --color-danger: var(--danger);
-  --color-danger-wash: var(--danger-wash);
+  /* 데이터 — 막대·게이지엔 타입이 얹히지 않으므로 --action-mark 계열이다. */
+  --color-data-fill: var(--data-fill);
+  --color-data-track: var(--data-track);
+
+  --color-strong: var(--border-strong);
+  --color-disabled: var(--text-disabled);
+  --color-field-disabled: var(--field-bg-disabled);
+
+  /* 액션. --action-bg 와 --text-action 이 같은 값이라 한 키로 채움·글자를 둘 다 맞춘다.
+     타입이 얹히지 않는 파랑(테두리·체크마크)은 한 단계 밝은 --action-mark 다. */
+  --color-action: var(--action-bg);
+  --color-action-hover: var(--action-bg-hover);
+  --color-action-press: var(--action-bg-press);
+  --color-action-tint: var(--action-tint); /* 액션 전용 — 선택·강조 배경으로 쓰지 않는다 */
+  --color-mark: var(--action-mark);
+
+  /* 파괴적 액션 — 파랑과 무채색 밖의 유일한 색조다. */
+  --color-danger: var(--danger-text);
+  --color-danger-mark: var(--danger-border);
+  --color-danger-tint: var(--danger-tint);
+
+  --color-overlay: var(--overlay);
+
+  /* TODO(Phase 2~4): Codex 에는 success·warning 색이 없다. 시스템이 알려주는 상태는
+     StatusDot + 단어(무채색)다. 39곳을 옮길 때까지 임시로 중립화해 둔 alias이고,
+     옛 이름을 남겨 둔 것 자체가 그 TODO 표식이다. */
+  --color-success: var(--text-secondary);
+  --color-success-wash: var(--bg-raised);
+  --color-warning: var(--text-secondary);
+  --color-warning-wash: var(--bg-raised);
 
   /* --font-*: initial 로 Tailwind 기본 font 네임스페이스를 비운다 — 안 비우면 Tailwind 의
      --font-sans 가 토큰보다 뒤에 방출되어 Pretendard 를 덮어쓴다. */
   --font-*: initial;
-  --default-font-family: var(--font-sans);
+  --default-font-family: var(--font-primary);
 
-  --radius-xs: var(--r-xs);
-  --radius-sm: var(--r-sm);
-  --radius-md: var(--r-md);
-  --radius-lg: var(--r-lg);
-  --radius-xl: var(--r-xl);
-  --radius-pill: var(--r-pill);
+  /* radius 는 3단뿐이다. rounded-sm/md/lg/xl 은 Tailwind 기본 키라, 비우지 않으면
+     매핑을 지운 자리가 8/6/4/12px 로 조용히 되돌아간다. rounded-full 은 Tailwind 내장
+     정적 유틸이라 --radius-full 토큰을 따로 만들지 않는다(999px 와 육안 동일). */
+  --radius-*: initial;
+  --radius-chip: var(--radius-chip); /* 6px — 칩·인풋·버튼 */
+  --radius-card: var(--radius-card); /* 10px — 카드·버블·패널 */
 
-  /* 그림자에 색을 넣지 않는다. */
-  --shadow-1: var(--shadow-1);
-  --shadow-2: var(--shadow-2);
-  --shadow-3: var(--shadow-3);
-  --shadow-card: var(--shadow-card);
-  --shadow-lift: var(--shadow-lift);
-  --shadow-float: var(--shadow-float);
-  --shadow-glow: var(--shadow-glow);
+  /* 그림자가 없다. 면은 1px hairline 과 canvas/surface/raised 명도 3단으로 나눈다.
+     남기는 건 포커스 링 하나뿐이고, 그것도 자식 포커스로 래퍼를 표시해야 하는
+     focus-within 2곳 전용이다 — 나머지는 전역 :focus-visible outline 이 덮는다. */
+  --shadow-*: initial;
   --shadow-focus: var(--focus-ring);
 
-  --ease-brand: var(--ease);
-  --ease-brand-out: var(--ease-out);
+  --ease-standard: var(--ease-standard);
   --animate-shimmer: shimmer 1.5s ease-in-out infinite;
 
-  --text-display-xxl: var(--fs-display-xxl);
-  --text-display-xxl--line-height: var(--lh-display-xxl);
-  --text-display-xxl--letter-spacing: var(--ls-display-xxl);
-  --text-display-xxl--font-weight: var(--fw-thin);
+  /* ── 타입 — 정본 5단계(13·15·17·20·32) + 버튼 14 + 메타 12 ────────────
+     12px 는 typography.css 에 토큰이 없지만 Avating Wireframe V2.html 이 19회 직접 쓰는
+     실재 스케일이다(IMPORT.md 원본 모순 항목). 스냅샷 verbatim 을 깨지 않으려고 여기 둔다. */
+  --text-meta: 12px;
+  --text-meta--line-height: var(--line-meta);
 
-  --text-display-xl: var(--fs-display-xl);
-  --text-display-xl--line-height: var(--lh-display-xl);
-  --text-display-xl--letter-spacing: var(--ls-display-xl);
-  --text-display-xl--font-weight: var(--fw-thin);
+  --text-label: var(--fs-13);
+  --text-label--line-height: 1.4;
+  --text-label--letter-spacing: var(--ls-caps);
+  --text-label--font-weight: var(--fw-medium);
 
-  --text-display-lg: var(--fs-display-lg);
-  --text-display-lg--line-height: var(--lh-display-lg);
-  --text-display-lg--letter-spacing: var(--ls-display-lg);
-  --text-display-lg--font-weight: var(--fw-thin);
+  --text-caption: var(--fs-13);
+  --text-caption--line-height: 1.45;
 
-  --text-display-md: var(--fs-display-md);
-  --text-display-md--line-height: var(--lh-display-md);
-  --text-display-md--letter-spacing: var(--ls-display-md);
-  --text-display-md--font-weight: var(--fw-thin);
+  --text-btn: var(--fs-14); /* 버튼 라벨 전용 — 본문 크기가 아니다 */
+  --text-btn--line-height: var(--lh-flat);
+  --text-btn--font-weight: var(--fw-semibold);
 
-  --text-heading-lg: var(--fs-heading-lg);
-  --text-heading-lg--line-height: var(--lh-heading-lg);
-  --text-heading-lg--letter-spacing: var(--ls-heading-lg);
-  --text-heading-lg--font-weight: var(--fw-regular);
-
-  --text-heading-md: var(--fs-heading-md);
-  --text-heading-md--line-height: var(--lh-heading-md);
-  --text-heading-md--letter-spacing: var(--ls-heading-md);
-  --text-heading-md--font-weight: var(--fw-medium);
-
-  --text-heading-sm: var(--fs-heading-sm);
-  --text-heading-sm--line-height: var(--lh-heading-sm);
-  --text-heading-sm--letter-spacing: var(--ls-heading-sm);
-  --text-heading-sm--font-weight: var(--fw-medium);
-
-  --text-body-lg: var(--fs-body-lg);
-  --text-body-lg--line-height: var(--lh-body-lg);
-  --text-body-lg--letter-spacing: var(--ls-body-lg);
-
-  --text-body: var(--fs-body);
+  --text-body: var(--fs-15);
   --text-body--line-height: var(--lh-body);
-  --text-body--letter-spacing: var(--ls-body);
 
-  --text-body-sm: var(--fs-body-sm);
-  --text-body-sm--line-height: var(--lh-body-sm);
-  --text-body-sm--letter-spacing: var(--ls-body-sm);
+  --text-lead: var(--fs-17);
+  --text-lead--line-height: var(--lh-title);
+  --text-lead--letter-spacing: var(--ls-title);
+  --text-lead--font-weight: var(--fw-medium);
 
-  --text-caption: var(--fs-caption);
-  --text-caption--line-height: var(--lh-caption);
-  --text-caption--letter-spacing: var(--ls-caption);
+  --text-title: var(--fs-20);
+  --text-title--line-height: var(--lh-title);
+  --text-title--letter-spacing: var(--ls-title);
+  --text-title--font-weight: var(--fw-semibold);
 
-  --text-micro: var(--fs-micro);
-  --text-micro--line-height: var(--lh-micro);
-  --text-micro--letter-spacing: var(--ls-micro);
-
-  --text-micro-cap: var(--fs-micro-cap);
-  --text-micro-cap--line-height: var(--lh-micro-cap);
-  --text-micro-cap--letter-spacing: var(--ls-micro-cap);
-  --text-micro-cap--font-weight: var(--fw-semibold);
+  --text-figure: var(--fs-32);
+  --text-figure--line-height: var(--lh-flat);
+  --text-figure--letter-spacing: var(--ls-figure);
+  --text-figure--font-weight: var(--fw-semibold);
 }
 
 @keyframes shimmer {
@@ -218,6 +226,11 @@
   }
 }
 
+/* codex/tokens/base.css 는 토큰이 아니라 전역 엘리먼트 스타일이라 이식하지 않고 여기에
+   항목별로 병합했다. 언레이어드라 Tailwind preflight 를 이기기 때문에, 그대로 들이면
+   p{margin:0 0 16px} 가 앱의 모든 <p> 에, a{border-bottom} 이 모든 <Link> 에 붙는다.
+   채택: body · ::selection · :focus-visible.
+   보류(Phase 2 에서 컴포넌트와 같이 판단): h1~h4 · p · a · hr · code. */
 @layer base {
   * {
     box-sizing: border-box;
@@ -233,9 +246,9 @@
      비율로 줄어들고, 사용자의 브라우저 글꼴 크기 설정도 무시된다. 본문 크기는 body 에 준다. */
   html {
     color-scheme: light;
-    background-color: var(--canvas);
-    color: var(--ink);
-    font-family: var(--font-sans);
+    background-color: var(--bg-canvas);
+    color: var(--text-primary);
+    font-family: var(--font-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -247,17 +260,22 @@
 
   body {
     margin: 0;
-    background-color: var(--canvas);
-    color: var(--ink);
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
+    font: var(--type-body);
+    color: var(--text-primary);
+    background: var(--bg-canvas);
   }
 
-  /* 포커스 링은 그림자만 건다 — border-color 까지 바꾸면 테두리 없는 요소가 포커스 시 갑자기
-     테두리를 얻는다. 테두리도 바뀌어야 하는 요소는 각자 focus:border-primary 를 따로 건다. */
+  ::selection {
+    background: var(--selection-bg);
+  }
+
+  /* 링은 하나뿐이다 — 2px --action-mark, offset 2. 안쪽에 두 번째 링을 얹지 않는다.
+     colors.css 는 --focus-ring 을 box-shadow 로도 정의해 두었지만(원본 자체 모순),
+     값이 둘 다 2px --action-mark 라 육안 차이가 없다. */
   *:focus-visible {
-    outline: none;
-    box-shadow: var(--focus-ring);
+    outline: 2px solid var(--action-mark);
+    outline-offset: 2px;
+    box-shadow: none;
   }
 }
 

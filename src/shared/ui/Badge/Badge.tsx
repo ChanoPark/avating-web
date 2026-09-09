@@ -1,36 +1,51 @@
 import type { ReactNode } from 'react';
 import { cn } from '@shared/lib/cn';
 
-// components.css `.av-badge` — 상태 신호용 pill이다. `.av-tag` 와는 별개 컴포넌트다.
-type BadgeVariant = 'neutral' | 'brand' | 'success' | 'warning' | 'danger';
+// `.cx-badge` — 상태 신호용 pill이다. `.cx-tag` 와는 별개 컴포넌트다.
+// 배지는 시스템이 알려주는 상태라서 무채색이다. success·warning 색은 Codex 에 없다.
+type BadgeVariant = 'neutral' | 'count' | 'strong' | 'outline' | 'alert';
 
-// 테두리 색은 base 가 아니라 variant 가 갖는다. `cn` 은 tailwind-merge 가 아닌 단순 join이라
-// base 와 variant 에 같은 성격의 border 색 클래스를 두면 스타일시트 순서가 승자를 정한다.
+// `.cx-status__mark` — 상태는 색이 아니라 **모양**으로 나뉜다.
+type BadgeMark = 'idle' | 'active' | 'running';
+
 const variants: Record<BadgeVariant, string> = {
-  neutral: 'bg-canvas-soft text-ink-secondary border-hairline',
-  brand: 'bg-primary-wash text-primary-press border-transparent',
-  success: 'bg-success-wash text-success border-transparent',
-  warning: 'bg-warning-wash text-warning border-transparent',
-  danger: 'bg-danger-wash text-danger border-transparent',
+  neutral: 'bg-raised text-secondary',
+  count: 'bg-count text-count-text',
+  strong: 'bg-count-strong text-count-strong-text',
+  outline: 'bg-transparent text-secondary shadow-[inset_0_0_0_1px_var(--border-subtle)]',
+  alert: 'bg-danger-tint text-danger',
+};
+
+const marks: Record<BadgeMark, string> = {
+  idle: 'border-strong border-[1.5px] bg-transparent',
+  active: 'bg-current',
+  running: 'bg-current motion-safe:animate-pulse',
 };
 
 type BadgeProps = {
   children: ReactNode;
   variant?: BadgeVariant;
-  dot?: boolean;
+  mark?: BadgeMark;
   className?: string;
 };
 
-export function Badge({ children, variant = 'neutral', dot = false, className }: BadgeProps) {
+export function Badge({ children, variant = 'neutral', mark, className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'rounded-pill inline-flex h-5.5 items-center gap-1.25 border px-2.25 text-[12px] leading-none font-medium whitespace-nowrap',
+        // 배지가 붙은 줄과 붙지 않은 줄의 높이가 같아야 해서 높이·행간을 못박는다.
+        'text-caption tracking-[var(--ls-caps)]',
+        'inline-flex h-5 flex-none items-center gap-1 rounded-full px-2 leading-5 font-medium whitespace-nowrap uppercase',
         variants[variant],
         className
       )}
     >
-      {dot && <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-current" />}
+      {mark !== undefined && (
+        <span
+          aria-hidden="true"
+          className={cn('h-[9px] w-[9px] shrink-0 rounded-full', marks[mark])}
+        />
+      )}
       {children}
     </span>
   );

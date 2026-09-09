@@ -14,7 +14,7 @@ function AuthRestoring() {
     <div role="status" aria-live="polite" className="flex min-h-screen items-center justify-center">
       <span
         aria-hidden="true"
-        className="bg-primary h-2 w-2 rounded-full motion-safe:animate-pulse"
+        className="bg-secondary h-2 w-2 rounded-full motion-safe:animate-pulse"
       />
       <span className="sr-only">로그인 상태를 확인하는 중이에요</span>
     </div>

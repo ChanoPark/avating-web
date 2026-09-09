@@ -36,15 +36,15 @@ export function InlineError({
         className
       )}
     >
-      <div className="text-caption text-ink font-medium">{title}</div>
-      <div className="text-micro text-ink-mute max-w-[250px] text-pretty">{body}</div>
+      <div className="text-caption text-primary font-medium">{title}</div>
+      <div className="text-meta text-secondary max-w-[250px] text-pretty">{body}</div>
       {onRetry && (
         // 화면당 채워진 파란 CTA 는 하나여야 해서(v2 절대 규칙 ①) 재시도는 secondary(흰
         // 서피스 + 파란 테두리)로 둔다.
         <button
           type="button"
           onClick={onRetry}
-          className="border-primary bg-surface text-primary rounded-pill hover:bg-primary-wash focus-visible:shadow-focus mt-[3px] cursor-pointer border px-3 py-1.5 text-[13px] font-medium transition-colors"
+          className="bg-fill-weak text-primary hover:bg-fill-weak-hover rounded-card text-btn mt-[3px] h-8 cursor-pointer px-3 transition-colors"
         >
           {retryLabel}
         </button>

@@ -33,23 +33,18 @@ describe('StatsCard', () => {
       expect(screen.queryByTestId('stats-card-delta')).not.toBeInTheDocument();
     });
 
-    it('delta.tone="positive" 시 text-success 클래스가 적용된다', () => {
-      render(<StatsCard {...defaultProps} delta={{ text: '+8 지난주 대비', tone: 'positive' }} />);
-      const delta = screen.getByText('+8 지난주 대비');
-      expect(delta.className).toContain('text-success');
-    });
-
-    it('delta.tone="negative" 시 text-danger 클래스가 적용된다', () => {
-      render(<StatsCard {...defaultProps} delta={{ text: '-3 지난주 대비', tone: 'negative' }} />);
-      const delta = screen.getByText('-3 지난주 대비');
-      expect(delta.className).toContain('text-danger');
-    });
-
-    it('delta.tone="neutral" 시 text-ink-mute 클래스가 적용된다', () => {
-      render(<StatsCard {...defaultProps} delta={{ text: '매칭 성공률 6.4%', tone: 'neutral' }} />);
-      const delta = screen.getByText('매칭 성공률 6.4%');
-      expect(delta.className).toContain('text-ink-mute');
-    });
+    // 세 카드가 한 줄에 서면 굵기 차이가 순위처럼 읽혀서 tone 별 시각 구분을 없앴다.
+    it.each(['positive', 'negative', 'neutral'] as const)(
+      'delta.tone="%s" 는 모두 같은 무채색 pill 이다',
+      (tone) => {
+        render(<StatsCard {...defaultProps} delta={{ text: '지난주 대비', tone }} />);
+        const delta = screen.getByText('지난주 대비');
+        expect(delta.className).toContain('bg-raised');
+        expect(delta.className).toContain('text-secondary');
+        expect(delta.className).toContain('font-medium');
+        expect(delta.className).not.toContain('font-semibold');
+      }
+    );
 
     it('delta 가 있을 때 delta 텍스트가 렌더된다', () => {
       render(<StatsCard {...defaultProps} delta={{ text: '+3.2pt', tone: 'positive' }} />);
@@ -57,10 +52,10 @@ describe('StatsCard', () => {
     });
   });
 
-  it('value 는 26px display 타입 + tabular-nums 로 렌더된다', () => {
+  it('value 는 32px figure 타입 + 잉크 + tabular-nums 로 렌더된다', () => {
     render(<StatsCard {...defaultProps} />);
     const value = screen.getByText('47');
-    expect(value.className).toContain('text-display-md');
+    expect(value.className).toContain('text-figure');
     expect(value.className).toContain('tnum');
   });
 
@@ -69,13 +64,13 @@ describe('StatsCard', () => {
     expect(screen.getByText('+8 지난주 대비').className).toContain('tnum');
   });
 
-  it('카드 크롬은 흰 서피스 + hairline + shadow-card + rounded-lg 다', () => {
+  it('카드 크롬은 흰 캔버스 + 1px 안쪽 규칙 + rounded-card 다', () => {
     render(<StatsCard {...defaultProps} />);
     const card = screen.getByLabelText(defaultProps.ariaLabel);
-    expect(card.className).toContain('bg-surface');
-    expect(card.className).toContain('border-hairline');
-    expect(card.className).toContain('shadow-card');
-    expect(card.className).toContain('rounded-lg');
+    expect(card.className).toContain('bg-canvas');
+    expect(card.className).toContain('border-subtle');
+    expect(card.className).toContain('shadow-[inset_0_0_0_1px_var(--border-subtle)]');
+    expect(card.className).toContain('rounded-card');
   });
 
   it('icon 이 렌더된다 (aria-hidden 으로 처리)', () => {

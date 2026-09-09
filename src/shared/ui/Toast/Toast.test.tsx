@@ -161,23 +161,22 @@ describe('Toast', () => {
     vi.useRealTimers();
   });
 
-  // 톤 신호는 좌측 3px 레일 + wash 배지다.
+  // 어떤 토스트인지는 글리프가 말한다 — 좌측 컬러 레일도, 톤 배지도 없다.
   it.each([
-    ['info', 'border-l-primary', 'bg-primary-wash'],
-    ['success', 'border-l-success', 'bg-success-wash'],
-    ['warning', 'border-l-warning', 'bg-warning-wash'],
-    ['error', 'border-l-danger', 'bg-danger-wash'],
-  ] as const)('variant="%s" 이면 %s 레일과 %s 배지를 쓴다', (variant, railClass, badgeClass) => {
+    ['info', 'text-secondary'],
+    ['success', 'text-secondary'],
+    ['warning', 'text-secondary'],
+    ['error', 'text-danger'],
+  ] as const)('variant="%s" 이면 마크 색이 %s 다', (variant, markClass) => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {
       result.current.show({ variant, title: '톤 확인', durationMs: 0 });
     });
     const toast = screen.getByText('톤 확인').closest('[role="status"]');
-    expect(toast?.className).toContain(railClass);
-    const badge = toast?.querySelector('span');
-    expect(badge?.className).toContain(badgeClass);
-    // 틴트 채움에 같은 색 테두리를 겹치지 않는다.
-    expect(badge?.className).not.toContain('border-primary');
+    expect(toast?.querySelector('span')?.className).toContain(markClass);
+    // 컨테이너에 톤 색이 붙지 않는다: 흰 캔버스 + hairline 하나다.
+    expect(toast?.className).toContain('bg-canvas');
+    expect(toast?.className).not.toContain('border-l-');
   });
 
   it('최대 3개까지만 노출하고 4번째부터는 가장 오래된 토스트를 제거한다', () => {

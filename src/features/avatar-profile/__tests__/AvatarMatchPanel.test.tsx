@@ -9,14 +9,14 @@ describe('AvatarMatchPanel', () => {
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(1);
     expect(buttons[0]).toHaveAccessibleName(/매칭 요청 보내기/);
-    expect(buttons[0]).toHaveClass('bg-primary');
+    expect(buttons[0]).toHaveClass('bg-action');
   });
 
-  it('강조 카드는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다', () => {
+  it('강조는 파란 테두리가 아니라 안에 놓인 Brand 버튼이 만든다', () => {
     render(<AvatarMatchPanel onRequest={vi.fn()} requestOpen={false} />);
     const panel = screen.getByRole('region', { name: '매칭 요청' });
-    expect(panel).toHaveClass('bg-surface');
-    expect(panel).toHaveClass('border-primary');
+    expect(panel).toHaveClass('bg-canvas');
+    expect(panel.className).not.toContain('border-mark');
   });
 
   it('CTA 클릭 시 onRequest 가 호출된다', async () => {

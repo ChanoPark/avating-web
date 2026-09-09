@@ -29,14 +29,14 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
   }
 
   return (
-    <main className="bg-canvas text-ink flex min-h-screen items-center justify-center px-6 py-12">
+    <main className="bg-canvas text-primary flex min-h-screen items-center justify-center px-6 py-12">
       <div role="alert" className="flex max-w-[480px] flex-col items-center text-center">
         {/* danger 색상은 하드코딩하지 않고 `--danger` 토큰을 쓴다. */}
-        <div className="text-danger bg-danger-wash border-danger/20 flex h-14 w-14 items-center justify-center rounded-xl border">
+        <div className="text-danger bg-danger-tint border-danger-mark/20 rounded-card flex h-14 w-14 items-center justify-center border">
           <AlertTriangle size={24} strokeWidth={1.5} aria-hidden="true" />
         </div>
-        <h1 className="text-heading-lg text-ink mt-6">일시적인 문제가 발생했어요</h1>
-        <p className="text-ink-mute mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
+        <h1 className="text-title text-primary mt-6">일시적인 문제가 발생했어요</h1>
+        <p className="text-secondary mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
           잠깐 문제가 생긴 것 같아요. 잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">

@@ -11,20 +11,13 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-// 좌측 3px 레일(톤 시그널) — 색은 정의된 시맨틱 토큰으로만 준다.
-const variantRail: Record<ToastVariant, string> = {
-  info: 'border-l-primary',
-  success: 'border-l-success',
-  warning: 'border-l-warning',
-  error: 'border-l-danger',
-};
-
-// 배지는 wash 배경만 쓴다 — 틴트 채움에 같은 색 테두리를 겹치지 않는다.
-const variantBadge: Record<ToastVariant, string> = {
-  info: 'bg-primary-wash text-primary-press',
-  success: 'bg-success-wash text-success',
-  warning: 'bg-warning-wash text-warning',
-  error: 'bg-danger-wash text-danger',
+// `.cx-toast` — 어떤 토스트인지는 **글리프**가 말한다. 색으로 말하지 않는다.
+// 틴트가 붙는 건 파괴적 알림 하나뿐이고, 좌측 컬러 레일은 없다.
+const variantMark: Record<ToastVariant, string> = {
+  info: 'text-secondary',
+  success: 'text-secondary',
+  warning: 'text-secondary',
+  error: 'text-danger',
 };
 
 const variantIcon: Record<ToastVariant, LucideIcon> = {
@@ -72,23 +65,21 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         setPaused(false);
       }}
       className={cn(
-        'shadow-3 bg-surface border-hairline pointer-events-auto w-85 rounded-md border border-l-[3px] px-3.5 py-3',
-        variantRail[toast.variant]
+        'bg-canvas border-subtle rounded-card pointer-events-auto w-full border px-3.5 py-3',
+        'max-w-[var(--toast-w)]'
       )}
     >
-      <div className="flex items-start gap-2.5">
-        <span
-          className={cn(
-            'flex h-5 w-5 shrink-0 items-center justify-center rounded-full',
-            variantBadge[toast.variant]
-          )}
-        >
-          <Icon size={12} strokeWidth={1.5} aria-hidden="true" />
+      <div className="flex items-start gap-3">
+        {/* 16px 마크는 블록이 아니라 제목의 첫 줄에 맞춘다 — (20 - 16) / 2. */}
+        <span className={cn('mt-0.5 shrink-0', variantMark[toast.variant])}>
+          <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
         </span>
-        <div className="flex-1">
-          <div className="text-caption text-ink font-medium">{toast.title}</div>
+        <div className="min-w-0 flex-1">
+          {/* 제목은 14/600 — 토스트는 알림이지 섹션 제목이 아니라서 15 면 작은 다이얼로그로 읽힌다. */}
+          <div className="text-btn text-ink break-keep">{toast.title}</div>
+          {/* 본문은 사용자가 읽는 문장이라 secondary 다 — muted 가 아니다. */}
           {toast.description !== undefined && (
-            <div className="text-caption text-ink-secondary mt-0.5">{toast.description}</div>
+            <div className="text-caption text-secondary mt-0.5 break-keep">{toast.description}</div>
           )}
         </div>
         <button
@@ -97,7 +88,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
             onDismiss(toast.id);
           }}
           aria-label="알림 닫기"
-          className="text-ink-mute hover:text-ink cursor-pointer transition-colors"
+          className="text-muted hover:text-primary mt-0.75 shrink-0 cursor-pointer transition-colors"
         >
           <X size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>
@@ -131,7 +122,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="pointer-events-none fixed right-6 bottom-6 flex flex-col gap-3"
+            className="pointer-events-none fixed top-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
             style={{ zIndex: 'var(--z-toast)' }}
           >
             {toasts.map((toast) => (

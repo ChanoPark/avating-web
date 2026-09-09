@@ -17,16 +17,16 @@ type BannerProps = {
 // wash 배경일 때는 테두리를 항상 transparent 로 둔다 — 틴트 채움과 동색 테두리를 같이
 // 쓰면 v2 절대 규칙 ③ 위반이다.
 const toneSurface: Record<BannerTone, string> = {
-  info: 'bg-primary-wash border-transparent',
-  success: 'bg-success-wash border-transparent',
-  warning: 'bg-warning-wash border-transparent',
-  danger: 'bg-danger-wash border-transparent',
+  info: 'bg-raised border-transparent',
+  success: 'bg-raised border-transparent',
+  warning: 'bg-raised border-transparent',
+  danger: 'bg-danger-tint border-transparent',
 };
 
 const toneIconColor: Record<BannerTone, string> = {
-  info: 'text-primary',
-  success: 'text-success',
-  warning: 'text-warning',
+  info: 'text-secondary',
+  success: 'text-secondary',
+  warning: 'text-secondary',
   danger: 'text-danger',
 };
 
@@ -51,7 +51,7 @@ export function Banner({ tone, title, children, icon, onClose, className }: Bann
     <div
       role={role}
       className={cn(
-        'text-ink-secondary flex items-start gap-3 rounded-md border px-[13px] py-[11px] text-[13px] leading-[1.5]',
+        'text-secondary rounded-card flex items-start gap-3 border px-[13px] py-[11px] text-[13px] leading-[1.5]',
         toneSurface[tone],
         className
       )}
@@ -63,7 +63,7 @@ export function Banner({ tone, title, children, icon, onClose, className }: Bann
         className={cn('mt-px shrink-0', toneIconColor[tone])}
       />
       <div className="min-w-0 flex-1">
-        {title !== undefined && <div className="text-ink font-medium">{title}</div>}
+        {title !== undefined && <div className="text-primary font-medium">{title}</div>}
         {children}
       </div>
       {onClose && (
@@ -71,7 +71,7 @@ export function Banner({ tone, title, children, icon, onClose, className }: Bann
           type="button"
           onClick={onClose}
           aria-label="알림 닫기"
-          className="text-ink-faint hover:text-ink shrink-0 cursor-pointer transition-colors"
+          className="text-muted hover:text-primary shrink-0 cursor-pointer transition-colors"
         >
           <X size={14} strokeWidth={1.5} aria-hidden="true" />
         </button>

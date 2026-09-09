@@ -19,11 +19,11 @@ export function AvatarMatchPanel({
   return (
     <section
       aria-label="매칭 요청"
-      className="border-primary bg-surface shadow-card flex flex-col gap-2.5 rounded-lg border p-4"
+      className="bg-canvas rounded-card flex flex-col gap-2.5 p-4 shadow-[inset_0_0_0_1px_var(--border-subtle)]"
     >
       <Button
         type="button"
-        variant="primary"
+        variant="brand"
         block
         disabled={disabled}
         title={disabledReason}

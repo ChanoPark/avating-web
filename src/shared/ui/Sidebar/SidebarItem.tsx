@@ -43,26 +43,27 @@ export function SidebarItem({
   const badgeClass = mode === 'responsive' ? 'hidden lg:flex' : 'flex';
 
   const baseClass = cn(
-    'text-caption flex w-full items-center rounded-md transition-colors',
-    'duration-[var(--dur-fast)] ease-brand',
-    'focus-visible:shadow-focus focus-visible:outline-none',
+    'text-caption flex w-full items-center rounded-card transition-colors',
+    'duration-[var(--dur-fast)] ease-standard',
     layoutClass,
+    // 활성은 시스템이 알려주는 위치라 무채색이다 — 파란 틴트도, 파란 글자도 아니다.
+    // .cx-rail__item--active 처럼 잉크 + 굵기가 활성을 나른다.
     isActive
-      ? 'bg-primary-wash text-primary font-medium'
-      : 'text-ink-mute bg-transparent font-normal hover:bg-canvas-soft hover:text-ink',
+      ? 'bg-raised text-ink font-semibold'
+      : 'text-secondary bg-transparent font-normal hover:bg-surface hover:text-primary',
     disabled && 'pointer-events-none opacity-50'
   );
 
   const content = (
     <>
-      {/* 아이콘 색은 항목 텍스트 색을 따른다 — 활성 파랑 / 비활성 ink-mute. */}
+      {/* 아이콘 색은 항목 텍스트 색을 따른다 — 활성 잉크 / 비활성 secondary. */}
       <Icon size={15} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
       <span className={labelClass}>{label}</span>
       {badgeVisible && (
         <span
           aria-label={`${badge}개`}
           className={cn(
-            'bg-primary-wash text-primary-press text-micro tnum rounded-pill ml-auto h-4.5 items-center justify-center px-1.75',
+            'bg-count text-count-text text-meta tnum ml-auto h-4.5 items-center justify-center rounded-full px-1.75',
             badgeClass
           )}
         >

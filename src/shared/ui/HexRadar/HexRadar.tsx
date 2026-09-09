@@ -52,7 +52,7 @@ export function HexRadar({ stats, labels, size = 160 }: HexRadarProps) {
           key={gi}
           d={buildPath(cx, cy, r, Array<number>(N).fill(frac))}
           fill="none"
-          stroke="var(--hairline)"
+          stroke="var(--border-subtle)"
           strokeWidth={0.8}
         />
       ))}
@@ -65,7 +65,7 @@ export function HexRadar({ stats, labels, size = 160 }: HexRadarProps) {
             y1={cy}
             x2={p.x}
             y2={p.y}
-            stroke="var(--hairline)"
+            stroke="var(--border-subtle)"
             strokeWidth={0.8}
           />
         );
@@ -73,14 +73,14 @@ export function HexRadar({ stats, labels, size = 160 }: HexRadarProps) {
       {/* 반투명 채움이라 아래 그리드가 비쳐 보인다 — 불투명 wash 를 쓰면 격자가 가려진다. */}
       <path
         d={buildPath(cx, cy, r, dataFracs)}
-        fill="var(--primary)"
+        fill="var(--action-bg)"
         fillOpacity={0.15}
-        stroke="var(--primary)"
+        stroke="var(--action-bg)"
         strokeWidth={1.5}
       />
       {dataFracs.map((frac, i) => {
         const p = point(cx, cy, r, i, frac);
-        return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="var(--primary)" />;
+        return <circle key={i} cx={p.x} cy={p.y} r={2.5} fill="var(--action-bg)" />;
       })}
       {labels.map((label, i) => {
         const p = point(cx, cy, r, i, 1.22);
@@ -92,7 +92,7 @@ export function HexRadar({ stats, labels, size = 160 }: HexRadarProps) {
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={9}
-            fill="var(--ink-mute)"
+            fill="var(--text-secondary)"
           >
             {label}
           </text>

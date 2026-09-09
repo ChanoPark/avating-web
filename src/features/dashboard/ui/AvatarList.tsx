@@ -18,7 +18,7 @@ type AvatarListProps = {
 type ModalState = { open: false } | { open: true; avatarId: string; avatarName: string };
 
 // 그리드가 아닌 상태(빈 목록 · 오류 · 로딩)는 카드 한 장 위에 얹는다.
-const PANEL_CLASS = 'border-hairline bg-surface shadow-card rounded-lg border';
+const PANEL_CLASS = 'border-subtle bg-canvas rounded-card border';
 
 function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
   const { items: avatars } = useRecommendedAvatars(filter);
@@ -73,7 +73,7 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
 function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
   return (
     <div className={cn(PANEL_CLASS, 'flex flex-col items-center justify-center py-12 text-center')}>
-      <div className="text-body-sm text-ink-secondary">목록을 불러오지 못했어요.</div>
+      <div className="text-caption text-secondary">목록을 불러오지 못했어요.</div>
       <Button variant="ghost" size="sm" className="mt-4" onClick={onResetFilter}>
         필터 초기화
       </Button>
@@ -93,22 +93,22 @@ function AvatarListSkeleton() {
       {Array.from({ length: 4 }, (_, i) => (
         <div
           key={i}
-          className="border-hairline bg-surface shadow-card flex flex-col gap-2.5 rounded-lg border p-3.5"
+          className="border-subtle bg-canvas rounded-card flex flex-col gap-2.5 border p-3.5"
         >
           <div className="flex items-center gap-2.5">
-            <div className="bg-canvas-soft h-10 w-10 shrink-0 rounded-[10px]" />
+            <div className="bg-raised h-10 w-10 shrink-0 rounded-[10px]" />
             <div className="flex min-w-0 flex-1 flex-col gap-1">
-              <div className="bg-canvas-soft h-3 w-24 rounded" />
-              <div className="bg-canvas-soft h-2.75 w-32 rounded" />
+              <div className="bg-raised rounded-chip h-3 w-24" />
+              <div className="bg-raised rounded-chip h-2.75 w-32" />
             </div>
           </div>
           <div className="flex gap-1.25">
-            <div className="bg-canvas-soft rounded-pill h-5 w-14" />
-            <div className="bg-canvas-soft rounded-pill h-5 w-16" />
+            <div className="bg-raised h-5 w-14 rounded-full" />
+            <div className="bg-raised h-5 w-16 rounded-full" />
           </div>
           <div className="flex items-center justify-between gap-2">
-            <div className="bg-canvas-soft h-3 w-20 rounded" />
-            <div className="bg-canvas-soft rounded-pill h-8 w-16" />
+            <div className="bg-raised rounded-chip h-3 w-20" />
+            <div className="bg-raised h-8 w-16 rounded-full" />
           </div>
         </div>
       ))}

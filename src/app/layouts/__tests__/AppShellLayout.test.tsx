@@ -350,8 +350,8 @@ describe('AppShellLayout', () => {
       expect(header.className).toContain('h-14');
       expect(header.className).toContain('px-7');
       expect(header.className).toContain('border-b');
-      expect(header.className).toContain('border-hairline');
-      expect(header.className).toContain('bg-surface');
+      expect(header.className).toContain('border-subtle');
+      expect(header.className).toContain('bg-canvas');
     });
 
     it('알림 벨 버튼이 있다', () => {
@@ -382,7 +382,7 @@ describe('AppShellLayout', () => {
       expect(container?.className).toContain('gap-4');
     });
 
-    it('본문 배경은 캔버스 회색(bg-canvas), 사이드바·상단바는 고정이다', () => {
+    it('본문 배경은 흰 캔버스(bg-canvas), 사이드바·상단바는 고정이다', () => {
       renderWithProviders('/dashboard');
       const main = document.querySelector('main');
       expect(main?.className).toContain('bg-canvas');
@@ -432,11 +432,11 @@ describe('AppShellLayout', () => {
       useChromeBreadcrumbStore.getState().clearTrail();
     });
 
-    it('13.5px · ink-mute · gap 7 로 렌더된다', () => {
+    it('13.5px · text-secondary · gap 7 로 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav.className).toContain('text-[13.5px]');
-      expect(nav.className).toContain('text-ink-mute');
+      expect(nav.className).toContain('text-secondary');
       expect(nav.querySelector('ol')?.className).toContain('gap-[7px]');
     });
 
@@ -454,7 +454,7 @@ describe('AppShellLayout', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       const current = nav.querySelector('[aria-current="page"]');
-      expect(current?.className).toContain('text-ink');
+      expect(current?.className).toContain('text-primary');
       expect(current?.className).toContain('font-medium');
       const first = nav.querySelectorAll('li > span')[0];
       expect(first?.className ?? '').not.toContain('font-medium');
@@ -466,7 +466,7 @@ describe('AppShellLayout', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       const row = within(nav).getByRole('button', { name: '계정 설정' }).closest('.border-t');
-      expect(row?.className).toContain('border-hairline');
+      expect(row?.className).toContain('border-subtle');
       expect(row?.className).toContain('p-2.5');
       expect(row?.firstElementChild?.className).toContain('px-1.5');
       expect(row?.firstElementChild?.className).toContain('py-1');

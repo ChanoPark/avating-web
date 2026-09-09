@@ -38,12 +38,12 @@ describe('AvatarCard', () => {
     expect(screen.getByText('87')).toHaveClass('tnum');
   });
 
-  it('매칭 버튼은 secondary(흰 서피스 + 파란 테두리)다', () => {
+  it('매칭 버튼은 secondary(무채색 약한 채움)다 — 파란 테두리가 아니다', () => {
     renderCard();
     const match = screen.getByRole('button', { name: /매칭/ });
-    expect(match).toHaveClass('bg-surface');
-    expect(match).toHaveClass('border-primary');
-    expect(match).not.toHaveClass('bg-primary');
+    expect(match).toHaveClass('bg-fill-weak');
+    expect(match.className).not.toContain('border-mark');
+    expect(match).not.toHaveClass('bg-action');
   });
 
   it('이름 클릭은 onOpen, 매칭 클릭은 onMatch 를 호출한다', async () => {

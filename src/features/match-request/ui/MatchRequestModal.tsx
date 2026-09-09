@@ -22,7 +22,7 @@ import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCar
 import { InlineErrorPanel } from './InlineErrorPanel';
 
 // 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
-const NOTICE_CLASS = 'text-caption border-hairline bg-surface rounded-lg border p-3';
+const NOTICE_CLASS = 'text-caption border-subtle bg-canvas rounded-card border p-3';
 
 type Props = {
   open: boolean;
@@ -187,7 +187,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         onClick={() => {
           if (!isPending) onClose();
         }}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
+        className="bg-overlay absolute inset-0 cursor-default backdrop-blur-sm"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
@@ -197,7 +197,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border focus:outline-none"
+        className="border-subtle bg-canvas rounded-card relative w-full max-w-140 overflow-hidden border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
@@ -208,17 +208,17 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             onClick={() => {
               if (!isPending) onClose();
             }}
-            className="text-ink-faint hover:text-ink -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
+            className="text-muted hover:text-primary -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
         <div className="flex flex-col gap-1.5 px-6 pt-3.5">
-          <h2 id={titleId} className="text-heading-md text-ink">
+          <h2 id={titleId} className="text-lead text-primary">
             이 아바타에게 소개팅을 요청할까요?
           </h2>
-          <p id={descriptionId} className="text-body-sm text-ink-mute">
+          <p id={descriptionId} className="text-caption text-secondary">
             요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
           </p>
         </div>
@@ -234,13 +234,13 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-caption text-ink-secondary font-medium">
+                <span className="text-caption text-secondary font-medium">
                   요청에 사용할 내 아바타
                 </span>
-                <span className="text-micro text-ink-mute">1개 선택</span>
+                <span className="text-meta text-secondary">1개 선택</span>
               </div>
               {avatarsLoading ? (
-                <p role="status" aria-live="polite" className="text-caption text-ink-mute">
+                <p role="status" aria-live="polite" className="text-caption text-secondary">
                   아바타 목록 불러오는 중…
                 </p>
               ) : avatarsError ? (
@@ -251,7 +251,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                     onClick={() => {
                       void refetchAvatars();
                     }}
-                    className="text-micro text-primary hover:text-primary-hover cursor-pointer self-start font-medium"
+                    className="text-meta text-action hover:text-action-hover cursor-pointer self-start font-medium"
                   >
                     다시 시도
                   </button>
@@ -280,7 +280,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                     }
                   />
                   {errors.requesterAvatarId?.message && (
-                    <p id={requesterAvatarErrorId} role="alert" className="text-micro text-danger">
+                    <p id={requesterAvatarErrorId} role="alert" className="text-meta text-danger">
                       {errors.requesterAvatarId.message}
                     </p>
                   )}
@@ -292,14 +292,14 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               <div className="flex items-center justify-between gap-2">
                 <label
                   htmlFor="match-request-greeting"
-                  className="text-caption text-ink-secondary font-medium"
+                  className="text-caption text-secondary font-medium"
                 >
                   아바타가 건넬 첫 인사
                 </label>
                 <span
                   className={cn(
-                    'text-micro tnum',
-                    isGreetingOverLimit ? 'text-danger' : 'text-ink-mute'
+                    'text-meta tnum',
+                    isGreetingOverLimit ? 'text-danger' : 'text-secondary'
                   )}
                 >
                   {greetingLength} / {MATCH_REQUEST_GREETING_MAX}
@@ -313,18 +313,18 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 aria-describedby={errors.greeting !== undefined ? greetingErrorId : greetingHelpId}
                 {...register('greeting')}
                 className={cn(
-                  'bg-surface text-body text-ink min-h-23 w-full resize-y rounded-sm border px-3 py-2.25 leading-[1.55]',
-                  'ease-brand transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
-                  errors.greeting ? 'border-danger' : 'border-hairline-input',
-                  'focus:border-primary focus:shadow-focus focus:outline-none'
+                  'bg-canvas text-body text-primary rounded-chip min-h-23 w-full resize-y border px-3 py-2.25 leading-[1.55]',
+                  'ease-standard transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
+                  errors.greeting ? 'border-danger-mark' : 'border-field',
+                  'focus:border-mark'
                 )}
               />
               {errors.greeting?.message ? (
-                <p id={greetingErrorId} role="alert" className="text-micro text-danger">
+                <p id={greetingErrorId} role="alert" className="text-meta text-danger">
                   {errors.greeting.message}
                 </p>
               ) : (
-                <p id={greetingHelpId} className="text-micro text-ink-mute">
+                <p id={greetingHelpId} className="text-meta text-secondary">
                   비워 두면 아바타가 알아서 인사를 시작합니다
                 </p>
               )}
@@ -341,7 +341,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             )}
           </div>
 
-          <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
+          <div className="border-subtle flex items-center justify-between gap-2 border-t px-6 py-4">
             <Button
               type="button"
               variant="ghost"
@@ -371,7 +371,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           </div>
         </form>
 
-        <p className="text-micro text-ink-mute px-6 pb-4 text-center">
+        <p className="text-meta text-secondary px-6 pb-4 text-center">
           24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.
         </p>
       </div>

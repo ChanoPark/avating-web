@@ -36,10 +36,13 @@ function Logo({ size }: { size: number }) {
     <span className="flex shrink-0 items-center gap-2">
       <span
         aria-hidden="true"
-        className="bg-primary shrink-0"
+        className="bg-action shrink-0"
         style={{ width: size, height: size, borderRadius: size * 0.28 }}
       />
-      <span className="text-ink font-medium tracking-[-0.4px]" style={{ fontSize: size * 0.78 }}>
+      <span
+        className="text-primary font-medium tracking-[-0.4px]"
+        style={{ fontSize: size * 0.78 }}
+      >
         Avating
       </span>
     </span>
@@ -84,18 +87,17 @@ export function ServiceIntroPage() {
   };
 
   return (
-    <div className="bg-canvas text-ink flex min-h-screen flex-col">
-      {/* --grad-brand 는 이 화면에서만 쓴다. */}
-      <div id={HERO_ID} className="bg-[image:var(--grad-brand)]">
-        <header className="border-hairline flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
+    <div className="bg-canvas text-primary flex min-h-screen flex-col">
+      <div id={HERO_ID} className="bg-canvas">
+        <header className="border-subtle flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
           <Logo size={19} />
 
           <nav
             aria-label="서비스 소개 내비게이션"
-            className="text-body-sm hidden items-center gap-[18px] lg:flex"
+            className="text-caption hidden items-center gap-[18px] lg:flex"
           >
             {NAV_ITEMS.map((item, index) => {
-              const tone = index === 0 ? 'text-ink' : 'text-ink-mute';
+              const tone = index === 0 ? 'text-primary' : 'text-secondary';
               if (item.targetId === undefined) {
                 return (
                   <span key={item.label} className={tone}>
@@ -113,7 +115,7 @@ export function ServiceIntroPage() {
                   }}
                   className={cn(
                     tone,
-                    'hover:text-ink cursor-pointer transition-colors duration-[var(--dur-fast)]'
+                    'hover:text-primary cursor-pointer transition-colors duration-[var(--dur-fast)]'
                   )}
                 >
                   {item.label}
@@ -145,13 +147,13 @@ export function ServiceIntroPage() {
           <div className="flex w-full min-w-0 flex-col gap-5 lg:flex-[0_0_44%]">
             <Tag className="self-start">BETA · 인터랙티브 소셜 게임</Tag>
 
-            <h1 className="text-display-lg text-ink text-balance">
+            <h1 className="text-figure text-primary text-balance">
               귀찮은 밀당은 아바타가,
               <br />
               결정은 당신이.
             </h1>
 
-            <p className="text-body text-ink-mute text-pretty">
+            <p className="text-body text-secondary text-pretty">
               나를 닮은 AI 아바타가 먼저 대화를 나눕니다. 당신은 관전하다가 결정적인 순간에만
               개입하면 돼요.
             </p>
@@ -168,10 +170,10 @@ export function ServiceIntroPage() {
             </div>
           </div>
 
-          <div className="border-hairline bg-surface shadow-lift w-full min-w-0 rounded-[14px] border p-2.5 lg:flex-1">
+          <div className="border-subtle bg-canvas w-full min-w-0 rounded-[14px] border p-2.5 lg:flex-1">
             <div
               aria-hidden="true"
-              className="bg-canvas-soft text-ink-mute text-caption flex h-[330px] items-center justify-center rounded-md"
+              className="bg-surface text-secondary text-caption rounded-card flex h-[330px] items-center justify-center"
             >
               시뮬레이션 관전 화면
             </div>
@@ -185,16 +187,16 @@ export function ServiceIntroPage() {
           aria-labelledby="how-it-works-eyebrow"
           className="flex flex-col gap-4.5 px-6 pt-10 pb-9 lg:px-16"
         >
-          <h2 id="how-it-works-eyebrow" className="text-micro-cap text-ink-mute uppercase">
+          <h2 id="how-it-works-eyebrow" className="text-label text-secondary uppercase">
             HOW IT WORKS
           </h2>
 
           <div className="grid gap-4.5 md:grid-cols-3">
             {STEPS.map((step, index) => (
               <Card key={step.title} className="flex flex-col gap-1.5 p-4.5">
-                <span className="text-micro-cap text-primary tnum uppercase">{`0${String(index + 1)}`}</span>
-                <div className="text-heading-sm text-ink">{step.title}</div>
-                <p className="text-caption text-ink-mute tnum text-pretty">{step.body}</p>
+                <span className="text-label text-action tnum uppercase">{`0${String(index + 1)}`}</span>
+                <div className="text-lead text-primary">{step.title}</div>
+                <p className="text-caption text-secondary tnum text-pretty">{step.body}</p>
               </Card>
             ))}
           </div>
@@ -202,8 +204,8 @@ export function ServiceIntroPage() {
       </main>
 
       {/* 정본은 좌측에 로고를 두지만, 상단 바 로고와 중복돼 두지 않는다. */}
-      <footer className="border-hairline bg-surface flex h-[60px] shrink-0 items-center justify-end gap-4 border-t px-6 lg:px-16">
-        <div className="text-ink-mute flex items-center gap-4 text-[12px]">
+      <footer className="border-subtle bg-canvas flex h-[60px] shrink-0 items-center justify-end gap-4 border-t px-6 lg:px-16">
+        <div className="text-secondary flex items-center gap-4 text-[12px]">
           {FOOTER_ITEMS.map((item) => (
             <span key={item}>{item}</span>
           ))}

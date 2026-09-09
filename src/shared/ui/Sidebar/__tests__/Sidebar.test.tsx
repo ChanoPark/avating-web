@@ -65,8 +65,8 @@ describe('Sidebar', () => {
   it('흰 서피스 배경 + 우측 hairline 을 갖는다', () => {
     render(<Sidebar>항목</Sidebar>);
     const nav = screen.getByRole('navigation');
-    expect(nav.className).toContain('bg-surface');
-    expect(nav.className).toContain('border-hairline');
+    expect(nav.className).toContain('bg-canvas');
+    expect(nav.className).toContain('border-subtle');
     expect(nav.className).toContain('border-r');
   });
 });

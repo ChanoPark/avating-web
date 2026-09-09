@@ -1,0 +1,61 @@
+/* Codex 디자인 시스템 — verbatim 이식. 값을 편집하지 않는다.
+   원본: .claude/design/2026-09-08-codex-wf2/_ds/tokens/typography.css */
+:root {
+  --font-primary:
+    'Pretendard Variable', Pretendard, 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont,
+    'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-display: var(--font-primary);
+  --font-numeric: var(--font-primary);
+  --font-mono: var(--font-primary); /* legacy alias — no monospace face exists */
+
+  /* Five reading steps. 18px and other in-between values do not exist.
+     --fs-14 is the one control-label step (button labels only), not a prose size. */
+  --fs-13: 13px;
+  --fs-15: 15px;
+  --fs-17: 17px;
+  --fs-20: 20px;
+  --fs-32: 32px;
+  --fs-14: 14px;
+
+  /* Roles */
+  --fs-meta: var(--fs-13); /* meta, labels, timestamps */
+  --fs-body: var(--fs-15); /* body, list rows, bubbles */
+  --fs-lead: var(--fs-17); /* section titles, lead-in */
+  --fs-title: var(--fs-20); /* panel + dialog titles */
+  --fs-figure: var(--fs-32); /* headline metric numbers */
+
+  /* Fixed line boxes. A row's height must never depend on what is inside it. */
+  --line-body: 22px; /* @kind spacing */
+  --line-meta: 18px; /* @kind spacing */
+  --line-pill: 20px; /* @kind spacing */
+
+  --lh-body: 1.65; /* @kind other */
+  --lh-title: 1.2; /* @kind other */
+  --lh-flat: 1; /* @kind other */
+
+  /* Four weights only — 100-300 and 800-900 are not used.
+     Hierarchy is carried by WEIGHT + INK, not by colour:
+       700 --ink        panel titles, stream header name (17px)
+       600 --ink        unread row name, speaker name, button label, active tab/rail
+       500 --text-*     read row name, chip label, caption
+       400 --text-*     body copy and secondary prose */
+  --fw-regular: 400; /* @kind other */
+  --fw-medium: 500; /* @kind other */
+  --fw-semibold: 600; /* @kind other */
+  --fw-bold: 700; /* @kind other */
+
+  --ls-figure: -0.02em; /* @kind other */
+  --ls-title: -0.01em; /* @kind other */
+  --ls-body: 0em; /* @kind other */
+  --ls-caps: 0.06em; /* @kind other */
+
+  --type-figure: var(--fw-semibold) var(--fs-32)/var(--lh-flat) var(--font-display);
+  --type-title: var(--fw-semibold) var(--fs-20)/var(--lh-title) var(--font-display);
+  --type-lead: var(--fw-medium) var(--fs-17)/var(--lh-title) var(--font-display);
+  --type-body: var(--fw-regular) var(--fs-15)/var(--lh-body) var(--font-primary);
+  --type-meta: var(--fw-regular) var(--fs-13)/1.45 var(--font-primary);
+  --type-label: var(--fw-medium) var(--fs-13)/1.4 var(--font-primary);
+  --type-panel: var(--fw-bold) var(--fs-17)/var(--lh-title) var(--font-display);
+  --type-name: var(--fw-semibold) var(--fs-13)/var(--line-meta) var(--font-primary);
+  --type-btn: var(--fw-semibold) var(--fs-14)/1 var(--font-primary);
+}

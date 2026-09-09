@@ -35,7 +35,7 @@ export function Sidebar({
         data-collapsed={collapsed}
         data-sidebar-mode={mode}
         className={cn(
-          'border-hairline bg-surface h-full shrink-0 flex-col border-r',
+          'border-subtle bg-canvas h-full shrink-0 flex-col border-r',
           layoutClass,
           className
         )}

@@ -66,7 +66,7 @@ describe('SurveyQuestion', () => {
     expect(onChange).toHaveBeenCalledWith('ANS_1');
   });
 
-  it('선택된 선택지는 틴트 채움 없이 border-primary 로만 구분된다 (v2.1)', () => {
+  it('선택된 선택지는 파란 테두리 없이 무채색 틴트로만 구분된다 (Codex 규칙 ③)', () => {
     render(
       <SurveyQuestion
         name="Q_001"
@@ -79,8 +79,8 @@ describe('SurveyQuestion', () => {
     const selectedCard = screen.getByRole('radio', { name: /두 번째 선택지/ }).closest('label');
     const plainCard = screen.getByRole('radio', { name: /첫 번째 선택지/ }).closest('label');
 
-    expect(selectedCard).toHaveClass('border-primary');
-    expect(selectedCard).not.toHaveClass('bg-primary-wash');
-    expect(plainCard).toHaveClass('border-hairline');
+    expect(selectedCard).toHaveClass('bg-selected');
+    expect(selectedCard).not.toHaveClass('bg-action-tint');
+    expect(plainCard).toHaveClass('border-subtle');
   });
 });

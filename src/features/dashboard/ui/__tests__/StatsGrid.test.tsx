@@ -85,7 +85,7 @@ describe('StatsGrid', () => {
     expect(true).toBe(true);
   });
 
-  it('totalDispatchedDelta < 0 시 delta 텍스트가 렌더되고 text-danger 클래스를 가진다', async () => {
+  it('totalDispatchedDelta < 0 시 delta 는 무채색 pill 이다 — 빨강이 아니다', async () => {
     const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
     server.use(
       http.get(`${BASE_URL}/api/dashboard/stats`, () => {
@@ -110,7 +110,9 @@ describe('StatsGrid', () => {
     });
 
     const deltaEl = screen.getByText(/-3 지난주 대비/);
-    expect(deltaEl).toHaveClass('text-danger');
+    expect(deltaEl).toHaveClass('bg-raised');
+    expect(deltaEl).not.toHaveClass('text-danger');
+    expect(deltaEl).not.toHaveClass('font-semibold');
   });
 
   it('totalDispatchedDelta === 0 시 delta 텍스트가 +0 으로 표시된다', async () => {
@@ -138,6 +140,6 @@ describe('StatsGrid', () => {
     });
 
     const deltaEl = screen.getByText(/\+0 지난주 대비/);
-    expect(deltaEl).toHaveClass('text-ink-mute');
+    expect(deltaEl).toHaveClass('text-secondary');
   });
 });

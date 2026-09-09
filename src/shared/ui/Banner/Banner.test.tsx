@@ -35,19 +35,19 @@ describe('Banner', () => {
     expect(screen.getByRole('status')).toHaveTextContent('완료');
   });
 
-  it('톤별 wash 배경을 쓰고 같은 색 테두리를 겹치지 않는다 (v2 절대 규칙 ③)', () => {
+  it('톤 배경은 무채색이고 파괴적 알림만 틴트다 — 같은 색 테두리를 겹치지 않는다', () => {
     const { rerender } = render(<Banner tone="danger">실패</Banner>);
-    expect(screen.getByRole('alert').className).toContain('bg-danger-wash');
+    expect(screen.getByRole('alert').className).toContain('bg-danger-tint');
     expect(screen.getByRole('alert').className).toContain('border-transparent');
 
     rerender(<Banner tone="info">안내</Banner>);
-    expect(screen.getByRole('status').className).toContain('bg-primary-wash');
+    expect(screen.getByRole('status').className).toContain('bg-raised');
 
     rerender(<Banner tone="warning">주의</Banner>);
-    expect(screen.getByRole('alert').className).toContain('bg-warning-wash');
+    expect(screen.getByRole('alert').className).toContain('bg-raised');
 
     rerender(<Banner tone="success">완료</Banner>);
-    expect(screen.getByRole('status').className).toContain('bg-success-wash');
+    expect(screen.getByRole('status').className).toContain('bg-raised');
   });
 
   it('onClose 를 주면 닫기 버튼이 노출되고 클릭 시 호출된다', async () => {

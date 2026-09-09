@@ -9,6 +9,6 @@ export const WIZARD_BODY = 'flex flex-col gap-[18px] px-11 pt-[34px] pb-7';
 export const WIZARD_BODY_FLAT = 'flex flex-col gap-[18px] px-11 pt-[38px] pb-[30px]';
 
 export const WIZARD_ACTIONS =
-  'border-hairline bg-canvas-soft flex items-center justify-between gap-3 border-t px-11 py-4';
+  'border-subtle bg-surface flex items-center justify-between gap-3 border-t px-11 py-4';
 
 export const WIZARD_HEAD = 'flex flex-col gap-[7px]';

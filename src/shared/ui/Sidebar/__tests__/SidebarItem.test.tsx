@@ -53,19 +53,19 @@ describe('SidebarItem', () => {
       expect(link).not.toHaveAttribute('aria-current', 'page');
     });
 
-    it('active=true 시 primary-wash 배경 + primary 텍스트가 링크에 적용된다', () => {
+    it('active=true 시 무채색 raised 배경 + 잉크 텍스트가 링크에 적용된다', () => {
       render(
         <MemoryRouter>
           <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" active />
         </MemoryRouter>
       );
       const link = screen.getByRole('link', { name: /대시보드/ });
-      expect(link.className).toContain('bg-primary-wash');
-      expect(link.className).toContain('text-primary');
-      expect(link.className).toContain('font-medium');
+      expect(link.className).toContain('bg-raised');
+      expect(link.className).toContain('text-ink');
+      expect(link.className).toContain('font-semibold');
     });
 
-    it('active=false 시 투명 배경 + ink-mute 텍스트다', () => {
+    it('active=false 시 투명 배경 + secondary 텍스트다', () => {
       render(
         <MemoryRouter>
           <SidebarItem icon={LayoutGrid} label="대시보드" to="/dashboard" active={false} />
@@ -73,8 +73,8 @@ describe('SidebarItem', () => {
       );
       const link = screen.getByRole('link', { name: /대시보드/ });
       expect(link.className).toContain('bg-transparent');
-      expect(link.className).toContain('text-ink-mute');
-      expect(link.className).not.toContain('bg-primary-wash');
+      expect(link.className).toContain('text-secondary');
+      expect(link.className).not.toContain('bg-raised');
     });
   });
 
@@ -141,17 +141,17 @@ describe('SidebarItem', () => {
       expect(link.getAttribute('aria-label') ?? link.textContent ?? '').toMatch(/3/);
     });
 
-    it('카운트 배지는 brand 배지 규격 + tabular-nums 다', () => {
+    it('카운트 배지는 무채색 count 마크 + tabular-nums 다', () => {
       render(
         <MemoryRouter>
           <SidebarItem icon={LayoutGrid} label="관전중" to="/watching" badge={3} />
         </MemoryRouter>
       );
       const badge = screen.getByText('3');
-      expect(badge.className).toContain('bg-primary-wash');
-      expect(badge.className).toContain('text-primary-press');
+      expect(badge.className).toContain('bg-count');
+      expect(badge.className).toContain('text-count-text');
       expect(badge.className).toContain('h-4.5');
-      expect(badge.className).toContain('rounded-pill');
+      expect(badge.className).toContain('rounded-full');
       expect(badge.className).toContain('tnum');
     });
   });

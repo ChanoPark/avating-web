@@ -23,7 +23,7 @@ const introFormSchema = z.object({
 type IntroFormValues = z.infer<typeof introFormSchema>;
 
 const FIELD_INPUT =
-  'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] outline-none transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
+  'bg-surface text-body text-primary placeholder:text-secondary h-9 w-full rounded-chip border-0 px-3 transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard hover:bg-raised focus-visible:outline-offset-0 disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed';
 
 export function IntroStep() {
   const navigate = useNavigate();
@@ -85,17 +85,17 @@ export function IntroStep() {
     >
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
-          <h1 className="text-heading-lg text-ink">아바타의 이름과 설명을 알려주세요</h1>
-          <p className="text-body-sm text-ink-mute">설문 전에 아바타를 어떻게 부를지 정해요.</p>
+          <h1 className="text-title text-primary">아바타의 이름과 설명을 알려주세요</h1>
+          <p className="text-caption text-secondary">설문 전에 아바타를 어떻게 부를지 정해요.</p>
         </div>
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-              <label htmlFor="intro-name" className="text-caption text-ink-secondary font-medium">
+              <label htmlFor="intro-name" className="text-caption text-secondary font-medium">
                 아바타 이름 <span className="text-danger">*</span>
               </label>
-              <span className="text-micro text-ink-mute tnum">
+              <span className="text-meta text-secondary tnum">
                 {nameLength} / {NAME_MAX}
               </span>
             </div>
@@ -110,8 +110,8 @@ export function IntroStep() {
               className={cn(
                 FIELD_INPUT,
                 errors.avatarName
-                  ? 'border-danger focus:border-danger'
-                  : 'border-hairline-input focus:border-primary'
+                  ? 'border-danger-mark focus:border-danger-mark'
+                  : 'border-field focus:border-mark'
               )}
               {...register('avatarName')}
             />
@@ -119,7 +119,7 @@ export function IntroStep() {
               <p
                 id="intro-name-error"
                 role="alert"
-                className="text-micro text-danger flex items-center gap-1"
+                className="text-meta text-danger flex items-center gap-1"
               >
                 <CircleAlert size={12} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.avatarName.message}
@@ -129,10 +129,10 @@ export function IntroStep() {
 
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
-              <label htmlFor="intro-desc" className="text-caption text-ink-secondary font-medium">
+              <label htmlFor="intro-desc" className="text-caption text-secondary font-medium">
                 아바타 설명
               </label>
-              <span className="text-micro text-ink-mute tnum">
+              <span className="text-meta text-secondary tnum">
                 {descLength} / {DESC_MAX}
               </span>
             </div>
@@ -147,8 +147,8 @@ export function IntroStep() {
                 FIELD_INPUT,
                 'resize-none',
                 errors.description
-                  ? 'border-danger focus:border-danger'
-                  : 'border-hairline-input focus:border-primary'
+                  ? 'border-danger-mark focus:border-danger-mark'
+                  : 'border-field focus:border-mark'
               )}
               {...register('description')}
             />
@@ -156,13 +156,13 @@ export function IntroStep() {
               <p
                 id="intro-desc-error"
                 role="alert"
-                className="text-micro text-danger flex items-center gap-1"
+                className="text-meta text-danger flex items-center gap-1"
               >
                 <CircleAlert size={12} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.description.message}
               </p>
             ) : (
-              <p id="intro-desc-help" className="text-micro text-ink-mute">
+              <p id="intro-desc-help" className="text-meta text-secondary">
                 상대 아바타가 첫인상으로 참고합니다
               </p>
             )}

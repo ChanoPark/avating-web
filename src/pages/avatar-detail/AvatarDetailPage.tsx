@@ -79,7 +79,7 @@ function AvatarDetailContent({ id }: { id: string }) {
   );
 }
 
-const SKELETON_CARD = 'border-hairline bg-surface shadow-card rounded-lg border p-4';
+const SKELETON_CARD = 'border-subtle bg-canvas rounded-card border p-4';
 
 /** 실제 렌더와 다른 골격을 쓰면 데이터 도착 시 레이아웃이 밀려 CLS 가 발생한다 — 2열 구조를 그대로 유지한다. */
 function LoadingFallback() {
@@ -94,21 +94,21 @@ function LoadingFallback() {
       <div className="flex min-w-0 flex-1 flex-col gap-3.5">
         <div className={SKELETON_CARD}>
           <div className="flex items-start gap-4">
-            <div className="bg-canvas-soft h-14 w-14 shrink-0 rounded-lg" />
+            <div className="bg-raised rounded-card h-14 w-14 shrink-0" />
             <div className="flex min-w-0 flex-1 flex-col gap-2">
-              <div className="bg-canvas-soft h-4 w-40 rounded" />
-              <div className="bg-canvas-soft h-3 w-56 rounded" />
-              <div className="bg-canvas-soft mt-1 h-3 w-full rounded" />
+              <div className="bg-raised rounded-chip h-4 w-40" />
+              <div className="bg-raised rounded-chip h-3 w-56" />
+              <div className="bg-raised rounded-chip mt-1 h-3 w-full" />
             </div>
           </div>
         </div>
         <div className={SKELETON_CARD}>
-          <div className="bg-canvas-soft h-3 w-20 rounded" />
+          <div className="bg-raised rounded-chip h-3 w-20" />
           <div className="mt-3 flex flex-col gap-2.5">
             {Array.from({ length: 6 }, (_, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="bg-canvas-soft h-3 w-18 shrink-0 rounded" />
-                <div className="bg-canvas-soft h-1.5 flex-1 rounded-full" />
+                <div className="bg-raised rounded-chip h-3 w-18 shrink-0" />
+                <div className="bg-raised h-1.5 flex-1 rounded-full" />
               </div>
             ))}
           </div>
@@ -117,18 +117,18 @@ function LoadingFallback() {
 
       <div className="flex flex-col gap-3.5 lg:w-65 lg:shrink-0">
         <div className={SKELETON_CARD}>
-          <div className="bg-canvas-soft rounded-pill h-9 w-full" />
-          <div className="bg-canvas-soft mx-auto mt-2.5 h-3 w-24 rounded" />
+          <div className="bg-raised h-9 w-full rounded-full" />
+          <div className="bg-raised rounded-chip mx-auto mt-2.5 h-3 w-24" />
         </div>
         <div className={SKELETON_CARD}>
-          <div className="bg-canvas-soft h-3 w-16 rounded" />
+          <div className="bg-raised rounded-chip h-3 w-16" />
           <div className="mt-3 flex flex-col gap-3">
             {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="bg-canvas-soft h-3 w-full rounded" />
+              <div key={i} className="bg-raised rounded-chip h-3 w-full" />
             ))}
           </div>
         </div>
-        <div className="bg-canvas-soft rounded-pill h-10 w-full" />
+        <div className="bg-raised h-10 w-full rounded-full" />
       </div>
     </div>
   );
@@ -138,7 +138,7 @@ function LoadingFallback() {
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
   const isNotFound = isApiError(error) && error.statusCode === 404;
   return (
-    <div className="border-hairline bg-surface shadow-card rounded-lg border p-6">
+    <div className="border-subtle bg-canvas rounded-card border p-6">
       <InlineError
         title={isNotFound ? '아바타를 찾을 수 없어요' : '아바타 정보를 불러오지 못했어요'}
         body={
