@@ -100,7 +100,7 @@ describe('AvatarDetailPage', () => {
     renderPage();
     const cta = await screen.findByRole('button', { name: /매칭 요청 보내기/ });
     expect(cta).toBeDisabled();
-    expect(cta).toHaveAttribute('title', '이미 매칭 중인 아바타입니다');
+    expect(screen.getByText('이미 매칭 중인 아바타입니다')).toBeInTheDocument();
   });
 
   it('404 응답 시 "찾을 수 없어요" 에러 메시지를 노출한다', async () => {

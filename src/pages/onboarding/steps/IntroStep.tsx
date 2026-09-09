@@ -109,9 +109,7 @@ export function IntroStep() {
               aria-describedby={errors.avatarName ? 'intro-name-error' : undefined}
               className={cn(
                 FIELD_INPUT,
-                errors.avatarName
-                  ? 'border-danger-mark focus:border-danger-mark'
-                  : 'border-field focus:border-mark'
+                errors.avatarName ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : null
               )}
               {...register('avatarName')}
             />
@@ -146,9 +144,7 @@ export function IntroStep() {
               className={cn(
                 FIELD_INPUT,
                 'resize-none',
-                errors.description
-                  ? 'border-danger-mark focus:border-danger-mark'
-                  : 'border-field focus:border-mark'
+                errors.description ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : null
               )}
               {...register('description')}
             />

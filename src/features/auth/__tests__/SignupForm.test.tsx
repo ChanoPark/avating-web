@@ -471,7 +471,7 @@ describe('SignupForm', () => {
   });
 
   describe('에러 상태 스타일', () => {
-    it('이메일 형식 에러일 때 input 에 border-danger-mark 클래스가 적용된다', async () => {
+    it('이메일 형식 에러일 때 input 에 위험색 1px 안쪽 선이 적용된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<SignupForm />);
 
@@ -480,14 +480,16 @@ describe('SignupForm', () => {
       await user.tab();
 
       await waitFor(() => {
-        expect(emailInput).toHaveClass('border-danger-mark');
+        expect(emailInput).toHaveClass('shadow-[inset_0_0_0_1px_var(--danger-text)]');
         expect(emailInput).toHaveAttribute('aria-invalid', 'true');
       });
     });
 
-    it('정상 상태에서는 border-danger-mark 가 적용되지 않는다', () => {
+    it('정상 상태에서는 위험색 안쪽 선이 적용되지 않는다', () => {
       renderWithProviders(<SignupForm />);
-      expect(screen.getByLabelText(/이메일/i)).not.toHaveClass('border-danger-mark');
+      expect(screen.getByLabelText(/이메일/i)).not.toHaveClass(
+        'shadow-[inset_0_0_0_1px_var(--danger-text)]'
+      );
     });
   });
 

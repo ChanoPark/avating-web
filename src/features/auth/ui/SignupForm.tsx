@@ -168,7 +168,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="you@example.com"
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? 'signup-email-error' : undefined}
-              className={`${inputBase} ${errors.email ? 'border-danger-mark focus:border-danger-mark' : 'border-field focus:border-mark'}`}
+              className={`${inputBase} ${errors.email ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
               {...register('email')}
             />
             {errors.email?.message && (
@@ -199,7 +199,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                     : 'signup-password-help signup-password-strength'
                 }
                 placeholder="8자 이상, 영문·숫자·특수문자 포함"
-                className={`${inputBase} pr-10 ${errors.password ? 'border-danger-mark focus:border-danger-mark' : 'border-field focus:border-mark'}`}
+                className={`${inputBase} pr-10 ${errors.password ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
                 {...register('password')}
               />
               <button
@@ -270,7 +270,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="아바타 프로필에 표시됩니다"
               aria-invalid={errors.nickname ? true : undefined}
               aria-describedby={errors.nickname ? 'signup-nickname-error' : 'signup-nickname-help'}
-              className={`${inputBase} ${errors.nickname ? 'border-danger-mark focus:border-danger-mark' : 'border-field focus:border-mark'}`}
+              className={`${inputBase} ${errors.nickname ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
               {...register('nickname')}
             />
             {errors.nickname?.message ? (

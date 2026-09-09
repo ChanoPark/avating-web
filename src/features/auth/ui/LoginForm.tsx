@@ -98,7 +98,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               placeholder="you@example.com"
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? 'login-email-error' : undefined}
-              className={`${inputBase} ${errors.email ? 'border-danger-mark focus:border-danger-mark' : 'border-field focus:border-mark'}`}
+              className={`${inputBase} ${errors.email ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
               {...register('email')}
             />
             {errors.email?.message && (
@@ -124,7 +124,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
               placeholder="비밀번호 입력"
               aria-invalid={errors.password ? true : undefined}
               aria-describedby={errors.password ? 'login-password-error' : undefined}
-              className={`${inputBase} ${errors.password ? 'border-danger-mark focus:border-danger-mark' : 'border-field focus:border-mark'}`}
+              className={`${inputBase} ${errors.password ? 'shadow-[inset_0_0_0_1px_var(--danger-text)]' : ''}`}
               {...register('password')}
             />
             {errors.password?.message && (
