@@ -127,7 +127,7 @@ export function Modal({
         )}
 
         {footer !== undefined && (
-          <div className="border-subtle flex items-center justify-between gap-2 border-t px-5 py-3">
+          <div className="border-subtle mt-auto flex flex-none items-center justify-between gap-2 border-t px-5 py-3 sm:mt-0">
             {footer}
           </div>
         )}

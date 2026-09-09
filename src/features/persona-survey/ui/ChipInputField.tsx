@@ -1,6 +1,7 @@
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Plus, X } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
+import { FIELD_CLASS } from '@shared/ui/Input';
 
 // 정본 note("이모지 입력은 받지 않습니다")를 문구로만 두면 거짓말이 되므로 입력 단계에서 막는다.
 const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
@@ -84,7 +85,7 @@ export function ChipInputField({
             setInput(e.target.value);
           }}
           onKeyDown={handleKeyDown}
-          className="bg-canvas text-caption text-primary placeholder:text-secondary border-field ease-standard rounded-chip w-full border px-3 py-2.25 transition-colors duration-[var(--dur-fast)] focus-visible:outline-offset-0"
+          className={cn(FIELD_CLASS, 'text-caption')}
         />
       </div>
 

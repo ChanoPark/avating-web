@@ -20,7 +20,7 @@ export const FIELD_CLASS = cn(
   'bg-surface text-primary text-body w-full rounded-chip border-0 px-3',
   'h-9 placeholder:text-secondary',
   'transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard',
-  'hover:bg-raised focus-visible:outline-offset-0',
+  'hover:bg-raised focus-visible:outline-offset-0 focus-visible:shadow-none',
   'disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed'
 );
 

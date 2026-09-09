@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
@@ -178,7 +179,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center px-4"
+      className="fixed inset-0 flex items-center justify-center sm:px-6"
       style={{ zIndex: 'var(--z-modal)' }}
     >
       <button
@@ -228,8 +229,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             void handleSubmit(onSubmit)(e);
           }}
           noValidate
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="flex flex-col gap-3 px-6 py-4.5">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-6 py-4.5">
             <PartnerAvatarCard partner={partner} />
 
             <div className="flex flex-col gap-2">
@@ -313,10 +315,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 aria-describedby={errors.greeting !== undefined ? greetingErrorId : greetingHelpId}
                 {...register('greeting')}
                 className={cn(
-                  'bg-canvas text-body text-primary rounded-chip min-h-23 w-full resize-y border px-3 py-2.25 leading-[1.55]',
-                  'ease-standard transition-[border-color,box-shadow] duration-[var(--dur-fast)]',
-                  errors.greeting ? 'border-danger-mark' : 'border-field',
-                  'focus-visible:outline-offset-0'
+                  FIELD_CLASS,
+                  'h-auto min-h-23 resize-y py-2.25 leading-[1.55]',
+                  errors.greeting ? FIELD_ERROR_CLASS : null
                 )}
               />
               {errors.greeting?.message ? (
@@ -341,7 +342,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             )}
           </div>
 
-          <div className="border-subtle flex items-center justify-between gap-2 border-t px-6 py-4">
+          <div className="border-subtle flex flex-none items-center justify-between gap-2 border-t px-6 py-4">
             <Button
               type="button"
               variant="ghost"

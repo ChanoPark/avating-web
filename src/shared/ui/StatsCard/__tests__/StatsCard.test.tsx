@@ -68,7 +68,6 @@ describe('StatsCard', () => {
     render(<StatsCard {...defaultProps} />);
     const card = screen.getByLabelText(defaultProps.ariaLabel);
     expect(card.className).toContain('bg-canvas');
-    expect(card.className).toContain('border-subtle');
     expect(card.className).toContain('shadow-[inset_0_0_0_1px_var(--border-subtle)]');
     expect(card.className).toContain('rounded-card');
   });

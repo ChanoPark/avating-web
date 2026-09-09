@@ -291,7 +291,7 @@ describe('MatchRequestModal', () => {
   });
 
   describe('greeting 유효성 UX (에러 상태 스타일·트리거 타이밍)', () => {
-    it('100자 초과 후 blur 시 textarea 에 border-danger-mark 클래스가 적용된다', async () => {
+    it('100자 초과 후 blur 시 textarea 에 위험색 1px 안쪽 선이 적용된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       await screen.findByRole('radiogroup');
@@ -299,7 +299,7 @@ describe('MatchRequestModal', () => {
       await user.type(textarea, 'a'.repeat(101));
       await user.tab();
       await waitFor(() => {
-        expect(textarea.className).toMatch(/border-danger-mark/);
+        expect(textarea.className).toContain('shadow-[inset_0_0_0_1px_var(--danger-text)]');
       });
     });
 
