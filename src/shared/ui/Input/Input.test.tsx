@@ -17,60 +17,53 @@ describe('Input', () => {
     expect(screen.getByText(/형식이 올바르지 않습니다/)).toBeInTheDocument();
   });
 
-  it('에러 시 입력에 위험색 테두리가 적용된다', () => {
+  it('에러는 1px 안쪽 선이다 — 링을 두 겹으로 얹지 않는다', () => {
     render(<Input label="이메일" errorMessage="형식이 올바르지 않습니다." />);
-    expect(screen.getByLabelText('이메일').className).toContain('border-danger');
+    const cls = screen.getByLabelText('이메일').className;
+    expect(cls).toContain('shadow-[inset_0_0_0_1px_var(--danger-text)]');
+    expect(cls).not.toContain('focus:shadow-');
   });
 
-  it('에러 상태 focus 링은 danger-wash 를 쓴다', () => {
-    render(<Input label="이메일" errorMessage="형식이 올바르지 않습니다." />);
-    expect(screen.getByLabelText('이메일').className).toContain(
-      'focus:shadow-[0_0_0_3px_var(--danger-wash)]'
-    );
-  });
-
-  describe('`.av-input` 규격 (forms.css)', () => {
-    it('기본 배경은 흰 서피스이고, 회색 채움은 disabled 에만 쓴다', () => {
+  describe('`.cx-input` 규격', () => {
+    it('필드는 상자가 아니라 톤이다 — 회색 채움에 테두리가 없다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
       expect(cls).toContain('bg-surface');
-      expect(cls).not.toContain('bg-canvas ');
-      expect(cls).toContain('disabled:bg-canvas-soft');
-      expect(cls).not.toContain('disabled:bg-surface');
+      expect(cls).toContain('border-0');
+      expect(cls).not.toContain('bg-canvas');
     });
 
-    it('15px 타입 · 9px 12px 패딩 · radius 6 · min-height 40 을 갖는다', () => {
+    it('15px 타입 · 12px 좌우 패딩 · radius 6 · 높이 36 을 갖는다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
       expect(cls).toContain('text-body');
       expect(cls).toContain('px-3');
-      expect(cls).toContain('py-2.25');
-      expect(cls).toContain('rounded-sm');
-      expect(cls).toContain('min-h-10');
+      expect(cls).toContain('rounded-chip');
+      expect(cls).toContain('h-9');
     });
 
-    it('focus 시 파란 테두리와 포커스 링을 함께 쓴다', () => {
+    it('포커스 링은 필드 가장자리에 붙는다 (offset 0) — 전역 링을 죽이지 않는다', () => {
       render(<Input label="이메일" />);
       const cls = screen.getByLabelText('이메일').className;
-      expect(cls).toContain('focus:border-primary');
-      expect(cls).toContain('focus:shadow-focus');
+      expect(cls).toContain('focus-visible:outline-offset-0');
+      expect(cls).not.toContain('outline-none');
     });
 
-    it('disabled 는 canvas-soft 채움 + ink-mute 텍스트다', () => {
+    it('disabled 는 별도 필드 채움 + disabled 텍스트다', () => {
       render(<Input label="이메일" disabled />);
       const cls = screen.getByLabelText('이메일').className;
-      expect(cls).toContain('disabled:bg-canvas-soft');
-      expect(cls).toContain('disabled:text-ink-mute');
+      expect(cls).toContain('disabled:bg-field-disabled');
+      expect(cls).toContain('disabled:text-disabled');
       expect(cls).toContain('disabled:cursor-not-allowed');
     });
   });
 
-  describe('`.av-field` 규격 (forms.css)', () => {
-    it('help·error 는 13px 이다 (11px micro 가 아니다)', () => {
+  describe('`.cx-field` 규격', () => {
+    it('help·error 는 13px 이다 (12px meta 가 아니다)', () => {
       const { rerender } = render(<Input label="비밀번호" helperText="8자 이상" />);
       const help = screen.getByText('8자 이상');
       expect(help.className).toContain('text-caption');
-      expect(help.className).not.toContain('text-micro');
+      expect(help.className).not.toContain('text-meta');
 
       rerender(<Input label="비밀번호" errorMessage="너무 짧습니다." />);
       const error = screen.getByText(/너무 짧습니다/);
@@ -78,17 +71,17 @@ describe('Input', () => {
       expect(error.className).toContain('text-danger');
     });
 
-    it('라벨은 13px / 500 / ink-secondary 다', () => {
+    it('라벨은 13px / 500 / secondary 다', () => {
       const { container } = render(<Input label="이메일" />);
       const label = container.querySelector('label');
       expect(label?.className).toContain('text-caption');
       expect(label?.className).toContain('font-medium');
-      expect(label?.className).toContain('text-ink-secondary');
+      expect(label?.className).toContain('text-secondary');
     });
 
-    it('필드 래퍼는 gap 6 으로 묶인다', () => {
+    it('필드 래퍼는 gap 4 로 묶인다', () => {
       const { container } = render(<Input label="이메일" />);
-      expect((container.firstChild as HTMLElement).className).toContain('gap-1.5');
+      expect((container.firstChild as HTMLElement).className).toContain('gap-1');
     });
   });
 
@@ -99,12 +92,12 @@ describe('Input', () => {
     expect(message.textContent).not.toContain('✕');
   });
 
-  // ink-faint 는 장식 전용이라 대비가 부족하다 — placeholder 에 쓰지 않는다.
-  it('placeholder 는 ink-mute 이상 대비를 쓴다', () => {
+  // text-muted(3.94:1)는 장식 전용이라 AA 미만이다 — placeholder 에 쓰지 않는다.
+  it('placeholder 는 text-secondary 이상 대비를 쓴다', () => {
     render(<Input label="이메일" placeholder="you@example.com" />);
     const cls = screen.getByLabelText('이메일').className;
-    expect(cls).toContain('placeholder:text-ink-mute');
-    expect(cls).not.toContain('placeholder:text-ink-faint');
+    expect(cls).toContain('placeholder:text-secondary');
+    expect(cls).not.toContain('placeholder:text-muted');
   });
 
   it('renders helperText when no error', () => {

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { Card } from '@shared/ui/Card';
 
 /**
  * 정본 아트보드가 1440 데스크톱 전용이라 모바일 규격이 없다 — 좁은 폭에서는
@@ -24,13 +23,10 @@ type AuthLayoutProps = {
   children: ReactNode;
 };
 
-// 정본: LAYOUT-NUMBERS § 카드 · 데이터 부품 (로고 마크)
-function BrandLogo() {
+// .cx-auth__mark — 마크가 아니라 워드마크다. 제품에 심볼이 없어서 여기서 지어내지 않는다.
+function BrandWordmark() {
   return (
-    <span className="flex items-center gap-2">
-      <span aria-hidden="true" className="bg-primary h-[19px] w-[19px] shrink-0 rounded-[5.32px]" />
-      <span className="text-ink text-[14.82px] font-medium tracking-[-0.4px]">Avating</span>
-    </span>
+    <div className="text-ink text-[22px] leading-[30px] font-bold tracking-[-0.01em]">Avating</div>
   );
 }
 
@@ -38,24 +34,24 @@ function AuthAside({ items, note }: { items: readonly AuthAsideItem[]; note?: st
   return (
     <aside
       aria-label="이용 안내"
-      className="border-hairline bg-surface flex w-full shrink-0 flex-col gap-4 border-t px-9 py-12 lg:w-[340px] lg:border-t-0 lg:border-l"
+      className="border-subtle bg-canvas flex w-full shrink-0 flex-col gap-4 border-t px-9 py-12 lg:w-[340px] lg:border-t-0 lg:border-l"
     >
-      <span className="text-micro-cap text-ink-mute uppercase">HOW IT WORKS</span>
+      <span className="text-label text-secondary uppercase">HOW IT WORKS</span>
 
       {items.map((item, index) => (
         <div key={item.title} className="flex flex-col gap-1.5">
           <div className="flex items-center gap-2">
-            <span className="border-hairline bg-canvas-soft text-ink-mute text-micro tnum flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-md border">
+            <span className="border-subtle bg-surface text-secondary text-meta tnum rounded-card flex h-[26px] w-[26px] shrink-0 items-center justify-center border">
               {`0${String(index + 1)}`}
             </span>
-            <span className="text-caption text-ink font-medium">{item.title}</span>
+            <span className="text-caption text-primary font-medium">{item.title}</span>
           </div>
-          <p className="text-micro text-ink-mute tnum pl-[34px]">{item.description}</p>
+          <p className="text-meta text-secondary tnum pl-[34px]">{item.description}</p>
         </div>
       ))}
 
       {note !== undefined && (
-        <p className="text-micro text-ink-mute tnum mt-auto leading-[1.5]">{note}</p>
+        <p className="text-meta text-secondary tnum mt-auto leading-[1.5]">{note}</p>
       )}
     </aside>
   );
@@ -71,25 +67,21 @@ export function AuthLayout({
   children,
 }: AuthLayoutProps) {
   return (
-    <div className="bg-canvas text-ink flex min-h-screen flex-col lg:flex-row">
-      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12 lg:px-14">
-        <section aria-labelledby={headingId} className="w-full max-w-[460px]">
-          <Card className="flex flex-col gap-5 px-6 pt-9.5 pb-8.5 sm:px-11">
-            <BrandLogo />
+    <div className="bg-canvas text-primary flex min-h-screen flex-col lg:flex-row">
+      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12">
+        <section aria-labelledby={headingId} className="w-[400px] max-w-full">
+          <BrandWordmark />
 
-            <div className="flex flex-col gap-1.5">
-              <h1 id={headingId} className="text-heading-lg text-ink">
-                {title}
-              </h1>
-              <p className="text-body-sm text-ink-mute tnum">{subtitle}</p>
-            </div>
+          <h1 id={headingId} className="text-lead text-ink mt-6 font-semibold">
+            {title}
+          </h1>
+          <p className="text-caption text-secondary tnum mt-1">{subtitle}</p>
 
-            {children}
-          </Card>
+          <div className="mt-6 flex flex-col">{children}</div>
         </section>
 
         {footnote !== undefined && (
-          <p className="text-micro text-ink-mute mt-4 w-full max-w-[460px]">{footnote}</p>
+          <p className="text-meta text-secondary mt-4 w-[400px] max-w-full">{footnote}</p>
         )}
       </div>
 

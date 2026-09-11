@@ -51,12 +51,12 @@ describe('ServiceIntroPage', () => {
       expect(within(banner).getByText('요금')).toBeInTheDocument();
     });
 
-    it('활성 내비 항목만 text-ink 이고 나머지는 text-ink-mute 다', () => {
+    it('활성 내비 항목만 text-primary 이고 나머지는 text-secondary 다', () => {
       renderPage();
       const banner = screen.getByRole('banner');
-      expect(within(banner).getByText('서비스 소개')).toHaveClass('text-ink');
-      expect(within(banner).getByText('작동 방식')).toHaveClass('text-ink-mute');
-      expect(within(banner).getByText('요금')).toHaveClass('text-ink-mute');
+      expect(within(banner).getByText('서비스 소개')).toHaveClass('text-primary');
+      expect(within(banner).getByText('작동 방식')).toHaveClass('text-secondary');
+      expect(within(banner).getByText('요금')).toHaveClass('text-secondary');
     });
 
     it('상단 바에 "로그인" ghost 와 "회원가입" secondary 가 함께 있다', () => {
@@ -69,10 +69,8 @@ describe('ServiceIntroPage', () => {
     it('상단 바에 채워진 파란 CTA 는 없다 (밴드당 1개 규칙 — 히어로가 갖는다)', () => {
       renderPage();
       const banner = screen.getByRole('banner');
-      expect(within(banner).getByRole('button', { name: '로그인' })).not.toHaveClass('bg-primary');
-      expect(within(banner).getByRole('button', { name: '회원가입' })).not.toHaveClass(
-        'bg-primary'
-      );
+      expect(within(banner).getByRole('button', { name: '로그인' })).not.toHaveClass('bg-action');
+      expect(within(banner).getByRole('button', { name: '회원가입' })).not.toHaveClass('bg-action');
     });
 
     it('헤더 "로그인" 버튼 클릭 시 /login 으로 이동한다', async () => {
@@ -93,21 +91,21 @@ describe('ServiceIntroPage', () => {
   });
 
   describe('히어로', () => {
-    it('BETA 배지가 테두리 없는 틴트 pill 로 렌더된다', () => {
+    it('BETA 배지가 테두리 없는 무채색 pill 로 렌더된다', () => {
       renderPage();
       const badge = screen.getByText(/BETA · 인터랙티브 소셜 게임/);
-      expect(badge).toHaveClass('bg-primary-wash');
-      expect(badge).toHaveClass('text-primary-press');
-      expect(badge.className).not.toMatch(/border-primary/);
+      expect(badge).toHaveClass('bg-surface');
+      expect(badge).toHaveClass('text-primary');
+      expect(badge.className).not.toMatch(/border-mark/);
     });
 
-    it('메인 헤드카피가 display-lg 로 렌더되고 weight 를 덮어쓰지 않는다', () => {
+    it('메인 헤드카피가 figure 로 렌더되고 weight 를 덮어쓰지 않는다', () => {
       renderPage();
       const heading = screen.getByRole('heading', { level: 1 });
       expect(heading).toHaveTextContent(/귀찮은 밀당은 아바타가/);
       expect(heading).toHaveTextContent(/결정은 당신이/);
-      expect(heading).toHaveClass('text-display-lg');
-      // display 티어의 weight 300 은 `--text-display-lg--font-weight` 가 정한다.
+      expect(heading).toHaveClass('text-figure');
+      // figure 티어의 weight 600 은 `--text-figure--font-weight` 가 정한다.
       // font-* 유틸을 덧붙이면 `--tw-font-weight` 가 그 값을 덮어써 시그니처가 깨진다.
       expect(heading.className).not.toMatch(/\bfont-(thin|light|normal|medium|semibold|bold)\b/);
     });
@@ -117,11 +115,12 @@ describe('ServiceIntroPage', () => {
       expect(screen.getByText(/나를 닮은 AI 아바타가 먼저 대화를 나눕니다/)).toBeInTheDocument();
     });
 
-    it('히어로 CTA 는 "무료로 시작하기" primary 와 "작동 방식 보기" ghost 다', () => {
+    it('히어로 CTA 는 검정 primary 와 ghost 다 — 랜딩엔 파란 채움이 없다', () => {
       renderPage();
       const cta = screen.getByRole('button', { name: '무료로 시작하기' });
-      expect(cta).toHaveClass('bg-primary');
-      expect(screen.getByRole('button', { name: '작동 방식 보기' })).not.toHaveClass('bg-primary');
+      expect(cta).toHaveClass('bg-ink');
+      expect(cta).not.toHaveClass('bg-action');
+      expect(screen.getByRole('button', { name: '작동 방식 보기' })).not.toHaveClass('bg-ink');
     });
 
     it('"무료로 시작하기" 버튼 클릭 시 /signup 으로 이동한다', async () => {
@@ -226,7 +225,7 @@ describe('ServiceIntroPage', () => {
 
       expect(
         within(screen.getByRole('banner')).getByRole('button', { name: '시작하기' })
-      ).not.toHaveClass('bg-primary');
+      ).not.toHaveClass('bg-action');
     });
 
     it('온보딩을 마쳤으면(대표 아바타 보유) 대시보드로 간다', async () => {
@@ -301,9 +300,9 @@ describe('ServiceIntroPage', () => {
       expect(container.textContent ?? '').not.toMatch(/[→✕✓◇▲]/);
     });
 
-    it('본문에 text-ink-faint 를 쓰지 않는다', () => {
+    it('본문에 text-muted 를 쓰지 않는다', () => {
       const { container } = renderPage();
-      expect(container.querySelectorAll('.text-ink-faint')).toHaveLength(0);
+      expect(container.querySelectorAll('.text-muted')).toHaveLength(0);
     });
   });
 });

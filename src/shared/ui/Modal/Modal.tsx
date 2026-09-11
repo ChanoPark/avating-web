@@ -19,11 +19,12 @@ type ModalProps = {
   tone?: ModalTone;
 };
 
+// 어떤 다이얼로그인지는 글리프가 말한다 — 틴트가 붙는 건 파괴적 액션 하나뿐이다.
 const TONE_CONFIG: Record<Exclude<ModalTone, 'neutral'>, { badge: string; icon: LucideIcon }> = {
-  info: { badge: 'bg-primary-wash text-primary-press', icon: Info },
-  success: { badge: 'bg-success-wash text-success', icon: Check },
-  warning: { badge: 'bg-warning-wash text-warning', icon: CircleAlert },
-  danger: { badge: 'bg-danger-wash text-danger', icon: X },
+  info: { badge: 'bg-raised text-secondary', icon: Info },
+  success: { badge: 'bg-raised text-secondary', icon: Check },
+  warning: { badge: 'bg-raised text-secondary', icon: CircleAlert },
+  danger: { badge: 'bg-danger-tint text-danger', icon: X },
 };
 
 export function Modal({
@@ -70,7 +71,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center px-4"
+      className="fixed inset-0 flex items-center justify-center sm:px-6"
       style={{ zIndex: 'var(--z-modal)' }}
     >
       <button
@@ -78,7 +79,7 @@ export function Modal({
         aria-label="모달 닫기"
         tabIndex={-1}
         onClick={onClose}
-        className="absolute inset-0 cursor-default bg-black/60 backdrop-blur-sm"
+        className="bg-overlay absolute inset-0 cursor-default"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
@@ -87,16 +88,16 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="border-hairline bg-surface shadow-float relative w-full max-w-140 overflow-hidden rounded-xl border"
+        className="bg-canvas border-subtle relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
+        <div className="flex items-start justify-between gap-4 px-5 pt-5">
           <div className="flex items-center gap-2">
             {toneCfg && ToneIcon && (
               <span
                 aria-hidden="true"
                 className={cn(
-                  'rounded-pill inline-flex h-5.5 items-center justify-center border border-transparent px-2.25',
+                  'inline-flex h-5.5 items-center justify-center rounded-full border border-transparent px-2.25',
                   toneCfg.badge
                 )}
               >
@@ -108,31 +109,31 @@ export function Modal({
             type="button"
             aria-label="닫기"
             onClick={onClose}
-            className="text-ink-faint hover:text-ink -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
+            className="text-muted hover:text-primary -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
-        <div
-          className={cn('flex flex-col gap-1.5 px-6 pt-3.5', children === undefined && 'pb-4.5')}
-        >
-          <h2 className="text-heading-md text-ink">{title}</h2>
-          {description !== undefined && <p className="text-body-sm text-ink-mute">{description}</p>}
+        <div className={cn('flex flex-col gap-2 px-5 pt-3', children === undefined && 'pb-5')}>
+          <h2 className="text-title text-ink font-bold">{title}</h2>
+          {description !== undefined && <p className="text-body text-primary">{description}</p>}
         </div>
 
         {children !== undefined && (
-          <div className="flex flex-col gap-3 px-6 py-4.5">{children}</div>
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-5 py-4">
+            {children}
+          </div>
         )}
 
         {footer !== undefined && (
-          <div className="border-hairline flex items-center justify-between gap-2 border-t px-6 py-4">
+          <div className="border-subtle mt-auto flex flex-none items-center justify-between gap-2 border-t px-5 py-3 sm:mt-0">
             {footer}
           </div>
         )}
 
         {footnote !== undefined && (
-          <p className="text-micro text-ink-mute px-6 pb-4 text-center">{footnote}</p>
+          <p className="text-meta text-secondary px-6 pb-4 text-center">{footnote}</p>
         )}
       </div>
     </div>,

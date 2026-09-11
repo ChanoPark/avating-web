@@ -2,43 +2,44 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 import { Badge } from '../Badge';
 
+// 정본: `.cx-badge` + `.cx-status` — 배지는 시스템이 알려주는 상태라 **무채색**이다.
+// success·warning 색은 Codex 에 없고, 상태는 색이 아니라 마크의 모양으로 나뉜다.
 describe('Badge', () => {
   it('children을 렌더한다', () => {
     render(<Badge>인증</Badge>);
     expect(screen.getByText('인증')).toBeInTheDocument();
   });
 
-  it('22px 높이 · 9px 좌우 패딩 · 12px medium · line-height 1 · pill 이다', () => {
+  it('20px 고정 높이 · 8px 좌우 패딩 · 13px medium · pill 이다', () => {
     render(<Badge>인증</Badge>);
     const badge = screen.getByText('인증');
-    expect(badge.className).toContain('h-5.5');
-    expect(badge.className).toContain('px-2.25');
-    expect(badge.className).toContain('text-[12px]');
+    expect(badge.className).toContain('h-5');
+    expect(badge.className).toContain('px-2');
+    expect(badge.className).toContain('text-caption');
     expect(badge.className).toContain('font-medium');
-    expect(badge.className).toContain('leading-none');
-    expect(badge.className).toContain('rounded-pill');
+    expect(badge.className).toContain('leading-5');
+    expect(badge.className).toContain('rounded-full');
   });
 
-  it('Tag 의 uppercase eyebrow 타입을 쓰지 않는다', () => {
+  it('대문자 + caps 자간을 쓴다', () => {
     render(<Badge>인증</Badge>);
     const badge = screen.getByText('인증');
-    expect(badge.className).not.toContain('uppercase');
-    expect(badge.className).not.toContain('text-micro-cap');
+    expect(badge.className).toContain('uppercase');
+    expect(badge.className).toContain('tracking-[var(--ls-caps)]');
   });
 
-  it('기본(neutral)은 canvas-soft 채움 + ink-secondary 텍스트 + hairline 테두리다', () => {
+  it('기본(neutral)은 raised 채움 + secondary 텍스트이고 테두리가 없다', () => {
     render(<Badge>대기</Badge>);
     const badge = screen.getByText('대기');
-    expect(badge.className).toContain('bg-canvas-soft');
-    expect(badge.className).toContain('text-ink-secondary');
-    expect(badge.className).toContain('border-hairline');
+    expect(badge.className).toContain('bg-raised');
+    expect(badge.className).toContain('text-secondary');
+    expect(badge.className.split(' ')).not.toContain('border');
   });
 
   it.each([
-    ['brand', 'bg-primary-wash', 'text-primary-press'],
-    ['success', 'bg-success-wash', 'text-success'],
-    ['warning', 'bg-warning-wash', 'text-warning'],
-    ['danger', 'bg-danger-wash', 'text-danger'],
+    ['count', 'bg-count', 'text-count-text'],
+    ['strong', 'bg-count-strong', 'text-count-strong-text'],
+    ['alert', 'bg-danger-tint', 'text-danger'],
   ] as const)('variant="%s" 는 %s 채움 + %s 텍스트다', (variant, bg, text) => {
     render(<Badge variant={variant}>라벨</Badge>);
     const badge = screen.getByText('라벨');
@@ -46,44 +47,50 @@ describe('Badge', () => {
     expect(badge.className).toContain(text);
   });
 
-  // border-transparent 라도 폭 1px 은 유지해야 한다 — 안 그러면 variant 마다 높이 22 가 어긋난다.
-  it.each(['brand', 'success', 'warning', 'danger'] as const)(
-    'variant="%s" 는 hairline 대신 투명 테두리를 쓰되 1px 폭은 유지한다',
-    (variant) => {
-      render(<Badge variant={variant}>라벨</Badge>);
-      const badge = screen.getByText('라벨');
-      expect(badge.className).toContain('border-transparent');
-      expect(badge.className).not.toContain('border-hairline');
-      expect(badge.className.split(' ')).toContain('border');
-    }
-  );
+  it('variant="outline" 은 투명 배경 + 1px 안쪽 규칙이다', () => {
+    render(<Badge variant="outline">인증</Badge>);
+    const badge = screen.getByText('인증');
+    expect(badge.className).toContain('bg-transparent');
+    expect(badge.className).toContain('shadow-[inset_0_0_0_1px_var(--border-subtle)]');
+  });
 
-  describe('dot', () => {
-    it('dot 를 켜면 6px currentColor 원이 children 앞에 붙는다', () => {
-      render(
-        <Badge variant="success" dot>
-          온라인
-        </Badge>
-      );
-      const badge = screen.getByText('온라인');
-      const dot = badge.firstElementChild;
-      expect(dot).not.toBeNull();
-      expect(dot?.className).toContain('h-1.5');
-      expect(dot?.className).toContain('w-1.5');
+  it('어떤 variant 에도 success·warning 색이 남아 있지 않다', () => {
+    render(<Badge variant="count">라벨</Badge>);
+    const cls = screen.getByText('라벨').className;
+    expect(cls).not.toContain('success');
+    expect(cls).not.toContain('warning');
+  });
+
+  describe('mark — 상태는 색이 아니라 모양이다', () => {
+    it('mark="active" 는 채워진 9px 원이다', () => {
+      render(<Badge mark="active">온라인</Badge>);
+      const dot = screen.getByText('온라인').firstElementChild;
+      expect(dot?.className).toContain('h-[9px]');
+      expect(dot?.className).toContain('w-[9px]');
       expect(dot?.className).toContain('rounded-full');
       expect(dot?.className).toContain('bg-current');
     });
 
-    it('dot 는 장식이라 접근성 트리에서 감춘다', () => {
-      render(
-        <Badge variant="success" dot>
-          온라인
-        </Badge>
+    it('mark="idle" 은 채움 없는 링이다', () => {
+      render(<Badge mark="idle">오프라인</Badge>);
+      const dot = screen.getByText('오프라인').firstElementChild;
+      expect(dot?.className).toContain('bg-transparent');
+      expect(dot?.className).toContain('border-strong');
+    });
+
+    it('mark="running" 은 맥동한다', () => {
+      render(<Badge mark="running">매칭 중</Badge>);
+      expect(screen.getByText('매칭 중').firstElementChild?.className).toContain(
+        'motion-safe:animate-pulse'
       );
+    });
+
+    it('mark 는 장식이라 접근성 트리에서 감춘다', () => {
+      render(<Badge mark="active">온라인</Badge>);
       expect(screen.getByText('온라인').firstElementChild).toHaveAttribute('aria-hidden', 'true');
     });
 
-    it('기본값은 dot 없음이다', () => {
+    it('기본값은 mark 없음이다', () => {
       render(<Badge>인증</Badge>);
       expect(screen.getByText('인증').querySelector('.rounded-full')).toBeNull();
     });
@@ -91,7 +98,7 @@ describe('Badge', () => {
 
   it('아이콘 자식을 받는다', () => {
     render(
-      <Badge variant="brand">
+      <Badge variant="outline">
         <svg data-testid="shield" aria-hidden="true" />
         인증
       </Badge>

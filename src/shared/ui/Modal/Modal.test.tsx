@@ -137,13 +137,13 @@ describe('Modal', () => {
     });
   });
 
-  describe('시맨틱 톤 (components.css `.av-badge--*`)', () => {
+  describe('시맨틱 톤 (`.cx-badge`)', () => {
     // v2 Sheet 는 상단 레일이 아니라 헤더 배지 행으로 톤을 표시한다.
     it.each([
-      ['info', 'bg-primary-wash'],
-      ['success', 'bg-success-wash'],
-      ['warning', 'bg-warning-wash'],
-      ['danger', 'bg-danger-wash'],
+      ['info', 'bg-raised'],
+      ['success', 'bg-raised'],
+      ['warning', 'bg-raised'],
+      ['danger', 'bg-danger-tint'],
     ] as const)('tone="%s" 이면 헤더에 %s 톤 배지를 렌더한다', (tone, washClass) => {
       render(
         <Modal open onClose={() => undefined} title="확인" tone={tone}>
@@ -170,18 +170,17 @@ describe('Modal', () => {
     });
   });
 
-  describe('Sheet 규격 (LAYOUT-NUMBERS § Sheet)', () => {
-    it('폭 560 · radius 16 · hairline · shadow-float 를 갖는다', () => {
+  describe('Sheet 규격 (`.cx-dialog--md`)', () => {
+    it('폭 560 · radius 16 · hairline 을 갖는다 (640 아래에선 화면 전체)', () => {
       render(
         <Modal open onClose={() => undefined} title="규격">
           body
         </Modal>
       );
       const dialog = screen.getByRole('dialog');
-      expect(dialog.className).toContain('max-w-140');
-      expect(dialog.className).toContain('rounded-xl');
-      expect(dialog.className).toContain('border-hairline');
-      expect(dialog.className).toContain('shadow-float');
+      expect(dialog.className).toContain('sm:max-w-140');
+      expect(dialog.className).toContain('sm:rounded-[16px]');
+      expect(dialog.className).toContain('border-subtle');
     });
 
     it('헤더 행의 닫기 아이콘을 누르면 onClose 가 호출된다', async () => {
@@ -209,7 +208,7 @@ describe('Modal', () => {
       );
       const bar = screen.getByRole('button', { name: '확인' }).parentElement;
       expect(bar?.className).toContain('border-t');
-      expect(bar?.className).toContain('border-hairline');
+      expect(bar?.className).toContain('border-subtle');
     });
 
     it('footnote 는 가운데 정렬 각주로 렌더된다', () => {
@@ -225,7 +224,7 @@ describe('Modal', () => {
         </Modal>
       );
       const note = screen.getByText('수락 시 매칭이 시작됩니다.');
-      expect(note.className).toContain('text-micro');
+      expect(note.className).toContain('text-meta');
       expect(note.className).toContain('text-center');
     });
   });

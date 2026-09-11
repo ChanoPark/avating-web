@@ -108,10 +108,10 @@ function ErrorBody({
       role="alert"
       className={`flex w-full flex-col items-center text-center ${wide ? 'max-w-[520px]' : 'max-w-[470px]'}`}
     >
-      <div aria-hidden="true" className="bg-hairline-input mb-[22px] h-px w-[26px]" />
-      <div className="text-micro-cap text-ink-mute uppercase">{copy.eyebrow}</div>
-      <h1 className="text-heading-lg text-ink mt-3 text-balance">{copy.title}</h1>
-      <p className="text-body-sm text-ink-mute mt-2.5 text-pretty">{copy.body}</p>
+      <div aria-hidden="true" className="bg-subtle mb-[22px] h-px w-[26px]" />
+      <div className="text-label text-secondary uppercase">{copy.eyebrow}</div>
+      <h1 className="text-title text-primary mt-3 text-balance">{copy.title}</h1>
+      <p className="text-caption text-secondary mt-2.5 text-pretty">{copy.body}</p>
       {actions && <div className="mt-[26px] flex flex-wrap justify-center gap-2.5">{actions}</div>}
       {extra}
     </div>
@@ -128,10 +128,10 @@ function EscalationCard({
   action: ReactNode;
 }) {
   return (
-    <div className="bg-canvas-soft flex items-center justify-between gap-3 rounded-md border border-transparent p-3.5 text-left">
+    <div className="bg-surface rounded-card flex items-center justify-between gap-3 border border-transparent p-3.5 text-left">
       <div className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-caption text-ink font-medium">{title}</span>
-        <span className="text-micro text-ink-mute">{hint}</span>
+        <span className="text-caption text-primary font-medium">{title}</span>
+        <span className="text-meta text-secondary">{hint}</span>
       </div>
       {action}
     </div>
@@ -225,7 +225,7 @@ export function ErrorPage({
             ) : (
               <a
                 href={SUPPORT_EMAIL_HREF}
-                className="border-primary bg-surface text-primary rounded-pill hover:bg-primary-wash focus-visible:shadow-focus inline-flex shrink-0 items-center gap-1 border px-3 py-1.5 text-[13px] font-medium transition-colors"
+                className="bg-fill-weak text-primary hover:bg-fill-weak-hover rounded-card text-btn inline-flex h-8 shrink-0 items-center gap-1 px-3 transition-colors"
               >
                 문의하기
                 <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
@@ -241,7 +241,7 @@ export function ErrorPage({
               href={maintenanceStatusUrl ?? STATUS_PAGE_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ink-secondary hover:bg-canvas-soft hover:text-ink rounded-pill focus-visible:shadow-focus inline-flex shrink-0 items-center gap-1 px-3 py-1.5 text-[13px] font-medium transition-colors"
+              className="text-secondary hover:bg-surface hover:text-primary inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-[13px] font-medium transition-colors"
             >
               상태 페이지
               <ArrowUpRight size={14} strokeWidth={1.5} aria-hidden="true" />
@@ -287,19 +287,19 @@ export function ErrorPage({
     extra = (
       <>
         {maintenanceWindow && (
-          <div className="text-micro text-ink-mute mt-4">
+          <div className="text-meta text-secondary mt-4">
             <div className="tnum">
               {maintenanceWindow.startsAt} - {maintenanceWindow.endsAt}
             </div>
             <div className="tnum mt-1">약 {maintenanceWindow.durationMin}분 소요 예정</div>
-            <div className="text-ink-secondary mt-2">점검 내용: {maintenanceWindow.brief}</div>
+            <div className="text-secondary mt-2">점검 내용: {maintenanceWindow.brief}</div>
           </div>
         )}
         <a
           href={maintenanceStatusUrl ?? STATUS_PAGE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-caption text-primary hover:text-primary-hover focus-visible:shadow-focus rounded-pill mt-6 inline-flex items-center gap-1 font-medium"
+          className="text-caption text-action hover:text-action-hover mt-6 inline-flex items-center gap-1 rounded-full font-medium"
         >
           상태 페이지
           <ArrowUpRight size={13} strokeWidth={1.5} aria-hidden="true" />
@@ -325,12 +325,12 @@ export function ErrorPage({
 
   return (
     <div className="bg-canvas flex min-h-screen flex-col">
-      <div className="border-hairline bg-surface flex h-17 shrink-0 items-center justify-between border-b px-6 md:px-16">
+      <div className="border-subtle bg-canvas flex h-17 shrink-0 items-center justify-between border-b px-6 md:px-16">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="bg-primary h-[19px] w-[19px] rounded-[5.32px]" />
-          <span className="text-ink text-[14.82px] font-medium tracking-[-0.4px]">Avating</span>
+          <span aria-hidden="true" className="bg-action rounded-chip h-[19px] w-[19px]" />
+          <span className="text-primary text-[14.82px] font-medium tracking-[-0.4px]">Avating</span>
         </div>
-        <span className="text-caption text-ink-mute">
+        <span className="text-caption text-secondary">
           {variant === 'session-expired' ? '로그인 화면' : '오류'}
         </span>
       </div>

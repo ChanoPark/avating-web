@@ -33,7 +33,7 @@ export function ExpressionsField({
         suggestionsLabel="추천 태그"
       />
 
-      <hr className="border-hairline border-t" />
+      <hr className="border-subtle border-t" />
 
       <ChipInputField
         label="자주 쓰는 표현"
@@ -46,7 +46,7 @@ export function ExpressionsField({
       />
 
       {/* "이모지 입력은 받지 않습니다" 문구는 2026-08-30 사용자 결정으로 제거 — 입력 차단은 유지 */}
-      <p className="text-micro text-ink-mute leading-[1.5]">관심사 태그와 표현 모두 최대 10개</p>
+      <p className="text-meta text-secondary leading-[1.5]">관심사 태그와 표현 모두 최대 10개</p>
     </div>
   );
 }

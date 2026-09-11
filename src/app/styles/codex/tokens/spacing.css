@@ -1,0 +1,41 @@
+/* Codex 디자인 시스템 — verbatim 이식. 값을 편집하지 않는다.
+   원본: .claude/design/2026-09-08-codex-wf2/_ds/tokens/spacing.css */
+:root {
+  /* Multiples of 4. Steps between hierarchy levels are deliberately uneven. */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+  --space-48: 48px;
+  --space-64: 64px;
+
+  /* Three radii only */
+  --radius-chip: 6px; /* chips, inputs, buttons */
+  --radius-card: 10px; /* cards, bubbles, panels */
+  --radius-full: 999px; /* avatars, badges, status dots */
+
+  --bw-hairline: 1px; /* @kind spacing */
+  --bw-ring: 1.5px; /* @kind spacing */
+
+  /* Messenger 4-pane shell */
+  --rail-w: 64px;
+  --list-w: 280px; /* range 208-280 */
+  --panel-w: 296px; /* range 216-360, collapsible */
+  --toast-w: 360px; /* max width; the toast itself is fluid up to it */
+  --panel-metrics: 288px; /* 4th pane; only mounts at >=1353px, a sheet below that */
+  --rail-icon: 26px;
+  --avatar-sm: 22px;
+  --control-h-sm: 28px;
+  --control-h-md: 36px;
+  --control-h-lg: 44px;
+  /* Buttons run taller than generic controls: the CTA is a target, not a field. */
+  --btn-h-sm: 32px;
+  --btn-h-md: 40px;
+  --btn-h-lg: 44px;
+  --composer-h: 52px;
+}

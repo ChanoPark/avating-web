@@ -10,13 +10,18 @@ type InputProps = {
   trailingSlot?: ReactNode;
 } & Omit<InputHTMLAttributes<HTMLInputElement>, 'children'>;
 
-// forms.css `.av-input` — 흰 서피스가 기본이고, 회색 채움은 disabled 상태에만 쓴다.
-const base = cn(
-  'bg-surface text-ink text-body w-full rounded-sm border px-3 py-2.25 leading-[1.4]',
-  'min-h-10 placeholder:text-ink-mute',
-  'transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand',
-  'outline-none',
-  'disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed'
+// `.cx-input` — 필드는 상자가 아니라 톤이다: 회색 채움에 테두리가 없다.
+// 포커스는 링 하나뿐이고 offset 0 이라 필드 가장자리에 딱 붙는다 (전역은 offset 2).
+// placeholder 는 사용자가 읽는 문장이라 secondary(5.73:1)다 — muted(3.94:1)가 아니다.
+/** 오류 표시는 1px 안쪽 선이다 — 필드에 테두리가 없어서 border-color 는 아무 효과가 없다. */
+export const FIELD_ERROR_CLASS = 'shadow-[inset_0_0_0_1px_var(--danger-text)]';
+
+export const FIELD_CLASS = cn(
+  'bg-surface text-primary text-body w-full rounded-chip border-0 px-3',
+  'h-9 placeholder:text-secondary',
+  'transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard',
+  'hover:bg-raised focus-visible:outline-offset-0 focus-visible:shadow-none',
+  'disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed'
 );
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
@@ -30,9 +35,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const isError = Boolean(errorMessage);
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1">
       {label !== undefined && (
-        <label htmlFor={inputId} className="text-caption text-ink-secondary font-medium">
+        <label htmlFor={inputId} className="text-caption text-secondary font-medium">
           {label}
         </label>
       )}
@@ -43,17 +48,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={isError || undefined}
           aria-describedby={errId ?? helpId}
           className={cn(
-            base,
-            isError
-              ? 'border-danger focus:border-danger focus:shadow-[0_0_0_3px_var(--danger-wash)]'
-              : 'border-hairline-input focus:border-primary focus:shadow-focus',
+            FIELD_CLASS,
+            // 오류는 1px 안쪽 선이다 — 링을 두 겹으로 얹지 않는다.
+            isError ? FIELD_ERROR_CLASS : null,
             trailingSlot ? 'pr-10' : null,
             className
           )}
           {...rest}
         />
         {trailingSlot !== undefined && (
-          <span className="text-ink-mute absolute inset-y-0 right-2 flex items-center">
+          <span className="text-secondary absolute inset-y-0 right-2 flex items-center">
             {trailingSlot}
           </span>
         )}
@@ -65,7 +69,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           {errorMessage}
         </p>
       ) : helperText !== undefined ? (
-        <p id={helpId} className="text-caption text-ink-mute">
+        <p id={helpId} className="text-caption text-secondary">
           {helperText}
         </p>
       ) : null}

@@ -336,7 +336,7 @@ describe('SurveyStep', () => {
         expect(screen.getByRole('alert')).toBeInTheDocument();
       });
       const alert = screen.getByRole('alert');
-      expect(alert).toHaveClass('border-danger');
+      expect(alert).toHaveClass('border-danger-mark');
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
   });

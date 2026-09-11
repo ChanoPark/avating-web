@@ -13,11 +13,11 @@ type AvatarCardProps = {
 // 목록은 행마다 반복되므로 채워진 파란 CTA 를 쓰지 않는다 (밴드당 primary 는 하나).
 export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
   return (
-    <li className="border-hairline bg-surface shadow-card relative flex flex-col gap-2.5 rounded-lg border p-3.5">
+    <li className="border-subtle bg-canvas rounded-card relative flex flex-col gap-2.5 border p-3.5">
       <div className="flex items-center gap-2.5">
         <span
           aria-hidden="true"
-          className="bg-primary-wash text-primary text-caption flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-semibold uppercase"
+          className="bg-id-none text-id-none-fg text-caption flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-semibold uppercase"
         >
           {avatar.initials}
         </span>
@@ -29,18 +29,18 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
               onClick={() => {
                 onOpen(avatar.id);
               }}
-              className="text-caption text-ink focus-visible:shadow-focus truncate rounded-xs font-medium after:absolute after:inset-0 after:rounded-lg focus-visible:outline-none"
+              className="text-caption text-primary rounded-chip after:rounded-card truncate font-medium after:absolute after:inset-0"
             >
               {avatar.name}
             </button>
             {avatar.verified && (
-              <Badge variant="brand">
+              <Badge variant="outline">
                 <Shield size={11} strokeWidth={1.5} aria-hidden="true" />
                 인증
               </Badge>
             )}
           </span>
-          <span className="text-micro text-ink-mute truncate">{avatar.type}</span>
+          <span className="text-meta text-secondary truncate">{avatar.type}</span>
         </span>
       </div>
 
@@ -48,7 +48,7 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
         <ul className="flex flex-wrap gap-1.25">
           {avatar.tags.slice(0, 3).map((tag) => (
             <li key={tag}>
-              <Tag variant="neutral">{tag}</Tag>
+              <Tag>{tag}</Tag>
             </li>
           ))}
         </ul>
@@ -56,8 +56,8 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
 
       <div className="flex items-center justify-between gap-2">
         <span className="flex items-baseline gap-1.25">
-          <span className="text-micro text-ink-mute">예상 호감도</span>
-          <span className="text-caption text-ink tnum font-medium">{avatar.matchRate}</span>
+          <span className="text-meta text-secondary">예상 호감도</span>
+          <span className="text-caption text-primary tnum font-medium">{avatar.matchRate}</span>
         </span>
         <Button
           variant="secondary"

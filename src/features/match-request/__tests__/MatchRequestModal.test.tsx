@@ -65,12 +65,12 @@ describe('MatchRequestModal', () => {
       expect(onlineDot?.className).toContain('rounded-full');
     });
 
-    it('Sheet 규격(560 · radius 16 · shadow-float)과 각주가 적용된다', async () => {
+    it('Sheet 규격(560 · radius 16 · hairline)과 각주가 적용된다 — 640 아래에선 화면 전체', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
-      expect(dialog).toHaveClass('max-w-140');
-      expect(dialog).toHaveClass('rounded-xl');
-      expect(dialog).toHaveClass('shadow-float');
+      expect(dialog).toHaveClass('sm:max-w-140');
+      expect(dialog).toHaveClass('sm:rounded-[16px]');
+      expect(dialog).toHaveClass('border-subtle');
       expect(
         within(dialog).getByText('24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.')
       ).toBeInTheDocument();
@@ -291,7 +291,7 @@ describe('MatchRequestModal', () => {
   });
 
   describe('greeting 유효성 UX (에러 상태 스타일·트리거 타이밍)', () => {
-    it('100자 초과 후 blur 시 textarea 에 border-danger 클래스가 적용된다', async () => {
+    it('100자 초과 후 blur 시 textarea 에 위험색 1px 안쪽 선이 적용된다', async () => {
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       await screen.findByRole('radiogroup');
@@ -299,7 +299,7 @@ describe('MatchRequestModal', () => {
       await user.type(textarea, 'a'.repeat(101));
       await user.tab();
       await waitFor(() => {
-        expect(textarea.className).toMatch(/border-danger/);
+        expect(textarea.className).toContain('shadow-[inset_0_0_0_1px_var(--danger-text)]');
       });
     });
 

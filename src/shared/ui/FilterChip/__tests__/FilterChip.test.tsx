@@ -21,43 +21,41 @@ describe('FilterChip', () => {
     expect(chip).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('active=true 시 흰 서피스 + 파란 테두리 + inset 링이 적용된다 (틴트 채움 아님)', () => {
+  it('active=true 는 잉크 채움이다 — 파란 테두리도 파란 틴트도 얹지 않는다', () => {
     render(<FilterChip label="온라인" active onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
-    expect(chip.className).toContain('bg-surface');
-    expect(chip.className).toContain('border-primary');
-    expect(chip.className).toContain('text-primary-press');
-    expect(chip.className).toContain('shadow-[inset_0_0_0_1px_var(--primary)]');
+    expect(chip.className).toContain('bg-ink');
+    expect(chip.className).toContain('text-on-ink');
+    expect(chip.className).not.toContain('border-mark');
+    expect(chip.className).not.toContain('bg-action-tint');
   });
 
-  it('높이 30px · pill · 13px 미디엄 타입을 갖는다', () => {
+  it('높이 28px · pill · 13px 미디엄 타입을 갖는다', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
-    expect(chip.className).toContain('h-7.5');
-    expect(chip.className).toContain('rounded-pill');
+    expect(chip.className).toContain('h-7');
+    expect(chip.className).toContain('rounded-full');
     expect(chip.className).toContain('text-caption');
     expect(chip.className).toContain('font-medium');
   });
 
-  it('비활성도 흰 서피스 + hairline 테두리를 유지한다', () => {
+  it('비활성은 회색 채움이고 테두리가 없다', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     expect(chip.className).toContain('bg-surface');
-    expect(chip.className).toContain('border-hairline');
+    expect(chip.className.split(' ')).not.toContain('border');
   });
 
   it('focus-visible 포커스 링을 갖는다', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
-    expect(screen.getByRole('button', { name: '온라인' }).className).toContain(
-      'focus-visible:shadow-focus'
-    );
+    expect(screen.getByRole('button', { name: '온라인' }).className).not.toContain('outline-none');
   });
 
   it('active=false 시 비활성 스타일(브랜드 채움 미적용)', () => {
     render(<FilterChip label="온라인" active={false} onToggle={vi.fn()} />);
     const chip = screen.getByRole('button', { name: '온라인' });
     const hasBrandStyle =
-      chip.className.includes('bg-primary') || chip.className.includes('bg-primary-wash');
+      chip.className.includes('bg-action') || chip.className.includes('bg-action-tint');
     expect(hasBrandStyle).toBe(false);
   });
 

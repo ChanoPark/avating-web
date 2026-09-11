@@ -7,18 +7,18 @@ import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
-const STAT_BOX = 'border-hairline bg-surface shadow-card rounded-lg border p-3.5';
+const STAT_BOX = 'border-subtle bg-canvas rounded-card border p-3.5';
 
 // 실제 StatsCard 와 같은 3단 구조를 그대로 세운다 — 라인 하나만 두면 도착 시 카드가 늘어나 CLS 가 생긴다.
 function StatsSkeleton() {
   return (
     <div className={cn(STAT_BOX, 'flex animate-pulse flex-col gap-1')}>
       <div className="flex items-center gap-2">
-        <div className="bg-canvas-soft h-3.25 w-3.25 shrink-0 rounded" />
-        <div className="bg-canvas-soft h-2.5 w-16 rounded" />
+        <div className="bg-raised rounded-chip h-3.25 w-3.25 shrink-0" />
+        <div className="bg-raised rounded-chip h-2.5 w-16" />
       </div>
-      <div className="bg-canvas-soft h-6.5 w-20 rounded" />
-      <div className="bg-canvas-soft h-2.75 w-24 rounded" />
+      <div className="bg-raised rounded-chip h-6.5 w-20" />
+      <div className="bg-raised rounded-chip h-2.75 w-24" />
     </div>
   );
 }
@@ -128,7 +128,7 @@ export function StatsRetryAction({ onRetry }: { onRetry: () => void }) {
     <div className="flex justify-end">
       <button
         type="button"
-        className="text-caption text-primary hover:text-primary-hover focus-visible:shadow-focus rounded-pill cursor-pointer px-1 font-medium"
+        className="text-caption text-action hover:text-action-hover cursor-pointer rounded-full px-1 font-medium"
         onClick={onRetry}
       >
         통계 다시 불러오기

@@ -11,7 +11,7 @@ import { useFocusTrap } from '@shared/lib/useFocusTrap';
 // 와이어프레임은 open 토글만 그린다 — 나머지 닫기 동작(바깥 클릭·Escape 등)은 정본에 없어 직접 채웠다.
 
 const MENU_ITEM =
-  'flex w-full items-center gap-2 rounded-sm px-[9px] py-[7px] text-[13px] hover:bg-canvas-soft focus-visible:shadow-focus outline-none';
+  'flex w-full items-center gap-2 rounded-chip px-[9px] py-[7px] text-[13px] hover:bg-surface';
 
 export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
   const { data } = useMyAvatars();
@@ -78,7 +78,7 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
   };
 
   return (
-    <div ref={containerRef} className="border-hairline relative mt-auto border-t p-2.5">
+    <div ref={containerRef} className="border-subtle relative mt-auto border-t p-2.5">
       {/* 좁은 레일에서는 톱니만 남긴다 — 아바타·닉네임은 장식이고 톱니가 유일한 조작점이다. */}
       <div
         className={cn(
@@ -88,11 +88,11 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
       >
         <div className={cn('flex min-w-0 items-center gap-2', expanded ? '' : 'hidden lg:flex')}>
           {primary && (
-            <span className="bg-primary-wash text-primary flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase">
+            <span className="bg-id-none text-id-none-fg flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase">
               {primary.initials}
             </span>
           )}
-          {primary && <div className="text-ink truncate text-[13px]">{primary.name}</div>}
+          {primary && <div className="text-primary truncate text-[13px]">{primary.name}</div>}
         </div>
 
         <button
@@ -106,11 +106,11 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
             setOpen((v) => !v);
           }}
           className={cn(
-            'flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px] outline-none',
-            'focus-visible:shadow-focus ease-brand transition-colors duration-[var(--dur-fast)]',
+            'flex h-7 w-7 shrink-0 items-center justify-center rounded-[7px]',
+            'ease-standard transition-colors duration-[var(--dur-fast)]',
             open
-              ? 'bg-primary-wash text-primary-press'
-              : 'text-ink-mute hover:bg-canvas-soft hover:text-ink'
+              ? 'bg-action-tint text-action-press'
+              : 'text-secondary hover:bg-surface hover:text-primary'
           )}
         >
           <Settings size={18} strokeWidth={1.5} aria-hidden="true" />
@@ -122,17 +122,17 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
         <div
           id={menuId}
           className={cn(
-            'bg-surface border-hairline shadow-lift absolute bottom-[calc(100%+8px)] rounded-[10px] border p-[5px]',
+            'bg-canvas border-subtle absolute bottom-[calc(100%+8px)] rounded-[10px] border p-[5px]',
             'z-[var(--z-dropdown)]',
             expanded ? 'right-0 left-0' : 'left-0 w-max lg:right-0 lg:w-auto'
           )}
         >
           {/* 목적지가 없다 — 추측 연결도 '준비중' 문구도 만들지 않는다. 사양이 오면 onClick 만 채운다. */}
-          <button ref={firstItemRef} type="button" className={cn(MENU_ITEM, 'text-ink')}>
+          <button ref={firstItemRef} type="button" className={cn(MENU_ITEM, 'text-primary')}>
             <User size={14} strokeWidth={1.5} aria-hidden="true" />내 정보
           </button>
 
-          <div aria-hidden="true" className="bg-hairline mx-[3px] my-[5px] h-px" />
+          <div aria-hidden="true" className="bg-subtle mx-[3px] my-[5px] h-px" />
 
           {/* 정본은 `x` 아이콘이지만 와이어프레임 아이콘 세트에 로그아웃 글리프가 없어 lucide LogOut 으로
               대신한다. */}

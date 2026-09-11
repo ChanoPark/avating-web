@@ -126,7 +126,7 @@ export function SurveyStep() {
   if (isLoading) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-body-sm text-ink-secondary">질문을 불러오는 중...</p>
+        <p className="text-caption text-secondary">질문을 불러오는 중...</p>
       </div>
     );
   }
@@ -134,7 +134,7 @@ export function SurveyStep() {
   if (isError || !questions) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-body-sm text-danger" role="alert">
+        <p className="text-caption text-danger" role="alert">
           질문을 불러오지 못했습니다. 다시 시도해주세요.
         </p>
         <div>
@@ -261,21 +261,21 @@ export function SurveyStep() {
         <div className={WIZARD_HEAD}>
           {isExpressionsPage ? (
             <>
-              <span className="text-micro-cap text-ink-mute uppercase">
+              <span className="text-label text-secondary uppercase">
                 A · 설문으로 만들기 — 선택 문항
               </span>
-              <h1 className="text-heading-lg text-ink">관심사와 자주 쓰는 말투를 알려주세요</h1>
-              <p className="text-body-sm text-ink-mute">
+              <h1 className="text-title text-primary">관심사와 자주 쓰는 말투를 알려주세요</h1>
+              <p className="text-caption text-secondary">
                 아바타가 더 나답게 말하고, 결이 맞는 상대를 찾는 데 쓰여요.
               </p>
             </>
           ) : (
-            <h1 className="text-heading-lg text-ink">{currentQuestion?.title ?? '질문'}</h1>
+            <h1 className="text-title text-primary">{currentQuestion?.title ?? '질문'}</h1>
           )}
         </div>
 
         <div className="flex items-center justify-between gap-2">
-          <span className="text-caption text-ink-mute tnum">{progressLabel}</span>
+          <span className="text-caption text-secondary tnum">{progressLabel}</span>
           <span className="text-caption text-primary tnum">{percent}%</span>
         </div>
         <div
@@ -284,10 +284,10 @@ export function SurveyStep() {
           aria-valuemin={0}
           aria-valuemax={100}
           aria-valuenow={percent}
-          className="bg-canvas-soft h-1 w-full overflow-hidden rounded-full"
+          className="bg-surface h-1 w-full overflow-hidden rounded-full"
         >
           <div
-            className="bg-primary ease-brand h-full rounded-full transition-[width] duration-[var(--dur)]"
+            className="bg-data-fill ease-standard h-full rounded-full transition-[width] duration-[var(--dur-base)]"
             style={{ width: `${percent}%` }}
           />
         </div>
@@ -318,7 +318,7 @@ export function SurveyStep() {
         {submitError && (
           <p
             role="alert"
-            className="text-caption text-danger border-danger rounded-sm border px-3 py-2"
+            className="text-caption text-danger border-danger-mark rounded-chip border px-3 py-2"
           >
             {submitError}
           </p>

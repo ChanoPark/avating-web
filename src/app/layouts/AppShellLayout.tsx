@@ -30,7 +30,7 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
           ? ['홈', '탐색']
           : ['홈'];
   return (
-    <nav aria-label="현재 위치" className="text-ink-mute text-[13.5px]">
+    <nav aria-label="현재 위치" className="text-secondary text-[13.5px]">
       <ol className="flex items-center gap-[7px]">
         {segments.map((seg, i) => {
           const isLast = i === segments.length - 1;
@@ -41,11 +41,11 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
                   size={13}
                   strokeWidth={1.5}
                   aria-hidden="true"
-                  className="text-ink-mute shrink-0"
+                  className="text-secondary shrink-0"
                 />
               )}
               <span
-                className={isLast ? 'text-ink font-medium' : undefined}
+                className={isLast ? 'text-primary font-medium' : undefined}
                 {...(isLast ? { 'aria-current': 'page' as const } : {})}
               >
                 {seg}
@@ -78,13 +78,10 @@ function SidebarBody({
           expanded ? '' : 'justify-center lg:justify-start'
         )}
       >
-        <span
-          aria-hidden="true"
-          className="bg-primary h-[19px] w-[19px] shrink-0 rounded-[5.32px]"
-        />
+        <span aria-hidden="true" className="bg-action rounded-chip h-[19px] w-[19px] shrink-0" />
         <span
           className={cn(
-            'text-ink text-[14.82px] font-medium tracking-[-0.4px]',
+            'text-primary text-[14.82px] font-medium tracking-[-0.4px]',
             expanded ? '' : 'hidden lg:inline'
           )}
         >
@@ -151,7 +148,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
         {drawerOpen && (
           <div className="fixed inset-0 z-[var(--z-modal)] md:hidden">
             <motion.div
-              className="absolute inset-0 bg-black/60"
+              className="bg-overlay absolute inset-0"
               onClick={() => {
                 setDrawerOpen(false);
               }}
@@ -184,14 +181,14 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
       </AnimatePresence>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="border-hairline bg-surface flex h-14 shrink-0 items-center justify-between border-b px-7">
+        <header className="border-subtle bg-canvas flex h-14 shrink-0 items-center justify-between border-b px-7">
           <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label="메뉴 열기"
               aria-expanded={drawerOpen}
               aria-controls="mobile-sidebar"
-              className="text-ink-mute hover:text-ink md:hidden"
+              className="text-secondary hover:text-primary md:hidden"
               onClick={() => {
                 setDrawerOpen(true);
               }}
@@ -201,7 +198,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
             <ChromeBreadcrumb pathname={location.pathname} />
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="알림" className="text-ink-mute hover:text-ink">
+            <button type="button" aria-label="알림" className="text-secondary hover:text-primary">
               <Bell size={17} strokeWidth={1.5} aria-hidden="true" />
             </button>
           </div>

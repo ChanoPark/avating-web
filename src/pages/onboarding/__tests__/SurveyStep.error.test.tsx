@@ -118,7 +118,7 @@ describe('SurveyStep — 에러 처리', () => {
   });
 
   describe('제출 에러 처리', () => {
-    it('API 에러 응답 시 서버 에러 메시지가 alert 로 표시되고 border-danger 시각 상태가 적용된다', async () => {
+    it('API 에러 응답 시 서버 에러 메시지가 alert 로 표시되고 border-danger-mark 시각 상태가 적용된다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
 
@@ -139,7 +139,7 @@ describe('SurveyStep — 에러 처리', () => {
       });
 
       const alert = screen.getByRole('alert');
-      expect(alert).toHaveClass('border-danger');
+      expect(alert).toHaveClass('border-danger-mark');
       expect(alert).toHaveClass('text-danger');
       expect(alert.textContent ?? '').toMatch(/알 수 없는 오류/);
     });

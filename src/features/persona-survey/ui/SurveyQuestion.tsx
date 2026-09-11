@@ -24,9 +24,9 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
           <label
             key={opt.answerId}
             className={cn(
-              'bg-surface shadow-card flex cursor-pointer items-center gap-3 rounded-lg border p-3',
-              'ease-brand transition-colors duration-[var(--dur-fast)] focus-within:shadow-[var(--focus-ring)]',
-              selected ? 'border-primary' : 'border-hairline hover:border-hairline-input'
+              'bg-canvas rounded-card flex cursor-pointer items-center gap-3 border p-3',
+              'ease-standard transition-colors duration-[var(--dur-fast)] focus-within:shadow-[var(--focus-ring)]',
+              selected ? 'bg-selected border-transparent' : 'border-subtle hover:border-strong'
             )}
           >
             <input
@@ -43,12 +43,12 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
               aria-hidden="true"
               className={cn(
                 'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                selected ? 'border-primary' : 'border-hairline-input'
+                selected ? 'border-mark' : 'border-field'
               )}
             >
-              {selected && <span className="bg-primary block h-2 w-2 rounded-full" />}
+              {selected && <span className="bg-mark block h-2 w-2 rounded-full" />}
             </span>
-            <span className={cn('text-caption', selected ? 'text-ink' : 'text-ink-secondary')}>
+            <span className={cn('text-caption', selected ? 'text-primary' : 'text-secondary')}>
               {opt.text}
             </span>
           </label>

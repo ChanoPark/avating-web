@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { useMemo, useState } from 'react';
 import { ArrowRight, CircleAlert, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
+import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { mapServerError } from '../lib/mapServerError';
@@ -34,7 +35,7 @@ function computePasswordStrength(password: string): {
 }
 
 const STRENGTH_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'bg-canvas-soft',
+  0: 'bg-surface',
   1: 'bg-danger',
   2: 'bg-warning',
   3: 'bg-success',
@@ -42,20 +43,14 @@ const STRENGTH_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
 };
 
 const STRENGTH_TEXT_COLORS: Record<0 | 1 | 2 | 3 | 4, string> = {
-  0: 'text-ink-mute',
+  0: 'text-secondary',
   1: 'text-danger',
   2: 'text-warning',
   3: 'text-success',
   4: 'text-success',
 };
 
-const inputBase =
-  'bg-surface text-body text-ink placeholder:text-ink-mute min-h-10 w-full rounded-sm border px-3 py-2.25 leading-[1.4] transition-[border-color,box-shadow] duration-[var(--dur-fast)] ease-brand focus:outline-none focus-visible:shadow-focus disabled:bg-canvas-soft disabled:text-ink-mute disabled:cursor-not-allowed';
-
 // 아직 화면이 없는 보조 액션의 표기 — disabled 버튼 + 준비 중 aria-label (레포 공통 관례).
-const oauthButton =
-  'bg-surface border-hairline-input text-ink-secondary text-body-sm rounded-pill flex h-10 items-center justify-center border disabled:cursor-not-allowed disabled:opacity-70';
-
 export function SignupForm({ onSuccess }: SignupFormProps) {
   const {
     register,
@@ -119,7 +114,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           <div
             role="alert"
             aria-live="polite"
-            className="text-danger text-caption bg-danger-wash flex items-start gap-1.5 rounded-sm px-3 py-2"
+            className="text-danger text-caption bg-danger-tint rounded-chip flex items-start gap-1.5 px-3 py-2"
           >
             <CircleAlert
               size={13}
@@ -132,33 +127,35 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         )}
 
         <div className="flex flex-col gap-2">
-          <button
+          <Button
             type="button"
+            variant="secondary"
+            block
             disabled
-            className={oauthButton}
             aria-label="Google 로 계속하기 (준비 중)"
           >
             Google로 계속하기
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant="secondary"
+            block
             disabled
-            className={oauthButton}
             aria-label="Apple 로 계속하기 (준비 중)"
           >
             Apple로 계속하기
-          </button>
+          </Button>
         </div>
 
         <div className="flex items-center gap-3" aria-hidden="true">
-          <span className="bg-hairline h-px flex-1" />
-          <span className="text-micro text-ink-mute">OR</span>
-          <span className="bg-hairline h-px flex-1" />
+          <span className="bg-subtle h-px flex-1" />
+          <span className="text-meta text-secondary">OR</span>
+          <span className="bg-subtle h-px flex-1" />
         </div>
 
         <div className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
-            <label htmlFor="signup-email" className="text-caption text-ink-secondary font-medium">
+            <label htmlFor="signup-email" className="text-caption text-secondary font-medium">
               이메일
             </label>
             <input
@@ -168,14 +165,14 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="you@example.com"
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? 'signup-email-error' : undefined}
-              className={`${inputBase} ${errors.email ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+              className={`${FIELD_CLASS} ${errors.email ? FIELD_ERROR_CLASS : ''}`}
               {...register('email')}
             />
             {errors.email?.message && (
               <p
                 id="signup-email-error"
                 role="alert"
-                className="text-micro text-danger flex items-center gap-1"
+                className="text-meta text-danger flex items-center gap-1"
               >
                 <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.email.message}
@@ -184,10 +181,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="signup-password"
-              className="text-caption text-ink-secondary font-medium"
-            >
+            <label htmlFor="signup-password" className="text-caption text-secondary font-medium">
               비밀번호
             </label>
             <div className="relative">
@@ -202,7 +196,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                     : 'signup-password-help signup-password-strength'
                 }
                 placeholder="8자 이상, 영문·숫자·특수문자 포함"
-                className={`${inputBase} pr-10 ${errors.password ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+                className={`${FIELD_CLASS} pr-10 ${errors.password ? FIELD_ERROR_CLASS : ''}`}
                 {...register('password')}
               />
               <button
@@ -211,7 +205,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                   setShowPassword((v) => !v);
                 }}
                 aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                className="text-ink-mute hover:text-ink absolute inset-y-0 right-3 flex items-center"
+                className="text-secondary hover:text-primary absolute inset-y-0 right-3 flex items-center"
               >
                 {showPassword ? (
                   <EyeOff size={16} strokeWidth={1.5} aria-hidden="true" />
@@ -233,15 +227,15 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                 {[1, 2, 3, 4].map((seg) => (
                   <span
                     key={seg}
-                    className={`ease-brand h-1 flex-1 rounded-sm transition-colors duration-[var(--dur)] ${
-                      seg <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-canvas-soft'
+                    className={`ease-standard rounded-chip h-1 flex-1 transition-colors duration-[var(--dur-base)] ${
+                      seg <= strength.score ? STRENGTH_COLORS[strength.score] : 'bg-surface'
                     }`}
                   />
                 ))}
               </div>
               <span
                 aria-live="polite"
-                className={`text-micro tnum ${STRENGTH_TEXT_COLORS[strength.score]}`}
+                className={`text-meta tnum ${STRENGTH_TEXT_COLORS[strength.score]}`}
               >
                 {strength.label}
               </span>
@@ -250,23 +244,20 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               <p
                 id="signup-password-error"
                 role="alert"
-                className="text-micro text-danger flex items-center gap-1"
+                className="text-meta text-danger flex items-center gap-1"
               >
                 <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.password.message}
               </p>
             ) : (
-              <p id="signup-password-help" className="text-micro text-ink-mute tnum">
+              <p id="signup-password-help" className="text-meta text-secondary tnum">
                 영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요
               </p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <label
-              htmlFor="signup-nickname"
-              className="text-caption text-ink-secondary font-medium"
-            >
+            <label htmlFor="signup-nickname" className="text-caption text-secondary font-medium">
               닉네임
             </label>
             <input
@@ -276,33 +267,33 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               placeholder="아바타 프로필에 표시됩니다"
               aria-invalid={errors.nickname ? true : undefined}
               aria-describedby={errors.nickname ? 'signup-nickname-error' : 'signup-nickname-help'}
-              className={`${inputBase} ${errors.nickname ? 'border-danger focus:border-danger' : 'border-hairline-input focus:border-primary'}`}
+              className={`${FIELD_CLASS} ${errors.nickname ? FIELD_ERROR_CLASS : ''}`}
               {...register('nickname')}
             />
             {errors.nickname?.message ? (
               <p
                 id="signup-nickname-error"
                 role="alert"
-                className="text-micro text-danger flex items-center gap-1"
+                className="text-meta text-danger flex items-center gap-1"
               >
                 <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.nickname.message}
               </p>
             ) : (
-              <p id="signup-nickname-help" className="text-micro text-ink-mute tnum">
+              <p id="signup-nickname-help" className="text-meta text-secondary tnum">
                 영문, 숫자, 한글 · 2–12자
               </p>
             )}
           </div>
 
           <div className="flex flex-col gap-2">
-            <div className="text-caption text-ink-secondary flex items-center gap-2">
+            <div className="text-caption text-secondary flex items-center gap-2">
               <input
                 id="signup-terms"
                 type="checkbox"
                 aria-invalid={errors.termsAgreed ? true : undefined}
                 aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
-                className={`accent-primary h-4 w-4 shrink-0 rounded-sm border ${errors.termsAgreed ? 'border-danger outline-danger outline outline-1' : 'border-hairline-input'}`}
+                className={`accent-mark rounded-chip h-4 w-4 shrink-0 border ${errors.termsAgreed ? 'border-danger-mark outline-danger-mark outline outline-1' : 'border-field'}`}
                 {...register('termsAgreed')}
               />
               <label htmlFor="signup-terms" className="tnum">
@@ -314,17 +305,17 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               <p
                 id="signup-terms-error"
                 role="alert"
-                className="text-micro text-danger ml-6 flex items-center gap-1"
+                className="text-meta text-danger ml-6 flex items-center gap-1"
               >
                 <CircleAlert size={13} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.termsAgreed.message}
               </p>
             )}
-            <div className="text-caption text-ink-secondary flex items-center gap-2">
+            <div className="text-caption text-secondary flex items-center gap-2">
               <input
                 id="signup-marketing"
                 type="checkbox"
-                className="border-hairline-input accent-primary h-4 w-4 shrink-0 rounded-sm border"
+                className="border-field accent-mark rounded-chip h-4 w-4 shrink-0 border"
                 {...register('marketingOptIn')}
               />
               <label htmlFor="signup-marketing">알림 수신 (선택)</label>
@@ -332,14 +323,14 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           </div>
         </div>
 
-        <Button type="submit" variant="primary" block disabled={isLoading} aria-busy={isLoading}>
+        <Button type="submit" variant="brand" block disabled={isLoading} aria-busy={isLoading}>
           {isLoading ? '가입 중...' : '계정 만들기'}
           <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
 
         <div className="text-caption flex items-center justify-center gap-1.5">
-          <span className="text-ink-mute">이미 계정이 있나요?</span>
-          <Link to="/login" className="text-primary hover:text-primary-hover font-medium">
+          <span className="text-secondary">이미 계정이 있나요?</span>
+          <Link to="/login" className="text-action hover:text-action-hover font-medium">
             로그인
           </Link>
         </div>

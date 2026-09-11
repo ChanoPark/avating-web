@@ -70,7 +70,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.getByText('7 / 20')).toBeInTheDocument();
     });
 
-    it('이름이 비어 있으면 다음 클릭 시 검증 에러(메시지·aria-invalid·border-danger)를 보이고 이동하지 않는다', async () => {
+    it('이름이 비어 있으면 다음 클릭 시 검증 에러(메시지·aria-invalid·위험색 안쪽 선)를 보이고 이동하지 않는다', async () => {
       const user = userEvent.setup();
       renderIntro();
 
@@ -81,7 +81,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       const nameInput = screen.getByLabelText(/아바타 이름/);
       expect(await screen.findByRole('alert')).toHaveTextContent(/이름을 입력해주세요/);
       expect(nameInput).toHaveAttribute('aria-invalid', 'true');
-      expect(nameInput).toHaveClass('border-danger');
+      expect(nameInput).toHaveClass('shadow-[inset_0_0_0_1px_var(--danger-text)]');
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -97,7 +97,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       await user.type(nameInput, '루나');
 
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-      expect(nameInput).not.toHaveClass('border-danger');
+      expect(nameInput).not.toHaveClass('shadow-[inset_0_0_0_1px_var(--danger-text)]');
       expect(nameInput).not.toHaveAttribute('aria-invalid');
     });
 
@@ -111,7 +111,7 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       const descInput = screen.getByLabelText(/아바타 설명/);
       expect(await screen.findByRole('alert')).toHaveTextContent(/설명을 입력해주세요/);
       expect(descInput).toHaveAttribute('aria-invalid', 'true');
-      expect(descInput).toHaveClass('border-danger');
+      expect(descInput).toHaveClass('shadow-[inset_0_0_0_1px_var(--danger-text)]');
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 

@@ -137,7 +137,7 @@ export function ConnectStep() {
   if (isIssuing) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-body-sm text-ink-secondary">연결 코드를 발급하는 중...</p>
+        <p className="text-caption text-secondary">연결 코드를 발급하는 중...</p>
       </div>
     );
   }
@@ -148,7 +148,7 @@ export function ConnectStep() {
       <div className={WIZARD_BODY}>
         <p
           role="alert"
-          className="text-caption text-danger border-danger rounded-sm border px-3 py-2"
+          className="text-caption text-danger border-danger-mark rounded-chip border px-3 py-2"
         >
           {message}
         </p>
@@ -173,23 +173,20 @@ export function ConnectStep() {
     <>
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
-          <span className="text-micro-cap text-ink-mute uppercase">ChatGPT Bot 연동</span>
-          <h1 className="text-heading-lg text-ink">ChatGPT Bot과 대화해 보세요</h1>
-          <p className="text-body-sm text-ink-mute">
+          <span className="text-label text-secondary uppercase">ChatGPT Bot 연동</span>
+          <h1 className="text-title text-primary">ChatGPT Bot과 대화해 보세요</h1>
+          <p className="text-caption text-secondary">
             대화 내용을 바탕으로 당신과 닮은 아바타를 만들어 드려요.
           </p>
         </div>
 
         {/* isIssuing·issueError 를 위에서 걸렀으므로 여기서는 코드가 반드시 있다. */}
-        <div className="bg-canvas-soft flex flex-col items-center gap-3 rounded-lg p-5">
-          <span className="text-micro-cap text-ink-mute uppercase">ONE-TIME CODE</span>
-          <div
-            className="text-display-md text-ink tnum tracking-[0.2em]"
-            aria-label="ONE-TIME CODE"
-          >
+        <div className="bg-surface rounded-card flex flex-col items-center gap-3 p-5">
+          <span className="text-label text-secondary uppercase">ONE-TIME CODE</span>
+          <div className="text-title text-primary tnum tracking-[0.2em]" aria-label="ONE-TIME CODE">
             {connectCode.connectCode}
           </div>
-          <span role="timer" aria-live="polite" className="text-micro text-ink-mute tnum">
+          <span role="timer" aria-live="polite" className="text-meta text-secondary tnum">
             유효 시간 {countdownDisplay} 남음
           </span>
           <div className="flex items-center gap-2">
@@ -216,20 +213,20 @@ export function ConnectStep() {
             <li key={text} className="flex items-center gap-2.5">
               <span
                 aria-hidden="true"
-                className="text-micro tnum border-hairline text-ink-mute bg-surface flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border"
+                className="text-meta tnum border-subtle text-secondary bg-canvas flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border"
               >
                 {index + 1}
               </span>
-              <span className="text-caption text-ink-secondary">{text}</span>
+              <span className="text-caption text-secondary">{text}</span>
             </li>
           ))}
         </ol>
 
         {!showReissueCta && (
-          <p className="text-micro text-ink-mute flex items-center gap-2">
+          <p className="text-meta text-secondary flex items-center gap-2">
             <span
               aria-hidden="true"
-              className="bg-primary h-1.5 w-1.5 shrink-0 rounded-full motion-safe:animate-pulse"
+              className="bg-secondary h-1.5 w-1.5 shrink-0 rounded-full motion-safe:animate-pulse"
             />
             연결 대기 중… 연결되면 자동으로 다음 단계로 이동해요
           </p>

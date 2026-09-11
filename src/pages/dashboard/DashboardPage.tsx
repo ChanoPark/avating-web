@@ -53,8 +53,8 @@ export function DashboardPage() {
 
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div className="flex flex-col gap-0.5">
-          <h2 className="text-heading-sm text-ink">추천 아바타</h2>
-          <span className="text-micro text-ink-mute">내 아바타 성향과 결이 비슷한 순서예요</span>
+          <h2 className="text-lead text-primary">추천 아바타</h2>
+          <span className="text-meta text-secondary">내 아바타 성향과 결이 비슷한 순서예요</span>
         </div>
         <FilterChips filter={filter} onFilterChange={setFilter} />
       </div>

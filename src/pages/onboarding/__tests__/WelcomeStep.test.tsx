@@ -87,7 +87,7 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
         .map((card) => card.className);
 
       expect(new Set(classNames).size).toBe(1);
-      expect(classNames[0]).not.toMatch(/border-primary|inset/);
+      expect(classNames[0]).not.toMatch(/border-mark|inset/);
     });
 
     // 정본은 CTA 에 화살표 아이콘을 두지만 이 앱은 두지 않는다 — 위 테두리 건과 같은 이유로 고정한다.

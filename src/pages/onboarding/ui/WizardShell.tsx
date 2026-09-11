@@ -18,15 +18,15 @@ const STEP_STATE_LABEL: Record<StepState, string> = {
 };
 
 const MARKER_STYLE: Record<StepState, string> = {
-  done: 'bg-primary text-on-primary',
-  current: 'bg-surface border-primary text-primary border shadow-[0_0_0_4px_var(--primary-wash)]',
-  upcoming: 'bg-surface border-hairline text-ink-mute border',
+  done: 'bg-ink text-on-ink',
+  current: 'bg-canvas border-ink text-ink border-2',
+  upcoming: 'bg-canvas border-subtle text-secondary border',
 };
 
 const LABEL_STYLE: Record<StepState, string> = {
-  done: 'text-ink-secondary',
-  current: 'text-ink font-medium',
-  upcoming: 'text-ink-mute',
+  done: 'text-secondary',
+  current: 'text-primary font-medium',
+  upcoming: 'text-secondary',
 };
 
 function stepStateOf(index: number, currentStep: number): StepState {
@@ -59,16 +59,13 @@ function StepRail({
     <nav
       aria-label="온보딩 단계"
       className={cn(
-        'bg-canvas border-hairline flex shrink-0 items-center gap-3 border-b px-5 py-4',
+        'bg-canvas border-subtle flex shrink-0 items-center gap-3 border-b px-5 py-4',
         'md:w-[232px] md:flex-col md:items-stretch md:gap-0 md:border-r md:border-b-0 md:px-7 md:py-8'
       )}
     >
       <div className="hidden items-center gap-2 md:flex">
-        <span
-          aria-hidden="true"
-          className="bg-primary h-[18px] w-[18px] shrink-0 rounded-[5.04px]"
-        />
-        <span className="text-ink text-[14.04px] font-medium tracking-[-0.4px]">Avating</span>
+        <span aria-hidden="true" className="bg-action rounded-chip h-[18px] w-[18px] shrink-0" />
+        <span className="text-primary text-[14.04px] font-medium tracking-[-0.4px]">Avating</span>
       </div>
 
       <ol className="flex flex-1 items-center md:mt-7 md:flex-none md:flex-col md:items-stretch">
@@ -79,18 +76,18 @@ function StepRail({
               key={label}
               {...(state === 'current' ? { 'aria-current': 'step' as const } : {})}
               className={cn(
-                // 스텝 사이 커넥터 — 모바일은 가로선, 데스크톱은 세로선이며 지나온 구간만 파랗게 채운다.
+                // 스텝 사이 커넥터 — 모바일은 가로선, 데스크톱은 세로선이며 지나온 구간만 잉크로 채운다.
                 'relative flex flex-1 items-center gap-2.5 last:flex-none',
-                "after:bg-hairline after:block after:h-px after:flex-1 after:content-[''] last:after:hidden",
+                "after:bg-subtle after:block after:h-px after:flex-1 after:content-[''] last:after:hidden",
                 'md:flex-none md:gap-3 md:pb-5 md:last:pb-0',
                 'md:after:absolute md:after:top-[26px] md:after:left-[10.5px] md:after:h-[calc(100%-26px)] md:after:w-px md:after:flex-none',
-                state === 'done' && 'after:bg-primary'
+                state === 'done' && 'after:bg-ink'
               )}
             >
               <span
                 aria-hidden="true"
                 className={cn(
-                  'text-micro tnum flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full',
+                  'text-meta tnum flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full',
                   MARKER_STYLE[state]
                 )}
               >
@@ -106,7 +103,7 @@ function StepRail({
       </ol>
 
       {note !== undefined && (
-        <p className="text-micro text-ink-mute hidden leading-[1.5] md:mt-auto md:block">{note}</p>
+        <p className="text-meta text-secondary hidden leading-[1.5] md:mt-auto md:block">{note}</p>
       )}
     </nav>
   );
@@ -139,7 +136,7 @@ export function WizardShell({
   const hasRail = currentStep !== null;
 
   return (
-    <div className="bg-surface text-ink flex min-h-screen flex-col md:flex-row">
+    <div className="bg-canvas text-primary flex min-h-screen flex-col md:flex-row">
       {hasRail && (
         <StepRail
           currentStep={currentStep}
@@ -161,7 +158,7 @@ export function WizardShell({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
           className={cn(
-            'bg-surface border-hairline shadow-card flex w-full flex-col overflow-hidden rounded-xl border',
+            'bg-canvas border-subtle rounded-card flex w-full flex-col overflow-hidden border',
             FORM_MAX_WIDTH[formWidth]
           )}
         >
@@ -169,7 +166,7 @@ export function WizardShell({
         </motion.div>
 
         {!hasRail && note !== undefined && (
-          <p className="text-micro text-ink-mute mt-4 text-center text-pretty">{note}</p>
+          <p className="text-meta text-secondary mt-4 text-center text-pretty">{note}</p>
         )}
       </main>
     </div>

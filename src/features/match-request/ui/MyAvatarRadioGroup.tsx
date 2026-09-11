@@ -11,7 +11,8 @@ type Props = {
   'aria-describedby'?: string | undefined;
 };
 
-// 선택 상태는 틴트 채움이 아니라 흰 서피스 + 파란 테두리 + 1px inset 링이다.
+// 선택 상태는 --bg-selected 틴트 하나뿐이다 — 파란 테두리도 inset 링도 얹지 않는다
+// (Codex 절대 규칙 ③).
 export function MyAvatarRadioGroup({
   avatars,
   value,
@@ -39,12 +40,10 @@ export function MyAvatarRadioGroup({
             key={avatar.id}
             htmlFor={inputId}
             className={cn(
-              'bg-surface flex cursor-pointer items-center gap-2.75 rounded-lg border p-3',
-              'ease-brand transition-colors duration-[var(--dur-fast)]',
+              'bg-canvas rounded-card flex cursor-pointer items-center gap-2.75 border p-3',
+              'ease-standard transition-colors duration-[var(--dur-fast)]',
               'focus-within:shadow-focus',
-              checked
-                ? 'border-primary shadow-[inset_0_0_0_1px_var(--primary)]'
-                : 'border-hairline hover:border-primary',
+              checked ? 'bg-selected border-transparent' : 'border-subtle hover:border-strong',
               disabled && 'cursor-not-allowed opacity-50'
             )}
           >
@@ -64,25 +63,27 @@ export function MyAvatarRadioGroup({
               aria-hidden="true"
               className={cn(
                 'relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                checked ? 'border-primary bg-primary' : 'border-hairline-input bg-transparent'
+                checked ? 'border-mark bg-mark' : 'border-field bg-transparent'
               )}
             >
-              {checked && <span className="bg-surface h-1.5 w-1.5 rounded-full" />}
+              {checked && <span className="bg-canvas h-1.5 w-1.5 rounded-full" />}
             </span>
             <span
               aria-hidden="true"
-              className="bg-primary-wash text-primary text-micro flex h-7 w-7 shrink-0 items-center justify-center rounded-sm font-semibold uppercase"
+              className="bg-id-none text-id-none-fg text-meta rounded-chip flex h-7 w-7 shrink-0 items-center justify-center font-semibold uppercase"
             >
               {avatar.initials}
             </span>
             <span className="min-w-0 flex-1">
               <span className="flex items-center gap-1.5">
-                <span className="text-caption text-ink truncate font-medium">{avatar.name}</span>
+                <span className="text-caption text-primary truncate font-medium">
+                  {avatar.name}
+                </span>
                 {/* meta 는 Badge 가 아니라 중립 Tag 다. */}
-                {avatar.isPrimary && <Tag variant="neutral">대표</Tag>}
-                {avatar.busy && <Tag variant="neutral">매칭 중</Tag>}
+                {avatar.isPrimary && <Tag>대표</Tag>}
+                {avatar.busy && <Tag>매칭 중</Tag>}
               </span>
-              <span className="text-micro text-ink-mute mt-0.5 block truncate">{avatar.type}</span>
+              <span className="text-meta text-secondary mt-0.5 block truncate">{avatar.type}</span>
             </span>
           </label>
         );

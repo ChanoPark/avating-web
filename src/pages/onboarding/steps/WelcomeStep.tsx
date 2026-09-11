@@ -73,10 +73,10 @@ export function WelcomeStep() {
   return (
     <div className={WIZARD_BODY_FLAT}>
       <div className={WIZARD_HEAD}>
-        <h1 className="text-heading-lg text-ink text-balance">
+        <h1 className="text-title text-primary text-balance">
           환영해요, 이제 아바타를 만들 차례예요
         </h1>
-        <p className="text-body-sm text-ink-mute text-pretty">
+        <p className="text-caption text-secondary text-pretty">
           아바타를 만드는 방법은 세 가지예요. 원하는 방법을 골라 시작하세요.
         </p>
       </div>
@@ -91,26 +91,26 @@ export function WelcomeStep() {
               key={title}
               role="group"
               aria-labelledby={titleId}
-              className="bg-surface border-hairline flex flex-1 flex-col gap-3 rounded-lg border p-[18px]"
+              className="bg-canvas border-subtle rounded-card flex flex-1 flex-col gap-3 border p-[18px]"
             >
               <div className="flex items-center justify-between gap-2">
                 <span
                   aria-hidden="true"
-                  className="bg-primary-wash text-primary-press flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
+                  className="bg-raised text-secondary rounded-card flex h-7 w-7 shrink-0 items-center justify-center"
                 >
                   <MethodIcon size={15} strokeWidth={1.5} />
                 </span>
-                <Tag variant="neutral" className="tnum">
+                <Tag className="tnum">
                   <Clock size={11} strokeWidth={1.5} aria-hidden="true" />
                   {time}
                 </Tag>
               </div>
 
               <div className="flex flex-col gap-[5px]">
-                <h2 id={titleId} className="text-heading-sm text-ink text-balance">
+                <h2 id={titleId} className="text-lead text-primary text-balance">
                   {title}
                 </h2>
-                <p className="text-caption text-ink-mute text-pretty">{desc}</p>
+                <p className="text-caption text-secondary text-pretty">{desc}</p>
               </div>
 
               <Button
@@ -132,7 +132,7 @@ export function WelcomeStep() {
         })}
       </div>
 
-      <div className="bg-canvas-soft rounded-lg px-3.5 py-1">
+      <div className="bg-surface rounded-card px-3.5 py-1">
         <ol className="flex flex-col">
           {TASKS.map((task, index) => {
             const isActive = index === 0;
@@ -141,14 +141,14 @@ export function WelcomeStep() {
                 key={task}
                 className={cn(
                   'flex items-center gap-3 py-[9px] text-[13px]',
-                  isActive ? 'text-ink font-medium' : 'text-ink-mute'
+                  isActive ? 'text-primary font-medium' : 'text-secondary'
                 )}
               >
                 <span
                   aria-hidden="true"
                   className={cn(
-                    'text-micro tnum flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px]',
-                    isActive ? 'border-primary text-primary' : 'border-hairline-input'
+                    'text-meta tnum flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full border-[1.5px]',
+                    isActive ? 'border-ink text-ink' : 'border-field'
                   )}
                 >
                   {index + 1}

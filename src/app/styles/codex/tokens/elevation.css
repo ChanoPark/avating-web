@@ -1,0 +1,8 @@
+/* Codex 디자인 시스템 — verbatim 이식. 값을 편집하지 않는다.
+   원본: .claude/design/2026-09-08-codex-wf2/_ds/tokens/elevation.css */
+:root {
+  /* No shadows anywhere. Planes are separated by a 1px --border line and by
+     the ground / surface / raised lightness steps. */
+  --shadow-none: none;
+  --overlay-scrim: var(--scrim);
+}

@@ -15,19 +15,19 @@ export function AvatarIntroPanel({ publicInfo }: Props) {
   return (
     <section
       aria-labelledby="avatar-public-info-heading"
-      className="border-hairline bg-surface shadow-card flex flex-col rounded-lg border p-4"
+      className="border-subtle bg-canvas rounded-card flex flex-col border p-4"
     >
-      <h3 id="avatar-public-info-heading" className="text-caption text-ink font-medium">
+      <h3 id="avatar-public-info-heading" className="text-caption text-primary font-medium">
         공개 정보
       </h3>
       <dl className="mt-1 flex flex-col">
         {PUBLIC_INFO_ROWS.map((row) => (
           <div
             key={row.key}
-            className="border-hairline text-caption flex items-center justify-between gap-2 border-b py-2.25 last:border-0"
+            className="border-subtle text-caption flex items-center justify-between gap-2 border-b py-2.25 last:border-0"
           >
-            <dt className="text-ink-mute">{row.label}</dt>
-            <dd className="text-ink truncate text-right">{publicInfo[row.key]}</dd>
+            <dt className="text-secondary">{row.label}</dt>
+            <dd className="text-primary truncate text-right">{publicInfo[row.key]}</dd>
           </div>
         ))}
       </dl>

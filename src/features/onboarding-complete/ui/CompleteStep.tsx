@@ -13,17 +13,15 @@ import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 function StatBarRow({ label, value, testId }: { label: string; value: number; testId: string }) {
   return (
     <>
-      <span className="text-caption text-ink-mute w-[72px] shrink-0 text-left">{label}</span>
-      <span className="bg-canvas-soft relative h-1.5 flex-1 overflow-hidden rounded-full">
+      <span className="text-caption text-secondary w-[72px] shrink-0 text-left">{label}</span>
+      <span className="bg-surface relative h-1.5 flex-1 overflow-hidden rounded-full">
         <span
           data-testid={testId}
-          className="bg-primary block h-full rounded-full"
+          className="bg-data-fill block h-full rounded-full"
           style={{ width: `${Math.round(value)}%` }}
         />
       </span>
-      <span className="text-caption text-ink-secondary tnum w-7 text-right">
-        {Math.round(value)}
-      </span>
+      <span className="text-caption text-secondary tnum w-7 text-right">{Math.round(value)}</span>
     </>
   );
 }
@@ -44,35 +42,35 @@ function AvatarContent({ avatar, onStart }: AvatarContentProps) {
     <>
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
-          <h1 className="text-heading-lg text-ink">이렇게 생성됐어요</h1>
-          <p className="text-body-sm text-ink-mute">내용을 확인한 뒤 완료를 눌러 주세요.</p>
+          <h1 className="text-title text-primary">이렇게 생성됐어요</h1>
+          <p className="text-caption text-secondary">내용을 확인한 뒤 완료를 눌러 주세요.</p>
         </div>
 
-        <div className="border-hairline bg-surface shadow-card flex flex-col gap-3 rounded-lg border p-4">
+        <div className="border-subtle bg-canvas rounded-card flex flex-col gap-3 border p-4">
           <div className="flex items-center gap-3">
             {/* 아바타 이미지는 서버가 아직 지원하지 않는다 — 빈 placeholder 로 자리만 잡는다. */}
             <span
               aria-hidden="true"
               data-testid="avatar-image-placeholder"
-              className="bg-canvas-soft text-ink-mute flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[11px]"
+              className="bg-surface text-secondary flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[11px]"
             >
               <User size={22} strokeWidth={1.5} />
             </span>
             <div className="flex flex-col gap-[3px]">
               <div className="flex items-center gap-[7px]">
-                <span className="text-heading-sm text-ink">{avatar.name}</span>
-                <Badge variant="success">
+                <span className="text-lead text-primary">{avatar.name}</span>
+                <Badge>
                   <Check size={11} strokeWidth={1.5} aria-hidden="true" />
                   생성 완료
                 </Badge>
               </div>
               {avatar.description !== '' && (
-                <span className="text-caption text-ink-mute">{avatar.description}</span>
+                <span className="text-caption text-secondary">{avatar.description}</span>
               )}
             </div>
           </div>
 
-          <hr className="border-hairline w-full border-0 border-t" />
+          <hr className="border-subtle w-full border-0 border-t" />
 
           <ul className="flex w-full flex-col gap-2">
             {statRows.map(({ key, label, value }) => (
@@ -86,7 +84,7 @@ function AvatarContent({ avatar, onStart }: AvatarContentProps) {
         {avatar.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {avatar.tags.map((tag) => (
-              <Tag key={tag} variant="neutral">
+              <Tag key={tag}>
                 <span data-testid="avatar-tag">{tag}</span>
               </Tag>
             ))}
@@ -124,7 +122,7 @@ export function CompleteStep() {
   if (isUnknown) {
     return (
       <div role="alert" className={WIZARD_BODY}>
-        <p className="text-body-sm text-ink-secondary">오류가 발생했습니다. 다시 시도해주세요.</p>
+        <p className="text-caption text-secondary">오류가 발생했습니다. 다시 시도해주세요.</p>
       </div>
     );
   }
@@ -132,7 +130,7 @@ export function CompleteStep() {
   if (!isResolved || avatar == null) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-body-sm text-ink-secondary">아바타 데이터를 불러오는 중...</p>
+        <p className="text-caption text-secondary">아바타 데이터를 불러오는 중...</p>
       </div>
     );
   }

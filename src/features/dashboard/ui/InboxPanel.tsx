@@ -6,8 +6,7 @@ import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
-const CARD_CLASS =
-  'border-hairline bg-surface shadow-card flex flex-col gap-2 rounded-lg border p-4';
+const CARD_CLASS = 'border-subtle bg-canvas flex flex-col gap-2 rounded-card border p-4';
 
 function formatRelativeTime(occurredAt: string): string {
   const occurred = new Date(occurredAt);
@@ -32,11 +31,11 @@ function CardHeader({
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-1.5">
-        <h2 className="text-caption text-ink font-medium">알림</h2>
+        <h2 className="text-caption text-primary font-medium">알림</h2>
         {unreadCount > 0 && (
           <span
             aria-label={`읽지 않은 알림 ${unreadCount}개`}
-            className="bg-primary-wash text-primary-press rounded-pill text-micro tnum inline-flex h-4.5 items-center px-1.75 font-medium"
+            className="bg-count text-count-text text-meta tnum inline-flex h-4.5 items-center rounded-full px-1.75 font-medium"
           >
             {unreadCount}
           </span>
@@ -51,11 +50,11 @@ function InboxPanelSkeleton() {
   return (
     <section aria-label="알림" className={CARD_CLASS}>
       <div className="flex items-center justify-between">
-        <div className="bg-canvas-soft h-4 w-12 animate-pulse rounded" />
-        <div className="bg-canvas-soft h-4 w-14 animate-pulse rounded" />
+        <div className="bg-raised rounded-chip h-4 w-12 animate-pulse" />
+        <div className="bg-raised rounded-chip h-4 w-14 animate-pulse" />
       </div>
       {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="bg-canvas-soft h-12 animate-pulse rounded-md" />
+        <div key={i} className="bg-raised rounded-card h-12 animate-pulse" />
       ))}
     </section>
   );
@@ -81,8 +80,7 @@ function InboxPanelContent() {
         action={
           <button
             type="button"
-            // 정본 링크 fontSize 12 — micro(11)/caption(13) 사이의 지정 값이다.
-            className="text-primary hover:text-primary-hover cursor-pointer text-[12px] font-medium"
+            className="text-action hover:text-action-hover text-meta cursor-pointer font-medium"
           >
             전체 보기
           </button>
@@ -96,23 +94,23 @@ function InboxPanelContent() {
             <li
               key={item.id}
               data-unread={!item.read}
-              // 읽지 않음 강조는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다.
+              // 읽지 않음은 시스템이 알려주는 상태라 무채색 선택 판으로만 구분한다 — 파란 테두리가 아니다.
               className={cn(
-                'flex items-center gap-2.5 rounded-md border px-3 py-2.5',
-                item.read ? 'border-transparent bg-transparent' : 'border-primary bg-surface'
+                'rounded-card flex items-center gap-2.5 border px-3 py-2.5',
+                item.read ? 'border-transparent bg-transparent' : 'bg-selected border-transparent'
               )}
             >
               <span
                 aria-hidden="true"
-                className="bg-canvas text-ink-mute flex h-7 w-7 shrink-0 items-center justify-center rounded-md"
+                className="bg-canvas text-secondary rounded-card flex h-7 w-7 shrink-0 items-center justify-center"
               >
                 <Bell size={14} strokeWidth={1.5} />
               </span>
               <span className="min-w-0 flex-1">
-                <span className="text-caption text-ink block truncate">{item.message}</span>
-                <span className="text-micro text-ink-mute block truncate">{item.sender.name}</span>
+                <span className="text-caption text-primary block truncate">{item.message}</span>
+                <span className="text-meta text-secondary block truncate">{item.sender.name}</span>
               </span>
-              <span className="text-micro text-ink-mute tnum shrink-0">
+              <span className="text-meta text-secondary tnum shrink-0">
                 {formatRelativeTime(item.occurredAt)}
               </span>
             </li>

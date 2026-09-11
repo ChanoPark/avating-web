@@ -56,7 +56,7 @@ describe('InboxPanel', () => {
       });
     });
 
-    it('읽지 않은 항목에 data-unread="true" 와 파란 테두리가 적용된다', async () => {
+    it('읽지 않은 항목에 data-unread="true" 와 무채색 선택 판이 적용된다', async () => {
       server.use(inboxScenarios.success);
       const { container } = renderWithProviders(<InboxPanel />);
       await waitFor(() => {
@@ -64,8 +64,8 @@ describe('InboxPanel', () => {
         expect(unreadItems.length).toBe(2);
       });
       const [first] = container.querySelectorAll('[data-unread="true"]');
-      expect(first).toHaveClass('border-primary');
-      expect(first).toHaveClass('bg-surface');
+      expect(first).toHaveClass('bg-selected');
+      expect(first).not.toHaveClass('border-mark');
     });
   });
 

@@ -10,9 +10,9 @@ function RouteSkeleton() {
       className="flex min-h-screen items-center justify-center p-7"
     >
       <div className="flex w-full max-w-120 flex-col gap-3 motion-safe:animate-pulse">
-        <div className="bg-canvas-soft h-6 w-2/5 rounded-md" />
-        <div className="bg-canvas-soft h-4 w-3/5 rounded-md" />
-        <div className="bg-canvas-soft h-40 w-full rounded-lg" />
+        <div className="bg-raised rounded-card h-6 w-2/5" />
+        <div className="bg-raised rounded-card h-4 w-3/5" />
+        <div className="bg-raised rounded-card h-40 w-full" />
       </div>
       <span className="sr-only">불러오는 중이에요</span>
     </div>

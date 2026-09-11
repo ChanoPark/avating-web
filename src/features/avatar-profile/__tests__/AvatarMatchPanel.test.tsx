@@ -9,14 +9,14 @@ describe('AvatarMatchPanel', () => {
     const buttons = screen.getAllByRole('button');
     expect(buttons).toHaveLength(1);
     expect(buttons[0]).toHaveAccessibleName(/매칭 요청 보내기/);
-    expect(buttons[0]).toHaveClass('bg-primary');
+    expect(buttons[0]).toHaveClass('bg-action');
   });
 
-  it('강조 카드는 틴트 채움이 아니라 흰 서피스 + 파란 테두리다', () => {
+  it('강조는 파란 테두리가 아니라 안에 놓인 Brand 버튼이 만든다', () => {
     render(<AvatarMatchPanel onRequest={vi.fn()} requestOpen={false} />);
     const panel = screen.getByRole('region', { name: '매칭 요청' });
-    expect(panel).toHaveClass('bg-surface');
-    expect(panel).toHaveClass('border-primary');
+    expect(panel).toHaveClass('bg-canvas');
+    expect(panel.className).not.toContain('border-mark');
   });
 
   it('CTA 클릭 시 onRequest 가 호출된다', async () => {
@@ -27,7 +27,7 @@ describe('AvatarMatchPanel', () => {
     expect(onRequest).toHaveBeenCalledOnce();
   });
 
-  it('disabled=true 면 CTA 가 비활성화되고 사유가 title 로 노출된다', () => {
+  it('disabled=true 면 CTA 가 비활성화되고 사유가 보이는 문장으로 노출된다', () => {
     render(
       <AvatarMatchPanel
         onRequest={vi.fn()}
@@ -38,6 +38,11 @@ describe('AvatarMatchPanel', () => {
     );
     const cta = screen.getByRole('button', { name: /매칭 요청 보내기/ });
     expect(cta).toBeDisabled();
-    expect(cta).toHaveAttribute('title', '이미 매칭 중인 아바타입니다');
+    // title 툴팁은 pointer-events:none 인 버튼에서 뜨지 않는다 — 사유는 화면에 적고
+    // aria-describedby 로 버튼과 잇는다.
+    const reason = screen.getByText('이미 매칭 중인 아바타입니다');
+    expect(reason).toBeInTheDocument();
+    expect(cta).toHaveAttribute('aria-describedby', reason.id);
+    expect(cta).not.toHaveAttribute('title');
   });
 });
