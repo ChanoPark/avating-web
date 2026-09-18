@@ -43,4 +43,15 @@ describe('Tag', () => {
     render(<Tag variant="alert">거절</Tag>);
     expect(screen.getByText('거절').className).toContain('bg-danger-tint');
   });
+
+  // `cn` 은 tailwind-merge 가 아니라 단순 join 이다 — variant 의 색을 남겨 둔 채 덧쓰면
+  // 두 색이 같이 emit 돼 승자가 Tailwind 출력 순서에 달린다. variant 자리 자체를 바꿔야 한다.
+  it('disabled 는 variant 의 글자색을 남기지 않고 교체한다', () => {
+    render(<Tag disabled>매칭 중</Tag>);
+    const tag = screen.getByText('매칭 중');
+    expect(tag.className).toContain('text-disabled');
+    expect(tag.className).not.toContain('text-primary');
+    // 판은 유지한다 — 색만 내린다 (`.cx-pick[disabled] .cx-tag`).
+    expect(tag.className).toContain('bg-surface');
+  });
 });

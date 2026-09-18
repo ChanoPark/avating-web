@@ -208,7 +208,7 @@ describe('ConnectStep', () => {
       });
     });
 
-    it('클립보드 API 실패 시 에러 토스트 "복사를 사용할 수 없는 환경입니다" 가 노출된다', async () => {
+    it('클립보드 API 실패 시 에러 토스트 "복사를 쓸 수 없는 환경이에요" 가 노출된다', async () => {
       const user = userEvent.setup({
         advanceTimers: vi.advanceTimersByTime,
         writeToClipboard: false,
@@ -227,7 +227,7 @@ describe('ConnectStep', () => {
       await user.click(screen.getByRole('button', { name: /복사/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/복사를 사용할 수 없는 환경입니다/i)).toBeInTheDocument();
+        expect(screen.getByText(/복사를 쓸 수 없는 환경이에요/i)).toBeInTheDocument();
       });
     });
   });

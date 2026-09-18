@@ -33,7 +33,7 @@ describe('OnboardingPage (WizardShell)', () => {
   it('/onboarding/welcome 의 각주는 레일이 아니라 폼 카드 바깥 아래에 렌더된다', () => {
     renderAt('/onboarding/welcome');
     expect(
-      screen.getByText('어느 방법을 골라도 아래 3단계를 거칩니다 · 방법은 여기서만 선택합니다')
+      screen.getByText('어느 방법을 골라도 아래 3단계를 거쳐요 · 방법은 여기서만 고를 수 있어요')
     ).toBeInTheDocument();
   });
 
@@ -126,14 +126,14 @@ describe('OnboardingPage (WizardShell)', () => {
     it('/onboarding/connect 에는 소요 시간 각주가 붙는다', () => {
       renderAt('/onboarding/connect');
       expect(
-        within(rail()).getByText('약 10분 소요 · 대화가 길수록 아바타가 정확해집니다.')
+        within(rail()).getByText('약 10분 소요 · 대화가 길수록 아바타가 정확해져요.')
       ).toBeInTheDocument();
     });
 
     it('/onboarding/complete 에는 확인 안내 각주가 붙는다 (튜닝 문구는 기능 제거로 교체)', () => {
       renderAt('/onboarding/complete');
       expect(
-        within(rail()).getByText('생성된 아바타를 확인한 뒤 완료를 눌러 주세요.')
+        within(rail()).getByText('생성된 아바타를 확인한 뒤 완료를 눌러주세요.')
       ).toBeInTheDocument();
     });
 

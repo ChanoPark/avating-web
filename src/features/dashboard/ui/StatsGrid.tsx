@@ -2,23 +2,23 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Send, Heart, Users } from 'lucide-react';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
-import { StatsCard } from '@shared/ui/StatsCard';
+import { StatsCard, STATS_CARD_BOX } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
-const STAT_BOX = 'border-subtle bg-canvas rounded-card border p-3.5';
-
-// 실제 StatsCard 와 같은 3단 구조를 그대로 세운다 — 라인 하나만 두면 도착 시 카드가 늘어나 CLS 가 생긴다.
+// StatsCard 와 **같은 상자**(STATS_CARD_BOX)에 **같은 줄상자**를 세운다.
+// 치수를 따로 적으면 갈린다 — 실제로 p-3.5 vs p-5 로 갈려 도착 시 카드가 32px 늘어났다.
+// 자리표시자 높이는 `&nbsp;` + 실제 타입 클래스로 만들어 토큰에서 파생되게 둔다.
 function StatsSkeleton() {
   return (
-    <div className={cn(STAT_BOX, 'flex animate-pulse flex-col gap-1')}>
+    <div aria-hidden="true" className={cn(STATS_CARD_BOX, 'animate-pulse')}>
       <div className="flex items-center gap-2">
-        <div className="bg-raised rounded-chip h-3.25 w-3.25 shrink-0" />
-        <div className="bg-raised rounded-chip h-2.5 w-16" />
+        <div className="bg-raised rounded-chip size-[13px] shrink-0" />
+        <div className="text-caption bg-raised rounded-chip w-16">&nbsp;</div>
       </div>
-      <div className="bg-raised rounded-chip h-6.5 w-20" />
-      <div className="bg-raised rounded-chip h-2.75 w-24" />
+      <div className="text-figure bg-raised rounded-chip w-20 font-bold">&nbsp;</div>
+      <div className="bg-raised rounded-chip h-5 w-24" />
     </div>
   );
 }
@@ -128,7 +128,7 @@ export function StatsRetryAction({ onRetry }: { onRetry: () => void }) {
     <div className="flex justify-end">
       <button
         type="button"
-        className="text-caption text-action hover:text-action-hover cursor-pointer rounded-full px-1 font-medium"
+        className="text-caption text-action hover:text-action-hover ease-standard cursor-pointer rounded-full px-1 font-medium transition-colors duration-[var(--dur-fast)]"
         onClick={onRetry}
       >
         통계 다시 불러오기

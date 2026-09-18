@@ -339,12 +339,12 @@ describe('DashboardPage 통합 시나리오', () => {
   });
 
   describe('AC-10. 빈 리스트 + 필터 초기화', () => {
-    it('빈 응답 → "추천 아바타 없음" + "필터 초기화" 버튼', async () => {
+    it('빈 응답 → "추천할 아바타가 없어요" + "필터 초기화" 버튼', async () => {
       server.use(recommendedHandlers.empty);
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getByText(/추천 아바타 없음/)).toBeInTheDocument();
+        expect(screen.getByText(/추천할 아바타가 없어요/)).toBeInTheDocument();
       });
 
       expect(screen.getByRole('button', { name: /필터 초기화/ })).toBeInTheDocument();

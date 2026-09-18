@@ -79,7 +79,7 @@ export function Modal({
         aria-label="모달 닫기"
         tabIndex={-1}
         onClick={onClose}
-        className="bg-overlay absolute inset-0 cursor-default"
+        className="bg-overlay animate-scrim-in absolute inset-0 cursor-default"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
@@ -88,7 +88,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="bg-canvas border-subtle relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
+        className="bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-4 px-5 pt-5">
@@ -109,7 +109,7 @@ export function Modal({
             type="button"
             aria-label="닫기"
             onClick={onClose}
-            className="text-muted hover:text-primary -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
+            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>

@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
 import { cn } from '@shared/lib/cn';
+import { DUR_BASE, EASE_STANDARD } from '@shared/lib/motion';
 import { ONBOARDING_FALLBACK_LABELS } from '@entities/onboarding';
 
 // 진행 상태는 레일이 전담한다 — 카드 아이브로우에 단계를 중복 표기하지 않는다.
@@ -60,12 +61,12 @@ function StepRail({
       aria-label="온보딩 단계"
       className={cn(
         'bg-canvas border-subtle flex shrink-0 items-center gap-3 border-b px-5 py-4',
-        'md:w-[232px] md:flex-col md:items-stretch md:gap-0 md:border-r md:border-b-0 md:px-7 md:py-8'
+        'md:w-60 md:flex-col md:items-stretch md:gap-0 md:border-r md:border-b-0 md:px-7 md:py-8'
       )}
     >
       <div className="hidden items-center gap-2 md:flex">
-        <span aria-hidden="true" className="bg-action rounded-chip h-[18px] w-[18px] shrink-0" />
-        <span className="text-primary text-[14.04px] font-medium tracking-[-0.4px]">Avating</span>
+        <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
+        <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
       </div>
 
       <ol className="flex flex-1 items-center md:mt-7 md:flex-none md:flex-col md:items-stretch">
@@ -147,8 +148,12 @@ export function WizardShell({
 
       <main
         className={cn(
-          'flex min-w-0 flex-1 flex-col items-center justify-center overflow-y-auto px-10',
-          hasRail ? 'py-12' : 'py-14'
+          'flex min-w-0 flex-1 flex-col items-center overflow-y-auto px-10',
+          // 정본 `.onb-pane`(레일 있음)은 **상단 정렬 + padding 96/40/24** 이고,
+          // 세로 중앙은 `.onb-flat`(레일 없음, padding 64/40) 에만 있다.
+          // 레일 화면에서 세로 중앙을 쓰면 카드 높이가 스켈레톤→콘텐츠로 뛸 때마다
+          // 카드가 다시 가운데로 이동해 화면 전체가 밀린다 (실측 CLS 0.18~0.23).
+          hasRail ? 'pt-12 pb-6 md:pt-24' : 'justify-center py-16'
         )}
       >
         {/* key 변경 시 새 스텝이 즉시 마운트된다 — AnimatePresence 로 exit 지연을 넣으면 전환이 늦어진다. */}
@@ -156,7 +161,7 @@ export function WizardShell({
           key={animationKey}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ duration: DUR_BASE, ease: EASE_STANDARD }}
           className={cn(
             'bg-canvas border-subtle rounded-card flex w-full flex-col overflow-hidden border',
             FORM_MAX_WIDTH[formWidth]

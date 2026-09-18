@@ -164,13 +164,16 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
         </div>
 
         <Button type="submit" variant="primary" block disabled={isLoading} aria-busy={isLoading}>
-          {isLoading ? '로그인 중...' : '로그인'}
+          {isLoading ? '로그인 중…' : '로그인'}
           <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
 
         <div className="text-caption flex items-center justify-center gap-1.5">
           <span className="text-secondary">계정이 없나요?</span>
-          <Link to="/signup" className="text-action hover:text-action-hover font-medium">
+          <Link
+            to="/signup"
+            className="text-action hover:text-action-hover ease-standard font-medium transition-colors duration-[var(--dur-fast)]"
+          >
             가입하기
           </Link>
         </div>

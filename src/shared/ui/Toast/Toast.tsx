@@ -66,7 +66,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       }}
       className={cn(
         'bg-canvas border-subtle rounded-card pointer-events-auto w-full border px-3.5 py-3',
-        'max-w-[var(--toast-w)]'
+        'animate-toast-in max-w-[var(--toast-w)]'
       )}
     >
       <div className="flex items-start gap-3">

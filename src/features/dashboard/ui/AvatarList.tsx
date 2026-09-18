@@ -29,7 +29,7 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
       <div className={PANEL_CLASS}>
         <EmptyState
           icon={Compass}
-          title="추천 아바타 없음"
+          title="추천할 아바타가 없어요"
           description="필터를 조정하거나 잠시 후 다시 확인해주세요"
           action={{ label: '필터 초기화', onClick: onResetFilter }}
         />

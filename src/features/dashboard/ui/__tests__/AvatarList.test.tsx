@@ -78,7 +78,7 @@ describe('AvatarList', () => {
     expect(screen.getByText('Spring')).toBeInTheDocument();
   });
 
-  it('빈 응답 시 "추천 아바타 없음" 텍스트가 렌더된다', async () => {
+  it('빈 응답 시 "추천할 아바타가 없어요" 텍스트가 렌더된다', async () => {
     server.use(recommendedHandlers.empty);
     renderWithProviders(
       createElement(AvatarList, {
@@ -89,7 +89,7 @@ describe('AvatarList', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/추천 아바타 없음/)).toBeInTheDocument();
+      expect(screen.getByText(/추천할 아바타가 없어요/)).toBeInTheDocument();
     });
   });
 

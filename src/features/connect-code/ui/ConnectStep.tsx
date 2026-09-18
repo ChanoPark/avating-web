@@ -97,7 +97,7 @@ export function ConnectStep() {
         setCopySuccess(false);
       }, 1000);
     } catch {
-      toast.show({ variant: 'error', title: '복사를 사용할 수 없는 환경입니다' });
+      toast.show({ variant: 'error', title: '복사를 쓸 수 없는 환경이에요' });
     }
   };
 
@@ -163,17 +163,17 @@ export function ConnectStep() {
 
   // spec-divergence: 정본(S-02-06)은 Bot 발급 코드를 붙여넣는 흐름이나, 구현은 반대 방향이다.
   const connectSteps = [
-    'ChatGPT에서 Avating GPT를 검색해 시작합니다',
-    '위 ONE-TIME CODE를 붙여넣어 계정을 연결합니다',
-    'Avating GPT와 약 10분간 자유롭게 대화합니다',
-    '대화가 끝나면 자동으로 다음 단계로 전환됩니다',
+    'ChatGPT에서 Avating GPT를 검색해 시작해요',
+    '위 ONE-TIME CODE를 붙여넣어 계정을 연결해요',
+    'Avating GPT와 약 10분간 자유롭게 대화해요',
+    '대화가 끝나면 자동으로 다음 단계로 넘어가요',
   ];
 
   return (
     <>
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
-          <span className="text-label text-secondary uppercase">ChatGPT Bot 연동</span>
+          <span className="text-caption text-secondary font-medium">ChatGPT Bot 연동</span>
           <h1 className="text-title text-primary">ChatGPT Bot과 대화해 보세요</h1>
           <p className="text-caption text-secondary">
             대화 내용을 바탕으로 당신과 닮은 아바타를 만들어 드려요.

@@ -1,12 +1,16 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { InlineError } from '@shared/ui/InlineError';
-import { Bell, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
 const CARD_CLASS = 'border-subtle bg-canvas flex flex-col gap-2 rounded-card border p-4';
+
+// 정본 `.wf2-noti` — 행은 판이 아니라 1px inset 선으로 나뉜다(`.wf2-noti+.wf2-noti`).
+const ROW_CLASS =
+  'flex items-center gap-2.5 px-3 py-2.5 [&+*]:shadow-[inset_0_1px_0_var(--border-subtle)]';
 
 function formatRelativeTime(occurredAt: string): string {
   const occurred = new Date(occurredAt);
@@ -46,16 +50,27 @@ function CardHeader({
   );
 }
 
+// 실제 행과 **같은 래퍼**(ROW_CLASS)에 같은 줄상자를 세운다. 예전에는 h-12(48px) 자리표시자가
+// 58.8px 행으로 바뀌면서 패널이 28px 자랐다.
 function InboxPanelSkeleton() {
   return (
     <section aria-label="알림" className={CARD_CLASS}>
-      <div className="flex items-center justify-between">
-        <div className="bg-raised rounded-chip h-4 w-12 animate-pulse" />
-        <div className="bg-raised rounded-chip h-4 w-14 animate-pulse" />
+      <div className="flex animate-pulse items-center justify-between gap-2">
+        <span className="text-caption bg-raised rounded-chip w-12 font-medium">&nbsp;</span>
+        <span className="text-meta bg-raised rounded-chip w-14 font-medium">&nbsp;</span>
       </div>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="bg-raised rounded-card h-12 animate-pulse" />
-      ))}
+      <div className="flex flex-col">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} aria-hidden="true" className={cn(ROW_CLASS, 'animate-pulse')}>
+            <span className="bg-raised size-1.5 shrink-0 rounded-full" />
+            <span className="min-w-0 flex-1">
+              <span className="text-caption bg-raised rounded-chip block w-40">&nbsp;</span>
+              <span className="text-meta bg-raised rounded-chip block w-20">&nbsp;</span>
+            </span>
+            <span className="text-meta bg-raised rounded-chip w-12 shrink-0">&nbsp;</span>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
@@ -80,34 +95,37 @@ function InboxPanelContent() {
         action={
           <button
             type="button"
-            className="text-action hover:text-action-hover text-meta cursor-pointer font-medium"
+            className="text-action hover:text-action-hover text-meta ease-standard cursor-pointer font-medium transition-colors duration-[var(--dur-fast)]"
           >
             전체 보기
           </button>
         }
       />
       {items.length === 0 ? (
-        <EmptyState icon={MessageSquare} title="새 알림이 없습니다" />
+        <EmptyState icon={MessageSquare} title="새 알림이 없어요" />
       ) : (
-        <ul className="flex flex-1 flex-col gap-1.5">
+        <ul className="flex flex-1 flex-col">
           {items.map((item) => (
-            <li
-              key={item.id}
-              data-unread={!item.read}
-              // 읽지 않음은 시스템이 알려주는 상태라 무채색 선택 판으로만 구분한다 — 파란 테두리가 아니다.
-              className={cn(
-                'rounded-card flex items-center gap-2.5 border px-3 py-2.5',
-                item.read ? 'border-transparent bg-transparent' : 'bg-selected border-transparent'
-              )}
-            >
+            <li key={item.id} data-unread={!item.read} className={ROW_CLASS}>
+              {/* 안읽음은 정본 `.wf2-noti__dot` 6px 잉크 점 + 제목 굵기로 말한다 — 행을 통째로
+                  칠하면 목록 안에서 일부 행만 판이 생겨 리듬이 끊긴다. 읽은 행도 같은 폭을
+                  차지해야 글자 좌단이 어긋나지 않는다. */}
               <span
                 aria-hidden="true"
-                className="bg-canvas text-secondary rounded-card flex h-7 w-7 shrink-0 items-center justify-center"
-              >
-                <Bell size={14} strokeWidth={1.5} />
-              </span>
+                className={cn(
+                  'size-1.5 shrink-0 rounded-full',
+                  item.read ? 'bg-transparent' : 'bg-ink'
+                )}
+              />
               <span className="min-w-0 flex-1">
-                <span className="text-caption text-primary block truncate">{item.message}</span>
+                <span
+                  className={cn(
+                    'text-caption block truncate',
+                    item.read ? 'text-secondary' : 'text-ink font-semibold'
+                  )}
+                >
+                  {item.message}
+                </span>
                 <span className="text-meta text-secondary block truncate">{item.sender.name}</span>
               </span>
               <span className="text-meta text-secondary tnum shrink-0">

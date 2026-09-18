@@ -21,7 +21,7 @@ const mockInboxItems: InboxItem[] = [
   {
     id: 'inbox-3',
     sender: { initials: 'RB', name: 'red_bean' },
-    message: '호감도 80 달성!',
+    message: '호감도 80 달성',
     occurredAt: '2026-05-14T07:36:00+09:00',
     read: true,
   },

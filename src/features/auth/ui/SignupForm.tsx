@@ -205,7 +205,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
                   setShowPassword((v) => !v);
                 }}
                 aria-label={showPassword ? '비밀번호 숨기기' : '비밀번호 보기'}
-                className="text-secondary hover:text-primary absolute inset-y-0 right-3 flex items-center"
+                className="text-secondary hover:text-primary ease-standard absolute inset-y-0 right-3 flex cursor-pointer items-center transition-colors duration-[var(--dur-fast)]"
               >
                 {showPassword ? (
                   <EyeOff size={16} strokeWidth={1.5} aria-hidden="true" />
@@ -251,7 +251,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               </p>
             ) : (
               <p id="signup-password-help" className="text-meta text-secondary tnum">
-                영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요
+                영문·숫자·특수문자를 섞어 8자 이상 입력해주세요
               </p>
             )}
           </div>
@@ -324,13 +324,16 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
         </div>
 
         <Button type="submit" variant="brand" block disabled={isLoading} aria-busy={isLoading}>
-          {isLoading ? '가입 중...' : '계정 만들기'}
+          {isLoading ? '가입 중…' : '계정 만들기'}
           <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
 
         <div className="text-caption flex items-center justify-center gap-1.5">
           <span className="text-secondary">이미 계정이 있나요?</span>
-          <Link to="/login" className="text-action hover:text-action-hover font-medium">
+          <Link
+            to="/login"
+            className="text-action hover:text-action-hover ease-standard font-medium transition-colors duration-[var(--dur-fast)]"
+          >
             로그인
           </Link>
         </div>

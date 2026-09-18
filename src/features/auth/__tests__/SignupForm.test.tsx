@@ -106,7 +106,7 @@ describe('SignupForm', () => {
         '아바타 프로필에 표시됩니다'
       );
       expect(
-        screen.getByText('영문·숫자·특수문자를 섞어 8자 이상 입력해 주세요')
+        screen.getByText('영문·숫자·특수문자를 섞어 8자 이상 입력해주세요')
       ).toBeInTheDocument();
     });
 
@@ -381,7 +381,7 @@ describe('SignupForm', () => {
       await user.click(screen.getByRole('button', { name: /계정 만들기/ }));
 
       await waitFor(() => {
-        const banner = screen.getByText(/입력 정보를 확인해 주세요/);
+        const banner = screen.getByText(/입력 정보를 확인해주세요/);
         expect(banner).toBeInTheDocument();
         expect(banner.closest('[role="alert"]')).not.toBeNull();
       });

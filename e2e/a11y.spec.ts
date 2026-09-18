@@ -17,6 +17,8 @@ for (const route of ROUTES) {
   test(`a11y 위반 0 — ${route}`, async ({ page }) => {
     await page.goto(route);
     await expect(page.locator('#root')).not.toBeEmpty();
+    // PageTransition(--dur-base 150ms) 정착 전에 재면 반투명 합성색으로 대비가 잘못 계산된다.
+    await expect(page.locator('#root > div').first()).toHaveCSS('opacity', '1');
 
     const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
 

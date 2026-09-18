@@ -43,7 +43,7 @@ function AvatarContent({ avatar, onStart }: AvatarContentProps) {
       <div className={WIZARD_BODY}>
         <div className={WIZARD_HEAD}>
           <h1 className="text-title text-primary">이렇게 생성됐어요</h1>
-          <p className="text-caption text-secondary">내용을 확인한 뒤 완료를 눌러 주세요.</p>
+          <p className="text-caption text-secondary">내용을 확인한 뒤 완료를 눌러주세요.</p>
         </div>
 
         <div className="border-subtle bg-canvas rounded-card flex flex-col gap-3 border p-4">
@@ -122,7 +122,7 @@ export function CompleteStep() {
   if (isUnknown) {
     return (
       <div role="alert" className={WIZARD_BODY}>
-        <p className="text-caption text-secondary">오류가 발생했습니다. 다시 시도해주세요.</p>
+        <p className="text-caption text-secondary">오류가 생겼어요. 다시 시도해주세요.</p>
       </div>
     );
   }
@@ -130,7 +130,7 @@ export function CompleteStep() {
   if (!isResolved || avatar == null) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-caption text-secondary">아바타 데이터를 불러오는 중...</p>
+        <p className="text-caption text-secondary">아바타 데이터를 불러오는 중…</p>
       </div>
     );
   }

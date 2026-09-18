@@ -28,12 +28,14 @@ export function SidebarItem({
 
   const iconOnly = mode === 'collapsed' || mode === 'responsive';
 
+  // 정본 `.hf-navitem{height:36px}` — 높이를 패딩에 맡기면 줄상자를 따라 36.84 / 35px 로 흐른다
+  // ("A row's height must never depend on what is inside it" — typography.css).
   const layoutClass =
     mode === 'expanded'
-      ? 'gap-2.25 px-3 py-2.25'
+      ? 'h-9 gap-2.25 px-3'
       : mode === 'collapsed'
-        ? 'justify-center px-0 py-2.5'
-        : 'justify-center px-0 py-2.5 lg:justify-start lg:gap-2.25 lg:px-3 lg:py-2.25';
+        ? 'h-9 justify-center px-0'
+        : 'h-9 justify-center px-0 lg:justify-start lg:gap-2.25 lg:px-3';
 
   const labelClass =
     mode === 'expanded' ? '' : mode === 'collapsed' ? 'sr-only' : 'sr-only lg:not-sr-only';
@@ -43,15 +45,20 @@ export function SidebarItem({
   const badgeClass = mode === 'responsive' ? 'hidden lg:flex' : 'flex';
 
   const baseClass = cn(
-    'text-caption flex w-full items-center rounded-card transition-colors',
+    // 정본 `.hf-navitem` 은 radius-chip(6px) 이다 — card(10px) 가 아니다.
+    'text-caption flex w-full items-center rounded-chip transition-colors',
     'duration-[var(--dur-fast)] ease-standard',
     layoutClass,
     // 활성은 시스템이 알려주는 위치라 무채색이다 — 파란 틴트도, 파란 글자도 아니다.
     // .cx-rail__item--active 처럼 잉크 + 굵기가 활성을 나른다.
-    isActive
-      ? 'bg-raised text-ink font-semibold'
-      : 'text-secondary bg-transparent font-normal hover:bg-surface hover:text-primary',
-    disabled && 'pointer-events-none opacity-50'
+    // 정본은 disabled 에 opacity 를 쓰지 않는다 — 뒤에 깔린 것과 섞이면 대비비를 말할 수 없다.
+    // 색은 한 분기에서만 나온다: 따로 얹으면 `cn` 이 단순 join 이라 두 색이 같이 emit 돼
+    // 승자가 Tailwind 출력 순서에 달린다.
+    disabled
+      ? 'text-disabled pointer-events-none bg-transparent font-normal'
+      : isActive
+        ? 'bg-raised text-ink font-semibold'
+        : 'text-secondary bg-transparent font-normal hover:bg-surface hover:text-primary'
   );
 
   const content = (
