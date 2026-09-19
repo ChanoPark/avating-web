@@ -50,9 +50,21 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.getByText('0 / 120')).toBeInTheDocument();
     });
 
-    it('설명 필드에 도움말이 붙는다', () => {
+    it('설명 필드 아래에 도움말 문구를 두지 않는다', () => {
       renderIntro();
-      expect(screen.getByText('상대 아바타가 첫인상으로 참고합니다')).toBeInTheDocument();
+      expect(screen.queryByText('상대 아바타가 첫인상으로 참고합니다')).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/아바타 설명/)).not.toHaveAttribute('aria-describedby');
+    });
+
+    // 한 줄 필드의 h-9(36px)를 그대로 쓰면 세로 패딩이 없어 글자가 위쪽 가장자리에 붙는다.
+    it('설명 필드는 `.cx-input--textarea` 규격 — 높이 auto · 최소 88px · 사방 12px 패딩', () => {
+      renderIntro();
+      const textarea = screen.getByLabelText(/아바타 설명/);
+
+      expect(textarea).toHaveClass('h-auto');
+      expect(textarea).toHaveClass('min-h-22');
+      expect(textarea).toHaveClass('p-3');
+      expect(textarea).not.toHaveClass('h-9');
     });
 
     it('이전 / 다음 버튼이 렌더된다', () => {

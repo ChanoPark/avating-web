@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
-import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
+import { FIELD_CLASS, FIELD_ERROR_CLASS, TEXTAREA_CLASS } from '@shared/ui/Input';
 import { cn } from '@shared/lib/cn';
 import { getOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -135,15 +135,11 @@ export function IntroStep() {
               maxLength={DESC_MAX}
               placeholder="아바타를 한두 문장으로 소개해 주세요"
               aria-invalid={errors.description ? true : undefined}
-              aria-describedby={errors.description ? 'intro-desc-error' : 'intro-desc-help'}
-              className={cn(
-                FIELD_CLASS,
-                'resize-none',
-                errors.description ? FIELD_ERROR_CLASS : null
-              )}
+              aria-describedby={errors.description ? 'intro-desc-error' : undefined}
+              className={cn(TEXTAREA_CLASS, errors.description ? FIELD_ERROR_CLASS : null)}
               {...register('description')}
             />
-            {errors.description?.message ? (
+            {errors.description?.message && (
               <p
                 id="intro-desc-error"
                 role="alert"
@@ -151,10 +147,6 @@ export function IntroStep() {
               >
                 <CircleAlert size={12} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.description.message}
-              </p>
-            ) : (
-              <p id="intro-desc-help" className="text-meta text-secondary">
-                상대 아바타가 첫인상으로 참고합니다
               </p>
             )}
           </div>

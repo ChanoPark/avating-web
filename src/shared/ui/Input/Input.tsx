@@ -16,13 +16,20 @@ type InputProps = {
 /** 오류 표시는 1px 안쪽 선이다 — 필드에 테두리가 없어서 border-color 는 아무 효과가 없다. */
 export const FIELD_ERROR_CLASS = 'shadow-[inset_0_0_0_1px_var(--danger-text)]';
 
-export const FIELD_CLASS = cn(
-  'bg-surface text-primary text-body w-full rounded-chip border-0 px-3',
-  'h-9 placeholder:text-secondary',
+// 높이는 한 줄 필드와 textarea 가 다르다 — cn 은 클래스를 병합하지 않아 h-9 위에 h-auto 를
+// 얹으면 둘이 다투므로 높이를 뺀 공통 톤만 여기 둔다.
+const FIELD_TONE_CLASS = cn(
+  'bg-surface text-primary text-body w-full rounded-chip border-0',
+  'placeholder:text-secondary',
   'transition-[background-color,box-shadow] duration-[var(--dur-fast)] ease-standard',
   'hover:bg-raised focus-visible:outline-offset-0 focus-visible:shadow-none',
   'disabled:bg-field-disabled disabled:text-disabled disabled:cursor-not-allowed'
 );
+
+export const FIELD_CLASS = cn(FIELD_TONE_CLASS, 'h-9 px-3');
+
+/** `.cx-input--textarea` — 높이 auto · 최소 88px · 사방 12px 패딩 · 세로 리사이즈. */
+export const TEXTAREA_CLASS = cn(FIELD_TONE_CLASS, 'h-auto min-h-22 resize-y p-3');
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { label, helperText, errorMessage, trailingSlot, className, id, ...rest },
