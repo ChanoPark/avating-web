@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Suspense } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
@@ -272,6 +272,14 @@ describe('DashboardPage 통합 시나리오', () => {
       await waitFor(() => {
         expect(screen.getByText(/매칭 요청을 보냈어요/)).toBeInTheDocument();
       });
+
+      // 요청한 카드는 곧바로 요청 불가로 바뀐다 — 같은 아바타에 중복 요청을 막는다.
+      const requested = screen.getByRole('button', { name: '하늘#H7K2MP' }).closest('li');
+      expect(requested).not.toBeNull();
+      await waitFor(() => {
+        expect(within(requested!).getByRole('button', { name: /^매칭$/ })).toBeDisabled();
+      });
+      expect(within(requested!).getByText('매칭 중')).toBeInTheDocument();
     });
   });
 
