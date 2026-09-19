@@ -98,7 +98,7 @@ function MyAvatarGridContent() {
           <button
             type="button"
             aria-label="아바타 추가하기"
-            className="text-action hover:text-action-hover text-meta cursor-pointer font-medium"
+            className="text-action hover:text-action-hover text-meta ease-standard cursor-pointer font-medium transition-colors duration-[var(--dur-fast)]"
           >
             추가하기
           </button>

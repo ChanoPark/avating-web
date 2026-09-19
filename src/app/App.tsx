@@ -1,6 +1,7 @@
 import { ErrorBoundary } from 'react-error-boundary';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from 'react-router';
+import { MotionConfig } from 'motion/react';
 import { useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
@@ -37,7 +38,7 @@ export function AppFallback({ resetErrorBoundary }: AppFallbackProps = {}) {
         </div>
         <h1 className="text-title text-primary mt-6">일시적인 문제가 발생했어요</h1>
         <p className="text-secondary mt-2.5 max-w-[320px] text-[13px] leading-[1.8]">
-          잠깐 문제가 생긴 것 같아요. 잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가 주세요.
+          잠깐 문제가 생긴 것 같아요. 잠시 후 다시 시도해 보거나, 메인 화면으로 돌아가주세요.
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
           <Button onClick={handleRetry}>다시 시도</Button>
@@ -56,9 +57,13 @@ export function App() {
   return (
     <ErrorBoundary FallbackComponent={AppFallback} onError={handleAppCrash}>
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <RouterProvider router={router} />
-        </ToastProvider>
+        {/* motion/react 는 CSS 미디어쿼리를 보지 않는다 — tokens/motion.css 가 reduce 에서
+            --dur-* 를 0ms 로 내려도 JS 애니메이션은 그대로 돌았다. */}
+        <MotionConfig reducedMotion="user">
+          <ToastProvider>
+            <RouterProvider router={router} />
+          </ToastProvider>
+        </MotionConfig>
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -262,13 +262,13 @@ describe('AppShellLayout', () => {
   });
 
   describe('반응형 (웹 비율 · main-dashboard.md §10)', () => {
-    it('고정 레일은 모바일에서 숨고(md 부터 표시) 태블릿 64px·데스크톱 232px 로 리플로우한다', () => {
+    it('고정 레일은 모바일에서 숨고(md 부터 표시) 태블릿 64px·데스크톱 240px 로 리플로우한다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       expect(nav.className).toContain('hidden');
       expect(nav.className).toContain('md:flex');
       expect(nav.className).toContain('md:w-16');
-      expect(nav.className).toContain('lg:w-58');
+      expect(nav.className).toContain('lg:w-60');
     });
 
     it('모바일 햄버거 버튼(메뉴 열기)이 헤더에 존재한다', () => {
@@ -288,17 +288,17 @@ describe('AppShellLayout', () => {
     });
   });
 
-  describe('라벨 사이드바 (232px · LAYOUT-NUMBERS § AppShell)', () => {
+  describe('라벨 사이드바 (240px · 정본 .hf-side)', () => {
     it('사이드바는 라벨 모드(data-collapsed="false") 로 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       expect(nav).toHaveAttribute('data-collapsed', 'false');
     });
 
-    it('데스크톱 사이드바 폭은 w-58(232px) 이다', () => {
+    it('데스크톱 사이드바 폭은 w-60(240px) 이다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      expect(nav.className.includes('w-58')).toBe(true);
+      expect(nav.className.includes('w-60')).toBe(true);
     });
 
     it('사이드바 항목 라벨이 데스크톱(lg)에서 표시된다 (lg:not-sr-only)', () => {
@@ -432,12 +432,13 @@ describe('AppShellLayout', () => {
       useChromeBreadcrumbStore.getState().clearTrail();
     });
 
-    it('13.5px · text-secondary · gap 7 로 렌더된다', () => {
+    // 정본 `.hf-crumb{font-size:var(--fs-13);gap:6px}` — 13.5px/7px 은 타입·간격 스케일 밖이었다.
+    it('13px(text-caption) · text-secondary · gap 6 으로 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
-      expect(nav.className).toContain('text-[13.5px]');
+      expect(nav.className).toContain('text-caption');
       expect(nav.className).toContain('text-secondary');
-      expect(nav.querySelector('ol')?.className).toContain('gap-[7px]');
+      expect(nav.querySelector('ol')?.className).toContain('gap-1.5');
     });
 
     it('구분자는 문자가 아니라 ChevronRight 13px 아이콘이다', () => {

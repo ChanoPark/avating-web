@@ -46,20 +46,20 @@ describe('Sidebar', () => {
     expect(nav.className.includes('w-14')).toBe(true);
   });
 
-  it('collapsed=false 시 232px 폭(w-58) 으로 렌더된다', () => {
+  it('collapsed=false 시 240px 폭(w-60) 으로 렌더된다 — 정본 .hf-side{width:240px}', () => {
     render(<Sidebar collapsed={false}>항목</Sidebar>);
     const nav = screen.getByRole('navigation');
-    expect(nav.className.includes('w-58')).toBe(true);
+    expect(nav.className.includes('w-60')).toBe(true);
   });
 
-  it('responsive 시 모바일 숨김 + 태블릿 64px + 데스크톱 232px 로 리플로우한다', () => {
+  it('responsive 시 모바일 숨김 + 태블릿 64px + 데스크톱 240px 로 리플로우한다', () => {
     render(<Sidebar responsive>항목</Sidebar>);
     const nav = screen.getByRole('navigation');
     expect(nav).toHaveAttribute('data-sidebar-mode', 'responsive');
     expect(nav.className).toContain('hidden');
     expect(nav.className).toContain('md:flex');
     expect(nav.className).toContain('md:w-16');
-    expect(nav.className).toContain('lg:w-58');
+    expect(nav.className).toContain('lg:w-60');
   });
 
   it('흰 서피스 배경 + 우측 hairline 을 갖는다', () => {

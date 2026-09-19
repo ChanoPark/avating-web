@@ -50,40 +50,40 @@ type Copy = { eyebrow: string; title: string; body: string };
 const COPY: Record<ErrorVariant, Copy> = {
   'session-expired': {
     eyebrow: '세션 만료',
-    title: '다시 로그인해 주세요.',
+    title: '다시 로그인해주세요',
     body: '일정 시간 활동이 없어 자동으로 로그아웃됐어요. 다시 로그인하면 보던 화면으로 돌아갑니다.',
   },
   forbidden: {
     eyebrow: '접근 권한 없음',
-    title: '이 페이지를 볼 권한이 없어요.',
+    title: '이 페이지를 볼 권한이 없어요',
     body: '다른 사람의 아바타나 대화는 열 수 없어요. 공유받은 링크라면 주소를 다시 확인해 주세요.',
   },
   'not-found': {
     eyebrow: '없는 페이지',
-    title: '찾는 페이지가 없어요.',
+    title: '찾는 페이지가 없어요',
     body: '주소가 바뀌었거나 삭제된 화면이에요. 대시보드에서 다시 시작해 주세요.',
   },
   'server-error': {
     eyebrow: '일시적인 오류',
-    title: '문제가 생겼어요. 다시 시도해 주세요.',
+    title: '문제가 생겼어요',
     body: '요청을 처리하지 못했어요. 잠시 후 다시 시도하면 대부분 해결됩니다.',
   },
   // offline · maintenance 는 정본에 대응 화면이 없다 — 기존 판본 문구를 그대로 쓴다.
   offline: {
     eyebrow: '연결 끊김',
-    title: '인터넷 연결이 불안정해요.',
+    title: '인터넷 연결이 불안정해요',
     body: '연결 상태를 확인하고 다시 시도해 주세요.',
   },
   maintenance: {
     eyebrow: '점검 중',
-    title: '잠깐 점검 중이에요.',
+    title: '잠깐 점검 중이에요',
     body: '점검이 끝나면 다시 이용할 수 있어요.',
   },
 };
 
 const REPEAT_COPY: Copy = {
   eyebrow: '반복 실패',
-  title: '여러 번 시도해도 처리되지 않아요.',
+  title: '여러 번 시도해도 처리되지 않아요',
   body: '저희 쪽 문제일 수 있어요. 잠시 후 다시 시도하거나 문의를 남겨 주세요.',
 };
 
@@ -109,7 +109,7 @@ function ErrorBody({
       className={`flex w-full flex-col items-center text-center ${wide ? 'max-w-[520px]' : 'max-w-[470px]'}`}
     >
       <div aria-hidden="true" className="bg-subtle mb-[22px] h-px w-[26px]" />
-      <div className="text-label text-secondary uppercase">{copy.eyebrow}</div>
+      <div className="text-caption text-secondary font-medium">{copy.eyebrow}</div>
       <h1 className="text-title text-primary mt-3 text-balance">{copy.title}</h1>
       <p className="text-caption text-secondary mt-2.5 text-pretty">{copy.body}</p>
       {actions && <div className="mt-[26px] flex flex-wrap justify-center gap-2.5">{actions}</div>}
@@ -299,7 +299,7 @@ export function ErrorPage({
           href={maintenanceStatusUrl ?? STATUS_PAGE_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-caption text-action hover:text-action-hover mt-6 inline-flex items-center gap-1 rounded-full font-medium"
+          className="text-caption text-action hover:text-action-hover ease-standard mt-6 inline-flex items-center gap-1 rounded-full font-medium transition-colors duration-[var(--dur-fast)]"
         >
           상태 페이지
           <ArrowUpRight size={13} strokeWidth={1.5} aria-hidden="true" />
@@ -327,8 +327,8 @@ export function ErrorPage({
     <div className="bg-canvas flex min-h-screen flex-col">
       <div className="border-subtle bg-canvas flex h-17 shrink-0 items-center justify-between border-b px-6 md:px-16">
         <div className="flex items-center gap-2">
-          <span aria-hidden="true" className="bg-action rounded-chip h-[19px] w-[19px]" />
-          <span className="text-primary text-[14.82px] font-medium tracking-[-0.4px]">Avating</span>
+          <span aria-hidden="true" className="bg-action rounded-chip size-4.5" />
+          <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
         </div>
         <span className="text-caption text-secondary">
           {variant === 'session-expired' ? '로그인 화면' : '오류'}

@@ -75,7 +75,7 @@ describe('SuspenseRoute', () => {
     renderRoute(<Boom />);
 
     expect(
-      await screen.findByRole('heading', { name: '찾는 페이지가 없어요.' })
+      await screen.findByRole('heading', { name: '찾는 페이지가 없어요' })
     ).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
@@ -90,7 +90,7 @@ describe('SuspenseRoute', () => {
     renderRoute(<Boom />);
 
     expect(
-      await screen.findByRole('heading', { name: '이 페이지를 볼 권한이 없어요.' })
+      await screen.findByRole('heading', { name: '이 페이지를 볼 권한이 없어요' })
     ).toBeInTheDocument();
     spy.mockRestore();
   });
@@ -103,9 +103,7 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(
-      await screen.findByRole('heading', { name: '다시 로그인해 주세요.' })
-    ).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '다시 로그인해주세요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '다시 로그인' })).toBeInTheDocument();
     spy.mockRestore();
   });

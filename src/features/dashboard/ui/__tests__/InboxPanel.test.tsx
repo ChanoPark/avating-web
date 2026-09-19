@@ -56,7 +56,9 @@ describe('InboxPanel', () => {
       });
     });
 
-    it('읽지 않은 항목에 data-unread="true" 와 무채색 선택 판이 적용된다', async () => {
+    // 정본 `.wf2-noti__dot`(6px 잉크 점) + `.noti-title--unread`(semibold·ink).
+    // 행을 통째로 칠하면 목록에서 일부 행만 판이 생겨 리듬이 끊긴다.
+    it('읽지 않은 항목은 잉크 점 + 굵은 제목으로 구분되고, 행을 칠하지 않는다', async () => {
       server.use(inboxScenarios.success);
       const { container } = renderWithProviders(<InboxPanel />);
       await waitFor(() => {
@@ -64,17 +66,25 @@ describe('InboxPanel', () => {
         expect(unreadItems.length).toBe(2);
       });
       const [first] = container.querySelectorAll('[data-unread="true"]');
-      expect(first).toHaveClass('bg-selected');
-      expect(first).not.toHaveClass('border-mark');
+      expect(first).not.toHaveClass('bg-selected');
+      expect(first?.querySelector('span[aria-hidden="true"]')?.className).toContain('bg-ink');
+      expect(first?.querySelector('span:not([aria-hidden]) > span')?.className).toContain(
+        'font-semibold'
+      );
+
+      const [read] = container.querySelectorAll('[data-unread="false"]');
+      expect(read?.querySelector('span[aria-hidden="true"]')?.className).toContain(
+        'bg-transparent'
+      );
     });
   });
 
   describe('빈 상태', () => {
-    it('items 가 비어있을 때 "새 알림이 없습니다" 가 렌더된다', async () => {
+    it('items 가 비어있을 때 "새 알림이 없어요" 가 렌더된다', async () => {
       server.use(inboxScenarios.empty);
       renderWithProviders(<InboxPanel />);
       await waitFor(() => {
-        expect(screen.getByText(/새 알림이 없습니다/)).toBeInTheDocument();
+        expect(screen.getByText(/새 알림이 없어요/)).toBeInTheDocument();
       });
     });
   });

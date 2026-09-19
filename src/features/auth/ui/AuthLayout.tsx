@@ -25,9 +25,7 @@ type AuthLayoutProps = {
 
 // .cx-auth__mark — 마크가 아니라 워드마크다. 제품에 심볼이 없어서 여기서 지어내지 않는다.
 function BrandWordmark() {
-  return (
-    <div className="text-ink text-[22px] leading-[30px] font-bold tracking-[-0.01em]">Avating</div>
-  );
+  return <div className="text-ink text-title font-bold tracking-[-0.03em]">Avating</div>;
 }
 
 function AuthAside({ items, note }: { items: readonly AuthAsideItem[]; note?: string }) {

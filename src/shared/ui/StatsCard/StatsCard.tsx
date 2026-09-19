@@ -9,6 +9,10 @@ type DeltaTone = 'positive' | 'negative' | 'neutral';
 // tone 은 호출부의 데이터 계약이라 유지하되 시각에는 반영하지 않는다.
 const DELTA_PILL = 'bg-raised text-secondary';
 
+/** 스켈레톤이 같은 상자를 쓰도록 내보낸다 — 따로 적어 두면 padding 이 갈려 로드 시 카드가 튄다. */
+export const STATS_CARD_BOX =
+  'bg-canvas rounded-card flex flex-col gap-1 p-5 shadow-[inset_0_0_0_1px_var(--border-subtle)]';
+
 type StatsCardProps = {
   icon: LucideIcon;
   label: string;
@@ -32,11 +36,7 @@ export function StatsCard({
 }: StatsCardProps) {
   if (failed) {
     return (
-      <div
-        role="alert"
-        aria-label={`${label} 불러오지 못했어요`}
-        className="bg-canvas rounded-card flex flex-col gap-1 p-5 shadow-[inset_0_0_0_1px_var(--border-subtle)]"
-      >
+      <div role="alert" aria-label={`${label} 불러오지 못했어요`} className={STATS_CARD_BOX}>
         <div className="flex items-center gap-2">
           <Icon
             size={13}
@@ -44,22 +44,20 @@ export function StatsCard({
             className="text-secondary shrink-0"
             aria-hidden="true"
           />
-          <span className="text-label text-secondary uppercase">{label}</span>
+          <span className="text-caption text-secondary">{label}</span>
         </div>
         <div className="text-figure text-secondary tnum font-bold">{FAILED_VALUE}</div>
-        <div className="text-meta text-danger">{FAILED_DELTA}</div>
+        {/* 정상 카드의 delta pill 과 같은 20px 줄상자 — 한 행에 섞여 서므로 밑단이 맞아야 한다. */}
+        <div className="text-meta text-danger leading-5">{FAILED_DELTA}</div>
       </div>
     );
   }
 
   return (
-    <div
-      aria-label={ariaLabel}
-      className="bg-canvas rounded-card flex flex-col gap-1 p-5 shadow-[inset_0_0_0_1px_var(--border-subtle)]"
-    >
+    <div aria-label={ariaLabel} className={STATS_CARD_BOX}>
       <div className="flex items-center gap-2">
         <Icon size={13} strokeWidth={1.5} className="text-secondary shrink-0" aria-hidden="true" />
-        <span className="text-label text-secondary uppercase">{label}</span>
+        <span className="text-caption text-secondary">{label}</span>
       </div>
       <div className="text-figure text-ink tnum font-bold">{value}</div>
       {delta !== undefined && (

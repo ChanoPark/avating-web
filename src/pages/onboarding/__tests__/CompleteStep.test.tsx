@@ -84,7 +84,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
           screen.getByRole('heading', { level: 1, name: /이렇게 생성됐어요/ })
         ).toBeInTheDocument();
       });
-      expect(screen.getByText('내용을 확인한 뒤 완료를 눌러 주세요.')).toBeInTheDocument();
+      expect(screen.getByText('내용을 확인한 뒤 완료를 눌러주세요.')).toBeInTheDocument();
     });
   });
 
@@ -235,7 +235,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
       await waitFor(() => {
         expect(screen.getByRole('alert')).toBeInTheDocument();
       });
-      expect(screen.getByText(/오류가 발생했습니다. 다시 시도해주세요./)).toBeInTheDocument();
+      expect(screen.getByText(/오류가 생겼어요. 다시 시도해주세요./)).toBeInTheDocument();
     });
   });
 });

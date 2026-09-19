@@ -18,6 +18,12 @@ import { SidebarAccountRow } from './SidebarAccountRow';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { cn } from '@shared/lib/cn';
+import { DUR_BASE, DUR_SLOW, EASE_OUT, EASE_STANDARD } from '@shared/lib/motion';
+
+// 정본 `.cx-iconbtn` — radius-chip, 크기 md 36 / lg 44(터치), quiet hover 는 raised 판.
+// 모바일 44 / 데스크톱 36. 예전에는 상자 없이 글리프만 있어 벨이 17×17 이었다.
+const ICON_BUTTON_CLASS =
+  'text-secondary hover:bg-raised hover:text-primary rounded-chip ease-standard flex size-11 shrink-0 items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9';
 
 function ChromeBreadcrumb({ pathname }: { pathname: string }) {
   const trail = useChromeBreadcrumbStore((s) => s.trail);
@@ -30,12 +36,12 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
           ? ['홈', '탐색']
           : ['홈'];
   return (
-    <nav aria-label="현재 위치" className="text-secondary text-[13.5px]">
-      <ol className="flex items-center gap-[7px]">
+    <nav aria-label="현재 위치" className="text-secondary text-caption">
+      <ol className="flex items-center gap-1.5">
         {segments.map((seg, i) => {
           const isLast = i === segments.length - 1;
           return (
-            <li key={seg} className="flex items-center gap-[7px]">
+            <li key={seg} className="flex items-center gap-1.5">
               {i > 0 && (
                 <ChevronRight
                   size={13}
@@ -78,10 +84,11 @@ function SidebarBody({
           expanded ? '' : 'justify-center lg:justify-start'
         )}
       >
-        <span aria-hidden="true" className="bg-action rounded-chip h-[19px] w-[19px] shrink-0" />
+        <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
         <span
           className={cn(
-            'text-primary text-[14.82px] font-medium tracking-[-0.4px]',
+            // 정본 `.hf-word{font-size:var(--fs-20);font-weight:var(--fw-bold);letter-spacing:-0.03em}`
+            'text-ink text-title font-bold tracking-[-0.03em]',
             expanded ? '' : 'hidden lg:inline'
           )}
         >
@@ -156,15 +163,15 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.16 }}
+              transition={{ duration: DUR_BASE, ease: EASE_STANDARD }}
             />
             <motion.div
               id="mobile-sidebar"
-              className="absolute inset-y-0 left-0 w-58"
+              className="absolute inset-y-0 left-0 w-60"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: DUR_SLOW, ease: EASE_OUT }}
             >
               <Sidebar className="h-full">
                 <SidebarBody
@@ -188,7 +195,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
               aria-label="메뉴 열기"
               aria-expanded={drawerOpen}
               aria-controls="mobile-sidebar"
-              className="text-secondary hover:text-primary md:hidden"
+              className={cn(ICON_BUTTON_CLASS, 'md:hidden')}
               onClick={() => {
                 setDrawerOpen(true);
               }}
@@ -198,30 +205,31 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
             <ChromeBreadcrumb pathname={location.pathname} />
           </div>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="알림" className="text-secondary hover:text-primary">
+            <button type="button" aria-label="알림" className={ICON_BUTTON_CLASS}>
               <Bell size={17} strokeWidth={1.5} aria-hidden="true" />
             </button>
           </div>
         </header>
 
         <main className="bg-canvas relative flex-1 overflow-y-auto">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.key}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.18, ease: [0.25, 0.1, 0.25, 1] }}
-              className="p-7"
-            >
-              {/* 본문에 max-width 를 두지 않는다 — 우측 카드가 고정폭이라 가운데 열만 신축하면 된다. */}
-              <div data-shell-content className="flex w-full flex-col gap-4">
-                {/* 본문에서 터진 예외만 여기서 잡는다 — 셸 크롬이 통째로 터지면 SuspenseRoute 의
-                    바깥 경계가 받는다. */}
-                <RouteErrorBoundary embedded>{content}</RouteErrorBoundary>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+          {/* AnimatePresence mode="wait" 를 쓰면 exit(150ms)가 끝나야 새 페이지가 마운트돼
+              클릭 → 정착이 700ms 로 늘고 그중 ~300ms 동안 본문이 비어 보였다(실측).
+              WizardShell 과 같이 **입장 전용** 으로 맞춘다 — 새 스텝이 즉시 마운트되고,
+              mode 없이 AnimatePresence 만 두면 두 페이지가 세로로 겹쳐 쌓인다. */}
+          <motion.div
+            key={location.key}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: DUR_BASE, ease: EASE_STANDARD }}
+            className="p-7"
+          >
+            {/* 본문에 max-width 를 두지 않는다 — 우측 카드가 고정폭이라 가운데 열만 신축하면 된다. */}
+            <div data-shell-content className="flex w-full flex-col gap-4">
+              {/* 본문에서 터진 예외만 여기서 잡는다 — 셸 크롬이 통째로 터지면 SuspenseRoute 의
+                  바깥 경계가 받는다. */}
+              <RouteErrorBoundary embedded>{content}</RouteErrorBoundary>
+            </div>
+          </motion.div>
         </main>
       </div>
     </div>

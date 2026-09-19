@@ -70,7 +70,7 @@ describe('SurveyStep — 에러 처리', () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
       await waitFor(() => {
-        expect(screen.getByText(/불러오지 못했습니다/i)).toBeInTheDocument();
+        expect(screen.getByText(/불러오지 못했어요/i)).toBeInTheDocument();
       });
     });
 
@@ -105,7 +105,7 @@ describe('SurveyStep — 에러 처리', () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
 
       await waitFor(() => {
-        expect(screen.getByText(/불러오지 못했습니다/i)).toBeInTheDocument();
+        expect(screen.getByText(/불러오지 못했어요/i)).toBeInTheDocument();
       });
 
       await user.click(screen.getByRole('button', { name: /다시 시도/i }));

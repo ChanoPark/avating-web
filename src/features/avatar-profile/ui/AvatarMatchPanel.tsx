@@ -29,7 +29,10 @@ export function AvatarMatchPanel({
     >
       <Button
         type="button"
-        variant="brand"
+        // 정본 `.hf-modal>:first-child .cx-btn--brand{background:var(--ink)}` — 다이얼로그가
+        // 열리면 화면의 파란 채움은 다이얼로그 쪽 하나뿐이다. 뒤에 파란 버튼을 남겨 두면
+        // 검정 CTA 와 파란 버튼이 동시에 보여 시선이 뒤로 끌린다.
+        variant={requestOpen ? 'primary' : 'brand'}
         block
         disabled={disabled}
         aria-describedby={showReason ? reasonId : undefined}

@@ -126,7 +126,7 @@ export function SurveyStep() {
   if (isLoading) {
     return (
       <div className={WIZARD_BODY}>
-        <p className="text-caption text-secondary">질문을 불러오는 중...</p>
+        <p className="text-caption text-secondary">질문을 불러오는 중…</p>
       </div>
     );
   }
@@ -135,7 +135,7 @@ export function SurveyStep() {
     return (
       <div className={WIZARD_BODY}>
         <p className="text-caption text-danger" role="alert">
-          질문을 불러오지 못했습니다. 다시 시도해주세요.
+          질문을 불러오지 못했어요. 다시 시도해주세요.
         </p>
         <div>
           <Button
@@ -223,7 +223,7 @@ export function SurveyStep() {
         setSubmitError('입력 데이터를 다시 확인해주세요.');
         return;
       }
-      const fallback = '제출 중 오류가 발생했습니다. 다시 시도해주세요.';
+      const fallback = '제출 중 오류가 생겼어요. 다시 시도해주세요.';
       const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
       setSubmitError(message);
     }
@@ -261,7 +261,7 @@ export function SurveyStep() {
         <div className={WIZARD_HEAD}>
           {isExpressionsPage ? (
             <>
-              <span className="text-label text-secondary uppercase">
+              <span className="text-caption text-secondary font-medium">
                 A · 설문으로 만들기 — 선택 문항
               </span>
               <h1 className="text-title text-primary">관심사와 자주 쓰는 말투를 알려주세요</h1>
@@ -339,7 +339,7 @@ export function SurveyStep() {
               건너뛰기
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? '생성 중...' : '아바타 생성'}
+              {isSubmitting ? '생성 중…' : '아바타 생성'}
               <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
             </Button>
           </div>

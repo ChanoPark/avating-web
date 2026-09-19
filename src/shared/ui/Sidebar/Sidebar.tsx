@@ -23,10 +23,10 @@ export function Sidebar({
   // 포함해야 베이스의 flex/hidden 과 충돌하지 않는다.
   const layoutClass =
     mode === 'responsive'
-      ? 'hidden md:flex md:w-16 lg:w-58'
+      ? 'hidden md:flex md:w-16 lg:w-60'
       : mode === 'collapsed'
         ? 'flex w-14'
-        : 'flex w-58';
+        : 'flex w-60';
 
   return (
     <SidebarContextProvider value={ctx}>

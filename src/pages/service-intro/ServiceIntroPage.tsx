@@ -31,20 +31,12 @@ const NAV_ITEMS: readonly NavItem[] = [
 ];
 const FOOTER_ITEMS = ['이용약관', '개인정보', '문의'] as const;
 
-function Logo({ size }: { size: number }) {
+// 정본 `.ent-word` = `.hf-word` — 20px / 700 / -0.03em. 앱 안 워드마크 5벌이 전부 같은 값이다.
+function Logo() {
   return (
     <span className="flex shrink-0 items-center gap-2">
-      <span
-        aria-hidden="true"
-        className="bg-action shrink-0"
-        style={{ width: size, height: size, borderRadius: size * 0.28 }}
-      />
-      <span
-        className="text-primary font-medium tracking-[-0.4px]"
-        style={{ fontSize: size * 0.78 }}
-      >
-        Avating
-      </span>
+      <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
+      <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
     </span>
   );
 }
@@ -90,7 +82,7 @@ export function ServiceIntroPage() {
     <div className="bg-canvas text-primary flex min-h-screen flex-col">
       <div id={HERO_ID} className="bg-canvas">
         <header className="border-subtle flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
-          <Logo size={19} />
+          <Logo />
 
           <nav
             aria-label="서비스 소개 내비게이션"
@@ -147,7 +139,9 @@ export function ServiceIntroPage() {
           <div className="flex w-full min-w-0 flex-col gap-5 lg:flex-[0_0_44%]">
             <Tag className="self-start">BETA · 인터랙티브 소셜 게임</Tag>
 
-            <h1 className="text-figure text-primary text-balance">
+            {/* 정본 `.ent-h1{line-height:1.25}` — text-figure 의 --lh-flat(1) 은 한 줄 숫자용이라
+                2줄 헤드라인에서 줄이 서로 붙는다. */}
+            <h1 className="text-figure text-ink leading-[1.25] text-balance">
               귀찮은 밀당은 아바타가,
               <br />
               결정은 당신이.
@@ -193,7 +187,7 @@ export function ServiceIntroPage() {
 
           <div className="grid gap-4.5 md:grid-cols-3">
             {STEPS.map((step, index) => (
-              <Card key={step.title} className="flex flex-col gap-1.5">
+              <Card key={step.title} onWhite className="flex flex-col gap-1.5">
                 <span className="text-label text-action tnum uppercase">{`0${String(index + 1)}`}</span>
                 <div className="text-lead text-primary">{step.title}</div>
                 <p className="text-caption text-secondary tnum text-pretty">{step.body}</p>

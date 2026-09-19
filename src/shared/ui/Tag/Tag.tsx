@@ -5,6 +5,8 @@ import { cn } from '@shared/lib/cn';
 // 옛 파란 틴트 선택 상태는 없어졌다 — 파랑은 흐름당 하나뿐인 Brand 버튼 몫이다.
 // 상태 신호(인증·온라인 등)는 Tag 가 아니라 Badge 가 맡는다 — 여기에 추가하지 않는다.
 type TagVariant = 'default' | 'onSurface' | 'selected' | 'alert';
+/** md = `.cx-tag`(28px). sm = 이름 옆 메타 칩용 인라인 pill(--line-pill 20px). */
+type TagSize = 'md' | 'sm';
 
 const variants: Record<TagVariant, string> = {
   default: 'bg-surface text-primary',
@@ -14,20 +16,35 @@ const variants: Record<TagVariant, string> = {
   alert: 'bg-danger-tint text-danger',
 };
 
+// 비활성 컨트롤 안의 칩 — 판은 그대로 두고 색만 내린다 (`.cx-pick[disabled] .cx-tag`).
+// variant 와 한 자리를 다투게 두면 `cn` 이 단순 join 이라 둘 다 emit 돼 순서에 운을 건다.
+const DISABLED = 'bg-surface text-disabled';
+
+const sizes: Record<TagSize, string> = {
+  md: 'text-caption h-7 gap-2 px-3',
+  sm: 'text-meta h-5 gap-1.5 px-2',
+};
+
 export function Tag({
   children,
   variant = 'default',
+  size = 'md',
+  disabled = false,
   className,
 }: {
   children: ReactNode;
   variant?: TagVariant;
+  size?: TagSize;
+  /** 비활성 컨트롤 안에 놓였을 때 — 칩 자체는 클릭 대상이 아니라 색만 내린다. */
+  disabled?: boolean;
   className?: string;
 }) {
   return (
     <span
       className={cn(
-        'text-caption inline-flex h-7 flex-none items-center gap-2 rounded-full px-3 font-medium whitespace-nowrap',
-        variants[variant],
+        'inline-flex flex-none items-center rounded-full font-medium whitespace-nowrap',
+        sizes[size],
+        disabled ? DISABLED : variants[variant],
         className
       )}
     >

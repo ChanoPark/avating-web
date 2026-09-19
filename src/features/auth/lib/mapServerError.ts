@@ -87,7 +87,7 @@ export function mapServerError<T extends FieldValues>(
     const message =
       code === SERVER_ERROR_CODES.AUTH_PASSWORD_MISMATCH
         ? CREDENTIALS_MESSAGE
-        : '입력 정보를 확인해 주세요.';
+        : '입력 정보를 확인해주세요.';
     setError('root', { message });
     return;
   }

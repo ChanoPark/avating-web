@@ -57,7 +57,7 @@ function AvatarDetailContent({ id }: { id: string }) {
             }}
             requestOpen={requestOpen}
             disabled={ctaDisabled}
-            {...(ctaDisabled ? { disabledReason: '이미 매칭 중인 아바타입니다' } : {})}
+            {...(ctaDisabled ? { disabledReason: '이미 매칭 중인 아바타예요' } : {})}
           />
           <AvatarIntroPanel publicInfo={avatar.publicInfo} />
           {/* 관전 라우트가 아직 없어 이 버튼에는 동작을 연결하지 않는다(후속 PR). */}

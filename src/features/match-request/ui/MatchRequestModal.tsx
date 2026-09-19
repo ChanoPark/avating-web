@@ -188,7 +188,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         onClick={() => {
           if (!isPending) onClose();
         }}
-        className="bg-overlay absolute inset-0 cursor-default"
+        className="bg-overlay animate-scrim-in absolute inset-0 cursor-default"
         style={{ zIndex: 'var(--z-modal-bg)' }}
       />
       <div
@@ -198,7 +198,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         tabIndex={-1}
-        className="bg-canvas border-subtle relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
+        className="bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
@@ -209,7 +209,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             onClick={() => {
               if (!isPending) onClose();
             }}
-            className="text-muted hover:text-primary -mr-1 inline-flex shrink-0 cursor-pointer items-center transition-colors"
+            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
@@ -253,7 +253,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                     onClick={() => {
                       void refetchAvatars();
                     }}
-                    className="text-meta text-action hover:text-action-hover cursor-pointer self-start font-medium"
+                    className="text-meta text-action hover:text-action-hover ease-standard cursor-pointer self-start font-medium transition-colors duration-[var(--dur-fast)]"
                   >
                     다시 시도
                   </button>
@@ -326,7 +326,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 </p>
               ) : (
                 <p id={greetingHelpId} className="text-meta text-secondary">
-                  비워 두면 아바타가 알아서 인사를 시작합니다
+                  비워 두면 아바타가 알아서 인사를 건네요
                 </p>
               )}
             </div>

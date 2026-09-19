@@ -25,7 +25,7 @@ test.describe('공개 라우트 스모크', () => {
 
   test('알 수 없는 경로는 404 not-found 로 떨어진다', async ({ page }) => {
     await page.goto('/this-route-does-not-exist');
-    await expect(page.getByRole('heading', { name: '찾는 페이지가 없어요.' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: '찾는 페이지가 없어요' })).toBeVisible();
     // 비로그인 404 는 S-11-03 플랫 레이아웃(서비스 소개로·로그인)이다 — 셸을 유지하는 로그인
     // 상태 404 와 다르다.
     await expect(page.getByRole('button', { name: '서비스 소개로' })).toBeVisible();

@@ -89,7 +89,7 @@ describe('mapServerError — 로그인 컨텍스트', () => {
 
     expect(setError).toHaveBeenCalledWith(
       'root',
-      expect.objectContaining({ message: '입력 정보를 확인해 주세요.' })
+      expect.objectContaining({ message: '입력 정보를 확인해주세요.' })
     );
   });
 

@@ -51,9 +51,7 @@ describe('ErrorPage — 공통 시각 계약 (S-11 ErrBody)', () => {
   it('모든 화면이 eyebrow + 제목 + 본문을 갖는다', () => {
     renderErrorPage('server-error');
     expect(screen.getByText('일시적인 오류')).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: '문제가 생겼어요. 다시 시도해 주세요.' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
   });
 
   it('정본이 금지한 장식을 그리지 않는다 — 아이콘 박스·격자 배경·워드마크', () => {
@@ -89,7 +87,7 @@ describe('ErrorPage — S-11-01 세션 만료 (401)', () => {
   it('세션 만료 문구를 표시한다', () => {
     renderErrorPage('session-expired');
     expect(screen.getByText('세션 만료')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '다시 로그인해 주세요.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '다시 로그인해주세요' })).toBeInTheDocument();
     expect(screen.getByText(/일정 시간 활동이 없어 자동으로 로그아웃됐어요/)).toBeInTheDocument();
   });
 
@@ -126,7 +124,7 @@ describe('ErrorPage — S-11-02 접근 권한 없음 (403)', () => {
     renderErrorPage('forbidden');
     expect(screen.getByText('접근 권한 없음')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: '이 페이지를 볼 권한이 없어요.' })
+      screen.getByRole('heading', { name: '이 페이지를 볼 권한이 없어요' })
     ).toBeInTheDocument();
     expect(screen.getByText(/다른 사람의 아바타나 대화는 열 수 없어요/)).toBeInTheDocument();
     expect(screen.queryByText(/찾을 수 없|존재하지 않/)).not.toBeInTheDocument();
@@ -158,7 +156,7 @@ describe('ErrorPage — S-11-03 없는 페이지 (404)', () => {
   it('인증 상태에서는 대시보드 복귀 경로를 준다', () => {
     renderErrorPage('not-found', { isAuthenticated: true });
     expect(screen.getByText('없는 페이지')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '찾는 페이지가 없어요.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '찾는 페이지가 없어요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '대시보드로' })).toBeInTheDocument();
   });
 
@@ -248,7 +246,7 @@ describe('ErrorPage — S-11-05 반복 실패', () => {
     renderErrorPage('server-error', { retryCount: 3 });
     expect(screen.getByText('반복 실패')).toBeInTheDocument();
     expect(
-      screen.getByRole('heading', { name: '여러 번 시도해도 처리되지 않아요.' })
+      screen.getByRole('heading', { name: '여러 번 시도해도 처리되지 않아요' })
     ).toBeInTheDocument();
   });
 
@@ -324,7 +322,7 @@ describe('ErrorPage — offline · maintenance (정본 외 · 유지 결정)', (
         brief: '데이터베이스 이관',
       },
     });
-    expect(screen.getByRole('heading', { name: '잠깐 점검 중이에요.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '잠깐 점검 중이에요' })).toBeInTheDocument();
     expect(screen.getByText(/2026-08-08 02:00/)).toBeInTheDocument();
     expect(screen.getByText(/데이터베이스 이관/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /상태 페이지/ })).toHaveAttribute(
@@ -357,9 +355,7 @@ describe('ErrorPage — embedded (셸 안에서 본문만 교체)', () => {
 
   it('embedded 여도 같은 문구를 쓴다', () => {
     renderErrorPage('server-error', { embedded: true });
-    expect(
-      screen.getByRole('heading', { name: '문제가 생겼어요. 다시 시도해 주세요.' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
   });
 });
 

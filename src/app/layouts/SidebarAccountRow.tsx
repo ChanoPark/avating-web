@@ -11,7 +11,8 @@ import { useFocusTrap } from '@shared/lib/useFocusTrap';
 // 와이어프레임은 open 토글만 그린다 — 나머지 닫기 동작(바깥 클릭·Escape 등)은 정본에 없어 직접 채웠다.
 
 const MENU_ITEM =
-  'flex w-full items-center gap-2 rounded-chip px-[9px] py-[7px] text-[13px] hover:bg-surface';
+  'flex w-full items-center gap-2 rounded-chip px-[9px] py-[7px] text-[13px] hover:bg-surface ' +
+  'ease-standard transition-colors duration-[var(--dur-fast)]';
 
 export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
   const { data } = useMyAvatars();
@@ -110,7 +111,7 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
             'ease-standard transition-colors duration-[var(--dur-fast)]',
             open
               ? 'bg-action-tint text-action-press'
-              : 'text-secondary hover:bg-surface hover:text-primary'
+              : 'text-secondary hover:bg-surface hover:text-primary ease-standard transition-colors duration-[var(--dur-fast)]'
           )}
         >
           <Settings size={18} strokeWidth={1.5} aria-hidden="true" />

@@ -19,7 +19,7 @@ export function InlineErrorPanel({ id, retryDisabled, onRetry }: Props) {
         type="button"
         disabled={retryDisabled}
         onClick={onRetry}
-        className="text-meta text-action hover:text-action-hover cursor-pointer self-start font-medium disabled:cursor-not-allowed disabled:opacity-50"
+        className="text-meta text-action hover:text-action-hover ease-standard disabled:text-disabled cursor-pointer self-start font-medium transition-colors duration-[var(--dur-fast)] disabled:cursor-not-allowed"
       >
         다시 시도
       </button>

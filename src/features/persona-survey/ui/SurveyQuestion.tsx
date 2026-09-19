@@ -25,7 +25,8 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
             key={opt.answerId}
             className={cn(
               'bg-canvas rounded-card flex cursor-pointer items-center gap-3 border p-3',
-              'ease-standard transition-colors duration-[var(--dur-fast)] focus-within:shadow-[var(--focus-ring)]',
+              // focus-within 이 아니라 has-[:focus-visible] 이어야 마우스 클릭에 링이 안 뜬다.
+              'ease-standard transition-colors duration-[var(--dur-fast)] has-[:focus-visible]:shadow-[var(--focus-ring)]',
               selected ? 'bg-selected border-transparent' : 'border-subtle hover:border-strong'
             )}
           >

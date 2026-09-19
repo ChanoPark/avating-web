@@ -6,8 +6,10 @@ import { FIELD_CLASS } from '@shared/ui/Input';
 // 정본 note("이모지 입력은 받지 않습니다")를 문구로만 두면 거짓말이 되므로 입력 단계에서 막는다.
 const EMOJI_PATTERN = /\p{Extended_Pictographic}/u;
 
+// 색은 담지 않는다 — 사용처가 text-secondary / text-disabled 로 갈리는데 `cn` 은 단순
+// join 이라 여기에 색을 두면 disabled 자리에서 두 색이 같이 emit 된다.
 const CHIP_BASE =
-  'text-caption border-subtle bg-canvas text-secondary inline-flex h-[30px] items-center gap-1.5 rounded-full border';
+  'text-caption border-subtle bg-canvas inline-flex h-[30px] items-center gap-1.5 rounded-full border';
 
 type Props = {
   label: string;
@@ -91,7 +93,7 @@ export function ChipInputField({
 
       <div className="flex flex-wrap gap-1.5">
         {value.map((chip) => (
-          <span key={chip} className={cn(CHIP_BASE, 'pr-1.5 pl-3')}>
+          <span key={chip} className={cn(CHIP_BASE, 'text-secondary pr-1.5 pl-3')}>
             {chip}
             <button
               type="button"
@@ -99,7 +101,7 @@ export function ChipInputField({
               onClick={() => {
                 remove(chip);
               }}
-              className="text-secondary hover:bg-subtle hover:text-primary flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-full"
+              className="text-secondary hover:bg-subtle hover:text-primary ease-standard flex h-[18px] w-[18px] shrink-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-[var(--dur-fast)]"
             >
               {/* 문자 글리프(✕) 대신 라인 아이콘 — Pretendard 에 없는 글자는 시스템 폰트로 폴백한다. */}
               <X size={11} strokeWidth={1.5} aria-hidden="true" />
@@ -112,7 +114,7 @@ export function ChipInputField({
           onClick={handleAddClick}
           className={cn(
             CHIP_BASE,
-            'text-secondary hover:border-strong hover:text-primary cursor-pointer px-3'
+            'text-secondary hover:border-strong hover:text-primary ease-standard cursor-pointer px-3 transition-colors duration-[var(--dur-fast)]'
           )}
         >
           <Plus size={12} strokeWidth={1.5} aria-hidden="true" />
@@ -138,8 +140,8 @@ export function ChipInputField({
                   CHIP_BASE,
                   'px-3',
                   selected
-                    ? 'cursor-not-allowed opacity-40'
-                    : 'hover:border-strong hover:text-primary cursor-pointer'
+                    ? 'text-disabled cursor-not-allowed'
+                    : 'text-secondary hover:border-strong hover:text-primary cursor-pointer'
                 )}
               >
                 {suggestion}
