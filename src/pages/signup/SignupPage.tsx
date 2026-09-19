@@ -1,17 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { SignupForm } from '@features/auth/ui/SignupForm';
-import { AuthLayout, type AuthAsideItem } from '@features/auth/ui/AuthLayout';
+import { AuthLayout } from '@features/auth/ui/AuthLayout';
+import { SiteHeader } from '@features/auth/ui/SiteHeader';
 import { clearDraft } from '@features/persona-survey/lib/draftStorage';
 import { clearOnboardingProgress } from '@entities/onboarding';
 import { useAuthStore } from '@entities/auth/store';
-
-const ASIDE_ITEMS: readonly AuthAsideItem[] = [
-  // 총 문항 수는 서버 시딩(지표 7종 × questionCount)에 따라 달라진다 — 문구에 숫자를 박지 않는다.
-  { title: '아바타 생성', description: '성향 설문 또는 Bot 연동' },
-  { title: '시뮬레이션 관전', description: '아바타끼리 대화, 훈수로 개입' },
-  { title: '에프터 연결', description: '호감도 75 이상이면 실제 채팅' },
-];
 
 export function SignupPage() {
   const navigate = useNavigate();
@@ -28,10 +22,14 @@ export function SignupPage() {
     <AuthLayout
       headingId="signup-heading"
       title="계정 만들기"
-      subtitle="2분이면 아바타를 만들고 첫 매칭을 시작할 수 있어요."
-      asideItems={ASIDE_ITEMS}
-      asideNote="가입 시 본인 인증은 받지 않습니다 — 실제 연결 시점에만 1회 진행."
-      footnote="가입하면 아바타 생성 온보딩으로 바로 이동합니다."
+      header={
+        <SiteHeader
+          onNavigate={(targetId) => {
+            // 내비가 가리키는 밴드는 랜딩에만 있다 — 랜딩이 해시를 보고 스크롤한다.
+            void navigate(`/#${targetId}`);
+          }}
+        />
+      }
     >
       <SignupForm
         onSuccess={() => {
