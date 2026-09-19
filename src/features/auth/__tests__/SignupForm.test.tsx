@@ -49,6 +49,18 @@ describe('SignupForm', () => {
       expect(screen.getByText('OR')).toBeInTheDocument();
     });
 
+    it('Google·Apple 버튼은 계정 만들기 버튼 아래, 로그인 링크 위에 있다', () => {
+      renderWithProviders(<SignupForm />);
+      const submit = screen.getByRole('button', { name: /계정 만들기/ });
+      const google = screen.getByRole('button', { name: /Google/i });
+      const apple = screen.getByRole('button', { name: /Apple/i });
+      const loginLink = screen.getByRole('link', { name: /로그인/i });
+
+      expect(submit.compareDocumentPosition(google)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(google.compareDocumentPosition(apple)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+      expect(apple.compareDocumentPosition(loginLink)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
     it('비밀번호 강도 progressbar 가 렌더된다', () => {
       renderWithProviders(<SignupForm />);
       expect(screen.getByRole('progressbar', { name: /비밀번호 강도/ })).toBeInTheDocument();
@@ -69,7 +81,7 @@ describe('SignupForm', () => {
       expect(screen.getByRole('button', { name: /계정 만들기/ })).toBeInTheDocument();
     });
 
-    it('본인 인증 안내는 폼이 아니라 AuthAside 로 옮겨졌다 (SignupPage 가 렌더)', () => {
+    it('본인 인증 안내 문구를 폼에 두지 않는다', () => {
       renderWithProviders(<SignupForm />);
       expect(screen.queryByText(/본인 인증/)).not.toBeInTheDocument();
     });
