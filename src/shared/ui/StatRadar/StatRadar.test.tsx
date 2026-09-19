@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 import { StatRadar } from './StatRadar';
+import { statRadarBox } from './geometry';
 
 // 서버 PersonaStatType 7지표 — 축 수는 고정이 아니라 넘긴 라벨 수를 따른다.
 const LABELS = ['개방성', '상상력', '외향성', '공감', '계획성', '유머', '애정표현'];
@@ -60,6 +61,20 @@ describe('StatRadar', () => {
       expect(screen.queryByTestId('stat-radar-tooltip')).not.toBeInTheDocument();
     });
 
+    // 정본 .cx-tip__bubble — 13px · line-height 1.4 · 상하 4 / 좌우 8 · radius chip · 잉크 채움.
+    it('툴팁은 정본 .cx-tip__bubble 값(13px, 높이 4·2 + 13·1.4)으로 그린다', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<StatRadar stats={STATS} labels={LABELS} />);
+      await user.hover(sector(container, 0));
+
+      const tooltip = screen.getByTestId('stat-radar-tooltip');
+      expect(tooltip.querySelector('text')).toHaveAttribute('font-size', '13');
+      const rect = tooltip.querySelector('rect');
+      expect(Number(rect?.getAttribute('height'))).toBeCloseTo(4 * 2 + 13 * 1.4, 1);
+      expect(rect).toHaveAttribute('rx', '6');
+      expect(rect).toHaveAttribute('fill', 'var(--ink)');
+    });
+
     it('다른 축으로 옮기면 그 축의 값으로 바뀐다', async () => {
       const user = userEvent.setup();
       const { container } = render(<StatRadar stats={STATS} labels={LABELS} />);
@@ -67,6 +82,30 @@ describe('StatRadar', () => {
       await user.hover(sector(container, 0));
       await user.hover(sector(container, 5));
       expect(screen.getByTestId('stat-radar-tooltip')).toHaveTextContent('유머 88');
+    });
+  });
+
+  describe('statRadarBox — 그리기 전에 상자 크기를 안다', () => {
+    function renderedBox(maxWidth?: number) {
+      const { container, unmount } = render(
+        <StatRadar
+          stats={STATS}
+          labels={LABELS}
+          {...(maxWidth === undefined ? {} : { maxWidth })}
+        />
+      );
+      const svg = container.querySelector('svg');
+      const box = {
+        width: Number(svg?.getAttribute('width')),
+        height: Number(svg?.getAttribute('height')),
+      };
+      unmount();
+      return box;
+    }
+
+    it('같은 라벨·폭이면 실제로 그린 레이더와 같은 상자를 돌려준다', () => {
+      expect(statRadarBox(LABELS, 300)).toEqual(renderedBox(300));
+      expect(statRadarBox(LABELS)).toEqual(renderedBox());
     });
   });
 
@@ -120,6 +159,30 @@ describe('StatRadar', () => {
     const rect = screen.getByTestId('stat-radar-tooltip').querySelector('rect');
     // 위쪽 축이라 중심 쪽 = 아래. 툴팁 상단이 꼭짓점보다 위로 올라가지 않는다.
     expect(Number(rect?.getAttribute('y'))).toBeGreaterThanOrEqual(vertexY - 1);
+  });
+
+  // 가로 방향 축은 툴팁 폭이 축 방향으로 튀어나온다 — 그만큼 더 안쪽에 띄워 가리키는 점을 덮지 않는다.
+  it('툴팁이 가리키는 꼭짓점을 덮지 않는다 (외향성 축 값 50)', async () => {
+    const user = userEvent.setup();
+    const { container } = render(
+      <StatRadar stats={[50, 50, 50, 50, 50, 50, 50]} labels={LABELS} />
+    );
+    const d = container.querySelector('path[fill="var(--data-fill)"]')?.getAttribute('d') ?? '';
+    // 세 번째 꼭짓점이 외향성(축 2)이다.
+    const [, vx, vy] = /L\s+\S+\s+\S+\s+L\s+(\S+)\s+(\S+)/.exec(d) ?? [];
+    const vertex = { x: Number(vx), y: Number(vy) };
+
+    const sector = container.querySelector('[data-axis="2"]');
+    if (sector === null) throw new Error('axis 2 sector not found');
+    await user.hover(sector);
+
+    const rect = screen.getByTestId('stat-radar-tooltip').querySelector('rect');
+    const x = Number(rect?.getAttribute('x'));
+    const y = Number(rect?.getAttribute('y'));
+    const w = Number(rect?.getAttribute('width'));
+    const h = Number(rect?.getAttribute('height'));
+    const covers = vertex.x >= x && vertex.x <= x + w && vertex.y >= y && vertex.y <= y + h;
+    expect(covers).toBe(false);
   });
 
   it('접근 가능한 이름을 가진 img 로 노출된다', () => {

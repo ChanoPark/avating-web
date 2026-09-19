@@ -153,6 +153,17 @@ describe('MyAvatarGrid', () => {
   });
 
   describe('로딩 상태', () => {
+    // 스켈레톤은 실제 콘텐츠와 같은 상자여야 로드 순간 아래 섹션이 밀리지 않는다.
+    it('스켈레톤의 레이더 자리는 실제 레이더와 같은 높이다', async () => {
+      server.use(primaryAvatarHandlers.success);
+      renderWithProviders(<MyAvatarGrid />);
+
+      const placeholder = screen.getByTestId('stat-radar-skeleton');
+      const skeletonHeight = placeholder.getAttribute('height');
+      const radar = await screen.findByRole('img', { name: '아바타 스탯 레이더' });
+      expect(radar.getAttribute('height')).toBe(skeletonHeight);
+    });
+
     it('불러오는 동안 스켈레톤이 aria-busy 로 로딩 중임을 알린다', async () => {
       server.use(primaryAvatarHandlers.success);
       renderWithProviders(<MyAvatarGrid />);

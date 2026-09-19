@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { InlineError } from '@shared/ui/InlineError';
-import { StatRadar, STAT_RADAR_MIN_AXES } from '@shared/ui/StatRadar';
+import { StatRadar, STAT_RADAR_MIN_AXES, statRadarBox } from '@shared/ui/StatRadar';
 import { cn } from '@shared/lib/cn';
 import { useElementWidth } from '@shared/lib/useElementWidth';
 import { PERSONA_STAT_KEYS, personaStatRows, usePrimaryAvatarSuspense } from '@entities/avatar';
@@ -26,8 +26,35 @@ function CardHeader() {
   return <h2 className="text-caption text-primary font-medium">대표 아바타</h2>;
 }
 
-// 실제 콘텐츠와 같은 골격을 세운다 — 헤더 · 44px 요약 · 구분선 · 레이더(약 200px) · 지표 7행(행당 25px).
-// 좁은 카드에서는 카드가 우측 열보다 길어 행 높이를 정하므로, 골격이 짧으면 로드 순간 두 열이 함께 늘어난다.
+// 7지표 전부를 가정한 레이더 라벨 — 스켈레톤이 실제 레이더와 같은 계산(statRadarBox)으로 상자를 세운다.
+const SKELETON_RADAR_LABELS = personaStatRows(
+  Object.fromEntries(PERSONA_STAT_KEYS.map((key) => [key, 0]))
+).map((row) => row.label);
+
+function RadarSkeleton() {
+  const [cellRef, cellWidth] = useElementWidth<HTMLDivElement>();
+  const box = statRadarBox(SKELETON_RADAR_LABELS, cellWidth > 0 ? cellWidth : undefined);
+  return (
+    <div ref={cellRef} className={RADAR_CELL_CLASS}>
+      <svg
+        data-testid="stat-radar-skeleton"
+        aria-hidden="true"
+        width={box.width}
+        height={box.height}
+      >
+        <circle
+          cx={box.width / 2}
+          cy={box.height / 2}
+          r={Math.min(box.width, box.height) / 2}
+          fill="var(--bg-raised)"
+        />
+      </svg>
+    </div>
+  );
+}
+
+// 실제 콘텐츠와 같은 골격을 세운다 — 헤더 · 44px 요약 · 구분선 · 레이더(실제와 같은 상자) · 지표 7행(행당 25px).
+// 카드가 행 높이를 정할 때가 있어, 골격이 다르면 로드 순간 상단 행과 아래 섹션이 함께 움직인다.
 function MyAvatarGridSkeleton() {
   return (
     <section aria-label="대표 아바타" aria-busy="true" className={cn(CARD_CLASS, 'animate-pulse')}>
@@ -35,9 +62,7 @@ function MyAvatarGridSkeleton() {
       <div className="bg-raised h-11 rounded-[11px]" />
       <hr className="border-subtle border-t" />
       <div className={STATS_LAYOUT_CLASS}>
-        <div className={RADAR_CELL_CLASS}>
-          <div className="bg-raised size-56 rounded-full" />
-        </div>
+        <RadarSkeleton />
         <div className={cn('flex flex-col', STATS_TABLE_CLASS)}>
           {PERSONA_STAT_KEYS.map((key) => (
             <div key={key} className="flex h-6.25 items-center justify-between">
