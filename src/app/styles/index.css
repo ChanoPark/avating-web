@@ -77,6 +77,7 @@
   --color-strong: var(--border-strong);
   --color-disabled: var(--text-disabled);
   --color-field-disabled: var(--field-bg-disabled);
+  --color-field-border-disabled: var(--field-border-disabled);
 
   /* 액션. --action-bg 와 --text-action 이 같은 값이라 한 키로 채움·글자를 둘 다 맞춘다.
      타입이 얹히지 않는 파랑(테두리·체크마크)은 한 단계 밝은 --action-mark 다. */
