@@ -8,6 +8,7 @@ export const mockPrimaryAvatar: { data: AvatarSummary } = {
     schemaVersion: 1,
     avatarId: '11111111-1111-4111-8111-111111111111',
     name: '루시',
+    hashtag: 'A3K9Z7',
     description: '따뜻하고 유머 감각 넘치는 ENFP',
     stats: {
       OPENNESS: 72.5,

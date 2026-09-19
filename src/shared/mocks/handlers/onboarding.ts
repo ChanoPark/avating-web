@@ -62,6 +62,7 @@ export const mockConnectStatusExpired = {
 export const mockCreatedAvatarSummaryBase = {
   schemaVersion: 1,
   avatarId: 'a2222222-2222-4222-8222-222222222222',
+  hashtag: 'R4NW8K',
   stats: {
     OPENNESS: 72.5,
     IMAGINATION: 68,

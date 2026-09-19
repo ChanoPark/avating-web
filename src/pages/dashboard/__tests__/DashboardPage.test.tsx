@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Suspense } from 'react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
@@ -9,11 +9,9 @@ import { http, HttpResponse } from 'msw';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
 import { server } from '@shared/mocks/server';
-import {
-  statsHandlers,
-  recommendedHandlers,
-  sessionHandlers,
-} from '@shared/mocks/handlers/dashboard';
+import { statsHandlers, sessionHandlers } from '@shared/mocks/handlers/dashboard';
+import { simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
+import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
 import { AuthGuard } from '@app/providers/AuthGuard';
 import { DashboardPage } from '../DashboardPage';
 
@@ -87,7 +85,12 @@ function renderDashboard({ authenticated = true, initialRoute = '/dashboard' } =
 
 describe('DashboardPage 통합 시나리오', () => {
   beforeEach(() => {
-    server.use(statsHandlers.success, recommendedHandlers.success, sessionHandlers.success);
+    server.use(
+      statsHandlers.success,
+      primaryAvatarHandlers.success,
+      simCandidatesHandlers.success,
+      sessionHandlers.success
+    );
   });
 
   afterEach(() => {
@@ -112,12 +115,18 @@ describe('DashboardPage 통합 시나리오', () => {
       expect(screen.queryByText('잔여 다이아')).not.toBeInTheDocument();
     });
 
-    it('인증 상태에서 추천 아바타 리스트가 렌더된다', async () => {
+    it('내 아바타 카드에 대표 아바타(GET /api/avatars/primary)가 렌더된다', async () => {
       renderDashboard();
+      // 스켈레톤도 같은 이름의 region 이라 매번 다시 찾는다.
       await waitFor(() => {
-        expect(screen.getByText('Moonlit')).toBeInTheDocument();
+        expect(screen.getByRole('region', { name: '내 아바타' })).toHaveTextContent('루시#A3K9Z7');
       });
-      expect(screen.getByText('Spring')).toBeInTheDocument();
+    });
+
+    it('추천 아바타 목록에 후보 아바타(GET /api/avatars/candidates)가 렌더된다', async () => {
+      renderDashboard();
+      expect(await screen.findByRole('button', { name: '하늘#H7K2MP' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '봄날#B3RT9Q' })).toBeInTheDocument();
     });
   });
 
@@ -219,53 +228,12 @@ describe('DashboardPage 통합 시나리오', () => {
     });
   });
 
-  describe('AC-5. 필터 클릭 → 리스트 갱신', () => {
-    it('"온라인" 필터 칩 클릭 시 새 요청이 발행된다', async () => {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-      const user = userEvent.setup();
-      let requestCount = 0;
-      server.use(
-        http.get(`${BASE_URL}/api/avatars/recommended`, ({ request }) => {
-          requestCount++;
-          const url = new URL(request.url);
-          const filter = url.searchParams.get('filter');
-          if (filter?.includes('online')) {
-            return HttpResponse.json({ data: { items: [], nextCursor: null } });
-          }
-          return HttpResponse.json({
-            data: {
-              items: [
-                {
-                  id: 'avatar-1',
-                  initials: 'HW',
-                  name: 'Moonlit',
-                  level: 3,
-                  status: 'online',
-                  verified: true,
-                  type: '내향 · 낭만형',
-                  tags: ['서촌'],
-                  matchRate: 87,
-                },
-              ],
-              nextCursor: null,
-            },
-          });
-        })
-      );
-
+  describe('AC-5. 필터 없음', () => {
+    // /api/avatars/candidates 는 size 외 파라미터가 없다 — 동작하지 않는 칩을 남기지 않는다.
+    it('추천 아바타 영역에 필터 칩 그룹이 없다', async () => {
       renderDashboard();
-
-      await waitFor(() => {
-        expect(screen.getByText('Moonlit')).toBeInTheDocument();
-      });
-
-      const initialCount = requestCount;
-      const onlineChip = screen.getByRole('button', { name: '온라인' });
-      await user.click(onlineChip);
-
-      await waitFor(() => {
-        expect(requestCount).toBeGreaterThan(initialCount);
-      });
+      await screen.findByRole('button', { name: '하늘#H7K2MP' });
+      expect(screen.queryByRole('group', { name: '아바타 필터' })).not.toBeInTheDocument();
     });
   });
 
@@ -274,11 +242,7 @@ describe('DashboardPage 통합 시나리오', () => {
       const user = userEvent.setup();
       renderDashboard();
 
-      await waitFor(() => {
-        expect(screen.getByText('Moonlit')).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByText('Moonlit'));
+      await user.click(await screen.findByRole('button', { name: '하늘#H7K2MP' }));
 
       await waitFor(() => {
         expect(screen.getByText('AVATAR_DETAIL')).toBeInTheDocument();
@@ -292,10 +256,10 @@ describe('DashboardPage 통합 시나리오', () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getAllByRole('button', { name: /매칭/ }).length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('button', { name: /^매칭$/ }).length).toBeGreaterThan(0);
       });
 
-      const matchButtons = screen.getAllByRole('button', { name: /매칭/ });
+      const matchButtons = screen.getAllByRole('button', { name: /^매칭$/ });
       await user.click(matchButtons[0]!);
 
       await waitFor(() => {
@@ -308,6 +272,14 @@ describe('DashboardPage 통합 시나리오', () => {
       await waitFor(() => {
         expect(screen.getByText(/매칭 요청을 보냈어요/)).toBeInTheDocument();
       });
+
+      // 요청한 카드는 곧바로 요청 불가로 바뀐다 — 같은 아바타에 중복 요청을 막는다.
+      const requested = screen.getByRole('button', { name: '하늘#H7K2MP' }).closest('li');
+      expect(requested).not.toBeNull();
+      await waitFor(() => {
+        expect(within(requested!).getByRole('button', { name: /^매칭$/ })).toBeDisabled();
+      });
+      expect(within(requested!).getByText('매칭 중')).toBeInTheDocument();
     });
   });
 
@@ -318,10 +290,10 @@ describe('DashboardPage 통합 시나리오', () => {
       renderDashboard();
 
       await waitFor(() => {
-        expect(screen.getAllByRole('button', { name: /매칭/ }).length).toBeGreaterThan(0);
+        expect(screen.getAllByRole('button', { name: /^매칭$/ }).length).toBeGreaterThan(0);
       });
 
-      const matchButtons = screen.getAllByRole('button', { name: /매칭/ });
+      const matchButtons = screen.getAllByRole('button', { name: /^매칭$/ });
       await user.click(matchButtons[0]!);
 
       await waitFor(() => {
@@ -338,41 +310,13 @@ describe('DashboardPage 통합 시나리오', () => {
     });
   });
 
-  describe('AC-10. 빈 리스트 + 필터 초기화', () => {
-    it('빈 응답 → "추천할 아바타가 없어요" + "필터 초기화" 버튼', async () => {
-      server.use(recommendedHandlers.empty);
+  describe('AC-10. 빈 리스트', () => {
+    it('후보가 없으면 "추천할 아바타가 없어요" 빈 상태가 렌더된다', async () => {
+      server.use(simCandidatesHandlers.empty);
       renderDashboard();
 
-      await waitFor(() => {
-        expect(screen.getByText(/추천할 아바타가 없어요/)).toBeInTheDocument();
-      });
-
-      expect(screen.getByRole('button', { name: /필터 초기화/ })).toBeInTheDocument();
-    });
-
-    it('"필터 초기화" 클릭 → 새 요청이 발행된다', async () => {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-      const user = userEvent.setup();
-      let requestCount = 0;
-      server.use(
-        http.get(`${BASE_URL}/api/avatars/recommended`, () => {
-          requestCount++;
-          return HttpResponse.json({ data: { items: [], nextCursor: null } });
-        })
-      );
-
-      renderDashboard();
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /필터 초기화/ })).toBeInTheDocument();
-      });
-
-      const countBefore = requestCount;
-      await user.click(screen.getByRole('button', { name: /필터 초기화/ }));
-
-      await waitFor(() => {
-        expect(requestCount).toBeGreaterThan(countBefore);
-      });
+      expect(await screen.findByText('추천할 아바타가 없어요')).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /필터 초기화/ })).not.toBeInTheDocument();
     });
   });
 

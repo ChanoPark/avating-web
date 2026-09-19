@@ -5,6 +5,7 @@ const valid = {
   schemaVersion: 1,
   avatarId: '11111111-1111-4111-8111-111111111111',
   name: '루시',
+  hashtag: 'A3K9Z7',
   description: '따뜻하고 유머 감각 넘치는 ENFP',
   stats: {
     OPENNESS: 72.5,
@@ -47,6 +48,12 @@ describe('avatarSummarySchema (서버 AvatarSummaryResponse)', () => {
   it('필수 필드가 빠지면 거부한다', () => {
     const { avatarId: _omitted, ...withoutId } = valid;
     expect(() => avatarSummarySchema.parse(withoutId)).toThrow();
+  });
+
+  it('hashtag 를 보존하고, 빠지면 거부한다', () => {
+    expect(avatarSummarySchema.parse(valid).hashtag).toBe('A3K9Z7');
+    const { hashtag: _omitted, ...withoutHashtag } = valid;
+    expect(() => avatarSummarySchema.parse(withoutHashtag)).toThrow();
   });
 
   it('apiResponse 래퍼는 data 를 벗겨낸다', () => {

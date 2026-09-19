@@ -70,6 +70,8 @@ export const avatarSummarySchema = z.object({
   schemaVersion: z.number().int(),
   avatarId: z.string().min(1),
   name: z.string().min(1),
+  // 서버가 생성하는 불변 6자 식별 태그 — 화면에는 `이름#해시태그` 로 붙여 쓴다.
+  hashtag: z.string().min(1),
   // 계약상 "저장된 값이 없으면 빈 문자열" 이라 min(1) 을 걸면 실응답이 떨어진다.
   description: z.string(),
   stats: z.record(z.string(), statValue),
@@ -79,6 +81,21 @@ export const avatarSummarySchema = z.object({
 export type AvatarSummary = z.infer<typeof avatarSummarySchema>;
 
 export const apiResponseAvatarSummary = z.object({ data: avatarSummarySchema });
+
+/** 서버 AvatarSimCandidateResponse(GET /avatars/candidates) — 요약과 같은 필드에 요청 가능 여부만 더해진다. 진행 중 초대에 걸린 아바타도 false 로 목록에 남는다. */
+export const avatarSimCandidateSchema = avatarSummarySchema.extend({
+  canRequestSimulation: z.boolean(),
+});
+export type AvatarSimCandidate = z.infer<typeof avatarSimCandidateSchema>;
+
+// 랜덤 조회라 커서가 없다. size 는 실제로 내려준 개수라 요청 size 보다 작을 수 있다.
+export const avatarSimCandidateListSchema = z.object({
+  items: z.array(avatarSimCandidateSchema),
+  size: z.number().int().nonnegative(),
+});
+export type AvatarSimCandidateList = z.infer<typeof avatarSimCandidateListSchema>;
+
+export const apiResponseAvatarSimCandidateList = z.object({ data: avatarSimCandidateListSchema });
 
 // 서버 PersonaStatType 7종. 파싱은 record 로 느슨하게 받고, 표시할 때만 이 목록·순서를 쓴다.
 export const PERSONA_STAT_KEYS = [

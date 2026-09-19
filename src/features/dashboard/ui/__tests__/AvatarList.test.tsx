@@ -1,214 +1,102 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { createElement, Suspense } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ErrorBoundary } from 'react-error-boundary';
-import { MemoryRouter } from 'react-router';
-import { ToastProvider } from '@shared/ui/Toast/Toast';
+import { http, HttpResponse } from 'msw';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
-import { recommendedHandlers } from '@shared/mocks/handlers/dashboard';
+import { mockSimCandidates, simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
 import { AvatarList } from '../AvatarList';
-import type { RecommendedAvatarFilter } from '@entities/dashboard/model';
 
-const defaultFilter: RecommendedAvatarFilter = {
-  online: false,
-  introvert: false,
-  extrovert: false,
-  verified: false,
-};
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
-function renderWithProviders(
-  ui: React.ReactNode,
-  { onAvatarClick = vi.fn(), onResetFilter = vi.fn() } = {}
-) {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+describe('AvatarList (GET /api/avatars/candidates)', () => {
+  it('후보 아바타마다 카드가 렌더된다', async () => {
+    server.use(simCandidatesHandlers.success);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    const list = await screen.findByRole('list', { name: '추천 아바타 목록' });
+    expect(within(list).getByRole('button', { name: '하늘#H7K2MP' })).toBeInTheDocument();
+    expect(within(list).getByRole('button', { name: '봄날#B3RT9Q' })).toBeInTheDocument();
+    expect(within(list).getByRole('button', { name: 'Moonlit#Q5WN8Z' })).toBeInTheDocument();
   });
-  return {
-    queryClient,
-    onAvatarClick,
-    onResetFilter,
-    ...render(
-      createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        createElement(
-          MemoryRouter,
-          null,
-          createElement(
-            ToastProvider,
-            null,
-            createElement(
-              ErrorBoundary,
-              {
-                fallback: createElement('div', { 'data-testid': 'list-error' }, '리스트 오류'),
-              },
-              createElement(
-                Suspense,
-                { fallback: createElement('div', { 'data-testid': 'loading' }, '로딩 중') },
-                ui
-              )
+
+  it('size 를 실어 한 번 요청한다', async () => {
+    const sizes: (string | null)[] = [];
+    server.use(
+      http.get(`${BASE_URL}/api/avatars/candidates`, ({ request }) => {
+        sizes.push(new URL(request.url).searchParams.get('size'));
+        return HttpResponse.json(mockSimCandidates);
+      })
+    );
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    await screen.findByRole('list', { name: '추천 아바타 목록' });
+    expect(sizes).toHaveLength(1);
+    expect(Number(sizes[0])).toBeGreaterThanOrEqual(1);
+    expect(Number(sizes[0])).toBeLessThanOrEqual(50);
+  });
+
+  it('요청할 수 없는 후보만 매칭 버튼이 비활성화된다', async () => {
+    server.use(simCandidatesHandlers.success);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    await screen.findByRole('list', { name: '추천 아바타 목록' });
+    const buttons = screen.getAllByRole('button', { name: /^매칭$/ });
+    expect(buttons.map((b) => (b as HTMLButtonElement).disabled)).toEqual([false, true, false]);
+    expect(screen.getAllByText('매칭 중')).toHaveLength(1);
+  });
+
+  it('카드 클릭 시 onAvatarClick(avatarId) 가 호출된다', async () => {
+    const onAvatarClick = vi.fn();
+    const user = userEvent.setup();
+    server.use(simCandidatesHandlers.success);
+    renderWithProviders(<AvatarList onAvatarClick={onAvatarClick} />);
+
+    await user.click(await screen.findByRole('button', { name: '하늘#H7K2MP' }));
+    expect(onAvatarClick).toHaveBeenCalledWith('22222222-2222-4222-8222-222222222222');
+  });
+
+  it('"매칭" 버튼 클릭 시 해당 아바타 이름으로 DispatchModal 이 열린다', async () => {
+    const user = userEvent.setup();
+    server.use(simCandidatesHandlers.success);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    await screen.findByRole('list', { name: '추천 아바타 목록' });
+    const [first] = screen.getAllByRole('button', { name: /^매칭$/ });
+    await user.click(first!);
+
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/하늘 아바타와 매칭을 시작할까요/)).toBeInTheDocument();
+  });
+
+  it('후보가 없으면 빈 상태를 보여주고 필터 초기화는 없다', async () => {
+    server.use(simCandidatesHandlers.empty);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    expect(await screen.findByText('추천할 아바타가 없어요')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /필터 초기화/ })).not.toBeInTheDocument();
+  });
+
+  it('500 이면 영역 오류를 보여주고, "다시 시도" 로 재요청해 복구한다', async () => {
+    const user = userEvent.setup();
+    let callCount = 0;
+    server.use(
+      http.get(`${BASE_URL}/api/avatars/candidates`, () => {
+        callCount++;
+        return callCount === 1
+          ? HttpResponse.json(
+              { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+              { status: 500 }
             )
-          )
-        )
-      )
-    ),
-  };
-}
-
-describe('AvatarList', () => {
-  it('정상 데이터 시 아바타 행이 렌더된다', async () => {
-    server.use(recommendedHandlers.success);
-    const onAvatarClick = vi.fn();
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick,
-        onResetFilter: vi.fn(),
-      }),
-      { onAvatarClick }
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Moonlit')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('Moonlit')).toBeInTheDocument();
-    expect(screen.getByText('Spring')).toBeInTheDocument();
-  });
-
-  it('빈 응답 시 "추천할 아바타가 없어요" 텍스트가 렌더된다', async () => {
-    server.use(recommendedHandlers.empty);
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter: vi.fn(),
+          : HttpResponse.json(mockSimCandidates);
       })
     );
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
 
-    await waitFor(() => {
-      expect(screen.getByText(/추천할 아바타가 없어요/)).toBeInTheDocument();
-    });
-  });
+    expect(await screen.findByText('추천 아바타를 불러오지 못했어요')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '다시 시도' }));
 
-  it('빈 응답 시 "필터 초기화" 버튼이 렌더된다', async () => {
-    server.use(recommendedHandlers.empty);
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter: vi.fn(),
-      })
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /필터 초기화/ })).toBeInTheDocument();
-    });
-  });
-
-  it('"필터 초기화" 클릭 시 onResetFilter 가 호출된다', async () => {
-    const onResetFilter = vi.fn();
-    const user = userEvent.setup();
-    server.use(recommendedHandlers.empty);
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter,
-      }),
-      { onResetFilter }
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /필터 초기화/ })).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /필터 초기화/ }));
-    expect(onResetFilter).toHaveBeenCalledOnce();
-  });
-
-  it('행 클릭 시 onAvatarClick(id) 가 호출된다', async () => {
-    const onAvatarClick = vi.fn();
-    const user = userEvent.setup();
-    server.use(recommendedHandlers.success);
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick,
-        onResetFilter: vi.fn(),
-      }),
-      { onAvatarClick }
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Moonlit')).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByText('Moonlit'));
-    expect(onAvatarClick).toHaveBeenCalledWith('avatar-1');
-  });
-
-  it('"매칭" 버튼 클릭 시 DispatchModal 이 열린다', async () => {
-    const user = userEvent.setup();
-    server.use(recommendedHandlers.success);
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter: vi.fn(),
-      })
-    );
-
-    await waitFor(() => {
-      expect(screen.getAllByRole('button', { name: /매칭/ }).length).toBeGreaterThan(0);
-    });
-
-    const matchButtons = screen.getAllByRole('button', { name: /매칭/ });
-    await user.click(matchButtons[0]!);
-
-    await waitFor(() => {
-      const dialog = screen.queryByRole('dialog');
-      const matchText = screen.queryByText(/매칭하기/);
-      expect(dialog !== null || matchText !== null).toBe(true);
-    });
-  });
-
-  it('서버 500 응답 시 AvatarListFallback ("목록을 불러오지 못했어요") 가 렌더된다', async () => {
-    server.use(recommendedHandlers.serverError);
-    const onResetFilter = vi.fn();
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter,
-      })
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/목록을 불러오지 못했어요/)).toBeInTheDocument();
-    });
-  });
-
-  it('AvatarListFallback 의 "필터 초기화" 클릭 시 onResetFilter 가 호출된다', async () => {
-    server.use(recommendedHandlers.serverError);
-    const onResetFilter = vi.fn();
-    const user = userEvent.setup();
-    renderWithProviders(
-      createElement(AvatarList, {
-        filter: defaultFilter,
-        onAvatarClick: vi.fn(),
-        onResetFilter,
-      }),
-      { onResetFilter }
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText(/목록을 불러오지 못했어요/)).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole('button', { name: /필터 초기화/ }));
-    expect(onResetFilter).toHaveBeenCalledOnce();
+    expect(await screen.findByRole('button', { name: '하늘#H7K2MP' })).toBeInTheDocument();
+    expect(callCount).toBe(2);
   });
 });

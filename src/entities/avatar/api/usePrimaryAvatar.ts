@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { queryOptions, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
 import { isApiError } from '@shared/lib/errors';
 import type { ApiError } from '@shared/lib/errors';
@@ -17,12 +17,19 @@ async function fetchPrimaryAvatar(): Promise<AvatarSummary | null> {
   }
 }
 
+// 온보딩 판정(useQuery)과 대시보드 카드(suspense)가 같은 캐시를 쓰므로 옵션도 한 벌로 묶는다.
+const primaryAvatarQuery = queryOptions<AvatarSummary | null, ApiError>({
+  queryKey: avatarKeys.primary(),
+  queryFn: fetchPrimaryAvatar,
+  retry: false,
+  staleTime: 30_000,
+});
+
 export function usePrimaryAvatar(options: { enabled?: boolean } = {}) {
-  return useQuery<AvatarSummary | null, ApiError>({
-    queryKey: avatarKeys.primary(),
-    queryFn: fetchPrimaryAvatar,
-    retry: false,
-    staleTime: 30_000,
-    enabled: options.enabled ?? true,
-  });
+  return useQuery({ ...primaryAvatarQuery, enabled: options.enabled ?? true });
+}
+
+export function usePrimaryAvatarSuspense(): AvatarSummary | null {
+  const { data } = useSuspenseQuery(primaryAvatarQuery);
+  return data;
 }

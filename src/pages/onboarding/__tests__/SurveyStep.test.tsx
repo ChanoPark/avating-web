@@ -265,6 +265,7 @@ describe('SurveyStep', () => {
                 schemaVersion: 1,
                 avatarId: 'a1111111-1111-4111-8111-111111111111',
                 name: '루나',
+                hashtag: 'L5MQ2T',
                 description: '소개글',
                 stats: { OPENNESS: 70, EMPATHY: 60 },
                 tags: [],

@@ -6,6 +6,7 @@ import { matchRequestHandlers } from './handlers/matchRequest';
 import { inboxHandlers } from './handlers/inbox';
 import { avatarDetailHandlers } from './handlers/avatarDetail';
 import { primaryAvatarDefaultHandlers } from './handlers/primaryAvatar';
+import { simCandidatesDefaultHandlers } from './handlers/avatarCandidates';
 
 export const server = setupServer(
   ...authHandlers,
@@ -13,9 +14,10 @@ export const server = setupServer(
   ...onboardingHandlers,
   ...matchRequestHandlers,
   ...inboxHandlers,
-  // /api/avatars/primary 가 /api/avatars/:id 보다 먼저 와야 한다 — MSW 는 등록 순서로
+  // /api/avatars/primary · /candidates 가 /api/avatars/:id 보다 먼저 와야 한다 — MSW 는 등록 순서로
   // 매칭하므로 detail 이 앞서면 :id=primary 를 삼켜 detail 응답이 내려온다.
   ...primaryAvatarDefaultHandlers,
+  ...simCandidatesDefaultHandlers,
   ...avatarDetailHandlers
 );
 
