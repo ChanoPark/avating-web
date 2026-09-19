@@ -59,11 +59,14 @@ describe('ServiceIntroPage', () => {
       expect(within(banner).getByText('요금')).toHaveClass('text-secondary');
     });
 
-    it('상단 바에 "로그인" ghost 와 "회원가입" secondary 가 함께 있다', () => {
+    it('상단 바의 "로그인"·"회원가입" 은 둘 다 배경 없는 ghost 다', () => {
       renderPage();
       const banner = screen.getByRole('banner');
-      expect(within(banner).getByRole('button', { name: '로그인' })).toBeInTheDocument();
-      expect(within(banner).getByRole('button', { name: '회원가입' })).toBeInTheDocument();
+      for (const name of ['로그인', '회원가입']) {
+        const button = within(banner).getByRole('button', { name });
+        expect(button).toHaveClass('bg-transparent');
+        expect(button).not.toHaveClass('bg-fill-weak');
+      }
     });
 
     it('상단 바에 채워진 파란 CTA 는 없다 (밴드당 1개 규칙 — 히어로가 갖는다)', () => {
@@ -144,6 +147,21 @@ describe('ServiceIntroPage', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
         expect(scrollIntoView).toHaveBeenCalledOnce();
         expect(document.getElementById('how-it-works')).not.toBeNull();
+      } finally {
+        // @ts-expect-error — jsdom 원상복구: 원래 정의되지 않은 프로퍼티다.
+        delete Element.prototype.scrollIntoView;
+      }
+    });
+
+    it('`/#how-it-works` 로 들어오면 HOW IT WORKS 섹션으로 스크롤한다 (가입 화면 헤더 내비)', () => {
+      const scrollIntoView = vi.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+
+      try {
+        renderWithProviders(<ServiceIntroPage />, { initialRoute: '/#how-it-works' });
+
+        expect(scrollIntoView).toHaveBeenCalledOnce();
+        expect(scrollIntoView.mock.contexts[0]).toBe(document.getElementById('how-it-works'));
       } finally {
         // @ts-expect-error — jsdom 원상복구: 원래 정의되지 않은 프로퍼티다.
         delete Element.prototype.scrollIntoView;
