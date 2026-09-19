@@ -126,33 +126,6 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           </div>
         )}
 
-        <div className="flex flex-col gap-2">
-          <Button
-            type="button"
-            variant="secondary"
-            block
-            disabled
-            aria-label="Google 로 계속하기 (준비 중)"
-          >
-            Google로 계속하기
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            block
-            disabled
-            aria-label="Apple 로 계속하기 (준비 중)"
-          >
-            Apple로 계속하기
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-3" aria-hidden="true">
-          <span className="bg-subtle h-px flex-1" />
-          <span className="text-meta text-secondary">OR</span>
-          <span className="bg-subtle h-px flex-1" />
-        </div>
-
         <div className="flex flex-col gap-3.5">
           <div className="flex flex-col gap-2">
             <label htmlFor="signup-email" className="text-caption text-secondary font-medium">
@@ -327,6 +300,33 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
           {isLoading ? '가입 중…' : '계정 만들기'}
           <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
         </Button>
+
+        <div className="flex items-center gap-3" aria-hidden="true">
+          <span className="bg-subtle h-px flex-1" />
+          <span className="text-meta text-secondary">OR</span>
+          <span className="bg-subtle h-px flex-1" />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            block
+            disabled
+            aria-label="Google 로 계속하기 (준비 중)"
+          >
+            Google로 계속하기
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            block
+            disabled
+            aria-label="Apple 로 계속하기 (준비 중)"
+          >
+            Apple로 계속하기
+          </Button>
+        </div>
 
         <div className="text-caption flex items-center justify-center gap-1.5">
           <span className="text-secondary">이미 계정이 있나요?</span>

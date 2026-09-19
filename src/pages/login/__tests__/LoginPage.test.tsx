@@ -8,6 +8,11 @@ vi.mock('@features/auth/lib/encryptPassword', () => ({
 }));
 
 describe('LoginPage', () => {
+  it('상단 헤더는 두지 않는다 — 가입 화면에만 붙는다', () => {
+    renderWithProviders(<LoginPage />);
+    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+  });
+
   it('2단 구성: 우측 AuthAside(complementary)를 렌더한다', () => {
     renderWithProviders(<LoginPage />);
     expect(screen.getByRole('complementary', { name: /이용 안내/ })).toBeInTheDocument();

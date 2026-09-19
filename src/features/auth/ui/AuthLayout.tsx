@@ -14,12 +14,11 @@ type AuthLayoutProps = {
   /** 폼 카드 제목의 id — 폼 섹션과 aria-labelledby 로 연결된다. */
   headingId: string;
   title: string;
-  subtitle: string;
-  asideItems: readonly AuthAsideItem[];
-  /** AuthAside 하단 각주 — 정본에 있는 화면에서만 전달한다. */
-  asideNote?: string;
-  /** 폼 카드 아래 각주 — 정본에 있는 화면에서만 전달한다. */
-  footnote?: string;
+  subtitle?: string;
+  /** 없으면 우측 안내 페인 없이 폼만 가운데 둔다 (가입 화면). */
+  asideItems?: readonly AuthAsideItem[];
+  /** 화면 맨 위에 붙는 상단 바 — 폼·안내 페인은 그 아래 남은 높이를 채운다. */
+  header?: ReactNode;
   children: ReactNode;
 };
 
@@ -28,7 +27,7 @@ function BrandWordmark() {
   return <div className="text-ink text-title font-bold tracking-[-0.03em]">Avating</div>;
 }
 
-function AuthAside({ items, note }: { items: readonly AuthAsideItem[]; note?: string }) {
+function AuthAside({ items }: { items: readonly AuthAsideItem[] }) {
   return (
     <aside
       aria-label="이용 안내"
@@ -47,10 +46,6 @@ function AuthAside({ items, note }: { items: readonly AuthAsideItem[]; note?: st
           <p className="text-meta text-secondary tnum pl-[34px]">{item.description}</p>
         </div>
       ))}
-
-      {note !== undefined && (
-        <p className="text-meta text-secondary tnum mt-auto leading-[1.5]">{note}</p>
-      )}
     </aside>
   );
 }
@@ -60,30 +55,31 @@ export function AuthLayout({
   title,
   subtitle,
   asideItems,
-  asideNote,
-  footnote,
+  header,
   children,
 }: AuthLayoutProps) {
   return (
-    <div className="bg-canvas text-primary flex min-h-screen flex-col lg:flex-row">
-      <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12">
-        <section aria-labelledby={headingId} className="w-[400px] max-w-full">
-          <BrandWordmark />
+    <div className="bg-canvas text-primary flex min-h-screen flex-col">
+      {header}
 
-          <h1 id={headingId} className="text-lead text-ink mt-6 font-semibold">
-            {title}
-          </h1>
-          <p className="text-caption text-secondary tnum mt-1">{subtitle}</p>
+      <div className="flex flex-1 flex-col lg:flex-row">
+        <div className="flex min-w-0 flex-1 flex-col items-center justify-center px-6 py-12">
+          <section aria-labelledby={headingId} className="w-[400px] max-w-full">
+            <BrandWordmark />
 
-          <div className="mt-6 flex flex-col">{children}</div>
-        </section>
+            <h1 id={headingId} className="text-lead text-ink mt-6 font-semibold">
+              {title}
+            </h1>
+            {subtitle !== undefined && (
+              <p className="text-caption text-secondary tnum mt-1">{subtitle}</p>
+            )}
 
-        {footnote !== undefined && (
-          <p className="text-meta text-secondary mt-4 w-[400px] max-w-full">{footnote}</p>
-        )}
+            <div className="mt-6 flex flex-col">{children}</div>
+          </section>
+        </div>
+
+        {asideItems !== undefined && <AuthAside items={asideItems} />}
       </div>
-
-      <AuthAside items={asideItems} {...(asideNote === undefined ? {} : { note: asideNote })} />
     </div>
   );
 }

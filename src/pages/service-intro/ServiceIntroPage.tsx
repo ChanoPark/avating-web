@@ -1,9 +1,10 @@
-import { useNavigate } from 'react-router';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { Card } from '@shared/ui/Card';
 import { Tag } from '@shared/ui/Tag';
-import { cn } from '@shared/lib/cn';
+import { HOW_IT_WORKS_ID, SERVICE_INTRO_HERO_ID, SiteHeader } from '@features/auth/ui/SiteHeader';
 import { useAuthStore } from '@entities/auth/store';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 
@@ -19,30 +20,16 @@ const STEPS: readonly Step[] = [
   { title: '호감도가 넘으면 연결', body: '양측 수락 시 실제 채팅 개설' },
 ];
 
-const HOW_IT_WORKS_ID = 'how-it-works';
-const HERO_ID = 'service-intro-hero';
-
-// 요금 화면은 아직 없으므로 죽은 링크가 되지 않도록 버튼이 아닌 비대화형 텍스트로 둔다.
-type NavItem = { label: string; targetId?: string };
-const NAV_ITEMS: readonly NavItem[] = [
-  { label: '서비스 소개', targetId: HERO_ID },
-  { label: '작동 방식', targetId: HOW_IT_WORKS_ID },
-  { label: '요금' },
-];
 const FOOTER_ITEMS = ['이용약관', '개인정보', '문의'] as const;
 
-// 정본 `.ent-word` = `.hf-word` — 20px / 700 / -0.03em. 앱 안 워드마크 5벌이 전부 같은 값이다.
-function Logo() {
-  return (
-    <span className="flex shrink-0 items-center gap-2">
-      <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
-      <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
-    </span>
-  );
+// 아직 별도 라우트가 없는 마케팅 내비는 같은 화면의 밴드로만 이동시킨다.
+function scrollToSection(targetId: string) {
+  document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
 }
 
 export function ServiceIntroPage() {
   const navigate = useNavigate();
+  const { hash } = useLocation();
   const status = useAuthStore((s) => s.status);
 
   // 로그인한 사용자를 가입·로그인 폼으로 되돌려보내면 세션이 풀린 것처럼 보이므로 "시작하기" 하나로 접는다.
@@ -65,75 +52,23 @@ export function ServiceIntroPage() {
   const goSignup = () => {
     void navigate('/signup');
   };
-  const goLogin = () => {
-    void navigate('/login');
-  };
-
-  // 아직 별도 라우트가 없는 마케팅 내비는 같은 화면의 밴드로만 이동시킨다.
-  const scrollTo = (targetId: string) => {
-    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth' });
-  };
 
   const scrollToHowItWorks = () => {
-    scrollTo(HOW_IT_WORKS_ID);
+    scrollToSection(HOW_IT_WORKS_ID);
   };
+
+  // 가입 화면 헤더의 내비는 `/#<밴드 id>` 로 넘어온다 — 도착하면 그 밴드로 내려준다.
+  useEffect(() => {
+    if (hash !== '') scrollToSection(hash.slice(1));
+  }, [hash]);
 
   return (
     <div className="bg-canvas text-primary flex min-h-screen flex-col">
-      <div id={HERO_ID} className="bg-canvas">
-        <header className="border-subtle flex h-[68px] items-center justify-between gap-4 border-b px-6 lg:px-16">
-          <Logo />
-
-          <nav
-            aria-label="서비스 소개 내비게이션"
-            className="text-caption hidden items-center gap-[18px] lg:flex"
-          >
-            {NAV_ITEMS.map((item, index) => {
-              const tone = index === 0 ? 'text-primary' : 'text-secondary';
-              if (item.targetId === undefined) {
-                return (
-                  <span key={item.label} className={tone}>
-                    {item.label}
-                  </span>
-                );
-              }
-              const targetId = item.targetId;
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  onClick={() => {
-                    scrollTo(targetId);
-                  }}
-                  className={cn(
-                    tone,
-                    'hover:text-primary cursor-pointer transition-colors duration-[var(--dur-fast)]'
-                  )}
-                >
-                  {item.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* 정본에는 없는 로그인 상태 분기다 (의도된 divergence). */}
-          <div className="flex items-center gap-2">
-            {isAuthenticated ? (
-              <Button variant="secondary" size="sm" onClick={enterService}>
-                시작하기
-              </Button>
-            ) : (
-              <>
-                <Button variant="ghost" size="sm" onClick={goLogin}>
-                  로그인
-                </Button>
-                <Button variant="secondary" size="sm" onClick={goSignup}>
-                  회원가입
-                </Button>
-              </>
-            )}
-          </div>
-        </header>
+      <div id={SERVICE_INTRO_HERO_ID} className="bg-canvas">
+        <SiteHeader
+          onNavigate={scrollToSection}
+          onStart={isAuthenticated ? enterService : undefined}
+        />
 
         <div className="flex flex-col items-center gap-14 px-6 pt-16 pb-19.5 lg:flex-row lg:px-16">
           <div className="flex w-full min-w-0 flex-col gap-5 lg:flex-[0_0_44%]">
