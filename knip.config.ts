@@ -10,6 +10,11 @@ const config: KnipConfig = {
     'src/test/**/*.ts',
   ],
   project: ['src/**/*.{ts,tsx}'],
+  ignore: [
+    // Codex DS 컴포넌트 — 탐색(S-03-02) 필터 칩 자리. 대시보드 후보 조회(/api/avatars/candidates)에
+    // 필터 파라미터가 없어 대시보드 칩을 걷어낸 뒤 소비처가 없다. 탐색 화면 구현 시 이 줄을 지운다.
+    'src/shared/ui/FilterChip/**',
+  ],
   ignoreDependencies: [
     // ESLint v4 호환 미흡으로 미배선 — 도입 시점에 제거
     'eslint-plugin-tailwindcss',

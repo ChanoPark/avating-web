@@ -29,43 +29,6 @@ export const mockDashboardStatsPartialFail = {
   },
 };
 
-export const mockRecommendedAvatars = {
-  data: {
-    items: [
-      {
-        id: 'avatar-1',
-        initials: 'HW',
-        name: 'Moonlit',
-        level: 3,
-        status: 'online',
-        verified: true,
-        type: '내향 · 낭만형',
-        tags: ['서촌', '카페투어'],
-        matchRate: 87,
-      },
-      {
-        id: 'avatar-2',
-        initials: 'SY',
-        name: 'Spring',
-        level: 2,
-        status: 'busy',
-        verified: false,
-        type: '외향 · 활동형',
-        tags: ['런닝', '클라이밍'],
-        matchRate: 75,
-      },
-    ],
-    nextCursor: null,
-  },
-};
-
-export const mockRecommendedAvatarsEmpty = {
-  data: {
-    items: [],
-    nextCursor: null,
-  },
-};
-
 export const mockCreateSessionResponse = {
   data: {
     sessionId: 'session-123',
@@ -90,22 +53,6 @@ export const getDashboardStatsHandler = (scenario: DashboardScenario = 'success'
   });
 };
 
-export const getRecommendedAvatarsHandler = (scenario: DashboardScenario = 'success') => {
-  if (scenario === 'empty') {
-    return http.get(`${BASE_URL}/api/avatars/recommended`, () => {
-      return HttpResponse.json(mockRecommendedAvatarsEmpty);
-    });
-  }
-  if (scenario === 'server-error') {
-    return http.get(`${BASE_URL}/api/avatars/recommended`, () => {
-      return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-    });
-  }
-  return http.get(`${BASE_URL}/api/avatars/recommended`, () => {
-    return HttpResponse.json(mockRecommendedAvatars);
-  });
-};
-
 export const postSessionHandler = (scenario: DashboardScenario = 'success') => {
   if (scenario === 'server-error') {
     return http.post(`${BASE_URL}/api/sessions`, () => {
@@ -117,22 +64,12 @@ export const postSessionHandler = (scenario: DashboardScenario = 'success') => {
   });
 };
 
-export const dashboardHandlers = [
-  getDashboardStatsHandler(),
-  getRecommendedAvatarsHandler(),
-  postSessionHandler(),
-];
+export const dashboardHandlers = [getDashboardStatsHandler(), postSessionHandler()];
 
 export const statsHandlers = {
   success: getDashboardStatsHandler('success'),
   partialFail: getDashboardStatsHandler('partial-fail'),
   serverError: getDashboardStatsHandler('server-error'),
-};
-
-export const recommendedHandlers = {
-  success: getRecommendedAvatarsHandler('success'),
-  empty: getRecommendedAvatarsHandler('empty'),
-  serverError: getRecommendedAvatarsHandler('server-error'),
 };
 
 export const sessionHandlers = {

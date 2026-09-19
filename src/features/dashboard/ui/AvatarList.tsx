@@ -1,27 +1,27 @@
 import { Suspense, useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { Compass } from 'lucide-react';
-import { Button } from '@shared/ui/Button';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { cn } from '@shared/lib/cn';
-import type { RecommendedAvatarFilter } from '@entities/dashboard';
-import { useRecommendedAvatars } from '../api/useRecommendedAvatars';
+import { InlineError } from '@shared/ui/InlineError';
+import { useSimCandidatesSuspense } from '@entities/avatar';
 import { AvatarCard } from './AvatarCard';
 import { DispatchModal } from './DispatchModal';
 
 type AvatarListProps = {
-  filter: RecommendedAvatarFilter;
   onAvatarClick: (id: string) => void;
-  onResetFilter: () => void;
 };
+
+// xl 4열 그리드를 두 줄 채운다 (서버 기본 10·상한 50). 서버가 랜덤으로 뽑아 정렬 기준은 없다.
+const CANDIDATE_COUNT = 8;
 
 type ModalState = { open: false } | { open: true; avatarId: string; avatarName: string };
 
 // 그리드가 아닌 상태(빈 목록 · 오류 · 로딩)는 카드 한 장 위에 얹는다.
 const PANEL_CLASS = 'border-subtle bg-canvas rounded-card border';
 
-function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
-  const { items: avatars } = useRecommendedAvatars(filter);
+function AvatarListContent({ onAvatarClick }: AvatarListProps) {
+  const { items: avatars } = useSimCandidatesSuspense(CANDIDATE_COUNT);
   const [modal, setModal] = useState<ModalState>({ open: false });
 
   if (avatars.length === 0) {
@@ -30,8 +30,7 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
         <EmptyState
           icon={Compass}
           title="추천할 아바타가 없어요"
-          description="필터를 조정하거나 잠시 후 다시 확인해주세요"
-          action={{ label: '필터 초기화', onClick: onResetFilter }}
+          description="잠시 후 다시 확인해주세요"
         />
       </div>
     );
@@ -46,7 +45,7 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
       >
         {avatars.map((avatar) => (
           <AvatarCard
-            key={avatar.id}
+            key={avatar.avatarId}
             avatar={avatar}
             onOpen={onAvatarClick}
             onMatch={(id) => {
@@ -70,13 +69,11 @@ function AvatarListContent({ filter, onAvatarClick, onResetFilter }: AvatarListP
   );
 }
 
-function AvatarListFallback({ onResetFilter }: { onResetFilter: () => void }) {
+// 정본 S-11-06 PANEL — 실패한 영역만 교체하고 재시도는 그 자리에 둔다.
+function AvatarListFallback({ resetErrorBoundary }: FallbackProps) {
   return (
-    <div className={cn(PANEL_CLASS, 'flex flex-col items-center justify-center py-12 text-center')}>
-      <div className="text-caption text-secondary">목록을 불러오지 못했어요.</div>
-      <Button variant="ghost" size="sm" className="mt-4" onClick={onResetFilter}>
-        필터 초기화
-      </Button>
+    <div className={PANEL_CLASS}>
+      <InlineError body="추천 아바타를 불러오지 못했어요" onRetry={resetErrorBoundary} />
     </div>
   );
 }
@@ -116,15 +113,14 @@ function AvatarListSkeleton() {
   );
 }
 
-export function AvatarList({ filter, onAvatarClick, onResetFilter }: AvatarListProps) {
+export function AvatarList({ onAvatarClick }: AvatarListProps) {
+  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
+  const { reset } = useQueryErrorResetBoundary();
+
   return (
-    <ErrorBoundary fallback={<AvatarListFallback onResetFilter={onResetFilter} />}>
+    <ErrorBoundary onReset={reset} fallbackRender={(props) => <AvatarListFallback {...props} />}>
       <Suspense fallback={<AvatarListSkeleton />}>
-        <AvatarListContent
-          filter={filter}
-          onAvatarClick={onAvatarClick}
-          onResetFilter={onResetFilter}
-        />
+        <AvatarListContent onAvatarClick={onAvatarClick} />
       </Suspense>
     </ErrorBoundary>
   );

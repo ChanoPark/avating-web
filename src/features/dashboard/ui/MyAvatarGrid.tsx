@@ -1,24 +1,16 @@
 import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { InlineError } from '@shared/ui/InlineError';
-import { Badge } from '@shared/ui/Badge';
 import { cn } from '@shared/lib/cn';
-import { useMyAvatarsSuspense } from '@entities/avatar';
-import type { MyAvatar } from '@entities/match-request';
-import type { AvatarStatus } from '@entities/avatar';
+import { usePrimaryAvatarSuspense } from '@entities/avatar';
+import type { AvatarSummary } from '@entities/avatar';
+import { avatarInitial } from '../lib/avatarInitial';
 
 // 폭 300 고정은 페이지(부모)가 준다 — 여기서는 지정하지 않는다.
 // 높이는 h-full 로 부모 행(items-stretch)에 맞춘다 — 정본 wf-s2-core ScreenDashboard 의
 // `<Row align="stretch">` 직속 Card 와 같은 결과다. 감싸는 div 만 늘어나고 카드가 남으면 우측 열과 밑단이 어긋난다.
 const CARD_CLASS = 'border-subtle bg-canvas flex h-full flex-col gap-3 rounded-card border p-4';
-
-// 시스템이 알려주는 상태라 무채색이다 — 색이 아니라 마크의 **모양**으로 나뉜다
-// (.cx-status__mark: 채움 / 맥동 / 빈 링).
-const STATUS_BADGE: Record<AvatarStatus, { label: string; mark: 'active' | 'running' | 'idle' }> = {
-  online: { label: '활성', mark: 'active' },
-  busy: { label: '매칭 중', mark: 'running' },
-  offline: { label: '오프라인', mark: 'idle' },
-};
 
 function CardHeader({ action }: { action?: React.ReactNode }) {
   return (
@@ -29,7 +21,7 @@ function CardHeader({ action }: { action?: React.ReactNode }) {
   );
 }
 
-// 실제 콘텐츠와 같은 골격을 세운다 — 앞 두 단만 두면 로드 후 카드가 늘어나 CLS 가 생긴다.
+// 실제 콘텐츠와 같은 골격을 세운다 — 헤더 한 단 + 44px 요약 한 단.
 function MyAvatarGridSkeleton() {
   return (
     <section aria-label="내 아바타" className={cn(CARD_CLASS, 'animate-pulse')}>
@@ -38,11 +30,6 @@ function MyAvatarGridSkeleton() {
         <div className="bg-raised rounded-chip h-4 w-14" />
       </div>
       <div className="bg-raised h-11 rounded-[11px]" />
-      <hr className="border-subtle border-t" />
-      <div className="flex items-center justify-between">
-        <div className="bg-raised rounded-chip h-3 w-20" />
-        <div className="bg-raised rounded-chip h-3 w-8" />
-      </div>
     </section>
   );
 }
@@ -65,31 +52,32 @@ function EmptyAvatarBody() {
   );
 }
 
-function AvatarSummary({ avatar }: { avatar: MyAvatar }) {
-  const status = STATUS_BADGE[avatar.status];
+// 상태·진행 중 매칭 수는 서버가 주지 않아 그리지 않는다 — 대표 아바타 조회가 주는 값만 쓴다.
+function PrimaryAvatarSummary({ avatar }: { avatar: AvatarSummary }) {
   return (
     <div className="flex items-center gap-2.75">
       <span
         aria-hidden="true"
         className="bg-id-none text-id-none-fg text-caption flex h-11 w-11 shrink-0 items-center justify-center rounded-[11px] font-semibold uppercase"
       >
-        {avatar.initials}
+        {avatarInitial(avatar.name)}
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.75">
-        <span className="flex items-center gap-1.5">
-          <span className="text-caption text-primary truncate font-medium">{avatar.name}</span>
-          <Badge mark={status.mark}>{status.label}</Badge>
+        {/* 이름#태그는 한 덩어리로 쓴다(wf2-spec) — 줄바꿈 없이 함께 잘린다. */}
+        <span className="text-caption text-primary truncate font-medium">
+          {avatar.name}
+          <span className="text-secondary font-normal">#{avatar.hashtag}</span>
         </span>
-        <span className="text-meta text-secondary truncate">{avatar.type}</span>
+        {avatar.description !== '' && (
+          <span className="text-meta text-secondary truncate">{avatar.description}</span>
+        )}
       </span>
     </div>
   );
 }
 
 function MyAvatarGridContent() {
-  const { items } = useMyAvatarsSuspense();
-  const primary = items.find((a) => a.isPrimary) ?? items[0];
-  const busyCount = items.filter((a) => a.busy).length;
+  const primary = usePrimaryAvatarSuspense();
 
   return (
     <section aria-label="내 아바타" className={CARD_CLASS}>
@@ -104,27 +92,17 @@ function MyAvatarGridContent() {
           </button>
         }
       />
-      {primary === undefined ? (
-        <EmptyAvatarBody />
-      ) : (
-        <>
-          <AvatarSummary avatar={primary} />
-          <hr className="border-subtle border-t" />
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-meta text-secondary">진행 중 매칭</span>
-            <span className="text-caption text-primary tnum">
-              {busyCount} / {items.length}
-            </span>
-          </div>
-        </>
-      )}
+      {primary === null ? <EmptyAvatarBody /> : <PrimaryAvatarSummary avatar={primary} />}
     </section>
   );
 }
 
 export function MyAvatarGrid() {
+  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
+  const { reset } = useQueryErrorResetBoundary();
+
   return (
-    <ErrorBoundary fallbackRender={(props) => <MyAvatarGridFallback {...props} />}>
+    <ErrorBoundary onReset={reset} fallbackRender={(props) => <MyAvatarGridFallback {...props} />}>
       <Suspense fallback={<MyAvatarGridSkeleton />}>
         <MyAvatarGridContent />
       </Suspense>

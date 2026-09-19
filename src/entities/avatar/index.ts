@@ -14,7 +14,7 @@ export type {
   AvatarSimCandidate,
   AvatarSimCandidateList,
 } from './model';
-export { useMyAvatars, useMyAvatarsSuspense } from './api/useMyAvatars';
+export { useMyAvatars } from './api/useMyAvatars';
 export { usePrimaryAvatar, usePrimaryAvatarSuspense } from './api/usePrimaryAvatar';
 export { useSimCandidatesSuspense } from './api/useSimCandidates';
 export { useAvatarDetailSuspense } from './api/useAvatarDetail';
