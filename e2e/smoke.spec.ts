@@ -20,7 +20,10 @@ test.describe('공개 라우트 스모크', () => {
     await page.goto('/login');
     // 와이어프레임 v2 `ScreenSignin` 의 확정 카피.
     await expect(page.getByRole('heading', { name: '다시 만나서 반가워요' })).toBeVisible();
-    await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
+    // 상단 헤더에도 "로그인" 버튼이 있어 폼 카드 안의 제출 버튼으로 좁힌다.
+    const formCard = page.getByRole('region', { name: '다시 만나서 반가워요' });
+    await expect(formCard.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
+    await expect(page.getByRole('banner')).toBeVisible();
   });
 
   test('알 수 없는 경로는 404 not-found 로 떨어진다', async ({ page }) => {
