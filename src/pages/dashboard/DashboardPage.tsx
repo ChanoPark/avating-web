@@ -29,7 +29,9 @@ export function DashboardPage() {
     <div className="flex flex-col gap-3.5">
       {failedStatCount > 0 && <StatsRetryAction onRetry={handleStatsRetry} />}
       <div className="flex flex-col items-stretch gap-3.5 lg:flex-row">
-        <div className="lg:w-75 lg:shrink-0">
+        {/* xl 에서는 대표 아바타 카드와 우측 열을 반씩 나눠 레이더를 크게 보인다(사용자 결정 2026-09-19).
+            lg 에서 넓히면 우측 stat 카드 3장이 좁아져 300 을 둔다. */}
+        <div className="lg:w-75 lg:shrink-0 xl:w-auto xl:min-w-0 xl:flex-1">
           <MyAvatarGrid />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-3.5">

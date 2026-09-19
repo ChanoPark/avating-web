@@ -11,17 +11,15 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 describe('MyAvatarGrid', () => {
   describe('헤더', () => {
-    it('"내 아바타" 헤딩과 "추가하기" 액션 하나만 렌더된다', async () => {
+    it('"대표 아바타" 헤딩만 있고 액션 버튼은 없다', async () => {
       server.use(primaryAvatarHandlers.success);
       renderWithProviders(<MyAvatarGrid />);
 
       await waitFor(() => {
         expect(screen.getByText('루시')).toBeInTheDocument();
       });
-      expect(screen.getByRole('heading', { name: /내 아바타/ })).toBeInTheDocument();
-      const buttons = screen.getAllByRole('button');
-      expect(buttons).toHaveLength(1);
-      expect(buttons[0]).toHaveAccessibleName(/추가하기/);
+      expect(screen.getByRole('heading', { name: '대표 아바타' })).toBeInTheDocument();
+      expect(screen.queryAllByRole('button')).toHaveLength(0);
     });
   });
 
@@ -159,12 +157,14 @@ describe('MyAvatarGrid', () => {
       server.use(primaryAvatarHandlers.success);
       renderWithProviders(<MyAvatarGrid />);
 
-      expect(screen.getByRole('region', { name: '내 아바타' })).toHaveAttribute(
+      expect(screen.getByRole('region', { name: '대표 아바타' })).toHaveAttribute(
         'aria-busy',
         'true'
       );
       await waitFor(() => {
-        expect(screen.getByRole('region', { name: '내 아바타' })).not.toHaveAttribute('aria-busy');
+        expect(screen.getByRole('region', { name: '대표 아바타' })).not.toHaveAttribute(
+          'aria-busy'
+        );
       });
     });
   });
@@ -186,7 +186,7 @@ describe('MyAvatarGrid', () => {
       );
       renderWithProviders(<MyAvatarGrid />);
 
-      expect(await screen.findByText('내 아바타를 불러오지 못했어요')).toBeInTheDocument();
+      expect(await screen.findByText('대표 아바타를 불러오지 못했어요')).toBeInTheDocument();
       await user.click(screen.getByRole('button', { name: '다시 시도' }));
 
       await waitFor(() => {

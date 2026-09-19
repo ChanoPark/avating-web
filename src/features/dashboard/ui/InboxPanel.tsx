@@ -6,7 +6,8 @@ import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
-const CARD_CLASS = 'border-subtle bg-canvas flex flex-col gap-2 rounded-card border p-4';
+// flex-1 — 우측 열에서 남는 높이를 채워 좌측 대표 아바타 카드와 밑단을 맞춘다(어느 쪽이 길든).
+const CARD_CLASS = 'border-subtle bg-canvas flex flex-1 flex-col gap-2 rounded-card border p-4';
 
 // 정본 `.wf2-noti` — 행은 판이 아니라 1px inset 선으로 나뉜다(`.wf2-noti+.wf2-noti`).
 const ROW_CLASS =

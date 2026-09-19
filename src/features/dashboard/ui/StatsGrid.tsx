@@ -96,7 +96,7 @@ type StatsGridProps = {
 };
 
 // 재시도 액션(StatsRetryAction)은 이 컴포넌트가 아니라 대시보드 상단, 두 열 바깥에서 렌더된다.
-// 우측 열 안에 두면 stat 카드만 아래로 밀려 좌측 '내 아바타' 카드와 윗단이 어긋나고,
+// 우측 열 안에 두면 stat 카드만 아래로 밀려 좌측 '대표 아바타' 카드와 윗단이 어긋나고,
 // stat↔알림 세로 간격도 가로 간격(14px)과 달라진다.
 export function StatsGrid({ resetKey, onCardFailed }: StatsGridProps) {
   // suspense 쿼리는 error reset boundary 가 리셋되기 전까지 retryOnMount=false 다.

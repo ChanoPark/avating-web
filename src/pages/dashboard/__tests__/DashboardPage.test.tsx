@@ -115,11 +115,13 @@ describe('DashboardPage 통합 시나리오', () => {
       expect(screen.queryByText('잔여 다이아')).not.toBeInTheDocument();
     });
 
-    it('내 아바타 카드에 대표 아바타(GET /api/avatars/primary)가 렌더된다', async () => {
+    it('대표 아바타 카드에 GET /api/avatars/primary 응답이 렌더된다', async () => {
       renderDashboard();
       // 스켈레톤도 같은 이름의 region 이라 매번 다시 찾는다.
       await waitFor(() => {
-        expect(screen.getByRole('region', { name: '내 아바타' })).toHaveTextContent('루시#A3K9Z7');
+        expect(screen.getByRole('region', { name: '대표 아바타' })).toHaveTextContent(
+          '루시#A3K9Z7'
+        );
       });
     });
 
@@ -157,7 +159,7 @@ describe('DashboardPage 통합 시나리오', () => {
       });
     });
 
-    // 재시도 액션은 두 열(내 아바타 | 통계·알림) 바깥에 있어야 한다 — 열 안에 두면 stat 카드만
+    // 재시도 액션은 두 열(대표 아바타 | 통계·알림) 바깥에 있어야 한다 — 열 안에 두면 stat 카드만
     // 내려가 좌측 카드와 윗단이 어긋나고, stat↔알림 세로 간격이 가로 간격(14px)과 달라진다.
     it('stat 카드 실패 시 "통계 다시 불러오기" 액션이 두 열 바깥에 렌더된다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
@@ -173,9 +175,9 @@ describe('DashboardPage 통합 시나리오', () => {
       const statsRegion = screen.getByText('총 매칭 횟수').closest('div.grid');
       expect(statsRegion).not.toBeNull();
       expect(statsRegion?.contains(retry)).toBe(false);
-      expect(retry.compareDocumentPosition(screen.getByRole('region', { name: '내 아바타' }))).toBe(
-        Node.DOCUMENT_POSITION_FOLLOWING
-      );
+      expect(
+        retry.compareDocumentPosition(screen.getByRole('region', { name: '대표 아바타' }))
+      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     });
 
     it('"통계 다시 불러오기" 클릭 시 재요청해 통계가 복구된다', async () => {
