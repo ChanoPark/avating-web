@@ -111,17 +111,21 @@ function StepRail({
 }
 
 // 정본 `Page` 폭 공식(wf-kit.jsx): maxWidth = max(max, 440) + 88.
+// survey 는 사용자 지시(2026-09-19)로 설문 카드만 키운 폭 — Codex `.onb-form` max-width 560 + 88.
 const FORM_MAX_WIDTH = {
   default: 'max-w-[548px]',
+  survey: 'max-w-[648px]',
   wide: 'max-w-[868px]',
 } as const;
+
+export type FormWidth = keyof typeof FORM_MAX_WIDTH;
 
 type WizardShellProps = {
   /** 1~3 = 레일 있는 형태, null = 레일 없는 플랫 형태(S-02-01 환영). */
   currentStep: 1 | 2 | 3 | null;
   currentStepLabel?: string;
   note?: string;
-  formWidth?: keyof typeof FORM_MAX_WIDTH;
+  formWidth?: FormWidth;
   animationKey: string;
   children: ReactNode;
 };

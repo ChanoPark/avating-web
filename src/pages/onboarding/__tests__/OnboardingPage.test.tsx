@@ -50,6 +50,14 @@ describe('OnboardingPage (WizardShell)', () => {
     );
   });
 
+  // 사용자 지시(2026-09-19): 설문 카드만 한 단계 키운다. 값은 정본 `.onb-form` max-width 560 + 좌우 패딩 88.
+  it('/onboarding/survey 의 폼 카드는 설문 폭(648)을 쓴다', () => {
+    renderAt('/onboarding/survey');
+    expect(screen.getByTestId('step-survey').closest('div[class*="max-w-"]')).toHaveClass(
+      'max-w-[648px]'
+    );
+  });
+
   it('레일이 있는 화면의 각주는 레일 안에 남는다', () => {
     renderAt('/onboarding/intro');
     expect(

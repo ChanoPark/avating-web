@@ -14,6 +14,8 @@ type SurveyQuestionProps = {
 };
 
 // 질문 문장은 카드 헤드(h1)가 이미 보여주므로 legend 는 sr-only 로 접근성 이름만 유지한다.
+// 행은 정본 `.onb-opt`(최소 52px · 좌우 16px · surface 면) 이고, 고른 행은 사용자 지시(2026-09-19)로
+// 정본의 잉크 링 대신 포인트 색으로 채운다 — 글자가 얹히는 면이라 --action-bg 다.
 export function SurveyQuestion({ question, options, value, onChange, name }: SurveyQuestionProps) {
   return (
     <fieldset className="flex flex-col gap-2">
@@ -24,10 +26,10 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
           <label
             key={opt.answerId}
             className={cn(
-              'bg-canvas rounded-card flex cursor-pointer items-center gap-3 border p-3',
+              'rounded-card text-body flex min-h-13 cursor-pointer items-center gap-3 px-4 py-3',
               // focus-within 이 아니라 has-[:focus-visible] 이어야 마우스 클릭에 링이 안 뜬다.
               'ease-standard transition-colors duration-[var(--dur-fast)] has-[:focus-visible]:shadow-[var(--focus-ring)]',
-              selected ? 'bg-selected border-transparent' : 'border-subtle hover:border-strong'
+              selected ? 'bg-action text-on-action' : 'bg-surface text-primary hover:bg-raised'
             )}
           >
             <input
@@ -43,15 +45,13 @@ export function SurveyQuestion({ question, options, value, onChange, name }: Sur
             <span
               aria-hidden="true"
               className={cn(
-                'flex h-4 w-4 shrink-0 items-center justify-center rounded-full border',
-                selected ? 'border-mark' : 'border-field'
+                'flex size-4 shrink-0 items-center justify-center rounded-full border-[1.5px]',
+                selected ? 'border-on-action' : 'border-field'
               )}
             >
-              {selected && <span className="bg-mark block h-2 w-2 rounded-full" />}
+              {selected && <span className="bg-on-action block size-2 rounded-full" />}
             </span>
-            <span className={cn('text-caption', selected ? 'text-primary' : 'text-secondary')}>
-              {opt.text}
-            </span>
+            <span>{opt.text}</span>
           </label>
         );
       })}

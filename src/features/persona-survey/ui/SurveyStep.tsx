@@ -270,7 +270,10 @@ export function SurveyStep() {
               </p>
             </>
           ) : (
-            <h1 className="text-title text-primary">{currentQuestion?.title ?? '질문'}</h1>
+            // 질문이 1줄·2줄로 갈려도 카드 높이가 문항마다 같도록 2줄 높이를 늘 확보한다.
+            <h1 className="text-title text-primary min-h-[2lh]">
+              {currentQuestion?.title ?? '질문'}
+            </h1>
           )}
         </div>
 

@@ -122,6 +122,14 @@ describe('SurveyStep', () => {
       expect(screen.queryByText(/STEP 3 \/ 4/)).not.toBeInTheDocument();
     });
 
+    // 질문 문장이 1줄·2줄로 갈리면 카드 높이가 문항마다 달라진다 — 2줄 높이를 항상 확보한다.
+    it('질문 제목(h1)은 문장 길이와 상관없이 2줄 높이를 확보한다', async () => {
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      const heading = await screen.findByRole('heading', { level: 1, name: MOCK_Q1_TITLE });
+
+      expect(heading).toHaveClass('min-h-[2lh]');
+    });
+
     it('진행 카운터가 "현재 페이지 / 전체 페이지" 로 렌더된다 (표현 단계 포함)', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await waitFor(() => {

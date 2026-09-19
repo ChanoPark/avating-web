@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router';
 import { ONBOARDING_STEPS, type OnboardingRoute } from '@entities/onboarding';
-import { WizardShell } from './ui/WizardShell';
+import { WizardShell, type FormWidth } from './ui/WizardShell';
 
 function isOnboardingRoute(pathname: string): pathname is OnboardingRoute {
   return pathname in ONBOARDING_STEPS;
@@ -14,6 +14,13 @@ const RAIL_NOTES: Partial<Record<OnboardingRoute, string>> = {
 };
 
 const WELCOME_ROUTE = '/onboarding/welcome';
+const SURVEY_ROUTE = '/onboarding/survey';
+
+function formWidthOf(pathname: string): FormWidth {
+  if (pathname === WELCOME_ROUTE) return 'wide';
+  if (pathname === SURVEY_ROUTE) return 'survey';
+  return 'default';
+}
 
 const WELCOME_NOTE = '어느 방법을 골라도 아래 3단계를 거쳐요 · 방법은 여기서만 고를 수 있어요';
 
@@ -28,7 +35,7 @@ export function OnboardingPage() {
   return (
     <WizardShell
       currentStep={descriptor?.step ?? null}
-      formWidth={isWelcome ? 'wide' : 'default'}
+      formWidth={formWidthOf(location.pathname)}
       animationKey={location.pathname}
       {...(descriptor !== null ? { currentStepLabel: descriptor.label } : {})}
       {...(note !== undefined ? { note } : {})}
