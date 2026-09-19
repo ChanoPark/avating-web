@@ -3,7 +3,7 @@ export {
   AVATAR_STAT_KEYS,
   AVATAR_STAT_LABELS,
   PERSONA_STAT_KEYS,
-  PERSONA_STAT_LABELS,
+  personaStatRows,
 } from './model';
 export type {
   AvatarStatus,
@@ -13,6 +13,7 @@ export type {
   AvatarSummary,
   AvatarSimCandidate,
   AvatarSimCandidateList,
+  PersonaStatRow,
 } from './model';
 export { useMyAvatars } from './api/useMyAvatars';
 export { usePrimaryAvatar, usePrimaryAvatarSuspense } from './api/usePrimaryAvatar';

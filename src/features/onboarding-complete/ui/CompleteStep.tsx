@@ -6,7 +6,7 @@ import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { clearOnboardingProgress, resolveResumeRoute } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
-import { usePrimaryAvatar, PERSONA_STAT_KEYS, PERSONA_STAT_LABELS } from '@entities/avatar';
+import { usePrimaryAvatar, personaStatRows } from '@entities/avatar';
 import type { AvatarSummary } from '@entities/avatar';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
@@ -33,10 +33,7 @@ type AvatarContentProps = {
 
 function AvatarContent({ avatar, onStart }: AvatarContentProps) {
   // 파싱은 record 라 서버가 모르는 키를 보내도 통과한다 — 표시는 아는 7지표만, 정본 순서대로.
-  const statRows = PERSONA_STAT_KEYS.flatMap((key) => {
-    const value = avatar.stats[key];
-    return value === undefined ? [] : [{ key, label: PERSONA_STAT_LABELS[key], value }];
-  });
+  const statRows = personaStatRows(avatar.stats);
 
   return (
     <>

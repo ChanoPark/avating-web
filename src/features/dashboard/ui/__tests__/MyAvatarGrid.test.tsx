@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -74,6 +74,98 @@ describe('MyAvatarGrid', () => {
         expect(screen.getByText(/아직 아바타가 없어요/)).toBeInTheDocument();
       });
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+  });
+
+  // 디자인 정본은 6축이지만 사용자 결정(2026-09-19)으로 서버 PersonaStatType 7지표를 그린다.
+  describe('성향 레이더 + 값 표', () => {
+    function primaryWithStats(stats: Record<string, number>) {
+      return http.get(`${BASE_URL}/api/avatars/primary`, () =>
+        HttpResponse.json({ data: { ...mockPrimaryAvatar.data, stats } })
+      );
+    }
+
+    it('대표 아바타의 성향 7지표를 레이더와 값 표로 보여준다', async () => {
+      server.use(primaryAvatarHandlers.success);
+      renderWithProviders(<MyAvatarGrid />);
+
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(screen.getByRole('img', { name: '아바타 스탯 레이더' })).toBeInTheDocument();
+      expect(within(table).getAllByRole('row')).toHaveLength(7);
+
+      // 표시 순서는 서버 enum 순서, 값은 반올림(72.5 → 73)해 tabular-nums 로 쓴다.
+      const rowHeaders = within(table).getAllByRole('rowheader');
+      expect(rowHeaders.map((th) => th.textContent)).toEqual([
+        '개방성',
+        '상상력',
+        '외향성',
+        '공감',
+        '계획성',
+        '유머',
+        '애정표현',
+      ]);
+      // --text-muted 는 AA 미달(3.93:1)이라 읽어야 하는 라벨에 쓰지 않는다 (e2e axe 게이트).
+      expect(rowHeaders[0]).toHaveClass('text-secondary');
+      const openness = within(table).getByRole('row', { name: /개방성/ });
+      const value = within(openness).getByRole('cell');
+      expect(value).toHaveTextContent('73');
+      expect(value).toHaveClass('tnum');
+    });
+
+    it('응답에 없는 지표는 행과 레이더 축에서 함께 빠진다', async () => {
+      server.use(
+        primaryWithStats({
+          OPENNESS: 60,
+          EXTROVERSION: 40,
+          EMPATHY: 70,
+          HUMOROUS: 90,
+          IMAGINATION: 55,
+        })
+      );
+      renderWithProviders(<MyAvatarGrid />);
+
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(within(table).getAllByRole('row')).toHaveLength(5);
+      const radar = screen.getByRole('img', { name: '아바타 스탯 레이더' });
+      expect(within(radar).queryByText('계획성')).not.toBeInTheDocument();
+      expect(within(radar).getByText('유머')).toBeInTheDocument();
+    });
+
+    it('지표가 3개 미만이면 레이더 없이 값 표만 보여준다', async () => {
+      server.use(primaryWithStats({ OPENNESS: 50, EMPATHY: 60 }));
+      renderWithProviders(<MyAvatarGrid />);
+
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(within(table).getAllByRole('row')).toHaveLength(2);
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+
+    it('지표가 하나도 없으면 성향 영역을 그리지 않는다', async () => {
+      server.use(primaryWithStats({}));
+      renderWithProviders(<MyAvatarGrid />);
+
+      await waitFor(() => {
+        expect(screen.getByText('루시')).toBeInTheDocument();
+      });
+      expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('로딩 상태', () => {
+    it('불러오는 동안 스켈레톤이 aria-busy 로 로딩 중임을 알린다', async () => {
+      server.use(primaryAvatarHandlers.success);
+      renderWithProviders(<MyAvatarGrid />);
+
+      expect(screen.getByRole('region', { name: '내 아바타' })).toHaveAttribute(
+        'aria-busy',
+        'true'
+      );
+      await waitFor(() => {
+        expect(screen.getByRole('region', { name: '내 아바타' })).not.toHaveAttribute('aria-busy');
+      });
     });
   });
 
