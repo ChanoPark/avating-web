@@ -3,5 +3,6 @@ export const avatarKeys = {
   all: () => ['avatar'] as const,
   myAvatars: () => [...avatarKeys.all(), 'my'] as const,
   primary: () => [...avatarKeys.all(), 'primary'] as const,
+  candidates: (size: number) => [...avatarKeys.all(), 'candidates', size] as const,
   detail: (id: string) => [...avatarKeys.all(), 'detail', id] as const,
 };
