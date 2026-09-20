@@ -109,7 +109,7 @@ export const PERSONA_STAT_KEYS = [
 ] as const satisfies readonly string[];
 type PersonaStatKey = (typeof PERSONA_STAT_KEYS)[number];
 
-export const PERSONA_STAT_LABELS: Record<PersonaStatKey, string> = {
+const PERSONA_STAT_LABELS: Record<PersonaStatKey, string> = {
   OPENNESS: '개방성',
   IMAGINATION: '상상력',
   EXTROVERSION: '외향성',
@@ -118,3 +118,13 @@ export const PERSONA_STAT_LABELS: Record<PersonaStatKey, string> = {
   HUMOROUS: '유머',
   AFFECTION_EXPRESSION: '애정표현',
 };
+
+export type PersonaStatRow = { key: PersonaStatKey; label: string; value: number };
+
+/** 서버 stats 를 표시용 행으로 바꾼다 — 아는 7지표만 정본 순서대로, 응답에 없는 지표는 빼고. 반올림은 표시 단계에서 한다. */
+export function personaStatRows(stats: Record<string, number>): PersonaStatRow[] {
+  return PERSONA_STAT_KEYS.flatMap((key) => {
+    const value = stats[key];
+    return value === undefined ? [] : [{ key, label: PERSONA_STAT_LABELS[key], value }];
+  });
+}
