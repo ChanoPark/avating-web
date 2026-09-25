@@ -68,36 +68,16 @@ function NavSection({ label, children }: { label: string; children: ReactNode })
   );
 }
 
-function SidebarBody({
-  expanded,
-  pathname,
-  onNavigate,
-}: {
-  expanded: boolean;
-  pathname: string;
-  onNavigate?: () => void;
-}) {
+function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
   // 대시보드 항목은 대시보드와 아바타 상세 경로에서 함께 활성화된다.
   const dashboardActive = pathname === '/dashboard' || pathname.startsWith('/avatars/');
 
   return (
     <>
-      <div
-        className={cn(
-          'flex items-center gap-2 px-4.5 pt-5 pb-3.5',
-          expanded ? '' : 'justify-center lg:justify-start'
-        )}
-      >
+      <div className="flex items-center gap-2 px-4.5 pt-5 pb-3.5">
         <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
-        <span
-          className={cn(
-            // 정본 `.hf-word{font-size:var(--fs-20);font-weight:var(--fw-bold);letter-spacing:-0.03em}`
-            'text-ink text-title font-bold tracking-[-0.03em]',
-            expanded ? '' : 'hidden lg:inline'
-          )}
-        >
-          Avating
-        </span>
+        {/* 정본 `.hf-word{font-size:var(--fs-20);font-weight:var(--fw-bold);letter-spacing:-0.03em}` */}
+        <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
       </div>
 
       {/* 대메뉴-소메뉴 구조(사용자 결정 2026-09-25) — 정본 .hf-nav(그룹 gap 12) / .hf-navgroup(항목 gap 2).
@@ -121,7 +101,7 @@ function SidebarBody({
         </NavSection>
       </div>
 
-      <SidebarAccountRow expanded={expanded} />
+      <SidebarAccountRow />
     </>
   );
 }
@@ -160,7 +140,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
       {/* 메뉴에 아이콘이 없어 아이콘 전용 태블릿 레일을 두지 않는다 — lg 미만은 햄버거 드로어다(사용자 결정 2026-09-25). */}
       <div className="hidden h-full lg:flex">
         <Sidebar>
-          <SidebarBody expanded pathname={location.pathname} />
+          <SidebarBody pathname={location.pathname} />
         </Sidebar>
       </div>
 
@@ -188,7 +168,6 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
             >
               <Sidebar className="h-full">
                 <SidebarBody
-                  expanded
                   pathname={location.pathname}
                   onNavigate={() => {
                     setDrawerOpen(false);
