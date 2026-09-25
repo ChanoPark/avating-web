@@ -1,8 +1,6 @@
 import { useId } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, Clock, MessageCircle, SquarePen, type LucideIcon } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
-import { Tag } from '@shared/ui/Tag/Tag';
 import { cn } from '@shared/lib/cn';
 import {
   resolveResumeRoute,
@@ -18,8 +16,6 @@ import { WIZARD_BODY_FLAT, WIZARD_HEAD } from '@shared/ui/wizard';
 type MethodCard = {
   /** `null` 은 정본에 카드만 있고 목적지·데이터 계약이 없는 방법이다(아래 프롬프트 카드 참고). */
   method: OnboardingMethod | null;
-  icon: LucideIcon;
-  time: string;
   title: string;
   desc: string;
   cta: string;
@@ -28,16 +24,12 @@ type MethodCard = {
 const METHODS: readonly MethodCard[] = [
   {
     method: 'survey',
-    icon: Check,
-    time: '약 2분',
     title: '성향 설문으로 아바타 만들기',
     desc: '성향 분석을 통해 자신만의 아바타를 만들어보세요.',
     cta: '설문으로 만들기',
   },
   {
     method: 'connect',
-    icon: MessageCircle,
-    time: '약 10분',
     title: 'ChatGPT Bot과 대화해서 아바타 만들기',
     desc: 'ChatGPT에서 Bot과의 대화를 통해 자신의 성향을 알아보세요',
     cta: 'Bot과 대화해서 만들기',
@@ -46,8 +38,6 @@ const METHODS: readonly MethodCard[] = [
     // spec-gap — 목적지 화면·데이터 계약이 없어 연결하지 않는다.
     // 라우트를 추측해 잇거나 '준비중' 문구·disabled 를 지어내지 않는다 — 사양이 오면 method 만 채운다.
     method: null,
-    icon: SquarePen,
-    time: '약 5분',
     title: '프롬프트를 복사해서 아바타 만들기',
     desc: '평소 쓰는 AI에 프롬프트를 붙여넣고, 나온 결과를 다시 가져오세요.',
     cta: '프롬프트 복사하기',
@@ -81,41 +71,28 @@ export function WelcomeStep() {
         </p>
       </div>
 
-      {/* 정본은 데스크톱 전용 3열이라, 좁은 폭에서는 세로로 쌓는다. */}
-      <div className="flex flex-col items-stretch gap-3 sm:flex-row">
-        {METHODS.map(({ method, icon: MethodIcon, time, title, desc, cta }, index) => {
+      {/* 정본은 데스크톱 전용 3열이라, 좁은 폭에서는 세로로 쌓는다.
+          3열에서는 카드가 제목·설명·CTA 행을 subgrid 로 공유해, 제목 줄 수가 달라도 세 카드의 각 행이 같은 높이에서 시작한다. */}
+      <div className="flex flex-col gap-3 sm:grid sm:grid-cols-3">
+        {METHODS.map(({ method, title, desc, cta }, index) => {
           const titleId = `${titleIdPrefix}-method-${String(index)}`;
           // 세 카드는 동등하게 강조 없이 그린다. 정본 `.av-card` 에는 그림자가 없어 shared `Card` 를 쓰지 않는다.
+          // 정본 상단의 아이콘 타일·소요 시간 태그는 두지 않는다 (사용자 결정 2026-09-25).
           return (
             <div
               key={title}
               role="group"
               aria-labelledby={titleId}
-              className="bg-canvas border-subtle rounded-card flex flex-1 flex-col gap-3 border p-[18px]"
+              className="bg-canvas border-subtle rounded-card flex flex-col gap-[5px] border p-[18px] sm:row-span-3 sm:grid sm:grid-rows-subgrid"
             >
-              <div className="flex items-center justify-between gap-2">
-                <span
-                  aria-hidden="true"
-                  className="bg-raised text-secondary rounded-card flex h-7 w-7 shrink-0 items-center justify-center"
-                >
-                  <MethodIcon size={15} strokeWidth={1.5} />
-                </span>
-                <Tag className="tnum">
-                  <Clock size={11} strokeWidth={1.5} aria-hidden="true" />
-                  {time}
-                </Tag>
-              </div>
-
-              <div className="flex flex-col gap-[5px]">
-                <h2 id={titleId} className="text-lead text-primary text-balance">
-                  {title}
-                </h2>
-                <p className="text-caption text-secondary text-pretty">{desc}</p>
-              </div>
+              <h2 id={titleId} className="text-lead text-primary text-balance">
+                {title}
+              </h2>
+              <p className="text-caption text-secondary text-pretty">{desc}</p>
 
               <Button
                 block
-                className="mt-auto"
+                className="mt-2"
                 {...(method !== null
                   ? {
                       onClick: () => {

@@ -59,9 +59,9 @@ describe('OnboardingPage (WizardShell)', () => {
   });
 
   it('레일이 있는 화면의 각주는 레일 안에 남는다', () => {
-    renderAt('/onboarding/intro');
+    renderAt('/onboarding/complete');
     expect(
-      within(rail()).getByText('이름과 설명은 나중에 프로필에서 수정할 수 있어요.')
+      within(rail()).getByText('생성된 아바타를 확인한 뒤 완료를 눌러주세요.')
     ).toBeInTheDocument();
   });
 
@@ -124,11 +124,10 @@ describe('OnboardingPage (WizardShell)', () => {
   });
 
   describe('레일 하단 각주', () => {
-    it('/onboarding/intro 에는 수정 가능 안내 각주가 붙는다', () => {
+    // 정본의 "나중에 프로필에서 수정" 안내는 사용자 결정(2026-09-25)으로 두지 않는다.
+    it('/onboarding/intro 에는 각주가 없다', () => {
       renderAt('/onboarding/intro');
-      expect(
-        within(rail()).getByText('이름과 설명은 나중에 프로필에서 수정할 수 있어요.')
-      ).toBeInTheDocument();
+      expect(screen.queryByText(/나중에 프로필에서 수정할 수 있어요/)).not.toBeInTheDocument();
     });
 
     it('/onboarding/connect 에는 소요 시간 각주가 붙는다', () => {
