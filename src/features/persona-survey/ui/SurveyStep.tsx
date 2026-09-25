@@ -17,6 +17,7 @@ import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
 import { ExpressionsField } from './ExpressionsField';
+import { cn } from '@shared/lib/cn';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
 export function SurveyStep() {
@@ -274,10 +275,24 @@ export function SurveyStep() {
               </p>
             </>
           ) : (
-            // 질문이 1줄·2줄로 갈려도 카드 높이가 문항마다 같도록 2줄 높이를 늘 확보한다.
-            <h1 className="text-title text-primary min-h-[2lh]">
-              {currentQuestion?.title ?? '질문'}
-            </h1>
+            // 문항마다 카드·버튼 높이가 같도록 모든 제목을 한 칸에 겹친다 — 칸 높이는 가장 긴 제목을 따른다.
+            <div className="grid">
+              {questions.map((question, index) =>
+                index === pageIndex ? (
+                  <h1 key={question.id} className="text-title text-primary col-start-1 row-start-1">
+                    {question.title}
+                  </h1>
+                ) : (
+                  <p
+                    key={question.id}
+                    aria-hidden="true"
+                    className="text-title invisible col-start-1 row-start-1"
+                  >
+                    {question.title}
+                  </p>
+                )
+              )}
+            </div>
           )}
         </div>
 
@@ -310,17 +325,31 @@ export function SurveyStep() {
               persistOptionalTraits(interestTagsRef.current, next);
             }}
           />
-        ) : currentQuestion ? (
-          <SurveyQuestion
-            name={currentQuestion.id}
-            question={currentQuestion.title}
-            options={currentQuestion.answers}
-            value={getCurrentAnswerId(currentQuestion.id)}
-            onChange={(answerId) => {
-              handleAnswer(currentQuestion, answerId);
-            }}
-          />
-        ) : null}
+        ) : (
+          // 제목과 같은 이유로 모든 문항의 선택지를 한 칸에 겹친다. 가려진 문항은 보이지도, 포커스되지도 않는다.
+          <div className="grid">
+            {questions.map((question, index) => {
+              const isCurrent = index === pageIndex;
+              return (
+                <div
+                  key={question.id}
+                  className={cn('col-start-1 row-start-1', !isCurrent && 'invisible')}
+                  {...(isCurrent ? {} : { 'aria-hidden': true, inert: true })}
+                >
+                  <SurveyQuestion
+                    name={question.id}
+                    question={question.title}
+                    options={question.answers}
+                    value={getCurrentAnswerId(question.id)}
+                    onChange={(answerId) => {
+                      handleAnswer(question, answerId);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {submitError && (
           <p
