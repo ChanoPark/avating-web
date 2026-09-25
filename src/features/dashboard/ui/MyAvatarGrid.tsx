@@ -53,7 +53,7 @@ function RadarSkeleton() {
   );
 }
 
-// 실제 콘텐츠와 같은 골격을 세운다 — 헤더 · 요약(44px 타일 옆 이름 19 · 뱃지 20 · 소개 18, 간격 4) · 구분선 · 레이더(실제와 같은 상자) · 지표 7행(행당 25px).
+// 실제 콘텐츠와 같은 골격을 세운다 — 헤더 · 요약(44px 타일 옆 이름·뱃지 한 행 20 · 소개 18, 간격 4) · 구분선 · 레이더(실제와 같은 상자) · 지표 7행(행당 25px).
 // 카드가 행 높이를 정할 때가 있어, 골격이 다르면 로드 순간 상단 행과 아래 섹션이 함께 움직인다.
 function MyAvatarGridSkeleton() {
   return (
@@ -62,10 +62,10 @@ function MyAvatarGridSkeleton() {
       <div className="flex items-center gap-2.75">
         <div className="bg-raised h-11 w-11 shrink-0 rounded-[11px]" />
         <div className="flex flex-1 flex-col gap-1">
-          <div className="flex h-4.75 items-center">
+          <div className="flex h-5 items-center gap-1.5">
             <div className="bg-raised rounded-chip h-3 w-16" />
+            <div className="bg-raised h-5 w-18 rounded-full" />
           </div>
-          <div className="bg-raised h-5 w-18 rounded-full" />
           <div className="flex h-4.5 items-center">
             <div className="bg-raised rounded-chip h-3 w-40" />
           </div>
