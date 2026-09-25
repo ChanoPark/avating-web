@@ -1,30 +1,20 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { Check, User } from 'lucide-react';
+import { Check } from 'lucide-react';
 import { Badge } from '@shared/ui/Badge/Badge';
 import { Button } from '@shared/ui/Button/Button';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { clearOnboardingProgress, resolveResumeRoute } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
-import { usePrimaryAvatar, personaStatRows } from '@entities/avatar';
+import {
+  AvatarIdentityTile,
+  AvatarTagBadge,
+  PersonaStats,
+  usePrimaryAvatar,
+  personaStatRows,
+} from '@entities/avatar';
 import type { AvatarSummary } from '@entities/avatar';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
-
-function StatBarRow({ label, value, testId }: { label: string; value: number; testId: string }) {
-  return (
-    <>
-      <span className="text-caption text-secondary w-[72px] shrink-0 text-left">{label}</span>
-      <span className="bg-surface relative h-1.5 flex-1 overflow-hidden rounded-full">
-        <span
-          data-testid={testId}
-          className="bg-data-fill block h-full rounded-full"
-          style={{ width: `${Math.round(value)}%` }}
-        />
-      </span>
-      <span className="text-caption text-secondary tnum w-7 text-right">{Math.round(value)}</span>
-    </>
-  );
-}
 
 type AvatarContentProps = {
   avatar: AvatarSummary;
@@ -43,39 +33,39 @@ function AvatarContent({ avatar, onStart }: AvatarContentProps) {
           <p className="text-caption text-secondary">내용을 확인한 뒤 완료를 눌러주세요.</p>
         </div>
 
-        <div className="border-subtle bg-canvas rounded-card flex flex-col gap-3 border p-4">
+        {/* @container — PersonaStats 가 카드 폭을 보고 레이더·값 표를 나란히 둘지 쌓을지 정한다. */}
+        <div className="border-subtle bg-canvas rounded-card @container flex flex-col gap-3 border p-4">
           <div className="flex items-center gap-3">
-            {/* 아바타 이미지는 서버가 아직 지원하지 않는다 — 빈 placeholder 로 자리만 잡는다. */}
-            <span
-              aria-hidden="true"
-              data-testid="avatar-image-placeholder"
-              className="bg-surface text-secondary flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[11px]"
-            >
-              <User size={22} strokeWidth={1.5} />
-            </span>
-            <div className="flex flex-col gap-[3px]">
-              <div className="flex items-center gap-[7px]">
-                <span className="text-lead text-primary">{avatar.name}</span>
+            {/* 아바타 이미지는 서버가 아직 지원하지 않는다 — 정본(S-02-06 IdCircle)대로 identity 색 + 이니셜로 채운다. */}
+            <AvatarIdentityTile
+              name={avatar.name}
+              color={avatar.color}
+              className="text-body h-[46px] w-[46px] rounded-[11px]"
+            />
+            {/* 태그는 이름 옆이 아니라 이름 아래 뱃지다(정본 badge 형 · 사용자 요청 2026-09-25). 이름 ↔ 뱃지 4px 는 .cx-aname--badge gap. */}
+            <div className="flex min-w-0 flex-col gap-1">
+              {/* 좁은 폭(390px)에서 긴 이름이면 "생성 완료" 배지가 카드 밖으로 밀리므로 다음 줄로 접는다. */}
+              <div className="flex flex-wrap items-center gap-x-[7px] gap-y-1">
+                <span className="text-lead text-primary min-w-0 break-all">{avatar.name}</span>
                 <Badge>
                   <Check size={11} strokeWidth={1.5} aria-hidden="true" />
                   생성 완료
                 </Badge>
               </div>
+              <AvatarTagBadge hashtag={avatar.hashtag} />
               {avatar.description !== '' && (
                 <span className="text-caption text-secondary">{avatar.description}</span>
               )}
             </div>
           </div>
 
-          <hr className="border-subtle w-full border-0 border-t" />
-
-          <ul className="flex w-full flex-col gap-2">
-            {statRows.map(({ key, label, value }) => (
-              <li key={key} className="flex items-center gap-2 px-2">
-                <StatBarRow label={label} value={value} testId={`stat-bar-fill-${key}`} />
-              </li>
-            ))}
-          </ul>
+          {statRows.length > 0 && (
+            <>
+              <hr className="border-subtle w-full border-0 border-t" />
+              {/* 대시보드와 같은 레이더 + 값 표(사용자 요청 2026-09-25) — 형태만으로 값을 전하지 않는다. */}
+              <PersonaStats rows={statRows} />
+            </>
+          )}
         </div>
 
         {avatar.tags.length > 0 && (

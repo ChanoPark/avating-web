@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
@@ -114,33 +114,45 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(screen.queryByText(SAMPLE_PRIMARY_AVATAR.description)).not.toBeInTheDocument();
     });
 
-    // 서버가 아직 아바타 이미지를 지원하지 않아 빈 placeholder 로 자리만 잡는다.
-    it('이니셜 대신 빈 이미지 placeholder 가 렌더된다', async () => {
-      renderComplete();
+    // 아바타 이미지가 없어 정본(S-02-06 IdCircle)대로 identity 색 + 이니셜로 자리를 채운다.
+    it('이미지 자리에 아바타 색 이니셜 타일이 렌더된다', async () => {
+      renderComplete({ ...SAMPLE_PRIMARY_AVATAR, color: '2C3886' });
 
-      await waitFor(() => {
-        expect(screen.getByTestId('avatar-image-placeholder')).toBeInTheDocument();
-      });
+      const initial = await screen.findByText('루');
+      expect(initial).toHaveAttribute('aria-hidden', 'true');
+      expect(initial).toHaveClass('bg-id-navy', 'text-id-navy-fg');
     });
 
-    it('서버 7지표(PersonaStatType) 스탯 바가 모두 렌더된다', async () => {
+    it('해시태그는 이름 옆이 아니라 이름 아래 회색 뱃지다', async () => {
+      renderComplete({ ...SAMPLE_PRIMARY_AVATAR, color: '2C3886' });
+
+      const badge = await screen.findByText('#A3K9Z7');
+      expect(screen.getByText('루시')).not.toContainElement(badge);
+      expect(badge).toHaveClass('bg-surface', 'text-secondary');
+    });
+
+    it('색이 없는 아바타는 회색(--id-none)으로 그린다', async () => {
       renderComplete();
 
-      await waitFor(() => {
-        expect(screen.getByTestId('stat-bar-fill-OPENNESS')).toBeInTheDocument();
-      });
-      for (const key of PERSONA_STAT_KEYS) {
-        expect(screen.getByTestId(`stat-bar-fill-${key}`)).toBeInTheDocument();
-      }
+      expect(await screen.findByText('루')).toHaveClass('bg-id-none');
+    });
+
+    // 대시보드와 같은 PersonaStats — 레이더(형태) + 값 표(수치). 형태만으로 값을 전하지 않는다.
+    it('서버 7지표를 레이더와 값 표로 보여준다', async () => {
+      renderComplete();
+
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(screen.getByRole('img', { name: '아바타 스탯 레이더' })).toBeInTheDocument();
+      expect(within(table).getAllByRole('row')).toHaveLength(PERSONA_STAT_KEYS.length);
+      expect(screen.queryByTestId(/^stat-bar-fill-/)).not.toBeInTheDocument();
     });
 
     it('소수 스탯 값은 반올림해 표시한다', async () => {
       renderComplete();
 
       // SAMPLE 의 OPENNESS 는 72.5 — 표시는 73.
-      await waitFor(() => {
-        expect(screen.getByText('73')).toBeInTheDocument();
-      });
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(within(table).getByRole('row', { name: /개방성/ })).toHaveTextContent('73');
       expect(screen.queryByText('72.5')).not.toBeInTheDocument();
     });
 
@@ -148,10 +160,9 @@ describe('CompleteStep (Avatar Confirm)', () => {
       const { OPENNESS: _omitted, ...restStats } = SAMPLE_PRIMARY_AVATAR.stats;
       renderComplete({ ...SAMPLE_PRIMARY_AVATAR, stats: restStats });
 
-      await waitFor(() => {
-        expect(screen.getByTestId('stat-bar-fill-EMPATHY')).toBeInTheDocument();
-      });
-      expect(screen.queryByTestId('stat-bar-fill-OPENNESS')).not.toBeInTheDocument();
+      const table = await screen.findByRole('table', { name: '성향 지표' });
+      expect(within(table).getAllByRole('row')).toHaveLength(PERSONA_STAT_KEYS.length - 1);
+      expect(within(table).queryByRole('row', { name: /개방성/ })).not.toBeInTheDocument();
     });
 
     it('태그 목록이 렌더된다', async () => {
@@ -224,7 +235,7 @@ describe('CompleteStep (Avatar Confirm)', () => {
       await waitFor(() => {
         expect(screen.getByText('루시')).toBeInTheDocument();
       });
-      expect(screen.getByTestId('stat-bar-fill-OPENNESS')).toBeInTheDocument();
+      expect(screen.getByRole('table', { name: '성향 지표' })).toBeInTheDocument();
     });
 
     it('primary 500 응답 시 오류 fallback 이 노출된다', async () => {
