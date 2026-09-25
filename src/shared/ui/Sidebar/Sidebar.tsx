@@ -5,28 +5,14 @@ import { SidebarContextProvider, type SidebarMode } from './sidebarContext';
 type SidebarProps = {
   children: ReactNode;
   collapsed?: boolean;
-  /** 태블릿(md) 아이콘 전용 → 데스크톱(lg) 220px 라벨로 리플로우 */
-  responsive?: boolean;
   className?: string;
 };
 
-export function Sidebar({
-  children,
-  collapsed = false,
-  responsive = false,
-  className,
-}: SidebarProps) {
-  const mode: SidebarMode = responsive ? 'responsive' : collapsed ? 'collapsed' : 'expanded';
+export function Sidebar({ children, collapsed = false, className }: SidebarProps) {
+  const mode: SidebarMode = collapsed ? 'collapsed' : 'expanded';
   const ctx = useMemo(() => ({ mode }), [mode]);
 
-  // responsive 는 모바일에서 숨겨진다(햄버거 드로어로 대체) — display 를 모드 클래스에
-  // 포함해야 베이스의 flex/hidden 과 충돌하지 않는다.
-  const layoutClass =
-    mode === 'responsive'
-      ? 'hidden md:flex md:w-16 lg:w-60'
-      : mode === 'collapsed'
-        ? 'flex w-14'
-        : 'flex w-60';
+  const layoutClass = mode === 'collapsed' ? 'flex w-14' : 'flex w-60';
 
   return (
     <SidebarContextProvider value={ctx}>
