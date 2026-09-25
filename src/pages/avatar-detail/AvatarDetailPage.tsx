@@ -34,7 +34,7 @@ function AvatarDetailContent({ id }: { id: string }) {
   const clearBreadcrumbTrail = useChromeBreadcrumbStore((s) => s.clearTrail);
 
   useEffect(() => {
-    setBreadcrumbTrail(['홈', '탐색', avatar.name]);
+    setBreadcrumbTrail(['홈', '대시보드', avatar.name]);
     return () => {
       clearBreadcrumbTrail();
     };

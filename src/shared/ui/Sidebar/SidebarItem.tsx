@@ -4,7 +4,8 @@ import { cn } from '@shared/lib/cn';
 import { useSidebarContext } from './sidebarContext';
 
 type SidebarItemProps = {
-  icon: LucideIcon;
+  /** 없으면 라벨만 그린다 — 아이콘 전용(collapsed·responsive md) 모드에서는 아이콘이 있어야 항목이 보인다. */
+  icon?: LucideIcon;
   label: string;
   to?: string;
   active?: boolean;
@@ -64,7 +65,9 @@ export function SidebarItem({
   const content = (
     <>
       {/* 아이콘 색은 항목 텍스트 색을 따른다 — 활성 잉크 / 비활성 secondary. */}
-      <Icon size={15} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+      {Icon !== undefined && (
+        <Icon size={15} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+      )}
       <span className={labelClass}>{label}</span>
       {badgeVisible && (
         <span
