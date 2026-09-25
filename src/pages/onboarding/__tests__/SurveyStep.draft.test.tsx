@@ -51,6 +51,27 @@ describe('SurveyStep — draft', () => {
 
       vi.useRealTimers();
     });
+
+    // 디바운스 저장은 draft 를 폼 값으로 다시 조립한다 — 폼에 없는 값은 이때 사라진다.
+    it('답변을 저장해도 Step 1 에서 고른 color 를 지우지 않는다', async () => {
+      vi.useFakeTimers({ shouldAdvanceTime: true });
+      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+      saveDraft({ answers: {}, avatarName: '루나', description: '소개', color: 'E887B6' });
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      await waitFor(() => {
+        expect(screen.getByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      });
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+      await vi.advanceTimersByTimeAsync(350);
+
+      const parsed = JSON.parse(localStorage.getItem(DRAFT_KEY)!) as { value: { color?: string } };
+      expect(parsed.value.color).toBe('E887B6');
+
+      vi.useRealTimers();
+    });
   });
 
   describe('draft 삭제', () => {

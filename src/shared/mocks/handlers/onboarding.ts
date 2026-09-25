@@ -57,7 +57,7 @@ export const mockConnectStatusExpired = {
   data: { status: 'expired' as const },
 };
 
-// POST /api/avatars/survey 201 의 고정 부분 — name/description/tags 는 요청을 되울려
+// POST /api/avatars/survey 201 의 고정 부분 — name/description/tags/color 는 요청을 되울려
 // 사용자가 입력한 값이 완료 화면에 그대로 보이게 한다.
 export const mockCreatedAvatarSummaryBase = {
   schemaVersion: 1,
@@ -89,7 +89,11 @@ const surveySubmitEchoSchema = z.object({
   avatarName: z.string().optional(),
   description: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  color: z.string().optional(),
 });
+
+// 서버 AvatarColor.DEFAULT — 색 없이 만들면 서버가 채우는 값이다(풀 밖 색이라 화면엔 회색으로 보인다).
+const SERVER_DEFAULT_AVATAR_COLOR = '2451A9';
 
 export const surveySubmitHandlers = {
   success: http.post(`${BASE_URL}/api/avatars/survey`, async ({ request }) => {
@@ -102,6 +106,7 @@ export const surveySubmitHandlers = {
           name: body.avatarName ?? '루나',
           description: body.description ?? '',
           tags: body.tags ?? [],
+          color: body.color?.toUpperCase() ?? SERVER_DEFAULT_AVATAR_COLOR,
         },
       },
       { status: 201 }

@@ -295,6 +295,42 @@ describe('SurveyStep', () => {
       });
     });
 
+    it('Step 1 에서 고른 color 를 POST /api/avatars/survey payload 에 싣는다', async () => {
+      const user = userEvent.setup();
+      let body: unknown;
+      saveDraft({ answers: {}, avatarName: '루나', description: '차분한 분석가', color: '67C4F2' });
+
+      server.use(
+        surveyQuestionsHandlers.success,
+        http.post(`${BASE_URL}/api/avatars/survey`, async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json(
+            {
+              data: {
+                schemaVersion: 1,
+                avatarId: 'a1111111-1111-4111-8111-111111111111',
+                name: '루나',
+                hashtag: 'L5MQ2T',
+                description: '차분한 분석가',
+                stats: { OPENNESS: 70, EMPATHY: 60 },
+                tags: [],
+                color: '67C4F2',
+              },
+            },
+            { status: 201 }
+          );
+        })
+      );
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await goToExpressionsPage(user);
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(body).toMatchObject({ avatarName: '루나', color: '67C4F2' });
+      });
+    });
+
     it('"건너뛰기" 클릭으로도 제출되고 /onboarding/complete 로 이동한다', async () => {
       const user = userEvent.setup();
       seedNameDraft();

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { avatarColorSchema } from '@entities/avatar/model';
 
 const surveyQuestionAnswerSchema = z.object({
   answerId: z.string(),
@@ -29,6 +30,8 @@ export const avatarCreateFromSurveyRequestSchema = z.object({
   // description 필수(api-guide §3.2) — 빈 문자열은 서버가 400 COMMON_400_001 로 거절한다. GPTs 경로만 optional 이다.
   description: z.string().min(1).max(200),
   answers: z.array(surveyAnswerRequestSchema).min(1),
+  // 선택 — 빠지면 서버가 기본색(2451A9)을 넣는다.
+  color: avatarColorSchema.optional(),
 });
 export type AvatarCreateFromSurveyRequest = z.infer<typeof avatarCreateFromSurveyRequestSchema>;
 
@@ -36,6 +39,8 @@ export const surveyDraftSchema = z.object({
   answers: z.record(z.string(), z.string()),
   avatarName: z.string().optional(),
   description: z.string().optional(),
+  // Step 1(IntroStep)에서 고른 identity 색의 hex — 설문 제출 payload 의 color 로 그대로 간다.
+  color: avatarColorSchema.optional(),
   // 관심사 태그·자주 쓰는 표현(선택). SurveyAvatarCreateRequest 에 대응 필드가 없어(spec-gap)
   // draft 로만 로컬에 보관하고 제출 payload 에는 포함하지 않는다.
   interestTags: z.array(z.string()).optional(),

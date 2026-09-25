@@ -80,10 +80,12 @@ export function SurveyStep() {
       })
       .filter((a): a is NonNullable<typeof a> => a !== null);
 
+    // color 는 Step 1 에서 고른 값이라 이 화면엔 입력이 없다 — 폼 값으로 들고 있어야 draft 재저장·제출에 함께 간다.
     form.reset({
       avatarName: draft.avatarName ?? '',
       description: draft.description ?? '',
       answers: restoredAnswers,
+      ...(draft.color !== undefined ? { color: draft.color } : {}),
     });
 
     if (draft.interestTags && draft.interestTags.length > 0) {
@@ -109,6 +111,7 @@ export function SurveyStep() {
           answers: answersMap,
           avatarName: values.avatarName ?? '',
           description: values.description ?? '',
+          ...(values.color !== undefined ? { color: values.color } : {}),
           // 관심사·표현은 RHF 폼 밖 로컬 상태라 ref 로 보존한다.
           interestTags: interestTagsRef.current,
           expressions: expressionsRef.current,
@@ -198,6 +201,7 @@ export function SurveyStep() {
       answers: answersMap,
       avatarName: values.avatarName,
       description: values.description,
+      ...(values.color !== undefined ? { color: values.color } : {}),
       interestTags: nextTags,
       expressions: nextExpressions,
     });
