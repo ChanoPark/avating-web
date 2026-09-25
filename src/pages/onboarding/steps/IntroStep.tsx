@@ -24,6 +24,7 @@ import { AvatarColorPicker } from '../ui/AvatarColorPicker';
 const NAME_MAX = 20;
 const DESC_MAX = 120;
 
+// z.enum 은 비어 있지 않은 튜플만 받는데 .map() 결과는 그걸 증명하지 못한다 — 정본 10색은 상수라 늘 1개 이상이다.
 const IDENTITY_NAMES = AVATAR_IDENTITY_COLORS.map((color) => color.name) as [
   AvatarIdentityName,
   ...AvatarIdentityName[],
