@@ -252,6 +252,14 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       }
     });
 
+    // 원은 작아도 누르는 자리(label)는 세로 44px 을 확보한다 — 가로는 10개 한 줄이라 칸 폭이 상한이다.
+    it('각 색의 터치 영역은 세로 44px(min-h-11) 이다', () => {
+      renderIntro();
+      for (const radio of screen.getAllByRole('radio')) {
+        expect(radio.closest('label')).toHaveClass('min-h-11');
+      }
+    });
+
     it('견본 원에 입력 중인 이름의 첫 글자를 올린다', async () => {
       const user = userEvent.setup();
       renderIntro();

@@ -13,7 +13,7 @@ type AvatarColorPickerProps = {
 
 // 정본 S-02-02 "아바타 색" ColorPicker(.cx-swatches)는 5열 · 40px 원 · 12px 색 이름이지만, 사용자 결정(2026-09-25)으로
 // 작은 원 10개를 한 줄에 둔다. 모바일 폼 폭(220px)에도 들어가도록 원은 칸 폭을 따라 줄고(최대 28px), 선택 링은
-// 원 사이 4px 안에 들어가게 offset 1px 로 둔다. 색 이름은 라디오 aria-label 로만 둔다. 네이티브 라디오라 방향키 이동·Space 선택이 그대로 된다. 입력은 숨기고 포커스 링은 견본 원이 대신 그린다.
+// 원 사이 4px 안에 들어가게 offset 1px 로 둔다. 원은 작아도 누르는 자리(label)는 세로 44px 을 확보한다. 색 이름은 라디오 aria-label 로만 둔다. 네이티브 라디오라 방향키 이동·Space 선택이 그대로 된다. 입력은 숨기고 포커스 링은 견본 원이 대신 그린다.
 export function AvatarColorPicker({ value, name, registration }: AvatarColorPickerProps) {
   const labelId = useId();
   return (
@@ -29,7 +29,10 @@ export function AvatarColorPicker({ value, name, registration }: AvatarColorPick
         {AVATAR_IDENTITY_COLORS.map((color) => {
           const isSelected = color.name === value;
           return (
-            <label key={color.name} className="flex min-w-0 flex-1 cursor-pointer justify-center">
+            <label
+              key={color.name}
+              className="flex min-h-11 min-w-0 flex-1 cursor-pointer items-center justify-center"
+            >
               <input
                 type="radio"
                 value={color.name}
