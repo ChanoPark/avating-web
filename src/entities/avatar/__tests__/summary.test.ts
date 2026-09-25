@@ -56,6 +56,18 @@ describe('avatarSummarySchema (서버 AvatarSummaryResponse)', () => {
     expect(() => avatarSummarySchema.parse(withoutHashtag)).toThrow();
   });
 
+  it('color(# 없는 6자리 hex)를 보존한다', () => {
+    expect(avatarSummarySchema.parse({ ...valid, color: '2C3886' }).color).toBe('2C3886');
+  });
+
+  it('color 키가 없는 구버전 서버 응답도 통과한다', () => {
+    expect(avatarSummarySchema.parse(valid).color).toBeUndefined();
+  });
+
+  it('color 가 6자리 hex 가 아니면 거부한다', () => {
+    expect(() => avatarSummarySchema.parse({ ...valid, color: '#2C3886' })).toThrow();
+  });
+
   it('apiResponse 래퍼는 data 를 벗겨낸다', () => {
     expect(apiResponseAvatarSummary.parse({ data: valid }).data.name).toBe('루시');
   });

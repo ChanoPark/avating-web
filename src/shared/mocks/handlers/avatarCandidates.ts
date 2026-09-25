@@ -4,6 +4,7 @@ import type { AvatarSimCandidateList } from '@entities/avatar';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 // 요청 가능한 후보·진행 중 초대에 걸린 후보(canRequestSimulation=false)·소개가 빈 후보를 한 벌에 담는다.
+// color 는 풀 안 색(하늘)·풀 밖 서버 기본색(봄날, 2451A9 → 회색)을 섞는다.
 export const mockSimCandidates: { data: AvatarSimCandidateList } = {
   data: {
     items: [
@@ -23,6 +24,7 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
           AFFECTION_EXPRESSION: 65,
         },
         tags: ['산책', '사진', '전시', '카페투어'],
+        color: '67C4F2',
         canRequestSimulation: true,
       },
       {
@@ -41,6 +43,7 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
           AFFECTION_EXPRESSION: 72,
         },
         tags: ['클라이밍'],
+        color: '2451A9',
         canRequestSimulation: false,
       },
       {
@@ -59,6 +62,7 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
           AFFECTION_EXPRESSION: 50,
         },
         tags: [],
+        color: '9F50B7',
         canRequestSimulation: true,
       },
     ],

@@ -36,6 +36,31 @@ describe('MyAvatarGrid', () => {
       expect(screen.getByText('따뜻하고 유머 감각 넘치는 ENFP')).toBeInTheDocument();
     });
 
+    // 사용자 결정(2026-09-25): 이름이 가장 크게 보이고, 해시태그 뱃지는 이름과 같은 줄 옆에 붙는다.
+    it('해시태그는 가장 크게 보이는 이름 옆 회색 뱃지이고, 이니셜 타일만 아바타 색(color)으로 칠한다', async () => {
+      server.use(primaryAvatarHandlers.success);
+      renderWithProviders(<MyAvatarGrid />);
+
+      const badge = await screen.findByText('#A3K9Z7');
+      const name = screen.getByText('루시');
+      expect(name).not.toContainElement(badge);
+      expect(name.parentElement).toBe(badge.parentElement);
+      expect(name.parentElement).toHaveClass('flex', 'items-center');
+      expect(name).toHaveClass('text-lead', 'font-semibold');
+      expect(badge).toHaveClass('bg-surface', 'text-secondary');
+      expect(screen.getByText('루')).toHaveClass('bg-id-pink');
+    });
+
+    it('color 가 없는 구버전 응답은 회색(--id-none)으로 그린다', async () => {
+      const { color: _omitted, ...withoutColor } = mockPrimaryAvatar.data;
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/primary`, () => HttpResponse.json({ data: withoutColor }))
+      );
+      renderWithProviders(<MyAvatarGrid />);
+
+      expect(await screen.findByText('루')).toHaveClass('bg-id-none');
+    });
+
     it('한 줄 소개가 빈 문자열이면 소개 줄을 그리지 않는다', async () => {
       server.use(
         http.get(`${BASE_URL}/api/avatars/primary`, () =>

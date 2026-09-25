@@ -20,6 +20,7 @@ export const mockPrimaryAvatar: { data: AvatarSummary } = {
       AFFECTION_EXPRESSION: 55,
     },
     tags: ['독서', '카페투어'],
+    color: 'E887B6',
   },
 };
 

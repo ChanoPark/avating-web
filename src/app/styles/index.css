@@ -36,9 +36,29 @@
   --color-selected: var(--bg-selected);
   --color-row-hover: var(--row-hover);
 
-  /* 아바타 identity — 서버에 색 필드가 없어 전부 --id-none 회색이다 (사용자 결정 2026-09-08).
-     짝 전경색은 정본이 --id-none-fg(흰색)로 두지만 #78818F 위 흰 글자는 3.94:1 로 AA 미만이라
-     --ink 를 쓴다(4.85:1). 정본도 밝은 identity 색(노랑·하늘·핑크)엔 --ink 를 짝지운다. */
+  /* 아바타 identity — 아바타가 고른 10색(서버 Avatar.color). 고르지 않았거나 풀 밖의 색은 --id-none 회색이다.
+     짝 전경색은 정본(--id-<name>-fg)을 따르되, 12~13px 이니셜 글자가 AA(4.5:1)에 못 미치는 짝만 --ink 로 바꾼다:
+     none 흰 3.94 → ink 4.85, orange 흰 3.28 → ink 5.82, green 흰 4.04 → ink 4.72. */
+  --color-id-red: var(--id-red);
+  --color-id-red-fg: var(--id-red-fg);
+  --color-id-orange: var(--id-orange);
+  --color-id-orange-fg: var(--ink);
+  --color-id-yellow: var(--id-yellow);
+  --color-id-yellow-fg: var(--id-yellow-fg);
+  --color-id-green: var(--id-green);
+  --color-id-green-fg: var(--ink);
+  --color-id-blue: var(--id-blue);
+  --color-id-blue-fg: var(--id-blue-fg);
+  --color-id-navy: var(--id-navy);
+  --color-id-navy-fg: var(--id-navy-fg);
+  --color-id-violet: var(--id-violet);
+  --color-id-violet-fg: var(--id-violet-fg);
+  --color-id-brown: var(--id-brown);
+  --color-id-brown-fg: var(--id-brown-fg);
+  --color-id-sky: var(--id-sky);
+  --color-id-sky-fg: var(--id-sky-fg);
+  --color-id-pink: var(--id-pink);
+  --color-id-pink-fg: var(--id-pink-fg);
   --color-id-none: var(--id-none);
   --color-id-none-fg: var(--ink);
 

@@ -12,6 +12,7 @@ const avatar: AvatarSimCandidate = {
   description: '느긋하게 산책하는 걸 좋아해요',
   stats: { OPENNESS: 60, EXTROVERSION: 30 },
   tags: ['산책', '사진', '전시', '카페투어'],
+  color: '67C4F2',
   canRequestSimulation: true,
 };
 
@@ -28,6 +29,21 @@ describe('AvatarCard', () => {
     expect(screen.getByRole('button', { name: '하늘#H7K2MP' })).toBeInTheDocument();
     expect(screen.getByText('하')).toHaveAttribute('aria-hidden', 'true');
     expect(screen.getByText('느긋하게 산책하는 걸 좋아해요')).toBeInTheDocument();
+  });
+
+  // 사용자 결정(2026-09-25): 이름이 가장 크게 보이고, 해시태그 뱃지는 이름과 같은 줄 옆에 붙는다.
+  it('해시태그는 이름 버튼 밖, 가장 크게 보이는 이름 옆 회색 뱃지이고 이니셜 타일만 아바타 색이다', () => {
+    renderCard();
+    const badge = screen.getByText('#H7K2MP');
+    const name = screen.getByRole('button', { name: '하늘#H7K2MP' });
+    expect(name).not.toContainElement(badge);
+    expect(name.parentElement).toBe(badge.parentElement);
+    expect(name.parentElement).toHaveClass('flex', 'items-center');
+    expect(name).toHaveClass('text-lead', 'font-semibold');
+    expect(badge).toHaveClass('bg-surface', 'text-secondary');
+    // 이름 버튼의 접근 가능한 이름이 이미 태그를 읽으므로 뱃지는 두 번 읽히지 않는다.
+    expect(badge).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByText('하')).toHaveClass('bg-id-sky');
   });
 
   it('관심 태그는 앞의 3개만 보여준다', () => {

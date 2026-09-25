@@ -65,6 +65,9 @@ export type AvatarDetail = z.infer<typeof avatarDetailSchema>;
 
 export const apiResponseAvatarDetail = z.object({ data: avatarDetailSchema });
 
+// 서버 Avatar.color — `#` 없는 6자리 hex(AvatarColor.PATTERN). 서버가 대문자로 정규화해 저장한다.
+export const avatarColorSchema = z.string().regex(/^[0-9A-Fa-f]{6}$/);
+
 /** 서버 AvatarSummaryResponse(POST /avatars/survey, GET .../summary, GET .../primary) — stats 는 PersonaStatType 키가 늘거나 바뀌어도 깨지지 않게 고정 키가 아닌 record 로 받는다(위 6축 avatarStatsSchema 와 다른 계열). */
 export const avatarSummarySchema = z.object({
   schemaVersion: z.number().int(),
@@ -77,6 +80,8 @@ export const avatarSummarySchema = z.object({
   stats: z.record(z.string(), statValue),
   // 계약상 non-null 이지만 tags 도입 전 서버 배포본은 키 자체가 없으므로 default 로 흡수한다.
   tags: z.array(z.string()).default([]),
+  // 계약상 필수지만 color 도입(avating-core 0ed8958) 전 서버 배포본은 키가 없다 — 없으면 화면이 --id-none 회색으로 그린다.
+  color: avatarColorSchema.optional(),
 });
 export type AvatarSummary = z.infer<typeof avatarSummarySchema>;
 
