@@ -2,7 +2,10 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 /**
- * 접근성 E2E — 핵심 공개 라우트의 axe 위반 0(testing-stack 스킬 §8). disableRules 는 쓰지 않는다.
+ * 접근성 E2E — 핵심 공개 라우트의 axe 위반 0. disableRules 는 쓰지 않는다.
+ *
+ * 이 spec 은 덮는 화면의 회귀를 막는 장치다. ARIA 를 먼저 챙겨 넣지는 않지만(a11y MVP 정책),
+ * 여기서 새 위반이 나면 고치거나, 다듬기 수준이면 KNOWN_VIOLATION_RULES 에 사유를 남긴다.
  *
  * 2026-09-09 Codex 토큰 교체로 / 와 /login 의 color-contrast 위반 3건이 해소돼
  * KNOWN_VIOLATION_RULES 를 비우고 엄격 검사를 복원했다. 새 위반을 한시적으로 허용하려면

@@ -144,9 +144,7 @@ Thumbs.db
 # 디자인 시스템 노트·프롬프트·스킬·플랜 등 IP 보호 목적.
 .claude/
 
-# ── Husky 훅 — Public Repo 전체 차단
-# 새 클론 시 pre-commit 훅 재설정 필요(별도 setup 가이드로 보완).
-.husky/
+# ── Husky 훅 — pre-commit 은 저장소에 올려 클론에도 따라가게 한다. husky 가 만드는 _/ 는 자체 .gitignore 로 빠진다.
 
 # ── 기타 로컬 전용
 *.local
@@ -155,49 +153,3 @@ tmp/
 psd
 thumb
 sketch
-
-.DS_STORE
-node_modules
-scripts/flow/*/.flowconfig
-.flowconfig
-*~
-*.pyc
-.grunt
-_SpecRunner.html
-__benchmarks__
-build/
-remote-repo/
-coverage/
-.module-cache
-fixtures/dom/public/react-dom.js
-fixtures/dom/public/react.js
-test/the-files-to-test.generated.js
-*.log*
-chrome-user-data
-*.sublime-project
-*.sublime-workspace
-.idea
-*.iml
-.vscode
-.zed
-*.swp
-*.swo
-/tmp
-/.worktrees
-.claude/*.local.*
-.agents/*
-AGENTS.md
-
-packages/react-devtools-core/dist
-packages/react-devtools-extensions/chrome/build
-packages/react-devtools-extensions/chrome/*.crx
-packages/react-devtools-extensions/chrome/*.pem
-packages/react-devtools-extensions/firefox/build
-packages/react-devtools-extensions/firefox/*.xpi
-packages/react-devtools-extensions/firefox/*.pem
-packages/react-devtools-extensions/shared/build
-packages/react-devtools-extensions/.tempUserDataDir
-packages/react-devtools-fusebox/dist
-packages/react-devtools-inline/dist
-packages/react-devtools-shell/dist
-packages/react-devtools-timeline/dist

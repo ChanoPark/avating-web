@@ -26,11 +26,7 @@ export default defineConfig({
   retries: isCI ? 2 : 0,
   // 로컬은 Playwright 기본 워커 수, CI 만 2 로 고정 (exactOptionalPropertyTypes 로 undefined 직접 대입 불가).
   ...(isCI ? { workers: 2 } : {}),
-  reporter: [
-    ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
-    ['junit', { outputFile: 'reports/junit.xml' }],
-  ],
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: BASE_URL,
     trace: 'on-first-retry',

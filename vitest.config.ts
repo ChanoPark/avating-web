@@ -37,13 +37,7 @@ export default defineConfig(({ mode }) => {
           statements: 80,
         },
         include: ['src/**/*.{ts,tsx}'],
-        exclude: [
-          'src/**/*.stories.{ts,tsx}',
-          'src/**/*.d.ts',
-          'src/main.tsx',
-          'src/test/**',
-          'src/shared/mocks/**',
-        ],
+        exclude: ['src/**/*.d.ts', 'src/main.tsx', 'src/test/**', 'src/shared/mocks/**'],
       },
     },
   };
