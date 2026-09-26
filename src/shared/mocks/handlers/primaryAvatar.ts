@@ -5,7 +5,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 export const mockPrimaryAvatar: { data: AvatarSummary } = {
   data: {
-    schemaVersion: 1,
     avatarId: '11111111-1111-4111-8111-111111111111',
     name: '루시',
     hashtag: 'A3K9Z7',

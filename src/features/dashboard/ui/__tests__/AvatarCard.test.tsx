@@ -5,7 +5,6 @@ import { AvatarCard } from '../AvatarCard';
 import type { AvatarSimCandidate } from '@entities/avatar';
 
 const avatar: AvatarSimCandidate = {
-  schemaVersion: 1,
   avatarId: '22222222-2222-4222-8222-222222222222',
   name: '하늘',
   hashtag: 'H7K2MP',
