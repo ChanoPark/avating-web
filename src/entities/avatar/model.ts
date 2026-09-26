@@ -70,7 +70,6 @@ export const avatarColorSchema = z.string().regex(/^[0-9A-Fa-f]{6}$/);
 
 /** 서버 AvatarSummaryResponse(POST /avatars/survey, GET .../summary, GET .../primary) — stats 는 PersonaStatType 키가 늘거나 바뀌어도 깨지지 않게 고정 키가 아닌 record 로 받는다(위 6축 avatarStatsSchema 와 다른 계열). */
 export const avatarSummarySchema = z.object({
-  schemaVersion: z.number().int(),
   avatarId: z.string().min(1),
   name: z.string().min(1),
   // 서버가 생성하는 불변 6자 식별 태그 — 화면에는 `이름#해시태그` 로 붙여 쓴다.

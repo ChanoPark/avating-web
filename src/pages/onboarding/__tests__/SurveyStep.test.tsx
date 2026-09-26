@@ -291,7 +291,6 @@ describe('SurveyStep', () => {
           return HttpResponse.json(
             {
               data: {
-                schemaVersion: 1,
                 avatarId: 'a1111111-1111-4111-8111-111111111111',
                 name: '루나',
                 hashtag: 'L5MQ2T',
@@ -328,7 +327,6 @@ describe('SurveyStep', () => {
           return HttpResponse.json(
             {
               data: {
-                schemaVersion: 1,
                 avatarId: 'a1111111-1111-4111-8111-111111111111',
                 name: '루나',
                 hashtag: 'L5MQ2T',

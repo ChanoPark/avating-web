@@ -60,7 +60,6 @@ export const mockConnectStatusExpired = {
 // POST /api/avatars/survey 201 의 고정 부분 — name/description/tags/color 는 요청을 되울려
 // 사용자가 입력한 값이 완료 화면에 그대로 보이게 한다.
 export const mockCreatedAvatarSummaryBase = {
-  schemaVersion: 1,
   avatarId: 'a2222222-2222-4222-8222-222222222222',
   hashtag: 'R4NW8K',
   stats: {

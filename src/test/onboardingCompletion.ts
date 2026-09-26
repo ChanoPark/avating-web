@@ -14,7 +14,6 @@ export function queryClientWithPrimaryAvatar(primary: AvatarSummary | null = nul
 }
 
 export const SAMPLE_PRIMARY_AVATAR: AvatarSummary = {
-  schemaVersion: 1,
   avatarId: '11111111-1111-4111-8111-111111111111',
   name: '루시',
   hashtag: 'A3K9Z7',

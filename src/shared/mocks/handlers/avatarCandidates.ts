@@ -9,7 +9,6 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
   data: {
     items: [
       {
-        schemaVersion: 1,
         avatarId: '22222222-2222-4222-8222-222222222222',
         name: '하늘',
         hashtag: 'H7K2MP',
@@ -28,7 +27,6 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
         canRequestSimulation: true,
       },
       {
-        schemaVersion: 1,
         avatarId: '33333333-3333-4333-8333-333333333333',
         name: '봄날',
         hashtag: 'B3RT9Q',
@@ -47,7 +45,6 @@ export const mockSimCandidates: { data: AvatarSimCandidateList } = {
         canRequestSimulation: false,
       },
       {
-        schemaVersion: 1,
         avatarId: '44444444-4444-4444-8444-444444444444',
         name: 'Moonlit',
         hashtag: 'Q5WN8Z',

@@ -6,7 +6,6 @@ import {
 } from '../model';
 
 const candidate = {
-  schemaVersion: 1,
   avatarId: '22222222-2222-4222-8222-222222222222',
   name: '하늘',
   hashtag: 'H7K2MP',
