@@ -13,14 +13,7 @@ import globals from 'globals';
 
 export default tseslint.config(
   {
-    ignores: [
-      'dist',
-      'coverage',
-      'node_modules',
-      'playwright-report',
-      '.claude',
-      'storybook-static',
-    ],
+    ignores: ['dist', 'coverage', 'node_modules', 'playwright-report', '.claude'],
   },
 
   // Base JS rules — apply everywhere.
@@ -136,7 +129,7 @@ export default tseslint.config(
       'vitest/expect-expect': [
         'error',
         {
-          // 단언 없는 가짜 테스트 차단 (testing-stack § 11 정합).
+          // 단언 없는 가짜 테스트 차단.
           // wildcard 패턴(`expect*` 등)은 forward trap (헬퍼명만 보고 통과시킴) — 순정 expect 만 인정.
           // 헬퍼 안의 expect 가 필요하면 헬퍼 이름을 *명시적* 으로 추가 (예: 'expectVisibleAndEnabled').
           assertFunctionNames: ['expect'],
@@ -153,15 +146,6 @@ export default tseslint.config(
     },
   },
 
-  // Node 도구 스크립트 (wiki codemap 생성기 등) — node:test 러너, fs/process/console 사용.
-  // src/** 의 type-checked/boundaries 규칙 밖. structuredClone 등 Node 글로벌 필요.
-  {
-    files: ['scripts/**/*.mjs'],
-    languageOptions: {
-      globals: { ...globals.node },
-    },
-  },
-
   // E2E (Playwright) 스펙 — node 런너 + page.evaluate 내부 브라우저 글로벌.
   // src/** 의 type-checked/boundaries 규칙 밖에 둔다(tsconfig.app 비포함, tsconfig.e2e 로 별도 검증).
   {
@@ -172,6 +156,6 @@ export default tseslint.config(
   },
 
   // Prettier conflict guard — *반드시 마지막* (다른 룰의 stylistic 규칙을 disable).
-  // Prettier 와 ESLint 의 무한 충돌 방지 (code-quality SKILL.md § 3 정합).
+  // Prettier 와 ESLint 의 무한 충돌 방지.
   prettierConfig
 );

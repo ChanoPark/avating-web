@@ -1,0 +1,4 @@
+pnpm exec lint-staged
+pnpm typecheck
+# 의도된 unused 항목은 knip.config.ts ignore 에 사유와 함께 적는다.
+pnpm exec knip --no-progress --reporter compact
