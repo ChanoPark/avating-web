@@ -4,7 +4,8 @@ import { cn } from '@shared/lib/cn';
 import { useSidebarContext } from './sidebarContext';
 
 type SidebarItemProps = {
-  icon: LucideIcon;
+  /** 없으면 라벨만 그린다. */
+  icon?: LucideIcon;
   label: string;
   to?: string;
   active?: boolean;
@@ -26,23 +27,15 @@ export function SidebarItem({
   const { mode } = useSidebarContext();
   const isActive = active || (to !== undefined && location.pathname === to);
 
-  const iconOnly = mode === 'collapsed' || mode === 'responsive';
+  const iconOnly = mode === 'collapsed';
 
   // 정본 `.hf-navitem{height:36px}` — 높이를 패딩에 맡기면 줄상자를 따라 36.84 / 35px 로 흐른다
   // ("A row's height must never depend on what is inside it" — typography.css).
-  const layoutClass =
-    mode === 'expanded'
-      ? 'h-9 gap-2.25 px-3'
-      : mode === 'collapsed'
-        ? 'h-9 justify-center px-0'
-        : 'h-9 justify-center px-0 lg:justify-start lg:gap-2.25 lg:px-3';
+  const layoutClass = iconOnly ? 'h-9 justify-center px-0' : 'h-9 gap-2.25 px-3';
 
-  const labelClass =
-    mode === 'expanded' ? '' : mode === 'collapsed' ? 'sr-only' : 'sr-only lg:not-sr-only';
+  const labelClass = iconOnly ? 'sr-only' : '';
 
-  const badgeVisible =
-    badge !== undefined && badge > 0 && (mode === 'expanded' || mode === 'responsive');
-  const badgeClass = mode === 'responsive' ? 'hidden lg:flex' : 'flex';
+  const badgeVisible = badge !== undefined && badge > 0 && !iconOnly;
 
   const baseClass = cn(
     // 정본 `.hf-navitem` 은 radius-chip(6px) 이다 — card(10px) 가 아니다.
@@ -64,15 +57,14 @@ export function SidebarItem({
   const content = (
     <>
       {/* 아이콘 색은 항목 텍스트 색을 따른다 — 활성 잉크 / 비활성 secondary. */}
-      <Icon size={15} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+      {Icon !== undefined && (
+        <Icon size={15} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+      )}
       <span className={labelClass}>{label}</span>
       {badgeVisible && (
         <span
           aria-label={`${badge}개`}
-          className={cn(
-            'bg-count text-count-text text-meta tnum ml-auto h-4.5 items-center justify-center rounded-full px-1.75',
-            badgeClass
-          )}
+          className="bg-count text-count-text text-meta tnum ml-auto flex h-4.5 items-center justify-center rounded-full px-1.75"
         >
           {badge}
         </span>

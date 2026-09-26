@@ -2,8 +2,8 @@ import { ArrowRight } from 'lucide-react';
 import { Badge } from '@shared/ui/Badge';
 import { Button } from '@shared/ui/Button';
 import { Tag } from '@shared/ui/Tag';
+import { AvatarIdentityTile, AvatarTagBadge } from '@entities/avatar';
 import type { AvatarSimCandidate } from '@entities/avatar';
-import { avatarInitial } from '../lib/avatarInitial';
 
 type AvatarCardProps = {
   avatar: AvatarSimCandidate;
@@ -17,27 +17,28 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
   return (
     <li className="border-subtle bg-canvas rounded-card relative flex flex-col gap-2.5 border p-3.5">
       <div className="flex items-center gap-2.5">
-        <span
-          aria-hidden="true"
-          className="bg-id-none text-id-none-fg text-caption flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] font-semibold uppercase"
-        >
-          {avatarInitial(avatar.name)}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          {/* after 오버레이로 카드 전체를 클릭 대상으로 만든다 — 버튼을 중첩하지 않고 이름 버튼 하나로 처리한다. */}
-          {/* 이름#태그는 한 덩어리로 쓴다(wf2-spec) — 줄바꿈 없이 함께 잘린다. 스팬 경계에서 이름이 둘로
-              읽히지 않게 접근 가능한 이름을 보이는 글자 그대로 준다. */}
-          <button
-            type="button"
-            aria-label={`${avatar.name}#${avatar.hashtag}`}
-            onClick={() => {
-              onOpen(avatar.avatarId);
-            }}
-            className="text-caption text-primary rounded-chip after:rounded-card truncate text-left font-medium after:absolute after:inset-0"
-          >
-            {avatar.name}
-            <span className="text-secondary font-normal">#{avatar.hashtag}</span>
-          </button>
+        <AvatarIdentityTile
+          name={avatar.name}
+          color={avatar.color}
+          className="text-caption h-10 w-10 rounded-[10px]"
+        />
+        <span className="flex min-w-0 flex-1 flex-col gap-1">
+          {/* 이름이 가장 크게 보이고 태그 뱃지는 같은 줄 옆에 붙는다(사용자 결정 2026-09-25).
+              버튼의 접근 가능한 이름이 `이름#태그` 를 한 덩어리로 읽으므로 뱃지는 보조기기에서 숨긴다. */}
+          <span className="flex min-w-0 items-center gap-1.5">
+            {/* after 오버레이로 카드 전체를 클릭 대상으로 만든다 — 버튼을 중첩하지 않고 이름 버튼 하나로 처리한다. */}
+            <button
+              type="button"
+              aria-label={`${avatar.name}#${avatar.hashtag}`}
+              onClick={() => {
+                onOpen(avatar.avatarId);
+              }}
+              className="text-lead text-primary rounded-chip after:rounded-card truncate text-left font-semibold after:absolute after:inset-0"
+            >
+              {avatar.name}
+            </button>
+            <AvatarTagBadge hashtag={avatar.hashtag} aria-hidden="true" />
+          </span>
           {avatar.description !== '' && (
             <span className="text-meta text-secondary truncate">{avatar.description}</span>
           )}

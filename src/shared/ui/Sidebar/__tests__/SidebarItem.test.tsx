@@ -30,6 +30,16 @@ describe('SidebarItem', () => {
       );
       expect(screen.getByText('대시보드')).toBeInTheDocument();
     });
+
+    it('icon 없이 라벨만으로 렌더된다', () => {
+      render(
+        <MemoryRouter>
+          <SidebarItem label="대시보드" to="/dashboard" />
+        </MemoryRouter>
+      );
+      const link = screen.getByRole('link', { name: '대시보드' });
+      expect(link.querySelector('svg')).toBeNull();
+    });
   });
 
   describe('active 상태', () => {

@@ -50,7 +50,7 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       ).toBeInTheDocument();
     });
 
-    it('생성 방법 카드 3장이 제목·설명·소요 시간·CTA 를 갖고 렌더된다', () => {
+    it('생성 방법 카드 3장이 제목·설명·CTA 를 갖고 렌더된다', () => {
       renderWithProviders(<WelcomeStep />);
 
       const cards = screen.getAllByRole('group', { name: /아바타 만들기$/ });
@@ -62,20 +62,17 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       expect(
         within(survey).getByText('성향 분석을 통해 자신만의 아바타를 만들어보세요.')
       ).toBeInTheDocument();
-      expect(within(survey).getByText('약 2분')).toBeInTheDocument();
       expect(within(survey).getByRole('button', { name: /설문으로 만들기/ })).toBeInTheDocument();
 
       expect(within(bot).getByText('ChatGPT Bot과 대화해서 아바타 만들기')).toBeInTheDocument();
       expect(
         within(bot).getByText('ChatGPT에서 Bot과의 대화를 통해 자신의 성향을 알아보세요')
       ).toBeInTheDocument();
-      expect(within(bot).getByText('약 10분')).toBeInTheDocument();
 
       expect(within(prompt).getByText('프롬프트를 복사해서 아바타 만들기')).toBeInTheDocument();
       expect(
         within(prompt).getByText('평소 쓰는 AI에 프롬프트를 붙여넣고, 나온 결과를 다시 가져오세요.')
       ).toBeInTheDocument();
-      expect(within(prompt).getByText('약 5분')).toBeInTheDocument();
     });
 
     // 정본은 첫 카드에 파란 테두리 강조를 주지만 이 앱은 쓰지 않는다 —
@@ -88,6 +85,15 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
 
       expect(new Set(classNames).size).toBe(1);
       expect(classNames[0]).not.toMatch(/border-mark|inset/);
+    });
+
+    // 제목 줄 수가 달라도 세 카드의 제목·설명·CTA 가 같은 높이에서 시작하도록 부모 행을 subgrid 로 공유한다.
+    it('데스크톱에서 세 카드가 제목·설명·CTA 행을 공유한다', () => {
+      renderWithProviders(<WelcomeStep />);
+      for (const card of screen.getAllByRole('group', { name: /아바타 만들기$/ })) {
+        expect(card).toHaveClass('sm:row-span-3', 'sm:grid-rows-subgrid');
+        expect(Array.from(card.children).map((el) => el.tagName)).toEqual(['H2', 'P', 'BUTTON']);
+      }
     });
 
     // 정본은 CTA 에 화살표 아이콘을 두지만 이 앱은 두지 않는다 — 위 테두리 건과 같은 이유로 고정한다.
@@ -119,9 +125,13 @@ describe('WelcomeStep (와이어프레임 v2.5 — 생성 방법 3장 선택)', 
       expect(screen.queryByRole('button', { name: 'ChatGPT Bot 연동' })).not.toBeInTheDocument();
     });
 
-    it('카드 밖 "약 2분 소요" 행은 없다 — 소요 시간은 카드별 태그로 옮겼다', () => {
+    // 정본은 카드 상단에 아이콘 타일과 소요 시간 태그를 두지만 이 앱은 둘 다 두지 않는다 (사용자 결정 2026-09-25).
+    it('카드 상단에 아이콘과 소요 시간이 없다', () => {
       renderWithProviders(<WelcomeStep />);
-      expect(screen.queryByText('약 2분 소요')).not.toBeInTheDocument();
+      expect(screen.queryByText(/약 \d+분/)).not.toBeInTheDocument();
+      for (const card of screen.getAllByRole('group', { name: /아바타 만들기$/ })) {
+        expect(card.querySelector('svg')).toBeNull();
+      }
     });
 
     it('v1 단계 라벨(STEP n / 4)은 렌더되지 않는다 — 진행 표시는 레일이 담당한다', () => {

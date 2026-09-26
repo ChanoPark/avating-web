@@ -74,6 +74,18 @@ describe('avatarCreateFromSurveyRequestSchema', () => {
     expect(avatarCreateFromSurveyRequestSchema.safeParse(validRequest).success).toBe(true);
   });
 
+  it('color(# 없는 6자리 hex)를 함께 보낼 수 있다', () => {
+    expect(
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, color: '2C3886' }).color
+    ).toBe('2C3886');
+  });
+
+  it('color 가 6자리 hex 가 아니면 throw 한다', () => {
+    expect(() =>
+      avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, color: 'navy' })
+    ).toThrow();
+  });
+
   it('avatarName 이 빈 문자열이면 throw 한다', () => {
     expect(() =>
       avatarCreateFromSurveyRequestSchema.parse({ ...validRequest, avatarName: '' })
@@ -164,6 +176,11 @@ describe('surveyDraftSchema', () => {
       answers: { Q_001: 'Q_001_ANS_2' },
     });
     expect(result.success).toBe(true);
+  });
+
+  it('Step 1 에서 고른 color 를 보존한다', () => {
+    const parsed = surveyDraftSchema.parse({ answers: {}, color: 'E887B6' });
+    expect(parsed.color).toBe('E887B6');
   });
 
   it('answers 가 없으면 throw 한다', () => {

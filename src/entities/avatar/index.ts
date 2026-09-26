@@ -20,3 +20,13 @@ export { usePrimaryAvatar, usePrimaryAvatarSuspense } from './api/usePrimaryAvat
 export { useSimCandidatesSuspense } from './api/useSimCandidates';
 export { useAvatarDetailSuspense } from './api/useAvatarDetail';
 export { avatarKeys } from './queryKeys';
+export {
+  AVATAR_IDENTITY_COLORS,
+  DEFAULT_AVATAR_IDENTITY,
+  identityFromHex,
+  identityHex,
+} from './lib/identity';
+export type { AvatarIdentityName } from './lib/identity';
+export { AvatarIdentityTile } from './ui/AvatarIdentityTile';
+export { AvatarTagBadge } from './ui/AvatarTagBadge';
+export { PersonaStats, PERSONA_STATS_CLASS } from './ui/PersonaStats';

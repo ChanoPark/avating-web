@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react';
 import { ArrowRight, CircleAlert, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
+import { Checkbox } from '@shared/ui/Checkbox';
 import { useSignup } from '../api/useSignup';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { mapServerError } from '../lib/mapServerError';
@@ -261,12 +262,10 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
 
           <div className="flex flex-col gap-2">
             <div className="text-caption text-secondary flex items-center gap-2">
-              <input
+              <Checkbox
                 id="signup-terms"
-                type="checkbox"
                 aria-invalid={errors.termsAgreed ? true : undefined}
                 aria-describedby={errors.termsAgreed ? 'signup-terms-error' : undefined}
-                className={`accent-mark rounded-chip h-4 w-4 shrink-0 border ${errors.termsAgreed ? 'border-danger-mark outline-danger-mark outline outline-1' : 'border-field'}`}
                 {...register('termsAgreed')}
               />
               <label htmlFor="signup-terms" className="tnum">
@@ -285,12 +284,7 @@ export function SignupForm({ onSuccess }: SignupFormProps) {
               </p>
             )}
             <div className="text-caption text-secondary flex items-center gap-2">
-              <input
-                id="signup-marketing"
-                type="checkbox"
-                className="border-field accent-mark rounded-chip h-4 w-4 shrink-0 border"
-                {...register('marketingOptIn')}
-              />
+              <Checkbox id="signup-marketing" {...register('marketingOptIn')} />
               <label htmlFor="signup-marketing">알림 수신 (선택)</label>
             </div>
           </div>

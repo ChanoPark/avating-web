@@ -5,6 +5,7 @@ import { ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { Banner } from '@shared/ui/Banner';
+import { Checkbox } from '@shared/ui/Checkbox';
 import { useLogin } from '../api/useLogin';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { mapServerError } from '../lib/mapServerError';
@@ -138,12 +139,7 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
 
           <div className="flex items-center justify-between">
             <div className="text-caption text-secondary flex items-center gap-2">
-              <input
-                id="login-remember"
-                type="checkbox"
-                disabled
-                className="border-field accent-mark rounded-chip h-4 w-4 border disabled:cursor-not-allowed disabled:opacity-70"
-              />
+              <Checkbox id="login-remember" disabled />
               <label
                 htmlFor="login-remember"
                 title="로그인 상태 유지 (준비 중)"

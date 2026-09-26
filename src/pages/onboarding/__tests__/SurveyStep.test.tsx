@@ -122,6 +122,35 @@ describe('SurveyStep', () => {
       expect(screen.queryByText(/STEP 3 \/ 4/)).not.toBeInTheDocument();
     });
 
+    // 질문·답변 길이가 문항마다 달라도 카드와 이전/다음 버튼 높이가 같아야 한다(사용자 결정 2026-09-25).
+    // 모든 문항의 제목·선택지를 같은 grid 칸에 겹쳐 두면 칸 높이가 늘 가장 긴 문항을 따른다.
+    it('질문 페이지는 모든 문항을 같은 칸에 겹쳐 그리고, 현재 문항만 보이고 조작된다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      const heading = await screen.findByRole('heading', { level: 1, name: MOCK_Q1_TITLE });
+
+      const titleGhost = screen.getByText(MOCK_Q2_TITLE, { selector: '[aria-hidden="true"]' });
+      expect(titleGhost.parentElement).toBe(heading.parentElement);
+      expect(heading.parentElement).toHaveClass('grid');
+      expect(heading).toHaveClass('col-start-1', 'row-start-1');
+      expect(titleGhost).toHaveClass('invisible', 'col-start-1', 'row-start-1');
+
+      const current = screen.getByRole('group', { name: MOCK_Q1_TITLE });
+      const ghost = document.querySelector('[inert]');
+      expect(ghost).toHaveAttribute('aria-hidden', 'true');
+      expect(ghost).toHaveClass('invisible');
+      expect(ghost?.parentElement).toBe(current.parentElement?.parentElement);
+      expect(screen.queryByRole('group', { name: MOCK_Q2_TITLE })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('radio', { name: MOCK_Q1_ANS1 }));
+      await user.click(screen.getByRole('button', { name: /다음/i }));
+      expect(
+        await screen.findByRole('heading', { level: 1, name: MOCK_Q2_TITLE })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('group', { name: MOCK_Q2_TITLE })).toBeInTheDocument();
+      expect(screen.queryByRole('group', { name: MOCK_Q1_TITLE })).not.toBeInTheDocument();
+    });
+
     it('진행 카운터가 "현재 페이지 / 전체 페이지" 로 렌더된다 (표현 단계 포함)', async () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await waitFor(() => {
@@ -284,6 +313,42 @@ describe('SurveyStep', () => {
       await waitFor(() => {
         expect(createCallCount).toBe(1);
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
+      });
+    });
+
+    it('Step 1 에서 고른 color 를 POST /api/avatars/survey payload 에 싣는다', async () => {
+      const user = userEvent.setup();
+      let body: unknown;
+      saveDraft({ answers: {}, avatarName: '루나', description: '차분한 분석가', color: '67C4F2' });
+
+      server.use(
+        surveyQuestionsHandlers.success,
+        http.post(`${BASE_URL}/api/avatars/survey`, async ({ request }) => {
+          body = await request.json();
+          return HttpResponse.json(
+            {
+              data: {
+                schemaVersion: 1,
+                avatarId: 'a1111111-1111-4111-8111-111111111111',
+                name: '루나',
+                hashtag: 'L5MQ2T',
+                description: '차분한 분석가',
+                stats: { OPENNESS: 70, EMPATHY: 60 },
+                tags: [],
+                color: '67C4F2',
+              },
+            },
+            { status: 201 }
+          );
+        })
+      );
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await goToExpressionsPage(user);
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(body).toMatchObject({ avatarName: '루나', color: '67C4F2' });
       });
     });
 

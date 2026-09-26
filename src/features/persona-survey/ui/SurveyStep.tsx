@@ -17,6 +17,7 @@ import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
 import { SurveyQuestion } from './SurveyQuestion';
 import { ExpressionsField } from './ExpressionsField';
+import { cn } from '@shared/lib/cn';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
 export function SurveyStep() {
@@ -80,10 +81,12 @@ export function SurveyStep() {
       })
       .filter((a): a is NonNullable<typeof a> => a !== null);
 
+    // color 는 Step 1 에서 고른 값이라 이 화면엔 입력이 없다 — 폼 값으로 들고 있어야 draft 재저장·제출에 함께 간다.
     form.reset({
       avatarName: draft.avatarName ?? '',
       description: draft.description ?? '',
       answers: restoredAnswers,
+      ...(draft.color !== undefined ? { color: draft.color } : {}),
     });
 
     if (draft.interestTags && draft.interestTags.length > 0) {
@@ -109,6 +112,7 @@ export function SurveyStep() {
           answers: answersMap,
           avatarName: values.avatarName ?? '',
           description: values.description ?? '',
+          ...(values.color !== undefined ? { color: values.color } : {}),
           // 관심사·표현은 RHF 폼 밖 로컬 상태라 ref 로 보존한다.
           interestTags: interestTagsRef.current,
           expressions: expressionsRef.current,
@@ -198,6 +202,7 @@ export function SurveyStep() {
       answers: answersMap,
       avatarName: values.avatarName,
       description: values.description,
+      ...(values.color !== undefined ? { color: values.color } : {}),
       interestTags: nextTags,
       expressions: nextExpressions,
     });
@@ -270,7 +275,24 @@ export function SurveyStep() {
               </p>
             </>
           ) : (
-            <h1 className="text-title text-primary">{currentQuestion?.title ?? '질문'}</h1>
+            // 문항마다 카드·버튼 높이가 같도록 모든 제목을 한 칸에 겹친다 — 칸 높이는 가장 긴 제목을 따른다.
+            <div className="grid">
+              {questions.map((question, index) =>
+                index === pageIndex ? (
+                  <h1 key={question.id} className="text-title text-primary col-start-1 row-start-1">
+                    {question.title}
+                  </h1>
+                ) : (
+                  <p
+                    key={question.id}
+                    aria-hidden="true"
+                    className="text-title invisible col-start-1 row-start-1"
+                  >
+                    {question.title}
+                  </p>
+                )
+              )}
+            </div>
           )}
         </div>
 
@@ -303,17 +325,31 @@ export function SurveyStep() {
               persistOptionalTraits(interestTagsRef.current, next);
             }}
           />
-        ) : currentQuestion ? (
-          <SurveyQuestion
-            name={currentQuestion.id}
-            question={currentQuestion.title}
-            options={currentQuestion.answers}
-            value={getCurrentAnswerId(currentQuestion.id)}
-            onChange={(answerId) => {
-              handleAnswer(currentQuestion, answerId);
-            }}
-          />
-        ) : null}
+        ) : (
+          // 제목과 같은 이유로 모든 문항의 선택지를 한 칸에 겹친다. 가려진 문항은 보이지도, 포커스되지도 않는다.
+          <div className="grid">
+            {questions.map((question, index) => {
+              const isCurrent = index === pageIndex;
+              return (
+                <div
+                  key={question.id}
+                  className={cn('col-start-1 row-start-1', !isCurrent && 'invisible')}
+                  {...(isCurrent ? {} : { 'aria-hidden': true, inert: true })}
+                >
+                  <SurveyQuestion
+                    name={question.id}
+                    question={question.title}
+                    options={question.answers}
+                    value={getCurrentAnswerId(question.id)}
+                    onChange={(answerId) => {
+                      handleAnswer(question, answerId);
+                    }}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {submitError && (
           <p

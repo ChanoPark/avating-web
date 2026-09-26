@@ -5,21 +5,42 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { ArrowLeft, ArrowRight, CircleAlert } from 'lucide-react';
 import { Button } from '@shared/ui/Button/Button';
-import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
+import { FIELD_CLASS, FIELD_ERROR_CLASS, TEXTAREA_CLASS } from '@shared/ui/Input';
 import { cn } from '@shared/lib/cn';
+import {
+  AVATAR_IDENTITY_COLORS,
+  DEFAULT_AVATAR_IDENTITY,
+  identityFromHex,
+  identityHex,
+} from '@entities/avatar';
+import type { AvatarIdentityName } from '@entities/avatar';
 import { getOnboardingMethod, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import { loadDraft, saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
+import { AvatarColorPicker } from '../ui/AvatarColorPicker';
 
 // 정본 UI 제한(20/120)은 백엔드 제출 한도(50/200)의 부분집합이라 항상 유효하다 — 둘을 맞출 필요 없다.
 const NAME_MAX = 20;
 const DESC_MAX = 120;
 
+// z.enum 은 비어 있지 않은 튜플만 받는데 .map() 결과는 그걸 증명하지 못한다 — 정본 10색은 상수라 늘 1개 이상이다.
+const IDENTITY_NAMES = AVATAR_IDENTITY_COLORS.map((color) => color.name) as [
+  AvatarIdentityName,
+  ...AvatarIdentityName[],
+];
+
+// draft 에 풀 밖 색(또는 색 없음)이 남아 있으면 정본 기본값으로 시작한다.
+function initialIdentity(hex: string | undefined): AvatarIdentityName {
+  const identity = identityFromHex(hex);
+  return identity === 'none' ? DEFAULT_AVATAR_IDENTITY : identity;
+}
+
 const introFormSchema = z.object({
   avatarName: z.string().trim().min(1, '아바타 이름을 입력해주세요').max(NAME_MAX),
   // 서버 SurveyAvatarCreateRequest 에서 description 은 필수다 — 입력받는 화면은 여기뿐이라 안 받으면 고칠 방법이 없다.
   description: z.string().trim().min(1, '아바타 설명을 입력해주세요').max(DESC_MAX),
+  color: z.enum(IDENTITY_NAMES),
 });
 type IntroFormValues = z.infer<typeof introFormSchema>;
 
@@ -39,6 +60,7 @@ export function IntroStep() {
     defaultValues: {
       avatarName: initialDraft?.avatarName ?? '',
       description: initialDraft?.description ?? '',
+      color: initialIdentity(initialDraft?.color),
     },
   });
 
@@ -53,6 +75,8 @@ export function IntroStep() {
 
   const nameLength = watch('avatarName').length;
   const descLength = watch('description').length;
+  const avatarName = watch('avatarName');
+  const selectedColor = watch('color');
 
   const onSubmit = handleSubmit((values) => {
     const existing = loadDraft();
@@ -60,6 +84,9 @@ export function IntroStep() {
       answers: existing?.answers ?? {},
       avatarName: values.avatarName.trim(),
       description: values.description.trim(),
+      // draft 에는 늘 저장하지만 제출에 싣는 건 설문 경로뿐이다 — connect(Bot) 경로는 서버가 코드로
+      // 아바타를 만들어 이름·설명과 마찬가지로 색을 보낼 자리가 없다(spec-gap).
+      color: identityHex(values.color),
       ...(existing?.expressions ? { expressions: existing.expressions } : {}),
     });
     // 방법은 S-02-01 환영 카드에서 이미 골라 두었다.
@@ -135,15 +162,11 @@ export function IntroStep() {
               maxLength={DESC_MAX}
               placeholder="아바타를 한두 문장으로 소개해 주세요"
               aria-invalid={errors.description ? true : undefined}
-              aria-describedby={errors.description ? 'intro-desc-error' : 'intro-desc-help'}
-              className={cn(
-                FIELD_CLASS,
-                'resize-none',
-                errors.description ? FIELD_ERROR_CLASS : null
-              )}
+              aria-describedby={errors.description ? 'intro-desc-error' : undefined}
+              className={cn(TEXTAREA_CLASS, errors.description ? FIELD_ERROR_CLASS : null)}
               {...register('description')}
             />
-            {errors.description?.message ? (
+            {errors.description?.message && (
               <p
                 id="intro-desc-error"
                 role="alert"
@@ -152,12 +175,14 @@ export function IntroStep() {
                 <CircleAlert size={12} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
                 {errors.description.message}
               </p>
-            ) : (
-              <p id="intro-desc-help" className="text-meta text-secondary">
-                상대 아바타가 첫인상으로 참고합니다
-              </p>
             )}
           </div>
+
+          <AvatarColorPicker
+            value={selectedColor}
+            name={avatarName.trim()}
+            registration={register('color')}
+          />
         </div>
       </div>
 

@@ -39,10 +39,14 @@ describe('AvatarDetailPage', () => {
     expect(screen.getByRole('heading', { name: '공개 정보' })).toBeInTheDocument();
   });
 
-  it('마운트 후 chrome breadcrumb store 에 [홈, 탐색, 아바타이름] 이 push 된다', async () => {
+  it('마운트 후 chrome breadcrumb store 에 [홈, 대시보드, 아바타이름] 이 push 된다', async () => {
     renderPage();
     await waitFor(() => {
-      expect(useChromeBreadcrumbStore.getState().trail).toEqual(['홈', '탐색', 'Moonlit Narrator']);
+      expect(useChromeBreadcrumbStore.getState().trail).toEqual([
+        '홈',
+        '대시보드',
+        'Moonlit Narrator',
+      ]);
     });
   });
 

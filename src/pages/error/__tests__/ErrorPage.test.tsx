@@ -135,10 +135,10 @@ describe('ErrorPage — S-11-02 접근 권한 없음 (403)', () => {
     expect(screen.queryByRole('button', { name: '로그인' })).not.toBeInTheDocument();
   });
 
-  it('"탐색으로 돌아가기" 가 주 액션이다', async () => {
+  it('"대시보드로 돌아가기" 가 주 액션이다', async () => {
     const user = userEvent.setup();
     renderErrorPage('forbidden');
-    await user.click(screen.getByRole('button', { name: '탐색으로 돌아가기' }));
+    await user.click(screen.getByRole('button', { name: '대시보드로 돌아가기' }));
     expect(screen.getByText('DASHBOARD_PAGE')).toBeInTheDocument();
   });
 

@@ -1,17 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, useOutlet } from 'react-router';
-import {
-  Bell,
-  ChevronRight,
-  Clock,
-  Compass,
-  Heart,
-  Menu,
-  MessageCircle,
-  Sparkles,
-  Users,
-} from 'lucide-react';
+import { Bell, ChevronRight, Menu } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { RouteErrorBoundary } from '../providers/RouteErrorBoundary';
 import { SidebarAccountRow } from './SidebarAccountRow';
@@ -33,7 +23,7 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
       : pathname === '/dashboard'
         ? ['홈', '대시보드']
         : pathname.startsWith('/avatars/')
-          ? ['홈', '탐색']
+          ? ['홈', '대시보드']
           : ['홈'];
   return (
     <nav aria-label="현재 위치" className="text-secondary text-caption">
@@ -64,54 +54,54 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
   );
 }
 
-function SidebarBody({
-  expanded,
-  pathname,
-  onNavigate,
-}: {
-  expanded: boolean;
-  pathname: string;
-  onNavigate?: () => void;
-}) {
-  // 탐색 항목은 대시보드와 아바타 상세 경로에서 함께 활성화된다.
-  const exploreActive = pathname === '/dashboard' || pathname.startsWith('/avatars/');
+// 대메뉴 라벨은 이동하지 않는 머리글이다 — 소메뉴를 이 이름의 group 으로 묶는다.
+// 대메뉴는 소메뉴(13px)보다 크게, 소메뉴는 12px 들여써서 depth 를 보인다(사용자 결정 2026-09-25).
+function NavSection({ label, children }: { label: string; children: ReactNode }) {
+  const labelId = useId();
+  return (
+    <div role="group" aria-labelledby={labelId} className="flex flex-col gap-0.5">
+      <span id={labelId} className="text-body text-primary px-3 pt-1 pb-0.5 font-semibold">
+        {label}
+      </span>
+      <div className="flex flex-col gap-0.5 pl-3">{children}</div>
+    </div>
+  );
+}
+
+function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+  // 대시보드 항목은 대시보드와 아바타 상세 경로에서 함께 활성화된다.
+  const dashboardActive = pathname === '/dashboard' || pathname.startsWith('/avatars/');
 
   return (
     <>
-      <div
-        className={cn(
-          'flex items-center gap-2 px-4.5 pt-5 pb-3.5',
-          expanded ? '' : 'justify-center lg:justify-start'
-        )}
-      >
+      <div className="flex items-center gap-2 px-4.5 pt-5 pb-3.5">
         <span aria-hidden="true" className="bg-action rounded-chip size-4.5 shrink-0" />
-        <span
-          className={cn(
-            // 정본 `.hf-word{font-size:var(--fs-20);font-weight:var(--fw-bold);letter-spacing:-0.03em}`
-            'text-ink text-title font-bold tracking-[-0.03em]',
-            expanded ? '' : 'hidden lg:inline'
-          )}
-        >
-          Avating
-        </span>
+        {/* 정본 `.hf-word{font-size:var(--fs-20);font-weight:var(--fw-bold);letter-spacing:-0.03em}` */}
+        <span className="text-ink text-title font-bold tracking-[-0.03em]">Avating</span>
       </div>
 
-      <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2.5">
-        <SidebarItem
-          icon={Compass}
-          label="탐색"
-          to="/dashboard"
-          active={exploreActive}
-          onClick={onNavigate}
-        />
-        <SidebarItem icon={Heart} label="매칭 요청" disabled />
-        <SidebarItem icon={MessageCircle} label="시뮬레이션" disabled />
-        <SidebarItem icon={Users} label="실제 대화" disabled />
-        <SidebarItem icon={Sparkles} label="내 아바타" disabled />
-        <SidebarItem icon={Clock} label="대화 기록" disabled />
+      {/* 대메뉴-소메뉴 구조(사용자 결정 2026-09-25) — 정본 .hf-nav(그룹 gap 12) / .hf-navgroup(항목 gap 2).
+          메뉴는 라벨 글자만 둔다(아이콘 없음). */}
+      <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-2.5">
+        <div className="flex flex-col gap-0.5">
+          <SidebarItem
+            label="대시보드"
+            to="/dashboard"
+            active={dashboardActive}
+            onClick={onNavigate}
+          />
+        </div>
+        <NavSection label="아바타">
+          <SidebarItem label="둘러보기" disabled />
+          <SidebarItem label="시뮬레이션 목록" disabled />
+        </NavSection>
+        <NavSection label="유저">
+          <SidebarItem label="내 아바타" disabled />
+          <SidebarItem label="채팅" disabled />
+        </NavSection>
       </div>
 
-      <SidebarAccountRow expanded={expanded} />
+      <SidebarAccountRow />
     </>
   );
 }
@@ -147,13 +137,16 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar responsive>
-        <SidebarBody expanded={false} pathname={location.pathname} />
-      </Sidebar>
+      {/* 메뉴에 아이콘이 없어 아이콘 전용 태블릿 레일을 두지 않는다 — lg 미만은 햄버거 드로어다(사용자 결정 2026-09-25). */}
+      <div className="hidden h-full lg:flex">
+        <Sidebar>
+          <SidebarBody pathname={location.pathname} />
+        </Sidebar>
+      </div>
 
       <AnimatePresence>
         {drawerOpen && (
-          <div className="fixed inset-0 z-[var(--z-modal)] md:hidden">
+          <div className="fixed inset-0 z-[var(--z-modal)] lg:hidden">
             <motion.div
               className="bg-overlay absolute inset-0"
               onClick={() => {
@@ -175,7 +168,6 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
             >
               <Sidebar className="h-full">
                 <SidebarBody
-                  expanded
                   pathname={location.pathname}
                   onNavigate={() => {
                     setDrawerOpen(false);
@@ -195,7 +187,7 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
               aria-label="메뉴 열기"
               aria-expanded={drawerOpen}
               aria-controls="mobile-sidebar"
-              className={cn(ICON_BUTTON_CLASS, 'md:hidden')}
+              className={cn(ICON_BUTTON_CLASS, 'lg:hidden')}
               onClick={() => {
                 setDrawerOpen(true);
               }}

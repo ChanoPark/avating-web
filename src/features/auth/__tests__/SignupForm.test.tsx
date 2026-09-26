@@ -193,8 +193,9 @@ describe('SignupForm', () => {
       await waitFor(() => {
         expect(screen.getByText(/약관에 동의해주세요/)).toBeInTheDocument();
         expect(termsCheckbox).toHaveAttribute('aria-invalid', 'true');
+        // 에러 표시는 상자 테두리 자체다 — outline 을 덧씌우면 실제 보이는 상자와 크기가 어긋난다.
         expect(termsCheckbox).toHaveClass('border-danger-mark');
-        expect(termsCheckbox).toHaveClass('outline-danger-mark');
+        expect(termsCheckbox.className).not.toMatch(/\boutline-/);
         expect(termsCheckbox).toHaveAttribute('aria-describedby', 'signup-terms-error');
         // aria-describedby 가 가리키는 id 를 에러 p 가 실제로 갖는지 — 양방향 정합.
         expect(screen.getByText(/약관에 동의해주세요/).closest('p')).toHaveAttribute(

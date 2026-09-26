@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { LoginPage } from '../LoginPage';
 
@@ -7,38 +8,59 @@ vi.mock('@features/auth/lib/encryptPassword', () => ({
   encryptPassword: vi.fn(),
 }));
 
+const mockNavigate = vi.fn();
+
+vi.mock('react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('react-router')>()),
+  useNavigate: () => mockNavigate,
+}));
+
 describe('LoginPage', () => {
-  it('상단 헤더는 두지 않는다 — 가입 화면에만 붙는다', () => {
-    renderWithProviders(<LoginPage />);
-    expect(screen.queryByRole('banner')).not.toBeInTheDocument();
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('2단 구성: 우측 AuthAside(complementary)를 렌더한다', () => {
+  it('우측 이용 안내(HOW IT WORKS)를 렌더하지 않는다', () => {
     renderWithProviders(<LoginPage />);
-    expect(screen.getByRole('complementary', { name: /이용 안내/ })).toBeInTheDocument();
+    expect(screen.queryByRole('complementary', { name: /이용 안내/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('HOW IT WORKS')).not.toBeInTheDocument();
   });
 
-  it('AuthAside 에 HOW IT WORKS eyebrow 와 정본 3항목이 렌더된다', () => {
-    renderWithProviders(<LoginPage />);
-    const aside = screen.getByRole('complementary', { name: /이용 안내/ });
+  describe('상단 헤더', () => {
+    it('가입 화면과 같은 상단 헤더(로고·내비·로그인/회원가입)를 렌더한다', () => {
+      renderWithProviders(<LoginPage />);
+      const banner = screen.getByRole('banner');
 
-    expect(within(aside).getByText('HOW IT WORKS')).toBeInTheDocument();
-    expect(within(aside).getByText('진행 중인 매칭')).toBeInTheDocument();
-    expect(within(aside).getByText('관전 이어보기')).toBeInTheDocument();
-    expect(within(aside).getByText('받은 요청')).toBeInTheDocument();
-    expect(within(aside).getByText('수락·거절 결정하기')).toBeInTheDocument();
-    // 로그인 전에는 알 수 없는 수치를 적지 않는다.
-    expect(within(aside).queryByText(/\d+건/)).not.toBeInTheDocument();
-    expect(within(aside).getByText('내 아바타')).toBeInTheDocument();
-    expect(within(aside).getByText('스탯 다듬기')).toBeInTheDocument();
-  });
+      expect(banner).toHaveTextContent('Avating');
+      expect(within(banner).getByText('서비스 소개')).toBeInTheDocument();
+      expect(within(banner).getByText('작동 방식')).toBeInTheDocument();
+      expect(within(banner).getByText('요금')).toBeInTheDocument();
+      expect(within(banner).getByRole('button', { name: '로그인' })).toBeInTheDocument();
+      expect(within(banner).getByRole('button', { name: '회원가입' })).toBeInTheDocument();
+    });
 
-  it('AuthAside 번호 01·02·03 이 tabular-nums 로 렌더된다', () => {
-    renderWithProviders(<LoginPage />);
-    const aside = screen.getByRole('complementary', { name: /이용 안내/ });
-    for (const num of ['01', '02', '03']) {
-      expect(within(aside).getByText(num)).toHaveClass('tnum');
-    }
+    it('헤더의 회원가입 버튼은 /signup 으로 이동한다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<LoginPage />);
+
+      await user.click(
+        within(screen.getByRole('banner')).getByRole('button', { name: '회원가입' })
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith('/signup');
+    });
+
+    it('헤더 내비는 랜딩의 해당 섹션으로 보낸다 — 로그인 화면에는 스크롤할 섹션이 없다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<LoginPage />);
+      const banner = screen.getByRole('banner');
+
+      await user.click(within(banner).getByRole('button', { name: '작동 방식' }));
+      expect(mockNavigate).toHaveBeenLastCalledWith('/#how-it-works');
+
+      await user.click(within(banner).getByRole('button', { name: '서비스 소개' }));
+      expect(mockNavigate).toHaveBeenLastCalledWith('/#service-intro-hero');
+    });
   });
 
   it('제목 "다시 만나서 반가워요" 와 서브카피가 렌더된다', () => {
@@ -49,7 +71,8 @@ describe('LoginPage', () => {
 
   it('폼 카드 상단에 Avating 로고가 렌더된다', () => {
     renderWithProviders(<LoginPage />);
-    expect(screen.getByText('Avating')).toBeInTheDocument();
+    const formCard = screen.getByRole('region', { name: '다시 만나서 반가워요' });
+    expect(within(formCard).getByText('Avating')).toBeInTheDocument();
   });
 
   it('LoginForm이 포함된다 (이메일 input 존재)', () => {

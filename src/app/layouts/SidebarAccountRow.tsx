@@ -14,7 +14,7 @@ const MENU_ITEM =
   'flex w-full items-center gap-2 rounded-chip px-[9px] py-[7px] text-[13px] hover:bg-surface ' +
   'ease-standard transition-colors duration-[var(--dur-fast)]';
 
-export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
+export function SidebarAccountRow() {
   const { data } = useMyAvatars();
   const primary = data?.items.find((a) => a.isPrimary) ?? data?.items[0];
 
@@ -80,14 +80,8 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
 
   return (
     <div ref={containerRef} className="border-subtle relative mt-auto border-t p-2.5">
-      {/* 좁은 레일에서는 톱니만 남긴다 — 아바타·닉네임은 장식이고 톱니가 유일한 조작점이다. */}
-      <div
-        className={cn(
-          'flex items-center gap-2 px-1.5 py-1',
-          expanded ? 'justify-between' : 'justify-center lg:justify-between'
-        )}
-      >
-        <div className={cn('flex min-w-0 items-center gap-2', expanded ? '' : 'hidden lg:flex')}>
+      <div className="flex items-center justify-between gap-2 px-1.5 py-1">
+        <div className="flex min-w-0 items-center gap-2">
           {primary && (
             <span className="bg-id-none text-id-none-fg flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase">
               {primary.initials}
@@ -124,8 +118,7 @@ export function SidebarAccountRow({ expanded }: { expanded: boolean }) {
           id={menuId}
           className={cn(
             'bg-canvas border-subtle absolute bottom-[calc(100%+8px)] rounded-[10px] border p-[5px]',
-            'z-[var(--z-dropdown)]',
-            expanded ? 'right-0 left-0' : 'left-0 w-max lg:right-0 lg:w-auto'
+            'right-0 left-0 z-[var(--z-dropdown)]'
           )}
         >
           {/* 목적지가 없다 — 추측 연결도 '준비중' 문구도 만들지 않는다. 사양이 오면 onClick 만 채운다. */}

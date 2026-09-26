@@ -262,7 +262,7 @@ export function ErrorPage({
   } else if (variant === 'forbidden') {
     actions = (
       <>
-        <Button onClick={goDashboard}>탐색으로 돌아가기</Button>
+        <Button onClick={goDashboard}>대시보드로 돌아가기</Button>
         {showBack && (
           <Button variant="ghost" onClick={goBack}>
             이전 페이지

@@ -62,15 +62,15 @@ describe('AppShellLayout', () => {
     expect(screen.getByRole('navigation', { name: '메인 내비게이션' })).toBeInTheDocument();
   });
 
-  it('/dashboard 경로에서 "탐색" 항목이 aria-current="page" 이다', () => {
+  it('/dashboard 경로에서 "대시보드" 항목이 aria-current="page" 이다', () => {
     renderWithProviders('/dashboard');
-    const exploreItem = screen.getByRole('link', { name: /탐색/ });
+    const exploreItem = screen.getByRole('link', { name: '대시보드' });
     expect(exploreItem).toHaveAttribute('aria-current', 'page');
   });
 
-  it('/avatars/:id 경로에서도 "탐색" 항목이 aria-current="page" 이다', () => {
+  it('/avatars/:id 경로에서도 "대시보드" 항목이 aria-current="page" 이다', () => {
     renderWithProviders('/avatars/avatar-1');
-    const exploreItem = screen.getByRole('link', { name: /탐색/ });
+    const exploreItem = screen.getByRole('link', { name: '대시보드' });
     expect(exploreItem).toHaveAttribute('aria-current', 'page');
   });
 
@@ -262,20 +262,20 @@ describe('AppShellLayout', () => {
   });
 
   describe('반응형 (웹 비율 · main-dashboard.md §10)', () => {
-    it('고정 레일은 모바일에서 숨고(md 부터 표시) 태블릿 64px·데스크톱 240px 로 리플로우한다', () => {
+    // 메뉴에 아이콘이 없어 아이콘 전용 태블릿 레일을 두지 않는다 — lg 미만은 햄버거 드로어다(사용자 결정 2026-09-25).
+    it('고정 사이드바는 lg(1024) 부터 240px 로 보이고, 그 아래에서는 숨는다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      expect(nav.className).toContain('hidden');
-      expect(nav.className).toContain('md:flex');
-      expect(nav.className).toContain('md:w-16');
-      expect(nav.className).toContain('lg:w-60');
+      expect(nav.parentElement).toHaveClass('hidden', 'lg:flex');
+      expect(nav.className).toContain('w-60');
+      expect(nav.className).not.toContain('md:w-16');
     });
 
     it('모바일 햄버거 버튼(메뉴 열기)이 헤더에 존재한다', () => {
       renderWithProviders('/dashboard');
       const hamburger = screen.getByRole('button', { name: '메뉴 열기' });
       expect(hamburger).toHaveAttribute('aria-expanded', 'false');
-      expect(hamburger.className).toContain('md:hidden');
+      expect(hamburger.className).toContain('lg:hidden');
     });
 
     it('햄버거 클릭 시 드로어가 열린다 (메인 내비게이션 2개)', async () => {
@@ -301,12 +301,14 @@ describe('AppShellLayout', () => {
       expect(nav.className.includes('w-60')).toBe(true);
     });
 
-    it('사이드바 항목 라벨이 데스크톱(lg)에서 표시된다 (lg:not-sr-only)', () => {
+    it('사이드바 항목은 라벨 글자만 있고 아이콘이 없다 (사용자 결정 2026-09-25)', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      const exploreLink = within(nav).getByRole('link', { name: /탐색/ });
-      const labelSpan = within(exploreLink).getByText('탐색');
-      expect(labelSpan.className).toContain('lg:not-sr-only');
+      const exploreLink = within(nav).getByRole('link', { name: '대시보드' });
+      expect(within(exploreLink).getByText('대시보드').className).not.toContain('sr-only');
+      for (const item of within(nav).getAllByRole('link')) {
+        expect(item.querySelector('svg')).toBeNull();
+      }
     });
 
     it('사이드바 상단에 브랜드명 "Avating" 이 표시된다', () => {
@@ -316,30 +318,71 @@ describe('AppShellLayout', () => {
     });
   });
 
-  describe('내비 6항목 (LAYOUT-NUMBERS § 사이드바 내비 6항목)', () => {
-    const EXPECTED = ['탐색', '매칭 요청', '시뮬레이션', '실제 대화', '내 아바타', '대화 기록'];
-
-    it('정본 순서대로 6개 항목이 렌더된다', () => {
+  // 대메뉴-소메뉴 구조(사용자 결정 2026-09-25): 대시보드가 맨 위, 아바타(둘러보기·시뮬레이션 목록) · 유저(내 아바타·채팅).
+  describe('내비 구조 — 대시보드 + 대메뉴 그룹 2개', () => {
+    it('대시보드 → 아바타 소메뉴 → 유저 소메뉴 순서로 항목이 렌더된다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       const items = within(nav).getAllByRole('link');
-      expect(items.map((el) => el.textContent?.trim())).toEqual(EXPECTED);
+      expect(items.map((el) => el.textContent?.trim())).toEqual([
+        '대시보드',
+        '둘러보기',
+        '시뮬레이션 목록',
+        '내 아바타',
+        '채팅',
+      ]);
     });
 
-    it('화면이 없는 5개 항목은 링크가 아니라 비활성이다', () => {
+    it('소메뉴는 대메뉴 라벨로 이름 붙은 그룹에 묶인다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      const avatar = within(nav).getByRole('group', { name: '아바타' });
+      const user = within(nav).getByRole('group', { name: '유저' });
+      expect(
+        within(avatar)
+          .getAllByRole('link')
+          .map((el) => el.textContent?.trim())
+      ).toEqual(['둘러보기', '시뮬레이션 목록']);
+      expect(
+        within(user)
+          .getAllByRole('link')
+          .map((el) => el.textContent?.trim())
+      ).toEqual(['내 아바타', '채팅']);
+      expect(within(avatar).queryByRole('link', { name: '대시보드' })).not.toBeInTheDocument();
+    });
+
+    // 대메뉴는 소메뉴(13px)보다 크게, 소메뉴는 들여써서 depth 를 보인다 (사용자 결정 2026-09-25).
+    it('대메뉴 라벨은 15px 굵은 기본색 글자이고 링크가 아니다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      const label = within(nav).getByText('아바타');
+      expect(label.closest('a, [role="link"]')).toBeNull();
+      expect(label).toHaveClass('text-body', 'text-primary', 'font-semibold');
+    });
+
+    it('소메뉴는 대메뉴 라벨보다 12px 들여쓴다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+      const avatar = within(nav).getByRole('group', { name: '아바타' });
+      const browse = within(avatar).getByRole('link', { name: '둘러보기' });
+      expect(browse.parentElement).toHaveClass('pl-3');
+      expect(browse.parentElement).not.toBe(avatar);
+    });
+
+    it('화면이 없는 소메뉴 4개는 링크가 아니라 비활성이다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       const disabled = nav.querySelectorAll('[aria-disabled="true"]');
-      expect(disabled.length).toBe(5);
+      expect(disabled.length).toBe(4);
       expect(nav.querySelectorAll('a[href]').length).toBe(1);
     });
 
-    it('내비 컨테이너는 padding 0 10px(px-2.5) · 항목 gap 2(gap-0.5) 이다', () => {
+    it('내비 컨테이너는 padding 0 10px(px-2.5) · 그룹 gap 12(gap-3) · 항목 gap 2(gap-0.5) 이다 (정본 .hf-nav/.hf-navgroup)', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
-      const list = within(nav).getByRole('link', { name: /탐색/ }).parentElement;
-      expect(list?.className).toContain('px-2.5');
-      expect(list?.className).toContain('gap-0.5');
+      const avatar = within(nav).getByRole('group', { name: '아바타' });
+      expect(avatar).toHaveClass('gap-0.5');
+      expect(avatar.parentElement).toHaveClass('px-2.5', 'gap-3');
     });
   });
 
@@ -416,16 +459,16 @@ describe('AppShellLayout', () => {
       expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('대시보드');
     });
 
-    it('/avatars/:id 기본 매핑은 "홈 > 탐색" (store 비어있을 때)', () => {
+    it('/avatars/:id 기본 매핑은 "홈 > 대시보드" (store 비어있을 때)', () => {
       renderWithProviders('/avatars/avatar-1');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav).toHaveTextContent('홈');
-      expect(nav).toHaveTextContent('탐색');
-      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('탐색');
+      expect(nav).toHaveTextContent('대시보드');
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('대시보드');
     });
 
     it('store 에 trail 이 push 되면 동적 세그먼트(아바타 이름 등) 가 마지막에 추가된다', () => {
-      useChromeBreadcrumbStore.getState().setTrail(['홈', '탐색', 'Moonlit Narrator']);
+      useChromeBreadcrumbStore.getState().setTrail(['홈', '대시보드', 'Moonlit Narrator']);
       renderWithProviders('/avatars/avatar-1');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('Moonlit Narrator');

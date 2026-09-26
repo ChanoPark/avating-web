@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AvatarSummary } from '@entities/avatar';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -50,9 +50,21 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       expect(screen.getByText('0 / 120')).toBeInTheDocument();
     });
 
-    it('설명 필드에 도움말이 붙는다', () => {
+    it('설명 필드 아래에 도움말 문구를 두지 않는다', () => {
       renderIntro();
-      expect(screen.getByText('상대 아바타가 첫인상으로 참고합니다')).toBeInTheDocument();
+      expect(screen.queryByText('상대 아바타가 첫인상으로 참고합니다')).not.toBeInTheDocument();
+      expect(screen.getByLabelText(/아바타 설명/)).not.toHaveAttribute('aria-describedby');
+    });
+
+    // 한 줄 필드의 h-9(36px)를 그대로 쓰면 세로 패딩이 없어 글자가 위쪽 가장자리에 붙는다.
+    it('설명 필드는 `.cx-input--textarea` 규격 — 높이 auto · 최소 88px · 사방 12px 패딩', () => {
+      renderIntro();
+      const textarea = screen.getByLabelText(/아바타 설명/);
+
+      expect(textarea).toHaveClass('h-auto');
+      expect(textarea).toHaveClass('min-h-22');
+      expect(textarea).toHaveClass('p-3');
+      expect(textarea).not.toHaveClass('h-9');
     });
 
     it('이전 / 다음 버튼이 렌더된다', () => {
@@ -199,6 +211,112 @@ describe('IntroStep (와이어프레임 v2 — Step 1 이름·설명)', () => {
       await user.click(screen.getByRole('button', { name: /다음/ }));
 
       expect(loadDraft()?.expressions).toEqual(['그치 그치', '🥲']);
+    });
+  });
+
+  // 정본 S-02-02 의 "아바타 색" ColorPicker(.cx-swatches) — identity 10색, 기본 남색.
+  describe('아바타 색', () => {
+    const COLOR_LABELS = [
+      '빨강',
+      '주황',
+      '노랑',
+      '초록',
+      '파랑',
+      '남색',
+      '보라',
+      '갈색',
+      '하늘',
+      '핑크',
+    ];
+
+    it('10색 라디오 그룹이 렌더되고 기본은 남색이다', () => {
+      renderIntro();
+      const group = screen.getByRole('radiogroup', { name: '아바타 색' });
+      const radios = within(group).getAllByRole('radio');
+      expect(radios).toHaveLength(10);
+      for (const label of COLOR_LABELS) {
+        expect(within(group).getByRole('radio', { name: label })).toBeInTheDocument();
+      }
+      expect(within(group).getByRole('radio', { name: '남색' })).toBeChecked();
+    });
+
+    // 정본은 5열 · 40px 원이지만 이 앱은 작은 원 10개를 한 줄에 둔다 (사용자 결정 2026-09-25).
+    it('10색을 줄바꿈 없이 한 줄에 작은 원으로 놓는다', () => {
+      renderIntro();
+      const group = screen.getByRole('radiogroup', { name: '아바타 색' });
+      expect(group).toHaveClass('flex', 'flex-nowrap');
+      expect(group).not.toHaveClass('grid-cols-5');
+      for (const disc of screen.getAllByTestId('color-swatch-disc')) {
+        // 모바일 폼 폭(220px)에 10개가 들어가도록 원은 칸 폭을 따라 줄고, 최대 28px 이다.
+        expect(disc).toHaveClass('aspect-square', 'w-full', 'max-w-7');
+      }
+    });
+
+    // 원은 작아도 누르는 자리(label)는 세로 44px 을 확보한다 — 가로는 10개 한 줄이라 칸 폭이 상한이다.
+    it('각 색의 터치 영역은 세로 44px(min-h-11) 이다', () => {
+      renderIntro();
+      for (const radio of screen.getAllByRole('radio')) {
+        expect(radio.closest('label')).toHaveClass('min-h-11');
+      }
+    });
+
+    it('견본 원에 입력 중인 이름의 첫 글자를 올린다', async () => {
+      const user = userEvent.setup();
+      renderIntro();
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      const swatches = screen.getAllByTestId('color-swatch-disc');
+      expect(swatches).toHaveLength(10);
+      expect(swatches.every((disc) => disc.textContent === 'h')).toBe(true);
+    });
+
+    it('견본 원은 각자의 identity 색이고, 색 이름은 화면에 보이지 않는다', async () => {
+      const user = userEvent.setup();
+      renderIntro();
+      await user.click(screen.getByRole('radio', { name: '핑크' }));
+      const [redDisc] = screen.getAllByTestId('color-swatch-disc');
+      expect(redDisc).toHaveClass('bg-id-red', 'text-id-red-fg');
+      for (const label of COLOR_LABELS) {
+        expect(screen.queryByText(label)).not.toBeInTheDocument();
+      }
+    });
+
+    it('방향키로 색을 옮길 수 있다 (네이티브 라디오 그룹)', async () => {
+      const user = userEvent.setup();
+      renderIntro();
+      await user.click(screen.getByRole('radio', { name: '남색' }));
+      await user.keyboard('{ArrowRight}');
+      expect(screen.getByRole('radio', { name: '보라' })).toBeChecked();
+    });
+
+    it('고른 색을 draft 에 서버 형식 hex 로 저장한다', async () => {
+      localStorage.setItem(METHOD_KEY, 'survey');
+      const user = userEvent.setup();
+      renderIntro();
+
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣고 깊게 답합니다');
+      await user.click(screen.getByRole('radio', { name: '핑크' }));
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+
+      expect(loadDraft()?.color).toBe('E887B6');
+    });
+
+    it('색을 건드리지 않으면 기본 남색을 저장한다', async () => {
+      localStorage.setItem(METHOD_KEY, 'survey');
+      const user = userEvent.setup();
+      renderIntro();
+
+      await user.type(screen.getByLabelText(/아바타 이름/), 'hyunwoo');
+      await user.type(screen.getByLabelText(/아바타 설명/), '차분히 듣고 깊게 답합니다');
+      await user.click(screen.getByRole('button', { name: /다음/ }));
+
+      expect(loadDraft()?.color).toBe('2C3886');
+    });
+
+    it('draft 의 색을 선택값으로 복원한다', () => {
+      saveDraft({ answers: {}, avatarName: '루나', description: '소개글', color: '67C4F2' });
+      renderIntro();
+      expect(screen.getByRole('radio', { name: '하늘' })).toBeChecked();
     });
   });
 
