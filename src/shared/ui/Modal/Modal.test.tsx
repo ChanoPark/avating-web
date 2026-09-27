@@ -183,6 +183,29 @@ describe('Modal', () => {
       expect(dialog.className).toContain('border-subtle');
     });
 
+    it('size="sm" 은 확인용 다이얼로그 규격(`.cx-dialog`) — 폭 400 · radius card 를 갖는다', () => {
+      render(
+        <Modal open onClose={() => undefined} title="규격" size="sm">
+          body
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog');
+      expect(dialog.className).toContain('sm:max-w-100');
+      expect(dialog.className).toContain('sm:rounded-card');
+      expect(dialog.className).not.toContain('sm:max-w-140');
+    });
+
+    it('제목과 닫기 아이콘이 같은 헤더 행에 놓인다 (`.cx-dialog__head`)', () => {
+      render(
+        <Modal open onClose={() => undefined} title="헤더 행" description="설명">
+          body
+        </Modal>
+      );
+      const heading = screen.getByRole('heading', { name: '헤더 행' });
+      const row = screen.getByRole('button', { name: '닫기' }).parentElement;
+      expect(row).toContainElement(heading);
+    });
+
     it('헤더 행의 닫기 아이콘을 누르면 onClose 가 호출된다', async () => {
       const user = userEvent.setup();
       const onClose = vi.fn();
@@ -209,6 +232,7 @@ describe('Modal', () => {
       const bar = screen.getByRole('button', { name: '확인' }).parentElement;
       expect(bar?.className).toContain('border-t');
       expect(bar?.className).toContain('border-subtle');
+      expect(bar?.className).toContain('justify-end');
     });
 
     it('footnote 는 가운데 정렬 각주로 렌더된다', () => {

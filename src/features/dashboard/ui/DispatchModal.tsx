@@ -42,6 +42,7 @@ export function DispatchModal({ open, avatarId, avatarName, onClose }: DispatchM
       open={open}
       onClose={handleClose}
       title="매칭 확인"
+      size="sm"
       description={`${avatarName} 아바타와 매칭을 시작할까요?`}
       footer={
         <>
