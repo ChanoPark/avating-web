@@ -2,15 +2,12 @@ import { Suspense } from 'react';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { InlineError } from '@shared/ui/InlineError';
-import { statRadarBox } from '@shared/ui/StatRadar';
 import { cn } from '@shared/lib/cn';
-import { useElementWidth } from '@shared/lib/useElementWidth';
 import {
   AvatarIdentityTile,
   AvatarTagBadge,
-  PERSONA_STAT_KEYS,
-  PERSONA_STATS_CLASS,
   PersonaStats,
+  PersonaStatsSkeleton,
   personaStatRows,
   usePrimaryAvatarSuspense,
 } from '@entities/avatar';
@@ -24,33 +21,6 @@ const CARD_CLASS =
 
 function CardHeader() {
   return <h2 className="text-caption text-primary font-medium">대표 아바타</h2>;
-}
-
-// 7지표 전부를 가정한 레이더 라벨 — 스켈레톤이 실제 레이더와 같은 계산(statRadarBox)으로 상자를 세운다.
-const SKELETON_RADAR_LABELS = personaStatRows(
-  Object.fromEntries(PERSONA_STAT_KEYS.map((key) => [key, 0]))
-).map((row) => row.label);
-
-function RadarSkeleton() {
-  const [cellRef, cellWidth] = useElementWidth<HTMLDivElement>();
-  const box = statRadarBox(SKELETON_RADAR_LABELS, cellWidth > 0 ? cellWidth : undefined);
-  return (
-    <div ref={cellRef} className={PERSONA_STATS_CLASS.radarCell}>
-      <svg
-        data-testid="stat-radar-skeleton"
-        aria-hidden="true"
-        width={box.width}
-        height={box.height}
-      >
-        <circle
-          cx={box.width / 2}
-          cy={box.height / 2}
-          r={Math.min(box.width, box.height) / 2}
-          fill="var(--bg-raised)"
-        />
-      </svg>
-    </div>
-  );
 }
 
 // 실제 콘텐츠와 같은 골격을 세운다 — 헤더 · 요약(44px 타일 옆 이름·뱃지 한 행 20 · 소개 18, 간격 4) · 구분선 · 레이더(실제와 같은 상자) · 지표 7행(행당 25px).
@@ -72,17 +42,7 @@ function MyAvatarGridSkeleton() {
         </div>
       </div>
       <hr className="border-subtle border-t" />
-      <div className={PERSONA_STATS_CLASS.layout}>
-        <RadarSkeleton />
-        <div className={cn('flex flex-col', PERSONA_STATS_CLASS.table)}>
-          {PERSONA_STAT_KEYS.map((key) => (
-            <div key={key} className="flex h-6.25 items-center justify-between">
-              <div className="bg-raised rounded-chip h-3 w-12" />
-              <div className="bg-raised rounded-chip h-3 w-6" />
-            </div>
-          ))}
-        </div>
-      </div>
+      <PersonaStatsSkeleton />
     </section>
   );
 }

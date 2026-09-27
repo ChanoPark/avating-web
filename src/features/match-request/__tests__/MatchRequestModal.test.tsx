@@ -13,11 +13,10 @@ import { MatchRequestModal } from '../ui/MatchRequestModal';
 import type { PartnerAvatarSummary } from '../ui/PartnerAvatarCard';
 
 const partner: PartnerAvatarSummary = {
-  initials: 'MN',
   name: 'Moonlit Narrator',
-  type: '내향·낭만형',
-  verified: true,
-  status: 'online',
+  hashtag: 'M00N7K',
+  description: '심야의 책방을 좋아하는 낭만가.',
+  color: '67C4F2',
 };
 
 function defaultProps(overrides: Partial<Parameters<typeof MatchRequestModal>[0]> = {}) {
@@ -53,16 +52,16 @@ describe('MatchRequestModal', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    it('상대 아바타 카드가 표시된다 (이름·인증·핸들·성향·온라인)', async () => {
+    it('상대 아바타 카드가 표시된다 (identity 타일·이름·해시태그·소개)', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
       expect(within(dialog).getByText('Moonlit Narrator')).toBeInTheDocument();
-      expect(within(dialog).getByText('인증')).toBeInTheDocument();
-      expect(within(dialog).getByText('내향·낭만형')).toBeInTheDocument();
-      // 온라인은 `av-badge--success` + `av-badge__dot` 이다 — 장식 점까지 확인한다.
-      const onlineDot = within(dialog).getByText('온라인').firstElementChild;
-      expect(onlineDot).toHaveAttribute('aria-hidden', 'true');
-      expect(onlineDot?.className).toContain('rounded-full');
+      expect(within(dialog).getByText('#M00N7K')).toBeInTheDocument();
+      expect(within(dialog).getByText('심야의 책방을 좋아하는 낭만가.')).toBeInTheDocument();
+      expect(within(dialog).getByText('M')).toHaveClass('bg-id-sky');
+      // 서버 상세 응답에 없는 인증·온라인 상태는 그리지 않는다.
+      expect(within(dialog).queryByText('인증')).not.toBeInTheDocument();
+      expect(within(dialog).queryByText('온라인')).not.toBeInTheDocument();
     });
 
     it('Sheet 규격(560 · radius 16 · hairline)과 각주가 적용된다 — 640 아래에선 화면 전체', async () => {

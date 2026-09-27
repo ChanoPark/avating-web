@@ -1,31 +1,15 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { InlineError } from '@shared/ui/InlineError';
 import { MatchRequestModal } from '@features/match-request';
-import type { PartnerAvatarSummary } from '@features/match-request';
-import {
-  AvatarProfileHeader,
-  AvatarStatsPanel,
-  AvatarIntroPanel,
-  AvatarMatchPanel,
-} from '@features/avatar-profile';
-import { useAvatarDetailSuspense } from '@entities/avatar';
-import type { AvatarDetail } from '@entities/avatar';
+import { AvatarProfileHeader, AvatarStatsPanel, AvatarMatchPanel } from '@features/avatar-profile';
+import { PersonaStatsSkeleton, useAvatarDetailSuspense } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { isApiError } from '@shared/lib/errors';
-
-function toPartnerSummary(avatar: AvatarDetail): PartnerAvatarSummary {
-  return {
-    initials: avatar.initials,
-    name: avatar.name,
-    type: avatar.type,
-    verified: avatar.verified,
-    status: avatar.status,
-  };
-}
 
 function AvatarDetailContent({ id }: { id: string }) {
   const avatar = useAvatarDetailSuspense(id);
@@ -40,8 +24,8 @@ function AvatarDetailContent({ id }: { id: string }) {
     };
   }, [avatar.name, setBreadcrumbTrail, clearBreadcrumbTrail]);
 
-  // 와이어 §6.2.5 의 "busy / 본인 아바타 / 차단" 가드는 후속 PR. 본 PR 은 busy 시 disabled 만 노출.
-  const ctaDisabled = avatar.status === 'busy';
+  // 진행 중 초대에 걸린 아바타는 서버가 canRequestSimulation=false 로 준다. 본인·비공개 아바타는 서버가 404 로 막는다.
+  const ctaDisabled = !avatar.canRequestSimulation;
 
   return (
     <>
@@ -59,7 +43,6 @@ function AvatarDetailContent({ id }: { id: string }) {
             disabled={ctaDisabled}
             {...(ctaDisabled ? { disabledReason: '이미 매칭 중인 아바타예요' } : {})}
           />
-          <AvatarIntroPanel publicInfo={avatar.publicInfo} />
           {/* 관전 라우트가 아직 없어 이 버튼에는 동작을 연결하지 않는다(후속 PR). */}
           <Button variant="ghost" block>
             지난 시뮬레이션 관전
@@ -69,8 +52,8 @@ function AvatarDetailContent({ id }: { id: string }) {
       </div>
       <MatchRequestModal
         open={requestOpen}
-        partnerAvatarId={avatar.id}
-        partner={toPartnerSummary(avatar)}
+        partnerAvatarId={avatar.avatarId}
+        partner={avatar}
         onClose={() => {
           setRequestOpen(false);
         }}
@@ -102,16 +85,10 @@ function LoadingFallback() {
             </div>
           </div>
         </div>
-        <div className={SKELETON_CARD}>
-          <div className="bg-raised rounded-chip h-3 w-20" />
-          <div className="mt-3 flex flex-col gap-2.5">
-            {Array.from({ length: 6 }, (_, i) => (
-              <div key={i} className="flex items-center gap-3">
-                <div className="bg-raised rounded-chip h-3 w-18 shrink-0" />
-                <div className="bg-raised h-1.5 flex-1 rounded-full" />
-              </div>
-            ))}
-          </div>
+        {/* 실제 AvatarStatsPanel 과 같은 @container 카드 — 레이더 상자가 같은 폭 계산을 따른다. */}
+        <div className={`@container ${SKELETON_CARD} flex flex-col gap-3`}>
+          <div className="bg-raised rounded-chip h-4 w-20" />
+          <PersonaStatsSkeleton />
         </div>
       </div>
 
@@ -120,14 +97,6 @@ function LoadingFallback() {
           <div className="bg-raised h-9 w-full rounded-full" />
           <div className="bg-raised rounded-chip mx-auto mt-2.5 h-3 w-24" />
         </div>
-        <div className={SKELETON_CARD}>
-          <div className="bg-raised rounded-chip h-3 w-16" />
-          <div className="mt-3 flex flex-col gap-3">
-            {Array.from({ length: 3 }, (_, i) => (
-              <div key={i} className="bg-raised rounded-chip h-3 w-full" />
-            ))}
-          </div>
-        </div>
         <div className="bg-raised h-10 w-full rounded-full" />
       </div>
     </div>
@@ -135,8 +104,9 @@ function LoadingFallback() {
 }
 
 // 본문만 실패한 경우라 화면 전체가 아니라 이 패널만 에러로 덮는다(셸·브레드크럼은 유지).
+// 400 은 id 가 UUID 형식이 아닌 주소라 재시도해도 같은 결과다 — 없는 아바타와 같이 보여준다.
 function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
-  const isNotFound = isApiError(error) && error.statusCode === 404;
+  const isNotFound = isApiError(error) && (error.statusCode === 404 || error.statusCode === 400);
   return (
     <div className="border-subtle bg-canvas rounded-card border p-6">
       <InlineError
@@ -152,9 +122,11 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 export function AvatarDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
+  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
+  const { reset } = useQueryErrorResetBoundary();
   return (
     <section className="flex flex-col gap-3.5">
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
         <Suspense fallback={<LoadingFallback />}>
           <AvatarDetailContent id={id} />
         </Suspense>

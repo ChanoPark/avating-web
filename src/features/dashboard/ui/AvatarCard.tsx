@@ -33,7 +33,7 @@ export function AvatarCard({ avatar, onOpen, onMatch }: AvatarCardProps) {
               onClick={() => {
                 onOpen(avatar.avatarId);
               }}
-              className="text-lead text-primary rounded-chip after:rounded-card truncate text-left font-semibold after:absolute after:inset-0"
+              className="text-lead text-primary rounded-chip after:rounded-card cursor-pointer truncate text-left font-semibold after:absolute after:inset-0"
             >
               {avatar.name}
             </button>

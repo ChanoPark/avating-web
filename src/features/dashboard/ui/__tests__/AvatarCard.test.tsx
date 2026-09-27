@@ -45,6 +45,12 @@ describe('AvatarCard', () => {
     expect(screen.getByText('하')).toHaveClass('bg-id-sky');
   });
 
+  // 카드 전체가 이름 버튼의 after 오버레이라, 버튼의 커서가 카드 어디에 올려도 보인다.
+  it('카드에 마우스를 올리면 버튼처럼 pointer 커서가 된다', () => {
+    renderCard();
+    expect(screen.getByRole('button', { name: '하늘#H7K2MP' })).toHaveClass('cursor-pointer');
+  });
+
   it('관심 태그는 앞의 3개만 보여준다', () => {
     renderCard();
     expect(screen.getByText('산책')).toBeInTheDocument();
