@@ -7,6 +7,7 @@ import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
 
 type ModalTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+type ModalSize = 'sm' | 'md';
 
 type ModalProps = {
   open: boolean;
@@ -17,6 +18,7 @@ type ModalProps = {
   footer?: ReactNode;
   footnote?: ReactNode;
   tone?: ModalTone;
+  size?: ModalSize;
 };
 
 // 어떤 다이얼로그인지는 글리프가 말한다 — 틴트가 붙는 건 파괴적 액션 하나뿐이다.
@@ -25,6 +27,12 @@ const TONE_CONFIG: Record<Exclude<ModalTone, 'neutral'>, { badge: string; icon: 
   success: { badge: 'bg-raised text-secondary', icon: Check },
   warning: { badge: 'bg-raised text-secondary', icon: CircleAlert },
   danger: { badge: 'bg-danger-tint text-danger', icon: X },
+};
+
+// sm 400 은 확인용, md 560 은 단일 목적 폼용 (`.cx-dialog` / `.cx-dialog--md`).
+const SIZE_CLASS: Record<ModalSize, string> = {
+  sm: 'sm:max-w-100 sm:rounded-card',
+  md: 'sm:max-w-140 sm:rounded-[16px]',
 };
 
 export function Modal({
@@ -36,6 +44,7 @@ export function Modal({
   footer,
   footnote,
   tone = 'neutral',
+  size = 'md',
 }: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const prevFocusRef = useRef<HTMLElement | null>(null);
@@ -88,11 +97,19 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
-        className="bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
+        className={cn(
+          'bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:border',
+          SIZE_CLASS[size]
+        )}
         style={{ zIndex: 'var(--z-modal)' }}
       >
-        <div className="flex items-start justify-between gap-4 px-5 pt-5">
-          <div className="flex items-center gap-2">
+        <div
+          className={cn(
+            'flex items-start justify-between gap-4 px-5 pt-5',
+            description === undefined && children === undefined ? 'pb-5' : 'pb-3'
+          )}
+        >
+          <div className="flex min-w-0 items-center gap-2">
             {toneCfg && ToneIcon && (
               <span
                 aria-hidden="true"
@@ -104,21 +121,23 @@ export function Modal({
                 <ToneIcon size={12} strokeWidth={1.5} />
               </span>
             )}
+            <h2 className="text-title text-ink font-bold">{title}</h2>
           </div>
           <button
             type="button"
             aria-label="닫기"
             onClick={onClose}
-            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
+            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mt-2 -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
         </div>
 
-        <div className={cn('flex flex-col gap-2 px-5 pt-3', children === undefined && 'pb-5')}>
-          <h2 className="text-title text-ink font-bold">{title}</h2>
-          {description !== undefined && <p className="text-body text-primary">{description}</p>}
-        </div>
+        {description !== undefined && (
+          <p className={cn('text-body text-primary px-5', children === undefined && 'pb-5')}>
+            {description}
+          </p>
+        )}
 
         {children !== undefined && (
           <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-5 py-4">
@@ -127,7 +146,7 @@ export function Modal({
         )}
 
         {footer !== undefined && (
-          <div className="border-subtle mt-auto flex flex-none items-center justify-between gap-2 border-t px-5 py-3 sm:mt-0">
+          <div className="border-subtle mt-auto flex flex-none items-center justify-end gap-2 border-t px-5 py-3 sm:mt-0">
             {footer}
           </div>
         )}
