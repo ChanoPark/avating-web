@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  avatarStatusSchema,
-  avatarBaseSchema,
-  avatarStatsSchema,
-  avatarPublicInfoSchema,
-  avatarDetailSchema,
-  AVATAR_STAT_KEYS,
-} from '../model';
+import { avatarStatusSchema, avatarBaseSchema, apiResponseAvatarDetail } from '../model';
 
 const validAvatarBase = {
   id: 'avatar-1',
@@ -99,91 +92,40 @@ describe('avatarBaseSchema', () => {
   });
 });
 
-const validStats = {
-  empathy: 81,
-  proactivity: 52,
-  humor: 69,
-  sensitivity: 88,
-  listening: 74,
-  expressiveness: 60,
-};
+// 서버 AvatarDetailResponse(GET /api/avatars/{avatarId}) — avating-core db29da9.
+describe('apiResponseAvatarDetail', () => {
+  const parseDetail = (data: unknown) => apiResponseAvatarDetail.parse({ data }).data;
 
-describe('avatarStatsSchema', () => {
-  it('6축 0–100 정수 객체를 파싱한다', () => {
-    expect(avatarStatsSchema.parse(validStats)).toEqual(validStats);
-  });
-
-  it('AVATAR_STAT_KEYS 는 6개여야 한다', () => {
-    expect(AVATAR_STAT_KEYS).toHaveLength(6);
-  });
-
-  it('범위 외 값(>100) 은 실패한다', () => {
-    expect(() => avatarStatsSchema.parse({ ...validStats, empathy: 101 })).toThrow();
-  });
-
-  it('음수는 실패한다', () => {
-    expect(() => avatarStatsSchema.parse({ ...validStats, humor: -1 })).toThrow();
-  });
-
-  it('소수를 허용한다 (서버 stats 는 double)', () => {
-    expect(avatarStatsSchema.safeParse({ ...validStats, listening: 70.5 }).success).toBe(true);
-  });
-
-  it('필수 키 누락 시 실패한다', () => {
-    const { listening: _omit, ...without } = validStats;
-    expect(() => avatarStatsSchema.parse(without)).toThrow();
-  });
-});
-
-describe('avatarPublicInfoSchema', () => {
-  const validPublicInfo = { ageRange: '20대 후반', region: '서울 서북부', job: '콘텐츠 기획' };
-
-  it('나이대/지역/직군 객체를 파싱한다', () => {
-    expect(avatarPublicInfoSchema.parse(validPublicInfo)).toEqual(validPublicInfo);
-  });
-
-  it('필수 필드가 빈 문자열이면 실패한다', () => {
-    expect(() => avatarPublicInfoSchema.parse({ ...validPublicInfo, region: '' })).toThrow();
-  });
-
-  it('필드 누락 시 실패한다', () => {
-    const { job: _omit, ...without } = validPublicInfo;
-    expect(() => avatarPublicInfoSchema.parse(without)).toThrow();
-  });
-});
-
-describe('avatarDetailSchema', () => {
   const validDetail = {
-    ...validAvatarBase,
-    type: '내향·낭만형',
-    description: '심야의 책방을 좋아하는 낭만가.',
-    tags: ['독립서점', '심야 카페'],
-    stats: validStats,
-    publicInfo: { ageRange: '20대 후반', region: '서울 서북부', job: '콘텐츠 기획' },
+    avatarId: '11111111-1111-4111-8111-111111111111',
+    name: '루시',
+    hashtag: 'A3K9Z7',
+    description: '따뜻하고 유머 감각 넘치는 ENFP',
+    color: 'FF8800',
+    stats: { OPENNESS: 72.5, AFFECTION_EXPRESSION: 55 },
+    tags: ['운동', '여행'],
+    canRequestSimulation: true,
   };
 
-  it('base + type + description + tags + stats + publicInfo 를 모두 파싱한다', () => {
-    const parsed = avatarDetailSchema.parse(validDetail);
-    expect(parsed.tags).toHaveLength(2);
-    expect(parsed.stats.empathy).toBe(81);
-    expect(parsed.publicInfo.region).toBe('서울 서북부');
-    expect(parsed.description.length).toBeGreaterThan(0);
+  it('실서버 응답 형상을 그대로 파싱한다', () => {
+    expect(parseDetail(validDetail)).toEqual(validDetail);
+  });
+
+  it('color 키가 없는 배포본 응답도 파싱한다 (core 0ed8958 배포 전)', () => {
+    const { color: _omit, ...without } = validDetail;
+    expect(parseDetail(without)).not.toHaveProperty('color');
+  });
+
+  it('canRequestSimulation 이 없으면 실패한다', () => {
+    const { canRequestSimulation: _omit, ...without } = validDetail;
+    expect(() => parseDetail(without)).toThrow();
   });
 
   it('상대 아바타 정보에 세션 이력(호감도·턴) 필드는 포함되지 않는다 (프라이버시)', () => {
-    const parsed = avatarDetailSchema.parse({
+    const parsed = parseDetail({
       ...validDetail,
       sessionHistory: [{ id: 'x', turn: 1, totalTurns: 12, affinity: 50, result: 'ended' }],
     });
     expect(parsed).not.toHaveProperty('sessionHistory');
-  });
-
-  it('type 이 빈 문자열이면 실패한다', () => {
-    expect(() => avatarDetailSchema.parse({ ...validDetail, type: '' })).toThrow();
-  });
-
-  it('publicInfo 가 누락되면 실패한다', () => {
-    const { publicInfo: _omit, ...without } = validDetail;
-    expect(() => avatarDetailSchema.parse(without)).toThrow();
   });
 });

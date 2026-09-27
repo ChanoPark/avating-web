@@ -1,12 +1,12 @@
-import { StatRadar, STAT_RADAR_MIN_AXES } from '@shared/ui/StatRadar';
+import { StatRadar, STAT_RADAR_MIN_AXES, statRadarBox } from '@shared/ui/StatRadar';
 import { cn } from '@shared/lib/cn';
 import { useElementWidth } from '@shared/lib/useElementWidth';
-import type { PersonaStatRow } from '../model';
+import { PERSONA_STAT_KEYS, personaStatRows, type PersonaStatRow } from '../model';
 
 // 감싸는 카드가 @container 여야 한다 — 카드가 넓으면(컨테이너 ≥ 384px) 정본(.cx-radar · .wf2-radarrow gap 28)대로
 // 레이더 옆에 값 표, 좁으면(lg 폭 300 카드·모바일) 위아래로 쌓는다. 스켈레톤도 같은 규칙을 따라야 로드 순간 상자가 같다.
 // 레이더를 크게 보이려고(사용자 요청 2026-09-19) 남는 폭은 레이더 칸이 갖고, 값 표는 128px 로 둔다.
-export const PERSONA_STATS_CLASS = {
+const PERSONA_STATS_CLASS = {
   layout: 'flex flex-col items-center gap-3 @sm:flex-row @sm:gap-7',
   radarCell: 'flex w-full min-w-0 justify-center @sm:flex-1',
   table: 'w-full @sm:w-32 @sm:shrink-0',
@@ -46,6 +46,50 @@ export function PersonaStats({ rows }: { rows: PersonaStatRow[] }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// 7지표 전부를 가정한 레이더 라벨 — 스켈레톤이 실제 레이더와 같은 계산(statRadarBox)으로 상자를 세운다.
+const SKELETON_RADAR_LABELS = personaStatRows(
+  Object.fromEntries(PERSONA_STAT_KEYS.map((key) => [key, 0]))
+).map((row) => row.label);
+
+function RadarSkeleton() {
+  const [cellRef, cellWidth] = useElementWidth<HTMLDivElement>();
+  const box = statRadarBox(SKELETON_RADAR_LABELS, cellWidth > 0 ? cellWidth : undefined);
+  return (
+    <div ref={cellRef} className={PERSONA_STATS_CLASS.radarCell}>
+      <svg
+        data-testid="stat-radar-skeleton"
+        aria-hidden="true"
+        width={box.width}
+        height={box.height}
+      >
+        <circle
+          cx={box.width / 2}
+          cy={box.height / 2}
+          r={Math.min(box.width, box.height) / 2}
+          fill="var(--bg-raised)"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/** PersonaStats 의 로딩 골격 — 레이더(실제와 같은 상자) · 지표 7행(행당 25px). 감싸는 카드가 @container 여야 한다. */
+export function PersonaStatsSkeleton() {
+  return (
+    <div className={PERSONA_STATS_CLASS.layout}>
+      <RadarSkeleton />
+      <div className={cn('flex flex-col', PERSONA_STATS_CLASS.table)}>
+        {PERSONA_STAT_KEYS.map((key) => (
+          <div key={key} className="flex h-6.25 items-center justify-between">
+            <div className="bg-raised rounded-chip h-3 w-12" />
+            <div className="bg-raised rounded-chip h-3 w-6" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

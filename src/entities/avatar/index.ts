@@ -1,14 +1,5 @@
-export {
-  apiResponseAvatarSummary,
-  AVATAR_STAT_KEYS,
-  AVATAR_STAT_LABELS,
-  PERSONA_STAT_KEYS,
-  personaStatRows,
-} from './model';
+export { apiResponseAvatarSummary, PERSONA_STAT_KEYS, personaStatRows } from './model';
 export type {
-  AvatarStatus,
-  AvatarStats,
-  AvatarPublicInfo,
   AvatarDetail,
   AvatarSummary,
   AvatarSimCandidate,
@@ -29,4 +20,4 @@ export {
 export type { AvatarIdentityName } from './lib/identity';
 export { AvatarIdentityTile } from './ui/AvatarIdentityTile';
 export { AvatarTagBadge } from './ui/AvatarTagBadge';
-export { PersonaStats, PERSONA_STATS_CLASS } from './ui/PersonaStats';
+export { PersonaStats, PersonaStatsSkeleton } from './ui/PersonaStats';

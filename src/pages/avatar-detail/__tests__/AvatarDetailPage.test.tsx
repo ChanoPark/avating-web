@@ -5,6 +5,7 @@ import { Route, Routes } from 'react-router';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { AvatarDetailPage } from '../AvatarDetailPage';
 import {
+  getLastRequestedAvatarId,
   resetAvatarDetailScenario,
   setAvatarDetailScenario,
 } from '@shared/mocks/handlers/avatarDetail';
@@ -30,13 +31,22 @@ afterEach(() => {
 });
 
 describe('AvatarDetailPage', () => {
-  it('와이어프레임의 프로필 헤더 + 스탯 + 공개 정보 영역이 렌더된다', async () => {
+  it('서버 상세 응답으로 프로필 헤더(이름·해시태그) + 스탯이 렌더된다', async () => {
     renderPage();
 
     expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
-    expect(screen.getByText('내향·낭만형')).toBeInTheDocument();
+    expect(screen.getByText('#M00N7K')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '아바타 스탯' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: '공개 정보' })).toBeInTheDocument();
+  });
+
+  // 서버 상세 응답에 나이대·지역·직군이 없어 공개 정보 패널을 두지 않는다.
+  it('서버에 없는 공개 정보 패널과 세션 이력(호감도·턴)은 노출하지 않는다', async () => {
+    renderPage();
+    await screen.findByRole('heading', { name: 'Moonlit Narrator' });
+    expect(screen.queryByRole('heading', { name: '공개 정보' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/호감도/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/TURN/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '세션 이력' })).not.toBeInTheDocument();
   });
 
   it('마운트 후 chrome breadcrumb store 에 [홈, 대시보드, 아바타이름] 이 push 된다', async () => {
@@ -50,25 +60,27 @@ describe('AvatarDetailPage', () => {
     });
   });
 
-  it('6개의 StatBar(Meter) 가 렌더된다 (6축 스탯)', async () => {
+  it('서버 7지표가 대시보드 대표 아바타와 같은 레이더 + 값 표로 렌더된다', async () => {
     renderPage();
     await screen.findByRole('heading', { name: '아바타 스탯' });
-    expect(screen.getAllByRole('meter')).toHaveLength(6);
-    expect(screen.getByRole('meter', { name: '공감 지수' })).toHaveAttribute('aria-valuenow', '81');
-    expect(screen.queryByRole('img', { name: '아바타 스탯 레이더' })).not.toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '아바타 스탯 레이더' })).toBeInTheDocument();
+    expect(screen.getAllByRole('rowheader')).toHaveLength(7);
+    expect(screen.getByRole('row', { name: '공감 81' })).toBeInTheDocument();
   });
 
-  it('공개 정보 패널이 나이대/지역/직군을 표시하고, 세션 이력(호감도·턴)은 노출하지 않는다', async () => {
+  // 스켈레톤은 실제 콘텐츠와 같은 상자여야 로드 순간 아래가 밀리지 않는다(CLS).
+  it('로딩 스켈레톤의 레이더 자리는 실제 레이더와 같은 높이다', async () => {
     renderPage();
-    await screen.findByRole('heading', { name: '공개 정보' });
-    expect(screen.getByText('나이대')).toBeInTheDocument();
-    expect(screen.getByText('20대 후반')).toBeInTheDocument();
-    expect(screen.getByText('서울 서북부')).toBeInTheDocument();
-    expect(screen.getByText('콘텐츠 기획')).toBeInTheDocument();
-    // 프라이버시: 상대 아바타 세션 이력 미노출
-    expect(screen.queryByText(/호감도/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/TURN/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: '세션 이력' })).not.toBeInTheDocument();
+    const placeholder = screen.getByTestId('stat-radar-skeleton');
+    const skeletonHeight = placeholder.getAttribute('height');
+    const radar = await screen.findByRole('img', { name: '아바타 스탯 레이더' });
+    expect(radar.getAttribute('height')).toBe(skeletonHeight);
+  });
+
+  it('요청한 id 로 상세를 조회한다', async () => {
+    renderPage('22222222-2222-4222-8222-222222222222');
+    await screen.findByRole('heading', { name: 'Moonlit Narrator' });
+    expect(getLastRequestedAvatarId()).toBe('22222222-2222-4222-8222-222222222222');
   });
 
   it('"매칭 요청 보내기" CTA 클릭 시 MatchRequestModal 이 열린다', async () => {
@@ -99,7 +111,7 @@ describe('AvatarDetailPage', () => {
     expect(filled[0]).toHaveAccessibleName(/매칭 요청 보내기/);
   });
 
-  it('busy 상태 아바타는 매칭 요청 CTA 가 disabled 처리된다', async () => {
+  it('요청할 수 없는 아바타(canRequestSimulation=false)는 매칭 요청 CTA 가 disabled 처리된다', async () => {
     setAvatarDetailScenario('busy');
     renderPage();
     const cta = await screen.findByRole('button', { name: /매칭 요청 보내기/ });
@@ -114,10 +126,21 @@ describe('AvatarDetailPage', () => {
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
   });
 
-  it('500 응답 시 에러 메시지 + "다시 시도" 가 노출된다', async () => {
+  it('400(UUID 형식이 아닌 id) 응답도 "찾을 수 없어요" 로 보여주고 재시도는 두지 않는다', async () => {
+    setAvatarDetailScenario('bad-request');
+    renderPage('not-a-uuid');
+    expect(await screen.findByRole('alert')).toHaveTextContent('아바타를 찾을 수 없어요');
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+  });
+
+  it('500 응답 시 에러 메시지 + "다시 시도" 가 노출되고, 재시도하면 다시 요청해 화면을 채운다', async () => {
+    const user = userEvent.setup();
     setAvatarDetailScenario('server-error');
     renderPage();
     expect(await screen.findByRole('alert')).toHaveTextContent('불러오지 못했어요');
-    expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+
+    setAvatarDetailScenario('success');
+    await user.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
   });
 });
