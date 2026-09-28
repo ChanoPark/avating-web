@@ -13,6 +13,7 @@ import {
 import { Button } from '@shared/ui/Button/Button';
 import { Modal } from '@shared/ui/Modal';
 import { isApiError } from '@shared/lib/errors';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
@@ -32,6 +33,7 @@ export function SurveyStep() {
   const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
@@ -229,7 +231,11 @@ export function SurveyStep() {
     } catch (err: unknown) {
       // 이름 중복만 사용자가 1단계에서 고칠 수 있다. 나머지(AVATAR_400_002·5xx·응답 파싱 실패)는
       // 입력 탓이 아니라서 서버 문구 대신 실패 모달로 알린다.
-      if (isApiError(err) && err.statusCode === 409 && err.code === 'AVATAR_409_002') {
+      if (
+        isApiError(err) &&
+        err.statusCode === 409 &&
+        err.code === SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT
+      ) {
         setSubmitError(err.message);
         return;
       }
@@ -237,8 +243,15 @@ export function SurveyStep() {
     }
   }, onInvalid);
 
-  const handleRetry = () => {
+  // 요청 중 제출 버튼이 disabled 되면 브라우저가 포커스를 body 로 떨어뜨려, 모달이 되돌릴 트리거를
+  // 잃는다 — 닫는 경로를 하나로 모으고 제출 버튼으로 직접 돌려보낸다.
+  const closeFailureModal = () => {
     setSubmitFailed(false);
+    submitButtonRef.current?.focus();
+  };
+
+  const handleRetry = () => {
+    closeFailureModal();
     void onSubmit();
   };
 
@@ -382,7 +395,7 @@ export function SurveyStep() {
             <Button type="button" variant="ghost" disabled={isSubmitting} onClick={handleSkip}>
               건너뛰기
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button ref={submitButtonRef} type="submit" disabled={isSubmitting}>
               {isSubmitting ? '생성 중…' : '아바타 생성'}
               <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
             </Button>
@@ -402,22 +415,14 @@ export function SurveyStep() {
 
       <Modal
         open={submitFailed}
-        onClose={() => {
-          setSubmitFailed(false);
-        }}
+        onClose={closeFailureModal}
         title="아바타를 만들지 못했어요"
         description="일시적인 문제로 생성에 실패했어요. 잠시 후 다시 시도해주세요."
         tone="warning"
         size="sm"
         footer={
           <>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setSubmitFailed(false);
-              }}
-            >
+            <Button type="button" variant="ghost" onClick={closeFailureModal}>
               닫기
             </Button>
             <Button type="button" onClick={handleRetry}>

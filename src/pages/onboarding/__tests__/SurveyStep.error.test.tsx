@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor, within } from '@testing-library/react';
+import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -199,22 +199,54 @@ describe('SurveyStep — 에러 처리', () => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
 
-    it('실패 모달의 "닫기" 는 모달만 닫고 설문 화면에 머문다', async () => {
-      const user = userEvent.setup();
-      seedNameDraft();
-      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
+    // 실브라우저는 요청 중 disabled 된 제출 버튼에서 포커스를 빼 버려 모달이 되돌릴 트리거를 잃는다.
+    // jsdom 은 disabled 버튼을 blur 하지 않아 요청 중에 포커스를 직접 떨어뜨려 재현한다.
+    it.each([
+      [
+        'footer "닫기"',
+        async (user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) => {
+          // 헤더 X 도 이름이 '닫기' 라 footer 버튼(마지막)을 집는다.
+          await user.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!);
+        },
+      ],
+      [
+        'Esc',
+        async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.keyboard('{Escape}');
+        },
+      ],
+    ])(
+      '실패 모달을 %s 로 닫으면 설문 화면에 머물고 포커스가 "아바타 생성" 버튼으로 돌아간다',
+      async (_, close) => {
+        const user = userEvent.setup();
+        seedNameDraft();
+        server.use(
+          surveyQuestionsHandlers.success,
+          http.post(`${BASE_URL}/api/avatars/survey`, async () => {
+            await delay(50);
+            return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+          })
+        );
 
-      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
-      await navigateToExpressionsPage(user);
-      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
-      const dialog = await findFailureModal();
+        renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+        await navigateToExpressionsPage(user);
+        await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+        // 포커스가 사라진 채 모달이 열리는 상황을 만든다 — 임시 요소로 옮겼다가 떼어낸다.
+        act(() => {
+          const detached = document.createElement('button');
+          document.body.append(detached);
+          detached.focus();
+          detached.remove();
+        });
+        expect(screen.getByRole('button', { name: /생성 중/ })).not.toHaveFocus();
+        const dialog = await findFailureModal();
 
-      // 헤더 X 도 이름이 '닫기' 라 footer 버튼(마지막)을 집는다.
-      await user.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!);
+        await close(user, dialog);
 
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeInTheDocument();
-    });
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+        expect(document.activeElement).toBe(screen.getByRole('button', { name: /아바타 생성/i }));
+      }
+    );
 
     // 이름 중복은 사용자가 1단계에서 고칠 수 있는 실패라 모달이 아니라 인라인으로 알린다.
     it('AVATAR_409_002(이름 중복) 응답은 모달 없이 border-danger-mark alert 로 표시된다', async () => {
