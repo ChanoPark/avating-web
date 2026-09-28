@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -207,9 +207,10 @@ describe('SurveyStep — 에러 처리', () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
-      expect(await findFailureModal()).toBeInTheDocument();
+      const dialog = await findFailureModal();
 
-      await user.click(screen.getAllByRole('button', { name: '닫기' })[0]!);
+      // 헤더 X 도 이름이 '닫기' 라 footer 버튼(마지막)을 집는다.
+      await user.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!);
 
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeInTheDocument();
