@@ -114,7 +114,7 @@ export const surveySubmitHandlers = {
 
   validationError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json(
-      { message: '설문 답변이 올바르지 않습니다.', code: 'VALIDATION_ERROR' },
+      { message: '유효하지 않은 설문 답변입니다.', code: 'AVATAR_400_002' },
       { status: 400 }
     );
   }),

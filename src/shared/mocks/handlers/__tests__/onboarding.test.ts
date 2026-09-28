@@ -92,7 +92,7 @@ describe('onboarding MSW 핸들러', () => {
 
       expect(res.status).toBe(400);
       const json = await res.json();
-      expect(json).toHaveProperty('code', 'VALIDATION_ERROR');
+      expect(json).toHaveProperty('code', 'AVATAR_400_002');
     });
 
     it('serverError 핸들러는 500 을 반환한다', async () => {

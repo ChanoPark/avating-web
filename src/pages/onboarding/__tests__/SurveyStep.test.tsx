@@ -386,7 +386,7 @@ describe('SurveyStep', () => {
       });
     });
 
-    it('서버 오류 응답 시 에러 메시지가 노출되고 navigate 는 호출되지 않는다', async () => {
+    it('서버 오류 응답 시 실패 모달이 뜨고 navigate 는 호출되지 않는다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
       server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
@@ -397,10 +397,10 @@ describe('SurveyStep', () => {
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(
+          screen.getByRole('dialog', { name: '아바타를 만들지 못했어요' })
+        ).toBeInTheDocument();
       });
-      const alert = screen.getByRole('alert');
-      expect(alert).toHaveClass('border-danger-mark');
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
   });

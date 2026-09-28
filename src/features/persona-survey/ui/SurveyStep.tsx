@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodError } from 'zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -12,6 +11,8 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
+import { Modal } from '@shared/ui/Modal';
+import { isApiError } from '@shared/lib/errors';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
@@ -24,6 +25,7 @@ export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitFailed, setSubmitFailed] = useState(false);
   const [interestTags, setInterestTags] = useState<string[]>(() => loadDraft()?.interestTags ?? []);
   const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
   const interestTagsRef = useRef<string[]>(interestTags);
@@ -217,6 +219,7 @@ export function SurveyStep() {
 
   const onSubmit = form.handleSubmit(async (data) => {
     setSubmitError(null);
+    setSubmitFailed(false);
     try {
       await createAvatar(data);
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
@@ -224,15 +227,20 @@ export function SurveyStep() {
       setOnboardingProgress('complete');
       void navigate('/onboarding/complete');
     } catch (err: unknown) {
-      if (err instanceof ZodError) {
-        setSubmitError('입력 데이터를 다시 확인해주세요.');
+      // 이름 중복만 사용자가 1단계에서 고칠 수 있다. 나머지(AVATAR_400_002·5xx·응답 파싱 실패)는
+      // 입력 탓이 아니라서 서버 문구 대신 실패 모달로 알린다.
+      if (isApiError(err) && err.statusCode === 409 && err.code === 'AVATAR_409_002') {
+        setSubmitError(err.message);
         return;
       }
-      const fallback = '제출 중 오류가 생겼어요. 다시 시도해주세요.';
-      const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
-      setSubmitError(message);
+      setSubmitFailed(true);
     }
   }, onInvalid);
+
+  const handleRetry = () => {
+    setSubmitFailed(false);
+    void onSubmit();
+  };
 
   const handleSkip = () => {
     persistOptionalTraits([], []);
@@ -391,6 +399,33 @@ export function SurveyStep() {
           </Button>
         )}
       </div>
+
+      <Modal
+        open={submitFailed}
+        onClose={() => {
+          setSubmitFailed(false);
+        }}
+        title="아바타를 만들지 못했어요"
+        description="일시적인 문제로 생성에 실패했어요. 잠시 후 다시 시도해주세요."
+        tone="warning"
+        size="sm"
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => {
+                setSubmitFailed(false);
+              }}
+            >
+              닫기
+            </Button>
+            <Button type="button" onClick={handleRetry}>
+              다시 시도
+            </Button>
+          </>
+        }
+      />
     </form>
   );
 }
