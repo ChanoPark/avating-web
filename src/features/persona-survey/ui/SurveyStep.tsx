@@ -229,8 +229,6 @@ export function SurveyStep() {
       setOnboardingProgress('complete');
       void navigate('/onboarding/complete');
     } catch (err: unknown) {
-      // 이름 중복만 사용자가 1단계에서 고칠 수 있다. 나머지(AVATAR_400_002·5xx·응답 파싱 실패)는
-      // 입력 탓이 아니라서 서버 문구 대신 실패 모달로 알린다.
       if (
         isApiError(err) &&
         err.statusCode === 409 &&

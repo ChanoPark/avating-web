@@ -118,7 +118,6 @@ describe('SurveyStep — 에러 처리', () => {
   });
 
   describe('제출 에러 처리', () => {
-    // 사용자가 고칠 수 없는 실패다 — 서버 문구를 그대로 띄우면 입력이 잘못된 것처럼 읽힌다.
     const findFailureModal = () =>
       screen.findByRole('dialog', { name: '아바타를 만들지 못했어요' });
 
@@ -231,7 +230,6 @@ describe('SurveyStep — 에러 처리', () => {
         renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
         await navigateToExpressionsPage(user);
         await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
-        // 포커스가 사라진 채 모달이 열리는 상황을 만든다 — 임시 요소로 옮겼다가 떼어낸다.
         act(() => {
           const detached = document.createElement('button');
           document.body.append(detached);
@@ -248,7 +246,6 @@ describe('SurveyStep — 에러 처리', () => {
       }
     );
 
-    // 이름 중복은 사용자가 1단계에서 고칠 수 있는 실패라 모달이 아니라 인라인으로 알린다.
     it('AVATAR_409_002(이름 중복) 응답은 모달 없이 border-danger-mark alert 로 표시된다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
