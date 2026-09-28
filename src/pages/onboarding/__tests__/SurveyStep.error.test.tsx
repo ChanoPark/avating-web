@@ -252,15 +252,7 @@ describe('SurveyStep — 에러 처리', () => {
     it('AVATAR_409_002(이름 중복) 응답은 모달 없이 border-danger-mark alert 로 표시된다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
-      server.use(
-        surveyQuestionsHandlers.success,
-        http.post(`${BASE_URL}/api/avatars/survey`, () => {
-          return HttpResponse.json(
-            { code: 'AVATAR_409_002', message: '동일한 아바타 이름이 존재합니다.' },
-            { status: 409 }
-          );
-        })
-      );
+      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.nameConflict);
 
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await navigateToExpressionsPage(user);

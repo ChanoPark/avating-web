@@ -123,6 +123,16 @@ export const surveySubmitHandlers = {
     );
   }),
 
+  nameConflict: http.post(`${BASE_URL}/api/avatars/survey`, () => {
+    return HttpResponse.json(
+      {
+        message: '동일한 아바타 이름이 존재합니다.',
+        code: SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT,
+      },
+      { status: 409 }
+    );
+  }),
+
   serverError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
   }),
