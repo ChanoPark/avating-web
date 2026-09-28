@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import type { ButtonHTMLAttributes, ReactNode, Ref } from 'react';
 import { cn } from '@shared/lib/cn';
 
 type ButtonVariant = 'primary' | 'brand' | 'secondary' | 'ghost' | 'danger';
@@ -10,6 +10,7 @@ type ButtonProps = {
   block?: boolean;
   icon?: boolean;
   children: ReactNode;
+  ref?: Ref<HTMLButtonElement>;
 } & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'>;
 
 // `_ds/components/cx-components.css` `.cx-btn`. 테두리가 없다 — 버튼은 선이 아니라 톤으로 선다.

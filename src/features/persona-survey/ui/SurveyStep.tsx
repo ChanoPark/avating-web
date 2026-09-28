@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodError } from 'zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -12,6 +11,9 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
+import { Modal } from '@shared/ui/Modal';
+import { isApiError } from '@shared/lib/errors';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
@@ -24,12 +26,14 @@ export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitFailed, setSubmitFailed] = useState(false);
   const [interestTags, setInterestTags] = useState<string[]>(() => loadDraft()?.interestTags ?? []);
   const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
   const interestTagsRef = useRef<string[]>(interestTags);
   const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
@@ -217,6 +221,7 @@ export function SurveyStep() {
 
   const onSubmit = form.handleSubmit(async (data) => {
     setSubmitError(null);
+    setSubmitFailed(false);
     try {
       await createAvatar(data);
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
@@ -224,15 +229,29 @@ export function SurveyStep() {
       setOnboardingProgress('complete');
       void navigate('/onboarding/complete');
     } catch (err: unknown) {
-      if (err instanceof ZodError) {
-        setSubmitError('입력 데이터를 다시 확인해주세요.');
+      if (
+        isApiError(err) &&
+        err.statusCode === 409 &&
+        err.code === SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT
+      ) {
+        setSubmitError(err.message);
         return;
       }
-      const fallback = '제출 중 오류가 생겼어요. 다시 시도해주세요.';
-      const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
-      setSubmitError(message);
+      setSubmitFailed(true);
     }
   }, onInvalid);
+
+  // 요청 중 제출 버튼이 disabled 되면 브라우저가 포커스를 body 로 떨어뜨려, 모달이 되돌릴 트리거를
+  // 잃는다 — 닫는 경로를 하나로 모으고 제출 버튼으로 직접 돌려보낸다.
+  const closeFailureModal = () => {
+    setSubmitFailed(false);
+    submitButtonRef.current?.focus();
+  };
+
+  const handleRetry = () => {
+    closeFailureModal();
+    void onSubmit();
+  };
 
   const handleSkip = () => {
     persistOptionalTraits([], []);
@@ -374,7 +393,7 @@ export function SurveyStep() {
             <Button type="button" variant="ghost" disabled={isSubmitting} onClick={handleSkip}>
               건너뛰기
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button ref={submitButtonRef} type="submit" disabled={isSubmitting}>
               {isSubmitting ? '생성 중…' : '아바타 생성'}
               <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
             </Button>
@@ -391,6 +410,25 @@ export function SurveyStep() {
           </Button>
         )}
       </div>
+
+      <Modal
+        open={submitFailed}
+        onClose={closeFailureModal}
+        title="아바타를 만들지 못했어요"
+        description="일시적인 문제로 생성에 실패했어요. 잠시 후 다시 시도해주세요."
+        tone="warning"
+        size="sm"
+        footer={
+          <>
+            <Button type="button" variant="ghost" onClick={closeFailureModal}>
+              닫기
+            </Button>
+            <Button type="button" onClick={handleRetry}>
+              다시 시도
+            </Button>
+          </>
+        }
+      />
     </form>
   );
 }

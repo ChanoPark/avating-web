@@ -92,7 +92,21 @@ describe('onboarding MSW 핸들러', () => {
 
       expect(res.status).toBe(400);
       const json = await res.json();
-      expect(json).toHaveProperty('code', 'VALIDATION_ERROR');
+      expect(json).toHaveProperty('code', 'AVATAR_400_002');
+    });
+
+    it('nameConflict 핸들러는 409 + AVATAR_409_002 를 반환한다', async () => {
+      server.use(surveySubmitHandlers.nameConflict);
+
+      const res = await fetch(`${BASE_URL}/api/avatars/survey`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+
+      expect(res.status).toBe(409);
+      const json = await res.json();
+      expect(json).toHaveProperty('code', 'AVATAR_409_002');
     });
 
     it('serverError 핸들러는 500 을 반환한다', async () => {
