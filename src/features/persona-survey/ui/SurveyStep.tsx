@@ -128,8 +128,6 @@ export function SurveyStep() {
     };
   }, [form]);
 
-  // 실패 토스트는 자동으로 사라지지 않고 ToastProvider 포털에 떠서 이 화면보다 오래 산다 —
-  // 떠날 때 함께 닫지 않으면 다른 화면에 남는다.
   useEffect(() => {
     return () => {
       if (failureToastIdRef.current !== null) dismissToast(failureToastIdRef.current);

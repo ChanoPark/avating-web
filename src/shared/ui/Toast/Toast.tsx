@@ -11,10 +11,7 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-// `.cx-toast` — 어떤 토스트인지는 **글리프**가 말한다. 색으로 말하지 않는다.
-// 틴트가 붙는 건 파괴적 알림 하나뿐이고, 좌측 컬러 레일은 없다.
-// failure 는 글리프가 없다 — 사용자가 시도한 작업이 실패했다는 알림이라, 정본 토스트와 달리
-// 연한 danger 면 + danger 테두리로 그린다(사용자 결정 2026-10-05).
+// `.cx-toast` — 글리프가 있는 variant 는 어떤 토스트인지 **글리프**로 말하고, 좌측 컬러 레일은 없다.
 type MarkedVariant = Exclude<ToastVariant, 'failure'>;
 
 const variantMark: Record<MarkedVariant, string> = {
@@ -57,7 +54,10 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     };
   }, [toast, onDismiss, paused]);
 
-  const Icon = toast.variant === 'failure' ? null : variantIcon[toast.variant];
+  const mark =
+    toast.variant === 'failure'
+      ? null
+      : { Icon: variantIcon[toast.variant], color: variantMark[toast.variant] };
 
   return (
     <div
@@ -79,9 +79,9 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     >
       <div className="flex items-start gap-3">
         {/* 16px 마크는 블록이 아니라 제목의 첫 줄에 맞춘다 — (20 - 16) / 2. */}
-        {toast.variant !== 'failure' && Icon && (
-          <span className={cn('mt-0.5 shrink-0', variantMark[toast.variant])}>
-            <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
+        {mark && (
+          <span className={cn('mt-0.5 shrink-0', mark.color)}>
+            <mark.Icon size={16} strokeWidth={1.5} aria-hidden="true" />
           </span>
         )}
         <div className="min-w-0 flex-1">
