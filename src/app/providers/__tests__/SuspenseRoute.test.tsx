@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router';
 import { ApiError } from '@shared/lib/errors';
 import { SuspenseRoute } from '../SuspenseRoute';
 
@@ -106,6 +107,42 @@ describe('SuspenseRoute', () => {
 
     expect(await screen.findByRole('heading', { name: '다시 로그인해주세요' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '다시 로그인' })).toBeInTheDocument();
+    spy.mockRestore();
+  });
+
+  it('에러 화면에서 다른 라우트로 이동하면 경계가 풀려 그 화면이 보인다', async () => {
+    const spy = silenceBoundaryLog();
+    const user = userEvent.setup();
+    const Boom = () => {
+      throw new ApiError(500, '서버 오류');
+    };
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/boom',
+          element: (
+            <SuspenseRoute>
+              <Boom />
+            </SuspenseRoute>
+          ),
+        },
+        {
+          path: '/',
+          element: (
+            <SuspenseRoute>
+              <p>SERVICE_INTRO_PAGE</p>
+            </SuspenseRoute>
+          ),
+        },
+      ],
+      { initialEntries: ['/boom'] }
+    );
+    render(<RouterProvider router={router} />);
+
+    await user.click(await screen.findByRole('button', { name: '서비스 소개로' }));
+
+    expect(await screen.findByText('SERVICE_INTRO_PAGE')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '문제가 생겼어요' })).not.toBeInTheDocument();
     spy.mockRestore();
   });
 

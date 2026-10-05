@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useLocation } from 'react-router';
 import type { ErrorVariant } from '@pages/error';
 import { isApiError } from '@shared/lib/errors';
 import { useAuthStore } from '@entities/auth/store';
@@ -32,9 +33,13 @@ type RouteErrorBoundaryProps = {
 
 export function RouteErrorBoundary({ children, embedded = false }: RouteErrorBoundaryProps) {
   const isAuthenticated = useAuthStore((s) => s.status === 'authenticated');
+  const location = useLocation();
 
   return (
+    // 형제 라우트로 옮겨도 같은 경계 인스턴스가 재사용된다 — 위치가 바뀌면 풀어 줘야 에러 화면의
+    // 이동 버튼이 실제로 다음 화면을 보여준다.
     <ErrorBoundary
+      resetKeys={[location.key]}
       onError={handleAppCrash}
       fallbackRender={({ error }) => (
         // 청크 로딩 중 빈 프레임에 스켈레톤을 쓰면 로딩으로 오인된다 — 배경만 채운 빈 면으로 둔다.
