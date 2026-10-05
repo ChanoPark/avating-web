@@ -40,7 +40,7 @@ export function MyAvatarRadioGroup({
   const visibleAvatars = avatars.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   return (
-    <div className="border-subtle rounded-card flex flex-col gap-2 border p-3">
+    <div className="border-subtle rounded-card flex flex-col gap-2 border p-5">
       <div
         role="radiogroup"
         aria-label="요청에 사용할 내 아바타"

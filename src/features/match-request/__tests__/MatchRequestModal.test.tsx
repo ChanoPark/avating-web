@@ -592,7 +592,12 @@ describe('MatchRequestModal', () => {
 
       expect(within(radioGroup).getAllByRole('radio')).toHaveLength(2);
       expect(radioGroup).toHaveClass('grid-rows-5');
-      expect(radioGroup.parentElement).toHaveClass('rounded-card', 'border', 'border-subtle');
+      expect(radioGroup.parentElement).toHaveClass(
+        'rounded-card',
+        'border',
+        'border-subtle',
+        'p-5'
+      );
     });
 
     it('페이지를 넘겨도 목록은 다시 조회하지 않는다', async () => {
