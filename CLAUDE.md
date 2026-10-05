@@ -25,6 +25,8 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 과설계를 피하고, 고칠 곳만 외과적으로 고치고, 가정을 드러내고, 확인 가능한 완료 기준을 세운다. [karpathy-guidelines](.claude/skills/karpathy-guidelines/SKILL.md) 가 코드를 쓰고 고치고 리뷰하는 모든 순간의 기준선이다.
 
+**코드로 알 수 있는 것은 주석으로 남기지 않는다.** 무엇을 하는지는 코드가, 재발 방지는 테스트가, 고친 이유는 커밋 메시지가, 사용자 결정·정본과의 차이·서버 계약 공백은 wiki 가 맡는다. 리뷰 수정마다 해명 주석을 붙이지 않고, 리뷰어에게 보이려는 메모도 주석으로 쓰지 않는다. 주석은 테스트로 고정할 수 없는 제약 한 줄뿐이고, 판정 목록은 [checklist § 14](.claude/checklists/code-quality.md) 에 있다.
+
 ---
 
 ## 작업 흐름 — 규모에 맞춘다
@@ -47,7 +49,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 ## 아키텍처
 
-불변성, Zod 경계 파싱, 상태 분리, 에러 경계, 민감정보, 접근성, 주석 같은 공통 규율은 [skills/README.md](.claude/skills/README.md) 의 "어느 영역에나 해당하는 것" 절과 세 스택 스킬에 있다. 여기엔 이 프로젝트에만 해당하는 값만 둔다.
+불변성, Zod 경계 파싱, 상태 분리, 에러 경계, 민감정보, 접근성 같은 공통 규율은 [skills/README.md](.claude/skills/README.md) 의 "어느 영역에나 해당하는 것" 절과 세 스택 스킬에 있다. 여기엔 이 프로젝트에만 해당하는 값만 둔다.
 
 - **레이어 방향**: `app → pages → features → entities → shared`. 역방향 의존은 `eslint-plugin-boundaries` 가 막는다 (같은 층끼리의 import 는 설정상 허용된다 — `eslint.config.js` 의 `boundaries/element-types`). 각 레이어의 하위 디렉터리 구성은 `ls src/<layer>` 로 확인하고, `entities/*/model.ts` 의 Zod 가 타입의 출발점이다.
 - **MSW 는 `src/shared/mocks/`** 에 있다 (`browser.ts` · `server.ts` · `handlers/<domain>.ts`). `src/mocks/` 는 옛 경로라, `knip.config.ts`·`vitest.config.ts` 같은 설정이 MSW 를 가리킬 때도 이 위치를 쓴다.

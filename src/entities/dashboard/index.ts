@@ -1,3 +1,3 @@
-export { apiResponseDashboardStats, apiResponseCreateSession } from './model';
-export type { DashboardStats, CreateSessionResponse } from './model';
+export { apiResponseDashboardStats } from './model';
+export type { DashboardStats } from './model';
 export { dashboardKeys } from './queryKeys';

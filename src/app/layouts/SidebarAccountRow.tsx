@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { LogOut, Settings, User } from 'lucide-react';
 import { useAuthStore } from '@entities/auth/store';
-import { useMyAvatars } from '@entities/avatar';
+import { AvatarIdentityTile, usePrimaryAvatar } from '@entities/avatar';
 import { clearOnboardingProgress } from '@entities/onboarding';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
@@ -15,8 +15,7 @@ const MENU_ITEM =
   'ease-standard transition-colors duration-[var(--dur-fast)]';
 
 export function SidebarAccountRow() {
-  const { data } = useMyAvatars();
-  const primary = data?.items.find((a) => a.isPrimary) ?? data?.items[0];
+  const { data: primary } = usePrimaryAvatar();
 
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -83,9 +82,11 @@ export function SidebarAccountRow() {
       <div className="flex items-center justify-between gap-2 px-1.5 py-1">
         <div className="flex min-w-0 items-center gap-2">
           {primary && (
-            <span className="bg-id-none text-id-none-fg flex h-6.5 w-6.5 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold uppercase">
-              {primary.initials}
-            </span>
+            <AvatarIdentityTile
+              name={primary.name}
+              color={primary.color}
+              className="h-6.5 w-6.5 rounded-full text-[10px]"
+            />
           )}
           {primary && <div className="text-primary truncate text-[13px]">{primary.name}</div>}
         </div>

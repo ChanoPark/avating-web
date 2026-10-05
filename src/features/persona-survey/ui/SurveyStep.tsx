@@ -11,7 +11,7 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
-import { useToast } from '@shared/ui/Toast';
+import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';

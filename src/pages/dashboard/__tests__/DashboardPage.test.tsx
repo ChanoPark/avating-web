@@ -9,7 +9,11 @@ import { http, HttpResponse } from 'msw';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
 import { server } from '@shared/mocks/server';
-import { statsHandlers, sessionHandlers } from '@shared/mocks/handlers/dashboard';
+import { statsHandlers } from '@shared/mocks/handlers/dashboard';
+import {
+  resetMatchRequestScenario,
+  setMatchRequestScenario,
+} from '@shared/mocks/handlers/matchRequest';
 import { simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
 import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
 import { AuthGuard } from '@app/providers/AuthGuard';
@@ -85,16 +89,12 @@ function renderDashboard({ authenticated = true, initialRoute = '/dashboard' } =
 
 describe('DashboardPage 통합 시나리오', () => {
   beforeEach(() => {
-    server.use(
-      statsHandlers.success,
-      primaryAvatarHandlers.success,
-      simCandidatesHandlers.success,
-      sessionHandlers.success
-    );
+    server.use(statsHandlers.success, primaryAvatarHandlers.success, simCandidatesHandlers.success);
   });
 
   afterEach(() => {
     useAuthStore.getState().clear();
+    resetMatchRequestScenario();
   });
 
   describe('AC-1. 인증 가드', () => {
@@ -252,8 +252,8 @@ describe('DashboardPage 통합 시나리오', () => {
     });
   });
 
-  describe('AC-7. 매칭 버튼 → 모달 → confirm → 성공 토스트', () => {
-    it('"매칭" 버튼 클릭 → 모달 → "매칭하기" → 성공 토스트', async () => {
+  describe('AC-7. 매칭 버튼 → 매칭 요청 모달 → 요청 보내기 → 성공 토스트', () => {
+    it('"매칭" 버튼 클릭 → 상세 화면과 같은 모달 → "요청 보내기" → 성공 토스트', async () => {
       const user = userEvent.setup();
       renderDashboard();
 
@@ -264,16 +264,14 @@ describe('DashboardPage 통합 시나리오', () => {
       const matchButtons = screen.getAllByRole('button', { name: /^매칭$/ });
       await user.click(matchButtons[0]!);
 
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).toBeInTheDocument();
-      });
-
-      const confirmBtn = screen.getByRole('button', { name: /매칭하기/ });
-      await user.click(confirmBtn);
+      const dialog = await screen.findByRole('dialog');
+      await within(dialog).findByRole('radiogroup', { name: '요청에 사용할 내 아바타' });
+      await user.click(within(dialog).getByRole('button', { name: /요청 보내기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/매칭 요청을 보냈어요/)).toBeInTheDocument();
+        expect(screen.getByText('요청을 보냈어요')).toBeInTheDocument();
       });
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
       // 요청한 카드는 곧바로 요청 불가로 바뀐다 — 같은 아바타에 중복 요청을 막는다.
       const requested = screen.getByRole('button', { name: '하늘#H7K2MP' }).closest('li');
@@ -287,7 +285,7 @@ describe('DashboardPage 통합 시나리오', () => {
 
   describe('AC-9. 5xx 에러', () => {
     it('5xx 응답 시 에러 토스트 + 모달 유지', async () => {
-      server.use(sessionHandlers.serverError);
+      setMatchRequestScenario('server-error');
       const user = userEvent.setup();
       renderDashboard();
 
@@ -298,16 +296,13 @@ describe('DashboardPage 통합 시나리오', () => {
       const matchButtons = screen.getAllByRole('button', { name: /^매칭$/ });
       await user.click(matchButtons[0]!);
 
-      await waitFor(() => {
-        expect(screen.queryByRole('dialog')).toBeInTheDocument();
-      });
-
-      await user.click(screen.getByRole('button', { name: /매칭하기/ }));
+      const dialog = await screen.findByRole('dialog');
+      await within(dialog).findByRole('radiogroup', { name: '요청에 사용할 내 아바타' });
+      await user.click(within(dialog).getByRole('button', { name: /요청 보내기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText(/매칭 요청에 실패했어요/)).toBeInTheDocument();
+        expect(screen.getByText('잠시 후 다시 시도해주세요')).toBeInTheDocument();
       });
-
       expect(screen.getByRole('dialog')).toBeInTheDocument();
     });
   });

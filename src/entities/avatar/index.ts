@@ -4,6 +4,8 @@ export type {
   AvatarSummary,
   AvatarSimCandidate,
   AvatarSimCandidateList,
+  OwnedAvatar,
+  OwnedAvatarPage,
   PersonaStatRow,
 } from './model';
 export { useMyAvatars } from './api/useMyAvatars';

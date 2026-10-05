@@ -5,8 +5,9 @@ import { Compass } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { InlineError } from '@shared/ui/InlineError';
 import { useSimCandidatesSuspense } from '@entities/avatar';
+import type { AvatarSimCandidate } from '@entities/avatar';
+import { MatchRequestModal } from '@features/match-request';
 import { AvatarCard } from './AvatarCard';
-import { DispatchModal } from './DispatchModal';
 
 type AvatarListProps = {
   onAvatarClick: (id: string) => void;
@@ -15,14 +16,14 @@ type AvatarListProps = {
 // xl 4열 그리드를 두 줄 채운다 (서버 기본 10·상한 50). 서버가 랜덤으로 뽑아 정렬 기준은 없다.
 const CANDIDATE_COUNT = 8;
 
-type ModalState = { open: false } | { open: true; avatarId: string; avatarName: string };
+type RequestState = { open: boolean; partner: AvatarSimCandidate | null };
 
 // 그리드가 아닌 상태(빈 목록 · 오류 · 로딩)는 카드 한 장 위에 얹는다.
 const PANEL_CLASS = 'border-subtle bg-canvas rounded-card border';
 
 function AvatarListContent({ onAvatarClick }: AvatarListProps) {
   const { items: avatars } = useSimCandidatesSuspense(CANDIDATE_COUNT);
-  const [modal, setModal] = useState<ModalState>({ open: false });
+  const [request, setRequest] = useState<RequestState>({ open: false, partner: null });
 
   if (avatars.length === 0) {
     return (
@@ -48,20 +49,20 @@ function AvatarListContent({ onAvatarClick }: AvatarListProps) {
             key={avatar.avatarId}
             avatar={avatar}
             onOpen={onAvatarClick}
-            onMatch={(id) => {
-              setModal({ open: true, avatarId: id, avatarName: avatar.name });
+            onMatch={() => {
+              setRequest({ open: true, partner: avatar });
             }}
           />
         ))}
       </ul>
 
-      {modal.open && (
-        <DispatchModal
-          open={modal.open}
-          avatarId={modal.avatarId}
-          avatarName={modal.avatarName}
+      {request.partner !== null && (
+        <MatchRequestModal
+          open={request.open}
+          partnerAvatarId={request.partner.avatarId}
+          partner={request.partner}
           onClose={() => {
-            setModal({ open: false });
+            setRequest((prev) => ({ ...prev, open: false }));
           }}
         />
       )}

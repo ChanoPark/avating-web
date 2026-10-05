@@ -5,9 +5,9 @@ import { createPortal } from 'react-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
-import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import {
@@ -24,6 +24,20 @@ import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCar
 // 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
 const NOTICE_CLASS = 'text-caption border-subtle bg-canvas rounded-card border p-3';
 
+const CANNOT_REQUEST_WITH_AVATAR = '이 아바타로는 요청을 보낼 수 없어요';
+
+const CLOSING_ERROR_TITLES: Record<string, string> = {
+  [SERVER_ERROR_CODES.SIMULATION_IN_PROGRESS]: '이미 진행 중인 매칭이 있어요',
+  [SERVER_ERROR_CODES.SIMULATION_AVATAR_NOT_FOUND]: '아바타를 찾을 수 없어요',
+  [SERVER_ERROR_CODES.SIMULATION_INVITE_OWN_AVATAR]: CANNOT_REQUEST_WITH_AVATAR,
+  [SERVER_ERROR_CODES.SIMULATION_INVITE_SAME_AVATAR]: CANNOT_REQUEST_WITH_AVATAR,
+  [SERVER_ERROR_CODES.SIMULATION_NOT_AVATAR_OWNER]: CANNOT_REQUEST_WITH_AVATAR,
+};
+
+function closingErrorTitle(code: string | undefined): string | undefined {
+  return code === undefined ? undefined : CLOSING_ERROR_TITLES[code];
+}
+
 type Props = {
   open: boolean;
   partnerAvatarId: string;
@@ -34,22 +48,20 @@ type Props = {
 
 export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onSuccess }: Props) {
   const titleId = useId();
-  const descriptionId = useId();
   const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
   const greetingHelpId = useId();
 
   const { show: showToast } = useToast();
   const {
-    data: myAvatarsData,
+    data: myAvatars = [],
     isLoading: avatarsLoading,
     isError: avatarsError,
     refetch: refetchAvatars,
   } = useMyAvatars({ enabled: open });
   const { mutateAsync, isPending } = useSendMatchRequest();
 
-  const myAvatars = myAvatarsData?.items ?? [];
-  const firstSelectableId = myAvatars.find((a) => !a.busy)?.id ?? '';
+  const firstSelectableId = myAvatars.find((a) => a.canJoinSimulation)?.avatarId ?? '';
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -126,7 +138,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   const hasNoAvatars = !avatarsLoading && !avatarsError && myAvatars.length === 0;
   const allBusy =
-    !avatarsLoading && !avatarsError && myAvatars.length > 0 && myAvatars.every((a) => a.busy);
+    !avatarsLoading &&
+    !avatarsError &&
+    myAvatars.length > 0 &&
+    myAvatars.every((a) => !a.canJoinSimulation);
   const isGreetingOverLimit = greetingLength > MATCH_REQUEST_GREETING_MAX;
   const isLoading = isSubmitting || isPending;
   const submitDisabled =
@@ -143,27 +158,11 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
       onSuccess?.();
       onClose();
     } catch (err) {
-      if (isApiError(err)) {
-        if (err.statusCode === 409 && err.code === 'PARTNER_BLOCKED') {
-          showToast({ variant: 'error', title: '이 사용자에게는 요청을 보낼 수 없어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 409 && err.code === 'DUPLICATE_REQUEST') {
-          showToast({ variant: 'error', title: '이미 응답 대기 중인 요청이 있어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 404 && err.code === 'AVATAR_NOT_FOUND') {
-          showToast({ variant: 'error', title: '아바타를 찾을 수 없어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 410 && err.code === 'REQUEST_EXPIRED') {
-          showToast({ variant: 'error', title: '요청이 만료됐어요' });
-          onClose();
-          return;
-        }
+      const closingTitle = isApiError(err) ? closingErrorTitle(err.code) : undefined;
+      if (closingTitle !== undefined) {
+        showToast({ variant: 'error', title: closingTitle });
+        onClose();
+        return;
       }
       showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
     }
@@ -188,32 +187,24 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descriptionId}
         tabIndex={-1}
         className="bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
-          <Tag>MATCH REQUEST</Tag>
+          <h2 id={titleId} className="text-lead text-primary min-w-0">
+            이 아바타에게 소개팅을 요청할까요?
+          </h2>
           <button
             type="button"
             aria-label="닫기"
             onClick={() => {
               if (!isPending) onClose();
             }}
-            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
+            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mt-2 -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:-mt-1.5 md:size-9"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
-        </div>
-
-        <div className="flex flex-col gap-1.5 px-6 pt-3.5">
-          <h2 id={titleId} className="text-lead text-primary">
-            이 아바타에게 소개팅을 요청할까요?
-          </h2>
-          <p id={descriptionId} className="text-caption text-secondary">
-            요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
-          </p>
         </div>
 
         <form
@@ -227,12 +218,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             <PartnerAvatarCard partner={partner} />
 
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-caption text-secondary font-medium">
-                  요청에 사용할 내 아바타
-                </span>
-                <span className="text-meta text-secondary">1개 선택</span>
-              </div>
+              <span className="text-caption text-secondary font-medium">
+                요청에 사용할 내 아바타
+              </span>
               {avatarsLoading ? (
                 <p role="status" aria-live="polite" className="text-caption text-secondary">
                   아바타 목록 불러오는 중…
@@ -264,7 +252,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   <input type="hidden" {...register('requesterAvatarId')} />
                   <MyAvatarRadioGroup
                     avatars={myAvatars}
-                    value={requesterAvatarId}
+                    value={requesterAvatarId === '' ? firstSelectableId : requesterAvatarId}
                     onChange={(next) => {
                       setValue('requesterAvatarId', next, { shouldValidate: true });
                     }}
@@ -352,10 +340,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             </Button>
           </div>
         </form>
-
-        <p className="text-meta text-secondary px-6 pb-4 text-center">
-          24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.
-        </p>
       </div>
     </div>,
     document.body
