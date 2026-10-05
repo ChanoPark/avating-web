@@ -15,7 +15,7 @@ async function sendMatchRequest(input: SendMatchRequestInput): Promise<CreatedIn
   const response = await http.post('/api/simulations/invitations', {
     inviterAvatarId: requesterAvatarId,
     inviteeAvatarId: partnerAvatarId,
-    ...(greeting === undefined ? {} : { requestMessage: greeting }),
+    requestMessage: greeting ?? '',
   });
   return apiResponseCreateInvitation.parse(response.data).data;
 }

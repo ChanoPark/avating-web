@@ -282,7 +282,7 @@ describe('MatchRequestModal', () => {
       });
     });
 
-    it('공백만 입력된 인사말은 빈 인사말처럼 requestMessage 없이 보낸다', async () => {
+    it('첫 인사가 비었거나 공백뿐이면 requestMessage 를 빈 문자열로 보낸다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       let capturedBody: Record<string, unknown> | null = null;
       server.use(
@@ -301,7 +301,7 @@ describe('MatchRequestModal', () => {
       await waitFor(() => {
         expect(capturedBody).not.toBeNull();
       });
-      expect(capturedBody).not.toHaveProperty('requestMessage');
+      expect(capturedBody).toHaveProperty('requestMessage', '');
     });
 
     it('100자 초과 시 검증 에러가 표시된다 (Zod max)', async () => {
@@ -583,6 +583,16 @@ describe('MatchRequestModal', () => {
       expect(within(radioGroup).getAllByRole('radio')).toHaveLength(5);
       expect(screen.queryByRole('button', { name: '다음 페이지' })).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+    });
+
+    it('아바타가 5개보다 적어도 목록은 5행 높이 틀을 유지하고 카드로 감싼다', async () => {
+      useOwnedAvatars(mockOwnedAvatars.data.content.slice(0, 2));
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+
+      expect(within(radioGroup).getAllByRole('radio')).toHaveLength(2);
+      expect(radioGroup).toHaveClass('grid-rows-5');
+      expect(radioGroup.parentElement).toHaveClass('rounded-card', 'border', 'border-subtle');
     });
 
     it('페이지를 넘겨도 목록은 다시 조회하지 않는다', async () => {
