@@ -6,7 +6,7 @@ import { Button } from '@shared/ui/Button';
 import { InlineError } from '@shared/ui/InlineError';
 import { MatchRequestModal } from '@features/match-request';
 import { AvatarProfileHeader, AvatarStatsPanel, AvatarMatchPanel } from '@features/avatar-profile';
-import { PersonaStatsSkeleton, useAvatarDetailSuspense } from '@entities/avatar';
+import { avatarKeys, PersonaStatsSkeleton, useAvatarDetailSuspense } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { isApiError } from '@shared/lib/errors';
 import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
@@ -106,11 +106,11 @@ function LoadingFallback() {
 const ERROR_PANEL_CLASS = 'border-subtle bg-canvas rounded-card border p-6';
 
 function LoadErrorPanel() {
-  useLoadErrorFallback('아바타 정보를 불러오지 못했어요');
+  const { id = '' } = useParams<{ id: string }>();
+  useLoadErrorFallback('아바타 정보를 불러오지 못했어요', avatarKeys.detail(id));
   return <div className={`${ERROR_PANEL_CLASS} min-h-[118px]`} />;
 }
 
-// 없는 아바타는 일시적인 로딩 실패가 아니라 이 주소의 최종 상태라 토스트가 아니라 본문 자리에 알린다.
 // 400 은 id 가 UUID 형식이 아닌 주소라 없는 아바타와 같이 보여준다.
 function ErrorFallback({ error }: FallbackProps) {
   const isNotFound = isApiError(error) && (error.statusCode === 404 || error.statusCode === 400);

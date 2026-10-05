@@ -3,7 +3,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { useInboxSuspense } from '@entities/inbox';
+import { inboxKeys, useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
 // flex-1 — 우측 열에서 남는 높이를 채워 좌측 대표 아바타 카드와 밑단을 맞춘다(어느 쪽이 길든).
@@ -77,7 +77,7 @@ function InboxPanelSkeleton() {
 }
 
 function InboxPanelFallback() {
-  useLoadErrorFallback('알림을 불러오지 못했어요');
+  useLoadErrorFallback('알림을 불러오지 못했어요', inboxKeys.list());
   return (
     <section aria-label="알림" className={CARD_CLASS}>
       <CardHeader />

@@ -5,6 +5,7 @@ import { StatsCard, STATS_CARD_BOX } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
 import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
 import { useDashboardStats } from '../api/useDashboardStats';
+import { dashboardKeys } from '@entities/dashboard';
 import type { DashboardStats } from '@entities/dashboard';
 
 // StatsCard 와 **같은 상자**(STATS_CARD_BOX)에 **같은 줄상자**를 세운다.
@@ -90,7 +91,7 @@ function SingleStatCard({ config }: { config: CardConfig }) {
 }
 
 function StatsLoadErrorToast() {
-  useLoadErrorFallback('통계를 불러오지 못했어요');
+  useLoadErrorFallback('통계를 불러오지 못했어요', dashboardKeys.stats());
   return null;
 }
 

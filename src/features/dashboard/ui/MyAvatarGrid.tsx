@@ -5,6 +5,7 @@ import { cn } from '@shared/lib/cn';
 import {
   AvatarIdentityTile,
   AvatarTagBadge,
+  avatarKeys,
   PersonaStats,
   PersonaStatsSkeleton,
   personaStatRows,
@@ -47,7 +48,7 @@ function MyAvatarGridSkeleton() {
 }
 
 function MyAvatarGridFallback() {
-  useLoadErrorFallback('대표 아바타를 불러오지 못했어요');
+  useLoadErrorFallback('대표 아바타를 불러오지 못했어요', avatarKeys.primary());
   return (
     <section aria-label="대표 아바타" className={CARD_CLASS}>
       <CardHeader />
