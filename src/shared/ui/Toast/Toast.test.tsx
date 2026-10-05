@@ -192,7 +192,7 @@ describe('Toast', () => {
     expect(toast?.querySelectorAll('svg')).toHaveLength(1);
   });
 
-  // left-1/2 만 두면 스택이 뷰포트 절반 폭에 갇혀 모바일에서 긴 토스트가 눌린다(jsdom 은 폭을 못 잰다).
+  // jsdom 은 폭을 못 재서 클래스로 고정한다.
   it('토스트 스택은 내용 폭을 따르고 뷰포트 안에서만 늘어난다', () => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {

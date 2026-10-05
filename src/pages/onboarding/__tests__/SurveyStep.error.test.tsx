@@ -130,7 +130,11 @@ describe('SurveyStep — 에러 처리', () => {
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      expect(await findFailureToast()).toBeInTheDocument();
+      const toast = (await findFailureToast()).closest('[role="status"]');
+      expect(toast).toHaveClass('bg-danger-tint', 'border-danger-mark');
+      expect(
+        screen.getByText('입력한 내용은 그대로 있어요. 잠시 후 다시 만들어 주세요.')
+      ).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
