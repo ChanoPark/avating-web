@@ -5,22 +5,27 @@ import {
   MATCH_REQUEST_ERROR_GREETING_MAX,
 } from './constants';
 
-export const matchRequestStatusSchema = z.enum(['pending', 'accepted', 'rejected', 'expired']);
+export const invitationStatusSchema = z.enum([
+  'PENDING',
+  'ACCEPTED',
+  'IN_PROGRESS',
+  'REJECTED',
+  'CANCELED',
+  'ABORTED',
+  'EXPIRED',
+  'DONE',
+]);
 
-export const matchRequestSchema = z.object({
-  id: z.string().min(1),
-  requesterUserId: z.string().min(1),
-  requesterAvatarId: z.string().min(1),
-  partnerUserId: z.string().min(1),
-  partnerAvatarId: z.string().min(1),
-  greeting: z.string().nullable(),
-  status: matchRequestStatusSchema,
-  rejectionReason: z.string().nullable(),
-  createdAt: z.string(),
-  respondedAt: z.string().nullable(),
-  expiresAt: z.string(),
+const createInvitationResponseSchema = z.object({
+  simulationInvitationId: z.string().min(1),
+  inviterAvatarName: z.string().min(1),
+  inviterAvatarHashtag: z.string().min(1),
+  inviteeAvatarName: z.string().min(1),
+  inviteeAvatarHashtag: z.string().min(1),
+  status: invitationStatusSchema,
+  expiredAt: z.string().datetime({ offset: true }),
 });
-export type MatchRequest = z.infer<typeof matchRequestSchema>;
+export type CreatedInvitation = z.infer<typeof createInvitationResponseSchema>;
 
 export const sendMatchRequestSchema = z
   .object({
@@ -39,4 +44,4 @@ export const sendMatchRequestSchema = z
   .strict();
 export type SendMatchRequestInput = z.infer<typeof sendMatchRequestSchema>;
 
-export const apiResponseMatchRequest = z.object({ data: matchRequestSchema });
+export const apiResponseCreateInvitation = z.object({ data: createInvitationResponseSchema });

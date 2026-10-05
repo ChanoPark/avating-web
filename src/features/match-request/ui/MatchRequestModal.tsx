@@ -7,6 +7,7 @@ import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { cn } from '@shared/lib/cn';
 import { useFocusTrap } from '@shared/lib/useFocusTrap';
 import {
@@ -23,6 +24,20 @@ import { InlineErrorPanel } from './InlineErrorPanel';
 
 // 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
 const NOTICE_CLASS = 'text-caption border-subtle bg-canvas rounded-card border p-3';
+
+const CANNOT_REQUEST_WITH_AVATAR = '이 아바타로는 요청을 보낼 수 없어요';
+
+const CLOSING_ERROR_TITLES: Record<string, string> = {
+  [SERVER_ERROR_CODES.SIMULATION_IN_PROGRESS]: '이미 진행 중인 매칭이 있어요',
+  [SERVER_ERROR_CODES.SIMULATION_AVATAR_NOT_FOUND]: '아바타를 찾을 수 없어요',
+  [SERVER_ERROR_CODES.SIMULATION_INVITE_OWN_AVATAR]: CANNOT_REQUEST_WITH_AVATAR,
+  [SERVER_ERROR_CODES.SIMULATION_INVITE_SAME_AVATAR]: CANNOT_REQUEST_WITH_AVATAR,
+  [SERVER_ERROR_CODES.SIMULATION_NOT_AVATAR_OWNER]: CANNOT_REQUEST_WITH_AVATAR,
+};
+
+function closingErrorTitle(code: string | undefined): string | undefined {
+  return code === undefined ? undefined : CLOSING_ERROR_TITLES[code];
+}
 
 type Props = {
   open: boolean;
@@ -150,27 +165,11 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
       onSuccess?.();
       onClose();
     } catch (err) {
-      if (isApiError(err)) {
-        if (err.statusCode === 409 && err.code === 'PARTNER_BLOCKED') {
-          showToast({ variant: 'error', title: '이 사용자에게는 요청을 보낼 수 없어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 409 && err.code === 'DUPLICATE_REQUEST') {
-          showToast({ variant: 'error', title: '이미 응답 대기 중인 요청이 있어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 404 && err.code === 'AVATAR_NOT_FOUND') {
-          showToast({ variant: 'error', title: '아바타를 찾을 수 없어요' });
-          onClose();
-          return;
-        }
-        if (err.statusCode === 410 && err.code === 'REQUEST_EXPIRED') {
-          showToast({ variant: 'error', title: '요청이 만료됐어요' });
-          onClose();
-          return;
-        }
+      const closingTitle = isApiError(err) ? closingErrorTitle(err.code) : undefined;
+      if (closingTitle !== undefined) {
+        showToast({ variant: 'error', title: closingTitle });
+        onClose();
+        return;
       }
       setInlineError(true);
       showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });

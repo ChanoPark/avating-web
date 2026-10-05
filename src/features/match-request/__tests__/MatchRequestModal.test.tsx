@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { server } from '@shared/mocks/server';
 import {
+  mockCreatedInvitation,
   setMatchRequestScenario,
   resetMatchRequestScenario,
 } from '@shared/mocks/handlers/matchRequest';
@@ -221,7 +222,7 @@ describe('MatchRequestModal', () => {
     it('제출 중(isPending) 에 ESC 키를 눌러도 onClose 가 호출되지 않는다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async () => {
+        http.post(`${BASE_URL}/api/simulations/invitations`, async () => {
           await delay('infinite');
           return HttpResponse.json({});
         })
@@ -241,7 +242,7 @@ describe('MatchRequestModal', () => {
     it('제출 중(isPending) 에 백드롭을 눌러도 onClose 가 호출되지 않는다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async () => {
+        http.post(`${BASE_URL}/api/simulations/invitations`, async () => {
           await delay('infinite');
           return HttpResponse.json({});
         })
@@ -281,28 +282,13 @@ describe('MatchRequestModal', () => {
       });
     });
 
-    it('공백만 입력된 인사말은 trim 되어 빈 인사말과 동일하게 처리된다', async () => {
+    it('공백만 입력된 인사말은 빈 인사말처럼 requestMessage 없이 보낸다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-      let capturedGreeting: unknown = '__not_captured__';
+      let capturedBody: Record<string, unknown> | null = null;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
-          const body = (await request.json()) as { greeting?: unknown };
-          capturedGreeting = body.greeting;
-          return HttpResponse.json({
-            data: {
-              id: 'req-1',
-              requesterUserId: 'me',
-              requesterAvatarId: 'me-hyunwoo',
-              partnerUserId: 'partner',
-              partnerAvatarId: 'avatar-1',
-              greeting: null,
-              status: 'pending',
-              rejectionReason: null,
-              createdAt: '2026-05-06T05:00:00.000Z',
-              respondedAt: null,
-              expiresAt: '2026-05-07T05:00:00.000Z',
-            },
-          });
+        http.post(`${BASE_URL}/api/simulations/invitations`, async ({ request }) => {
+          capturedBody = (await request.json()) as Record<string, unknown>;
+          return HttpResponse.json(mockCreatedInvitation, { status: 201 });
         })
       );
       const user = userEvent.setup();
@@ -313,8 +299,9 @@ describe('MatchRequestModal', () => {
       await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
 
       await waitFor(() => {
-        expect(capturedGreeting).toBeUndefined();
+        expect(capturedBody).not.toBeNull();
       });
+      expect(capturedBody).not.toHaveProperty('requestMessage');
     });
 
     it('100자 초과 시 검증 에러가 표시된다 (Zod max)', async () => {
@@ -386,6 +373,32 @@ describe('MatchRequestModal', () => {
   });
 
   describe('성공 플로우', () => {
+    it('POST /api/simulations/invitations 로 내 아바타·상대 아바타·첫 인사를 보낸다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      let capturedBody: unknown = null;
+      server.use(
+        http.post(`${BASE_URL}/api/simulations/invitations`, async ({ request }) => {
+          capturedBody = await request.json();
+          return HttpResponse.json(mockCreatedInvitation, { status: 201 });
+        })
+      );
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps({ onSuccess })} />);
+      await screen.findByRole('radiogroup');
+      await user.type(screen.getByLabelText(/아바타가 건넬 첫 인사/), '  안녕하세요  ');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalled();
+      });
+      expect(capturedBody).toEqual({
+        inviterAvatarId: mockOwnedAvatars.data.content[0]?.avatarId,
+        inviteeAvatarId: 'avatar-1',
+        requestMessage: '안녕하세요',
+      });
+    });
+
     it('요청 보내기 → MSW 핸들러가 호출되고 성공 토스트가 노출된다', async () => {
       const onClose = vi.fn();
       const onSuccess = vi.fn();
@@ -405,23 +418,9 @@ describe('MatchRequestModal', () => {
     it('전송 중 버튼이 disabled 상태가 된다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async () => {
+        http.post(`${BASE_URL}/api/simulations/invitations`, async () => {
           await delay(200);
-          return HttpResponse.json({
-            data: {
-              id: 'req-1',
-              requesterUserId: 'me',
-              requesterAvatarId: 'me-hyunwoo',
-              partnerUserId: 'partner',
-              partnerAvatarId: 'avatar-1',
-              greeting: null,
-              status: 'pending',
-              rejectionReason: null,
-              createdAt: '2026-05-06T05:00:00.000Z',
-              respondedAt: null,
-              expiresAt: '2026-05-07T05:00:00.000Z',
-            },
-          });
+          return HttpResponse.json(mockCreatedInvitation, { status: 201 });
         })
       );
       const user = userEvent.setup();
@@ -436,8 +435,14 @@ describe('MatchRequestModal', () => {
   });
 
   describe('에러 플로우', () => {
-    it('409 PARTNER_BLOCKED → 안내 토스트, 모달 닫힘', async () => {
-      setMatchRequestScenario('partner-blocked');
+    it.each([
+      ['in-progress', 'SIMULATION_400_002', '이미 진행 중인 매칭이 있어요'],
+      ['avatar-not-found', 'SIMULATION_400_001', '아바타를 찾을 수 없어요'],
+      ['own-avatar', 'SIMULATION_400_005', '이 아바타로는 요청을 보낼 수 없어요'],
+      ['same-avatar', 'SIMULATION_400_006', '이 아바타로는 요청을 보낼 수 없어요'],
+      ['not-avatar-owner', 'SIMULATION_403_001', '이 아바타로는 요청을 보낼 수 없어요'],
+    ] as const)('%s (%s) → 안내 토스트, 모달 닫힘', async (scenario, _code, title) => {
+      setMatchRequestScenario(scenario);
       const onClose = vi.fn();
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
@@ -445,21 +450,7 @@ describe('MatchRequestModal', () => {
       await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
 
       await waitFor(() => {
-        expect(screen.getByText('이 사용자에게는 요청을 보낼 수 없어요')).toBeInTheDocument();
-      });
-      expect(onClose).toHaveBeenCalled();
-    });
-
-    it('409 DUPLICATE_REQUEST → 안내 토스트, 모달 닫힘', async () => {
-      setMatchRequestScenario('duplicate-request');
-      const onClose = vi.fn();
-      const user = userEvent.setup();
-      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
-      await screen.findByRole('radiogroup');
-      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('이미 응답 대기 중인 요청이 있어요')).toBeInTheDocument();
+        expect(screen.getByText(title)).toBeInTheDocument();
       });
       expect(onClose).toHaveBeenCalled();
     });
@@ -476,34 +467,6 @@ describe('MatchRequestModal', () => {
         expect(screen.getByText('잠시 후 다시 시도해주세요')).toBeInTheDocument();
       });
       expect(onClose).not.toHaveBeenCalled();
-    });
-
-    it('404 AVATAR_NOT_FOUND → 안내 토스트, 모달 닫힘', async () => {
-      setMatchRequestScenario('avatar-not-found');
-      const onClose = vi.fn();
-      const user = userEvent.setup();
-      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
-      await screen.findByRole('radiogroup');
-      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('아바타를 찾을 수 없어요')).toBeInTheDocument();
-      });
-      expect(onClose).toHaveBeenCalled();
-    });
-
-    it('410 REQUEST_EXPIRED → 안내 토스트, 모달 닫힘', async () => {
-      setMatchRequestScenario('request-expired');
-      const onClose = vi.fn();
-      const user = userEvent.setup();
-      renderWithProviders(<MatchRequestModal {...defaultProps({ onClose })} />);
-      await screen.findByRole('radiogroup');
-      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
-
-      await waitFor(() => {
-        expect(screen.getByText('요청이 만료됐어요')).toBeInTheDocument();
-      });
-      expect(onClose).toHaveBeenCalled();
     });
 
     it('500 → 인라인 다시 시도 버튼 클릭 시 재요청이 성공한다', async () => {
@@ -643,9 +606,9 @@ describe('MatchRequestModal', () => {
     it('다른 페이지에서 고른 아바타가 페이지를 넘겨도 유지되고 그 avatarId 로 요청한다', async () => {
       let capturedRequester: unknown = null;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
-          const body = (await request.json()) as { requesterAvatarId?: unknown };
-          capturedRequester = body.requesterAvatarId;
+        http.post(`${BASE_URL}/api/simulations/invitations`, async ({ request }) => {
+          const body = (await request.json()) as { inviterAvatarId?: unknown };
+          capturedRequester = body.inviterAvatarId;
           return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
         })
       );
@@ -709,13 +672,13 @@ describe('MatchRequestModal', () => {
       expect(screen.getByRole('radio', { name: /hyunwoo/ })).toBeChecked();
     });
 
-    it('고른 내 아바타의 avatarId 를 requesterAvatarId 로 보낸다', async () => {
+    it('고른 내 아바타의 avatarId 를 inviterAvatarId 로 보낸다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       let capturedRequester: unknown = null;
       server.use(
-        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
-          const body = (await request.json()) as { requesterAvatarId?: unknown };
-          capturedRequester = body.requesterAvatarId;
+        http.post(`${BASE_URL}/api/simulations/invitations`, async ({ request }) => {
+          const body = (await request.json()) as { inviterAvatarId?: unknown };
+          capturedRequester = body.inviterAvatarId;
           return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
         })
       );
