@@ -11,7 +11,6 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-// `.cx-toast` — 글리프가 있는 variant 는 어떤 토스트인지 **글리프**로 말하고, 좌측 컬러 레일은 없다.
 type MarkedVariant = Exclude<ToastVariant, 'failure'>;
 
 const variantMark: Record<MarkedVariant, string> = {
@@ -132,7 +131,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="pointer-events-none fixed inset-x-0 top-6 flex flex-col items-center gap-2 px-4"
+            className="pointer-events-none fixed top-6 left-1/2 flex w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 flex-col items-center gap-2"
             style={{ zIndex: 'var(--z-toast)' }}
           >
             {toasts.map((toast) => (

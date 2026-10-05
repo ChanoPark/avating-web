@@ -192,6 +192,17 @@ describe('Toast', () => {
     expect(toast?.querySelectorAll('svg')).toHaveLength(1);
   });
 
+  // left-1/2 만 두면 스택이 뷰포트 절반 폭에 갇혀 모바일에서 긴 토스트가 눌린다(jsdom 은 폭을 못 잰다).
+  it('토스트 스택은 내용 폭을 따르고 뷰포트 안에서만 늘어난다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'info', title: '스택 확인', durationMs: 0 });
+    });
+    const stack = screen.getByText('스택 확인').closest('[role="status"]')?.parentElement;
+    expect(stack).toHaveClass('left-1/2', '-translate-x-1/2', 'w-max');
+    expect(stack).toHaveClass('max-w-[calc(100vw-2rem)]');
+  });
+
   it('failure 토스트는 자동으로 사라지지 않는다', () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
