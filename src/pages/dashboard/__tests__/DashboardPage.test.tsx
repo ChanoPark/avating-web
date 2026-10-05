@@ -159,9 +159,7 @@ describe('DashboardPage 통합 시나리오', () => {
       });
     });
 
-    // 재시도 액션은 두 열(대표 아바타 | 통계·알림) 바깥에 있어야 한다 — 열 안에 두면 stat 카드만
-    // 내려가 좌측 카드와 윗단이 어긋나고, stat↔알림 세로 간격이 가로 간격(14px)과 달라진다.
-    it('stat 카드 실패 시 "통계 다시 불러오기" 액션이 두 열 바깥에 렌더된다', async () => {
+    it('stat 카드 실패 시 통계 에러 토스트가 하나 뜨고 다시 불러오기 액션은 없다', async () => {
       const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
       server.use(
         http.get(`${BASE_URL}/api/dashboard/stats`, () => {
@@ -171,62 +169,11 @@ describe('DashboardPage 통합 시나리오', () => {
 
       renderDashboard();
 
-      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
-      const statsRegion = screen.getByText('총 매칭 횟수').closest('div.grid');
-      expect(statsRegion).not.toBeNull();
-      expect(statsRegion?.contains(retry)).toBe(false);
-      expect(
-        retry.compareDocumentPosition(screen.getByRole('region', { name: '대표 아바타' }))
-      ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    });
-
-    it('"통계 다시 불러오기" 클릭 시 재요청해 통계가 복구된다', async () => {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-      const user = userEvent.setup();
-      server.use(
-        http.get(`${BASE_URL}/api/dashboard/stats`, () =>
-          HttpResponse.json({ message: '서버 오류' }, { status: 500 })
-        )
-      );
-
-      renderDashboard();
-
-      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
-      server.use(statsHandlers.success);
-      await user.click(retry);
-
-      await waitFor(() => {
-        expect(screen.getByLabelText(/총 매칭 횟수 47회/)).toBeInTheDocument();
-      });
-      expect(screen.queryAllByText('—')).toHaveLength(0);
-      expect(screen.queryByRole('button', { name: '통계 다시 불러오기' })).not.toBeInTheDocument();
-    });
-
-    it('재시도 후에도 실패하면 재요청이 나가고 액션이 다시 노출된다', async () => {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-      const user = userEvent.setup();
-      let callCount = 0;
-      server.use(
-        http.get(`${BASE_URL}/api/dashboard/stats`, () => {
-          callCount++;
-          return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-        })
-      );
-
-      renderDashboard();
-
-      const retry = await screen.findByRole('button', { name: '통계 다시 불러오기' });
-      expect(callCount).toBe(1);
-
-      await user.click(retry);
-
-      await waitFor(() => {
-        expect(callCount).toBe(2);
-      });
-      expect(await screen.findByRole('button', { name: '통계 다시 불러오기' })).toBeInTheDocument();
       await waitFor(() => {
         expect(screen.queryAllByText('—')).toHaveLength(3);
       });
+      expect(screen.getAllByText('통계를 불러오지 못했어요')).toHaveLength(1);
+      expect(screen.queryByRole('button', { name: '통계 다시 불러오기' })).not.toBeInTheDocument();
     });
   });
 

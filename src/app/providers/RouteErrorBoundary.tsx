@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
-import { Suspense, lazy, useEffect, useState } from 'react';
+import { Suspense, lazy } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useLocation } from 'react-router';
 import type { ErrorVariant } from '@pages/error';
 import { isApiError } from '@shared/lib/errors';
 import { useAuthStore } from '@entities/auth/store';
@@ -31,35 +30,19 @@ type RouteErrorBoundaryProps = {
   embedded?: boolean;
 };
 
-/**
- * retryCount 는 경계 바깥에 둔다 — ErrorPage 안에 두면 resetErrorBoundary() 가 fallback 을
- * 언마운트할 때마다 0 으로 리셋되어 재시도 횟수를 못 센다.
- */
 export function RouteErrorBoundary({ children, embedded = false }: RouteErrorBoundaryProps) {
-  const [retryCount, setRetryCount] = useState(0);
-  const location = useLocation();
   const isAuthenticated = useAuthStore((s) => s.status === 'authenticated');
-
-  // 다른 화면으로 넘어가면 이전 화면의 실패 이력은 의미가 없다.
-  useEffect(() => {
-    setRetryCount(0);
-  }, [location.key]);
 
   return (
     <ErrorBoundary
       onError={handleAppCrash}
-      fallbackRender={({ error, resetErrorBoundary }) => (
+      fallbackRender={({ error }) => (
         // 청크 로딩 중 빈 프레임에 스켈레톤을 쓰면 로딩으로 오인된다 — 배경만 채운 빈 면으로 둔다.
         <Suspense fallback={<div className="bg-canvas min-h-screen" />}>
           <ErrorPage
             variant={toErrorVariant(error)}
             embedded={embedded}
-            retryCount={retryCount}
             isAuthenticated={isAuthenticated}
-            onRetry={() => {
-              setRetryCount((c) => c + 1);
-              resetErrorBoundary();
-            }}
           />
         </Suspense>
       )}

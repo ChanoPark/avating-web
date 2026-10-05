@@ -6,6 +6,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { useToast } from '@shared/ui/Toast/useToast';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { isApiError } from '@shared/lib/errors';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { cn } from '@shared/lib/cn';
@@ -57,9 +58,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     data: myAvatars = [],
     isLoading: avatarsLoading,
     isError: avatarsError,
-    refetch: refetchAvatars,
   } = useMyAvatars({ enabled: open });
   const { mutateAsync, isPending } = useSendMatchRequest();
+  useLoadErrorToast(open && avatarsError, '아바타 목록을 불러오지 못했어요');
 
   const firstSelectableId = myAvatars.find((a) => a.canJoinSimulation)?.avatarId ?? '';
 
@@ -225,20 +226,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 <p role="status" aria-live="polite" className="text-caption text-secondary">
                   아바타 목록 불러오는 중…
                 </p>
-              ) : avatarsError ? (
-                <div role="alert" className={cn(NOTICE_CLASS, 'text-danger flex flex-col gap-2')}>
-                  <span>아바타 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void refetchAvatars();
-                    }}
-                    className="text-meta text-action hover:text-action-hover ease-standard cursor-pointer self-start font-medium transition-colors duration-[var(--dur-fast)]"
-                  >
-                    다시 시도
-                  </button>
-                </div>
-              ) : hasNoAvatars ? (
+              ) : avatarsError ? null : hasNoAvatars ? (
                 <p role="status" aria-live="polite" className={cn(NOTICE_CLASS, 'text-warning')}>
                   아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
                 </p>

@@ -1,9 +1,9 @@
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Send, Heart, Users } from 'lucide-react';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { StatsCard, STATS_CARD_BOX } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
+import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
 import { useDashboardStats } from '../api/useDashboardStats';
 import type { DashboardStats } from '@entities/dashboard';
 
@@ -23,7 +23,6 @@ function StatsSkeleton() {
   );
 }
 
-// 정본 S-11-06 STAT — 재시도 버튼은 카드 안이 아니라 묶음 단위 액션에서 한 번에 처리한다.
 function StatsFallback({ config }: { config: CardConfig }) {
   return <StatsCard failed icon={config.Icon} label={config.label} value="" ariaLabel="" />;
 }
@@ -90,28 +89,24 @@ function SingleStatCard({ config }: { config: CardConfig }) {
   );
 }
 
-type StatsGridProps = {
-  resetKey: number;
-  onCardFailed: () => void;
-};
+function StatsLoadErrorToast() {
+  useLoadErrorFallback('통계를 불러오지 못했어요');
+  return null;
+}
 
-// 재시도 액션(StatsRetryAction)은 이 컴포넌트가 아니라 대시보드 상단, 두 열 바깥에서 렌더된다.
-// 우측 열 안에 두면 stat 카드만 아래로 밀려 좌측 '대표 아바타' 카드와 윗단이 어긋나고,
-// stat↔알림 세로 간격도 가로 간격(14px)과 달라진다.
-export function StatsGrid({ resetKey, onCardFailed }: StatsGridProps) {
-  // suspense 쿼리는 error reset boundary 가 리셋되기 전까지 retryOnMount=false 다.
-  // ErrorBoundary 만 resetKeys 로 되살리면 재마운트된 카드가 캐시된 에러를 다시 던져
-  // 재요청 없이 실패 상태로 돌아온다 — reset 을 함께 걸어야 재시도가 실제 fetch 가 된다.
-  const { reset } = useQueryErrorResetBoundary();
+export function StatsGrid() {
+  // 카드 세 장이 같은 조회를 나눠 쓰고 경계는 카드마다 따로라, 토스트는 묶음에서 한 번만 띄운다.
+  const [failed, setFailed] = useState(false);
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+      {failed && <StatsLoadErrorToast />}
       {CARD_CONFIGS.map((config) => (
         <ErrorBoundary
           key={config.label}
-          resetKeys={[resetKey]}
-          onReset={reset}
-          onError={onCardFailed}
+          onError={() => {
+            setFailed(true);
+          }}
           fallbackRender={() => <StatsFallback config={config} />}
         >
           <Suspense fallback={<StatsSkeleton />}>
@@ -119,20 +114,6 @@ export function StatsGrid({ resetKey, onCardFailed }: StatsGridProps) {
           </Suspense>
         </ErrorBoundary>
       ))}
-    </div>
-  );
-}
-
-export function StatsRetryAction({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="flex justify-end">
-      <button
-        type="button"
-        className="text-caption text-action hover:text-action-hover ease-standard cursor-pointer rounded-full px-1 font-medium transition-colors duration-[var(--dur-fast)]"
-        onClick={onRetry}
-      >
-        통계 다시 불러오기
-      </button>
     </div>
   );
 }

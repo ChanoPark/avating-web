@@ -55,13 +55,11 @@ describe('CompleteStep (Avatar Confirm)', () => {
     });
 
     // 조회 실패까지 미완료로 취급하면, 서버가 흔들릴 때마다 완료한 사용자가 온보딩과 이 화면을 왕복하게 된다.
-    it('보유 여부를 확인하지 못하면 화면을 옮기지 않고 오류 상태를 보여준다', async () => {
+    it('보유 여부를 확인하지 못하면 화면을 옮기지 않고 에러 토스트로 알린다', async () => {
       server.use(primaryAvatarHandlers.serverError);
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-      });
+      expect(await screen.findByText('아바타 정보를 불러오지 못했어요')).toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
   });
@@ -238,15 +236,16 @@ describe('CompleteStep (Avatar Confirm)', () => {
       expect(screen.getByRole('table', { name: '성향 지표' })).toBeInTheDocument();
     });
 
-    it('primary 500 응답 시 오류 fallback 이 노출된다', async () => {
+    it('primary 500 응답 시 화면 안 문구 없이 상단 에러 토스트로 알린다', async () => {
       server.use(primaryAvatarHandlers.serverError);
 
       renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete' });
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-      });
-      expect(screen.getByText(/오류가 생겼어요. 다시 시도해주세요./)).toBeInTheDocument();
+      const toast = (await screen.findByText('아바타 정보를 불러오지 못했어요')).closest(
+        '[role="status"]'
+      );
+      expect(toast).toHaveClass('bg-danger-tint');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
   });
 });

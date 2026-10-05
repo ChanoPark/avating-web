@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { InlineError } from '@shared/ui/InlineError';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { useInboxSuspense } from '@entities/inbox';
@@ -76,12 +76,12 @@ function InboxPanelSkeleton() {
   );
 }
 
-// 정본 S-11-06 PANEL — 패널 자리만 교체하고, 카드 머리는 남겨 무엇이 실패했는지 알 수 있게 한다.
-function InboxPanelFallback({ resetErrorBoundary }: FallbackProps) {
+function InboxPanelFallback() {
+  useLoadErrorFallback('알림을 불러오지 못했어요');
   return (
     <section aria-label="알림" className={CARD_CLASS}>
       <CardHeader />
-      <InlineError body="알림을 불러오지 못했어요" onRetry={resetErrorBoundary} />
+      <div className="min-h-[118px]" />
     </section>
   );
 }
@@ -142,7 +142,7 @@ function InboxPanelContent() {
 
 export function InboxPanel() {
   return (
-    <ErrorBoundary fallbackRender={(props) => <InboxPanelFallback {...props} />}>
+    <ErrorBoundary fallbackRender={() => <InboxPanelFallback />}>
       <Suspense fallback={<InboxPanelSkeleton />}>
         <InboxPanelContent />
       </Suspense>

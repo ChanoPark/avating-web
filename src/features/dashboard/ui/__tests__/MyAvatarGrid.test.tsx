@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
@@ -206,29 +205,24 @@ describe('MyAvatarGrid', () => {
   });
 
   describe('오류 상태', () => {
-    it('500 이면 영역 오류를 보여주고, "다시 시도" 로 재요청해 복구한다', async () => {
-      const user = userEvent.setup();
-      let callCount = 0;
+    it('500 이면 카드 머리만 남기고 상단 에러 토스트로 알린다', async () => {
       server.use(
-        http.get(`${BASE_URL}/api/avatars/primary`, () => {
-          callCount++;
-          return callCount === 1
-            ? HttpResponse.json(
-                { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
-                { status: 500 }
-              )
-            : HttpResponse.json(mockPrimaryAvatar);
-        })
+        http.get(`${BASE_URL}/api/avatars/primary`, () =>
+          HttpResponse.json(
+            { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+            { status: 500 }
+          )
+        )
       );
       renderWithProviders(<MyAvatarGrid />);
 
-      expect(await screen.findByText('대표 아바타를 불러오지 못했어요')).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: '다시 시도' }));
-
-      await waitFor(() => {
-        expect(screen.getByText('루시')).toBeInTheDocument();
-      });
-      expect(callCount).toBe(2);
+      const toast = (await screen.findByText('대표 아바타를 불러오지 못했어요')).closest(
+        '[role="status"]'
+      );
+      expect(toast).toHaveClass('bg-danger-tint');
+      expect(screen.getByRole('region', { name: '대표 아바타' })).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
   });
 });

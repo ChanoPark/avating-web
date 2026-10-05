@@ -504,7 +504,7 @@ describe('ConnectStep', () => {
   });
 
   describe('코드 발급 오류', () => {
-    it('서버 오류 시 에러 메시지가 alert role 로 렌더된다', async () => {
+    it('서버 오류 시 서버 문구 대신 고정 문구의 상단 에러 토스트로 알리고 다시 시도 버튼은 없다', async () => {
       server.use(
         http.post(`${BASE_URL}/api/persona/connect/code`, () => {
           return HttpResponse.json({ message: '서버 오류입니다.' }, { status: 500 });
@@ -514,26 +514,11 @@ describe('ConnectStep', () => {
       renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
 
       await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
+        expect(screen.getByText('연결 코드 발급에 실패했어요')).toBeInTheDocument();
       });
-
-      expect(screen.getByRole('alert').textContent).toContain('서버 오류입니다.');
-    });
-
-    it('오류 메시지가 빈 문자열이면 "연결 코드 발급에 실패했어요." 기본 메시지가 노출된다', async () => {
-      server.use(
-        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
-          return HttpResponse.json({ message: '' }, { status: 500 });
-        })
-      );
-
-      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect' });
-
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toBeInTheDocument();
-      });
-
-      expect(screen.getByRole('alert').textContent).toContain('연결 코드 발급에 실패했어요.');
+      expect(screen.queryByText('서버 오류입니다.')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
   });
 

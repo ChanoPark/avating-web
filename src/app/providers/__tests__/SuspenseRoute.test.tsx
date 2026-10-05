@@ -47,12 +47,12 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('500 은 수동 재시도만 주고 문의 경로는 아직 노출하지 않는다', async () => {
+  it('500 은 재시도 버튼도 문의 경로도 두지 않는다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(500, '서버 오류');
@@ -60,7 +60,8 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '문의하기' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '문의하기' })).not.toBeInTheDocument();
     spy.mockRestore();
@@ -116,7 +117,7 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    await screen.findByRole('button', { name: '다시 시도' });
+    await screen.findByRole('heading', { name: '문제가 생겼어요' });
     expect(spy.mock.calls.some((call) => call[0] === '[AppBoundary]')).toBe(true);
     spy.mockRestore();
   });

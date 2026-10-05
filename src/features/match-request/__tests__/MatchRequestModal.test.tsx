@@ -492,35 +492,17 @@ describe('MatchRequestModal', () => {
   });
 
   describe('아바타 목록 분기', () => {
-    it('GET /api/avatars/me 실패 시 에러 알림과 다시 시도 버튼이 노출된다', async () => {
+    it('GET /api/avatars/me 실패 시 상단 에러 토스트로 알리고 다시 시도 버튼은 없다', async () => {
       server.use(ownedAvatarsHandlers.serverError);
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
 
-      await waitFor(() => {
-        expect(screen.getByText(/아바타 목록을 불러오지 못했어요/)).toBeInTheDocument();
-      });
-      expect(screen.getByRole('button', { name: /다시 시도/ })).toBeInTheDocument();
+      const toast = (await screen.findByText('아바타 목록을 불러오지 못했어요')).closest(
+        '[role="status"]'
+      );
+      expect(toast).toHaveClass('bg-danger-tint');
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /다시 시도/ })).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
-    });
-
-    it('아바타 목록 로드 실패 후 다시 시도 버튼 클릭 시 목록이 정상 노출된다', async () => {
-      server.use(ownedAvatarsHandlers.serverError);
-      const user = userEvent.setup();
-      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
-
-      await waitFor(() => {
-        expect(screen.getByText(/아바타 목록을 불러오지 못했어요/)).toBeInTheDocument();
-      });
-
-      server.use(ownedAvatarsHandlers.success);
-      await user.click(screen.getByRole('button', { name: /다시 시도/ }));
-
-      await waitFor(() => {
-        expect(screen.queryByText(/아바타 목록을 불러오지 못했어요/)).not.toBeInTheDocument();
-      });
-      expect(
-        await screen.findByRole('radiogroup', { name: /요청에 사용할 내 아바타/ })
-      ).toBeInTheDocument();
     });
 
     it('아바타가 0 개일 때 "아바타를 먼저 만들어주세요" 안내가 노출되고 제출이 막힌다', async () => {

@@ -11,20 +11,18 @@ import {
   type ToastVariant,
 } from './toastContext';
 
-type MarkedVariant = Exclude<ToastVariant, 'failure'>;
+type MarkedVariant = Exclude<ToastVariant, 'error'>;
 
 const variantMark: Record<MarkedVariant, string> = {
   info: 'text-secondary',
   success: 'text-secondary',
   warning: 'text-secondary',
-  error: 'text-danger',
 };
 
 const variantIcon: Record<MarkedVariant, LucideIcon> = {
   info: Info,
   success: Check,
   warning: CircleAlert,
-  error: X,
 };
 
 const MAX_VISIBLE = 3;
@@ -36,7 +34,6 @@ const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
   success: 3000,
   warning: 0,
   error: 0,
-  failure: 0,
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
@@ -54,7 +51,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
   }, [toast, onDismiss, paused]);
 
   const mark =
-    toast.variant === 'failure'
+    toast.variant === 'error'
       ? null
       : { Icon: variantIcon[toast.variant], color: variantMark[toast.variant] };
 
@@ -70,9 +67,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
       }}
       className={cn(
         'rounded-card pointer-events-auto w-full border px-3.5 py-3',
-        toast.variant === 'failure'
-          ? 'bg-danger-tint border-danger-mark'
-          : 'bg-canvas border-subtle',
+        toast.variant === 'error' ? 'bg-danger-tint border-danger-mark' : 'bg-canvas border-subtle',
         'animate-toast-in max-w-[var(--toast-w)]'
       )}
     >

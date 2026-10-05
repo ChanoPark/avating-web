@@ -1,7 +1,6 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { InlineError } from '@shared/ui/InlineError';
@@ -10,6 +9,7 @@ import { AvatarProfileHeader, AvatarStatsPanel, AvatarMatchPanel } from '@featur
 import { PersonaStatsSkeleton, useAvatarDetailSuspense } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { isApiError } from '@shared/lib/errors';
+import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
 
 function AvatarDetailContent({ id }: { id: string }) {
   const avatar = useAvatarDetailSuspense(id);
@@ -103,18 +103,23 @@ function LoadingFallback() {
   );
 }
 
-// 본문만 실패한 경우라 화면 전체가 아니라 이 패널만 에러로 덮는다(셸·브레드크럼은 유지).
-// 400 은 id 가 UUID 형식이 아닌 주소라 재시도해도 같은 결과다 — 없는 아바타와 같이 보여준다.
-function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
+const ERROR_PANEL_CLASS = 'border-subtle bg-canvas rounded-card border p-6';
+
+function LoadErrorPanel() {
+  useLoadErrorFallback('아바타 정보를 불러오지 못했어요');
+  return <div className={`${ERROR_PANEL_CLASS} min-h-[118px]`} />;
+}
+
+// 없는 아바타는 일시적인 로딩 실패가 아니라 이 주소의 최종 상태라 토스트가 아니라 본문 자리에 알린다.
+// 400 은 id 가 UUID 형식이 아닌 주소라 없는 아바타와 같이 보여준다.
+function ErrorFallback({ error }: FallbackProps) {
   const isNotFound = isApiError(error) && (error.statusCode === 404 || error.statusCode === 400);
+  if (!isNotFound) return <LoadErrorPanel />;
   return (
-    <div className="border-subtle bg-canvas rounded-card border p-6">
+    <div className={ERROR_PANEL_CLASS}>
       <InlineError
-        title={isNotFound ? '아바타를 찾을 수 없어요' : '아바타 정보를 불러오지 못했어요'}
-        body={
-          isNotFound ? '주소가 잘못됐거나 삭제된 아바타일 수 있어요.' : '잠시 후 다시 시도해 주세요'
-        }
-        {...(isNotFound ? {} : { onRetry: resetErrorBoundary })}
+        title="아바타를 찾을 수 없어요"
+        body="주소가 잘못됐거나 삭제된 아바타일 수 있어요."
       />
     </div>
   );
@@ -122,11 +127,9 @@ function ErrorFallback({ error, resetErrorBoundary }: FallbackProps) {
 
 export function AvatarDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
-  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
-  const { reset } = useQueryErrorResetBoundary();
   return (
     <section className="flex flex-col gap-3.5">
-      <ErrorBoundary onReset={reset} FallbackComponent={ErrorFallback}>
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
         <Suspense fallback={<LoadingFallback />}>
           <AvatarDetailContent id={id} />
         </Suspense>

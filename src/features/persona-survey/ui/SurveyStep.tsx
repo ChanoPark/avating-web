@@ -12,6 +12,7 @@ import {
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
 import { useToast } from '@shared/ui/Toast/useToast';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { isApiError } from '@shared/lib/errors';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
@@ -40,12 +41,8 @@ export function SurveyStep() {
   const guardFailed =
     onboardingProgress !== 'creating' && !(onboardingProgress === 'complete' && !hasPrimaryAvatar);
 
-  const {
-    data: questions,
-    isLoading,
-    isError,
-    refetch,
-  } = useSurveyQuestions({ enabled: !guardFailed });
+  const { data: questions, isLoading, isError } = useSurveyQuestions({ enabled: !guardFailed });
+  useLoadErrorToast(isError, '질문을 불러오지 못했어요');
 
   useEffect(() => {
     if (!guardFailed) return;
@@ -145,24 +142,7 @@ export function SurveyStep() {
   }
 
   if (isError || !questions) {
-    return (
-      <div className={WIZARD_BODY}>
-        <p className="text-caption text-danger" role="alert">
-          질문을 불러오지 못했어요. 다시 시도해주세요.
-        </p>
-        <div>
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={() => {
-              void refetch();
-            }}
-          >
-            다시 시도
-          </Button>
-        </div>
-      </div>
-    );
+    return <div className={WIZARD_BODY} />;
   }
 
   const isExpressionsPage = pageIndex === questions.length;
@@ -225,7 +205,7 @@ export function SurveyStep() {
 
   const showFailureToast = (title: string, description: string) => {
     dismissFailureToast();
-    failureToastIdRef.current = showToast({ variant: 'failure', title, description });
+    failureToastIdRef.current = showToast({ variant: 'error', title, description });
   };
 
   // 이름·설명은 이 화면에 입력 필드가 없어 RHF 필드 에러가 안 보인다 — Step 1 로 돌아가라고 알려준다.

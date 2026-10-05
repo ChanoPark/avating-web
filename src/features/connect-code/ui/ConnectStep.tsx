@@ -8,6 +8,7 @@ import { useConnectCode } from '../api/useConnectCode';
 import { useConnectStatus } from '../api/useConnectStatus';
 import { formatCountdown, isExpired } from '../lib/countdown';
 import { useToast } from '@shared/ui/Toast/useToast';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { Button } from '@shared/ui/Button/Button';
 import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 
@@ -34,6 +35,10 @@ export function ConnectStep() {
   } = useConnectCode({ enabled: !guardFailed });
   // 재발급 시 isPending 은 false 다 — isFetching 을 함께 안 보면 만료된 옛 코드가 그대로 보인다.
   const isIssuing = isPending || isFetching;
+  useLoadErrorToast(
+    !guardFailed && !isIssuing && issueError !== null,
+    '연결 코드 발급에 실패했어요'
+  );
   const [localExpired, setLocalExpired] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -143,22 +148,7 @@ export function ConnectStep() {
   }
 
   if (issueError !== null) {
-    const message = issueError.message === '' ? '연결 코드 발급에 실패했어요.' : issueError.message;
-    return (
-      <div className={WIZARD_BODY}>
-        <p
-          role="alert"
-          className="text-caption text-danger border-danger-mark rounded-chip border px-3 py-2"
-        >
-          {message}
-        </p>
-        <div>
-          <Button type="button" variant="secondary" onClick={handleReissue}>
-            다시 시도
-          </Button>
-        </div>
-      </div>
-    );
+    return <div className={WIZARD_BODY} />;
   }
 
   // spec-divergence: 정본(S-02-06)은 Bot 발급 코드를 붙여넣는 흐름이나, 구현은 반대 방향이다.
