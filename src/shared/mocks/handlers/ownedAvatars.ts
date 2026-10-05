@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw';
 import type { OwnedAvatarPage } from '@entities/avatar';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
-const URL = `${BASE_URL}/api/avatars/me`;
+const MY_AVATARS_URL = `${BASE_URL}/api/avatars/me`;
 
 export const mockOwnedAvatars: { data: OwnedAvatarPage } = {
   data: {
@@ -51,13 +51,15 @@ const allBusyOwnedAvatars: OwnedAvatarPage = {
 };
 
 export const ownedAvatarsHandlers = {
-  success: http.get(URL, () => HttpResponse.json(mockOwnedAvatars)),
+  success: http.get(MY_AVATARS_URL, () => HttpResponse.json(mockOwnedAvatars)),
 
-  empty: http.get(URL, () => HttpResponse.json({ data: { content: [], hasNext: false } })),
+  empty: http.get(MY_AVATARS_URL, () =>
+    HttpResponse.json({ data: { content: [], hasNext: false } })
+  ),
 
-  allBusy: http.get(URL, () => HttpResponse.json({ data: allBusyOwnedAvatars })),
+  allBusy: http.get(MY_AVATARS_URL, () => HttpResponse.json({ data: allBusyOwnedAvatars })),
 
-  serverError: http.get(URL, () =>
+  serverError: http.get(MY_AVATARS_URL, () =>
     HttpResponse.json(
       { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
       { status: 500 }

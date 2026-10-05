@@ -3,10 +3,15 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { http, HttpResponse } from 'msw';
+import { server } from '@shared/mocks/server';
+import { mockPrimaryAvatar } from '@shared/mocks/handlers/primaryAvatar';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { useAuthStore } from '@entities/auth/store';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { AppShellLayout } from '../AppShellLayout';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
 const mockToken = {
   accessToken: 'test-access-token',
@@ -525,6 +530,35 @@ describe('AppShellLayout', () => {
         expect(avatar?.className).toContain('h-6.5');
         expect(avatar?.className).toContain('w-6.5');
       });
+    });
+
+    it('대표 아바타의 이름과 identity 색 타일을 보여준다', async () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+
+      expect(await within(nav).findByText(mockPrimaryAvatar.data.name)).toBeInTheDocument();
+      expect(within(nav).getByText('루', { selector: '.rounded-full' })).toHaveClass('bg-id-pink');
+    });
+
+    it('대표 아바타가 없는 회원이면 타일과 이름을 그리지 않는다', async () => {
+      let requested = false;
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/primary`, () => {
+          requested = true;
+          return HttpResponse.json(
+            { code: 'AVATAR_404_002', message: '아바타를 찾을 수 없습니다.' },
+            { status: 404 }
+          );
+        })
+      );
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+
+      await waitFor(() => {
+        expect(requested).toBe(true);
+      });
+      expect(nav.querySelector('.rounded-full.h-6\\.5')).toBeNull();
+      expect(within(nav).queryByText(mockPrimaryAvatar.data.name)).toBeNull();
     });
   });
 });
