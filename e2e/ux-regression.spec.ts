@@ -101,6 +101,37 @@ test('모달은 정본 cx-rise 로 진입한다 — opacity 가 0 에서 시작�
   expect(Math.max(...opacities)).toBe(1);
 });
 
+test('내 아바타 목록은 페이지마다 행 수가 달라도 높이가 같다', async ({ page }) => {
+  await signIn(page);
+  await page.goto('/avatars/avatar-1');
+  await page.getByRole('button', { name: '매칭 요청 보내기' }).click();
+  const group = page.getByRole('radiogroup', { name: '요청에 사용할 내 아바타' });
+  await expect(group).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCSS('opacity', '1');
+
+  const measure = async () => {
+    const groupBox = await group.boundingBox();
+    const nextBox = await page.getByRole('button', { name: '다음 페이지' }).boundingBox();
+    const rows = await group.getByRole('radio').count();
+    // 모바일에서는 클릭할 때 본문이 스크롤되므로 페이저 위치를 목록 위쪽 기준으로 잰다.
+    return {
+      height: groupBox?.height ?? 0,
+      pagerOffset: (nextBox?.y ?? 0) - (groupBox?.y ?? 0),
+      rows,
+    };
+  };
+
+  const first = await measure();
+  await page.getByRole('button', { name: '다음 페이지' }).click();
+  await expect(page.getByText('2 / 2')).toBeVisible();
+  const second = await measure();
+
+  expect(first.rows).toBe(5);
+  expect(second.rows).toBeLessThan(first.rows);
+  expect(second.height).toBe(first.height);
+  expect(second.pagerOffset).toBe(first.pagerOffset);
+});
+
 test('마우스로 모달을 열면 포커스 링이 뜨지 않고, 키보드로 옮기면 뜬다', async ({ page }) => {
   await signIn(page);
   await page.goto('/avatars/avatar-1');

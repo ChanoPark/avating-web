@@ -1,5 +1,5 @@
-export { sendMatchRequestSchema, apiResponseMatchRequest, apiResponseMyAvatars } from './model';
-export type { MatchRequest, SendMatchRequestInput, MyAvatar, MyAvatarsResponse } from './model';
+export { sendMatchRequestSchema, apiResponseCreateInvitation } from './model';
+export type { CreatedInvitation, SendMatchRequestInput } from './model';
 export { matchRequestKeys } from './queryKeys';
 export {
   MATCH_REQUEST_GREETING_MAX,

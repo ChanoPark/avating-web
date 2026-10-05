@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  mockDashboardStats,
-  mockDashboardStatsPartialFail,
-  mockCreateSessionResponse,
-} from '../dashboard';
+import { mockDashboardStats, mockDashboardStatsPartialFail } from '../dashboard';
 
 describe('dashboard MSW 핸들러 픽스처 정합성', () => {
   describe('mockDashboardStats', () => {
@@ -35,23 +31,6 @@ describe('dashboard MSW 핸들러 픽스처 정합성', () => {
     it('다른 필드는 정상 범위이다', () => {
       expect(mockDashboardStatsPartialFail.data.totalDispatched).toBeGreaterThanOrEqual(0);
       expect(mockDashboardStatsPartialFail.data.matches).toBeGreaterThanOrEqual(0);
-    });
-  });
-
-  describe('mockCreateSessionResponse', () => {
-    it('sessionId 가 non-empty string 이다', () => {
-      expect(typeof mockCreateSessionResponse.data.sessionId).toBe('string');
-      expect(mockCreateSessionResponse.data.sessionId.length).toBeGreaterThan(0);
-    });
-
-    it('avatarId 가 non-empty string 이다', () => {
-      expect(typeof mockCreateSessionResponse.data.avatarId).toBe('string');
-      expect(mockCreateSessionResponse.data.avatarId.length).toBeGreaterThan(0);
-    });
-
-    it('startedAt 이 ISO8601 형식이다', () => {
-      const date = new Date(mockCreateSessionResponse.data.startedAt);
-      expect(isNaN(date.getTime())).toBe(false);
     });
   });
 });

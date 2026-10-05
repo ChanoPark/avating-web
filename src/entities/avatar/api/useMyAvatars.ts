@@ -1,18 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
-import { apiResponseMyAvatars, matchRequestKeys } from '@entities/match-request';
-import type { MyAvatarsResponse } from '@entities/match-request';
 import type { ApiError } from '@shared/lib/errors';
+import { apiResponseOwnedAvatarPage } from '../model';
+import type { OwnedAvatar } from '../model';
+import { avatarKeys } from '../queryKeys';
 
-async function fetchMyAvatars(): Promise<MyAvatarsResponse> {
-  const response = await http.get('/api/me/avatars');
-  const parsed = apiResponseMyAvatars.parse(response.data);
-  return parsed.data;
+const MY_AVATARS_PAGE_SIZE = 50;
+
+async function fetchMyAvatars(): Promise<OwnedAvatar[]> {
+  const response = await http.get('/api/avatars/me', { params: { size: MY_AVATARS_PAGE_SIZE } });
+  return apiResponseOwnedAvatarPage.parse(response.data).data.content;
 }
 
 export function useMyAvatars(options: { enabled?: boolean } = {}) {
-  return useQuery<MyAvatarsResponse, ApiError>({
-    queryKey: matchRequestKeys.myAvatars(),
+  return useQuery<OwnedAvatar[], ApiError>({
+    queryKey: avatarKeys.myAvatars(),
     queryFn: fetchMyAvatars,
     retry: false,
     staleTime: 30_000,

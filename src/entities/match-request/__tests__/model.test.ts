@@ -1,57 +1,53 @@
 import { describe, it, expect } from 'vitest';
 import {
-  matchRequestSchema,
-  matchRequestStatusSchema,
-  myAvatarSchema,
+  apiResponseCreateInvitation,
+  invitationStatusSchema,
   sendMatchRequestSchema,
 } from '../model';
 
-describe('matchRequestStatusSchema', () => {
-  it.each([['pending'], ['accepted'], ['rejected'], ['expired']] as const)(
-    '%s 는 valid 상태',
-    (status) => {
-      expect(matchRequestStatusSchema.parse(status)).toBe(status);
-    }
-  );
+describe('invitationStatusSchema (서버 InvitationStatus)', () => {
+  it.each([
+    ['PENDING'],
+    ['ACCEPTED'],
+    ['IN_PROGRESS'],
+    ['REJECTED'],
+    ['CANCELED'],
+    ['ABORTED'],
+    ['EXPIRED'],
+    ['DONE'],
+  ] as const)('%s 는 valid 상태', (status) => {
+    expect(invitationStatusSchema.parse(status)).toBe(status);
+  });
 
   it('알 수 없는 상태는 reject', () => {
-    expect(() => matchRequestStatusSchema.parse('archived')).toThrow();
+    expect(() => invitationStatusSchema.parse('pending')).toThrow();
   });
 });
 
-describe('matchRequestSchema', () => {
-  it('완전한 payload 를 parse 한다', () => {
-    const payload = {
-      id: 'req-1',
-      requesterUserId: 'u-a',
-      requesterAvatarId: 'av-a',
-      partnerUserId: 'u-b',
-      partnerAvatarId: 'av-b',
-      greeting: '안녕하세요',
-      status: 'pending',
-      rejectionReason: null,
-      createdAt: '2026-05-06T05:00:00.000Z',
-      respondedAt: null,
-      expiresAt: '2026-05-07T05:00:00.000Z',
-    };
-    expect(() => matchRequestSchema.parse(payload)).not.toThrow();
+describe('apiResponseCreateInvitation (서버 CreateInvitationResponse)', () => {
+  const created = {
+    simulationInvitationId: '123e4567-e89b-12d3-a456-426655440000',
+    inviterAvatarName: 'test1',
+    inviterAvatarHashtag: 'A3K9Z7',
+    inviteeAvatarName: 'test2',
+    inviteeAvatarHashtag: 'B7X2M4',
+    status: 'PENDING',
+    expiredAt: '2026-07-28T12:00:00+09:00',
+  };
+
+  it('실서버 응답 형상을 그대로 파싱한다 (expiredAt 은 +09:00 오프셋)', () => {
+    expect(apiResponseCreateInvitation.parse({ data: created }).data).toEqual(created);
   });
 
-  it('greeting=null 도 허용한다', () => {
-    const payload = {
-      id: 'req-1',
-      requesterUserId: 'u-a',
-      requesterAvatarId: 'av-a',
-      partnerUserId: 'u-b',
-      partnerAvatarId: 'av-b',
-      greeting: null,
-      status: 'rejected',
-      rejectionReason: '관심사가 달라요',
-      createdAt: '2026-05-06T05:00:00.000Z',
-      respondedAt: '2026-05-06T05:30:00.000Z',
-      expiresAt: '2026-05-07T05:00:00.000Z',
-    };
-    expect(() => matchRequestSchema.parse(payload)).not.toThrow();
+  it('expiredAt 이 ISO-8601 이 아니면 거부한다', () => {
+    expect(() =>
+      apiResponseCreateInvitation.parse({ data: { ...created, expiredAt: '내일' } })
+    ).toThrow();
+  });
+
+  it('simulationInvitationId 가 빠지면 거부한다', () => {
+    const { simulationInvitationId: _omitted, ...rest } = created;
+    expect(() => apiResponseCreateInvitation.parse({ data: rest })).toThrow();
   });
 });
 
@@ -92,23 +88,5 @@ describe('sendMatchRequestSchema', () => {
       greeting: '   ',
     });
     expect(result.greeting).toBeUndefined();
-  });
-});
-
-describe('myAvatarSchema', () => {
-  it('busy + isPrimary 필드를 포함한다', () => {
-    const result = myAvatarSchema.parse({
-      id: 'me-1',
-      initials: 'HW',
-      name: 'hyunwoo',
-      level: 1,
-      status: 'online',
-      verified: true,
-      type: '내향·분석형',
-      isPrimary: true,
-      busy: false,
-    });
-    expect(result.isPrimary).toBe(true);
-    expect(result.busy).toBe(false);
   });
 });

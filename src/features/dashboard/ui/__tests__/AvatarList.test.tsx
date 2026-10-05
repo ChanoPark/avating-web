@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -56,7 +56,7 @@ describe('AvatarList (GET /api/avatars/candidates)', () => {
     expect(onAvatarClick).toHaveBeenCalledWith('22222222-2222-4222-8222-222222222222');
   });
 
-  it('"매칭" 버튼 클릭 시 해당 아바타 이름으로 DispatchModal 이 열린다', async () => {
+  it('"매칭" 버튼 클릭 시 상세 화면과 같은 매칭 요청 모달이 그 후보로 열린다', async () => {
     const user = userEvent.setup();
     server.use(simCandidatesHandlers.success);
     renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
@@ -66,7 +66,32 @@ describe('AvatarList (GET /api/avatars/candidates)', () => {
     await user.click(first!);
 
     const dialog = await screen.findByRole('dialog');
-    expect(within(dialog).getByText(/하늘 아바타와 매칭을 시작할까요/)).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('heading', { name: '이 아바타에게 소개팅을 요청할까요?' })
+    ).toBeInTheDocument();
+    expect(within(dialog).getByText('하늘')).toBeInTheDocument();
+    expect(within(dialog).getByText('#H7K2MP')).toBeInTheDocument();
+    expect(
+      await within(dialog).findByRole('radiogroup', { name: '요청에 사용할 내 아바타' })
+    ).toBeInTheDocument();
+  });
+
+  it('모달을 닫으면 포커스가 눌렀던 "매칭" 버튼으로 돌아간다', async () => {
+    const user = userEvent.setup();
+    server.use(simCandidatesHandlers.success);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    await screen.findByRole('list', { name: '추천 아바타 목록' });
+    const [first] = screen.getAllByRole('button', { name: /^매칭$/ });
+    await user.click(first!);
+    await screen.findByRole('dialog');
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    expect(first).toHaveFocus();
   });
 
   it('후보가 없으면 빈 상태를 보여주고 필터 초기화는 없다', async () => {

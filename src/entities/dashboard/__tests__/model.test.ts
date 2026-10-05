@@ -1,11 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  dashboardStatsSchema,
-  createSessionRequestSchema,
-  createSessionResponseSchema,
-  apiResponseDashboardStats,
-  apiResponseCreateSession,
-} from '../model';
+import { dashboardStatsSchema, apiResponseDashboardStats } from '../model';
 
 const validDashboardStats = {
   totalDispatched: 47,
@@ -79,42 +73,6 @@ describe('dashboardStatsSchema', () => {
   });
 });
 
-describe('createSessionRequestSchema', () => {
-  it('정상 avatarId 로 파싱된다', () => {
-    const result = createSessionRequestSchema.parse({ avatarId: 'avatar-1' });
-    expect(result.avatarId).toBe('avatar-1');
-  });
-
-  it('빈 avatarId 는 실패한다', () => {
-    expect(() => createSessionRequestSchema.parse({ avatarId: '' })).toThrow();
-  });
-
-  it('avatarId 필드 누락 시 실패한다', () => {
-    expect(() => createSessionRequestSchema.parse({})).toThrow();
-  });
-});
-
-describe('createSessionResponseSchema', () => {
-  it('정상 응답을 파싱한다', () => {
-    const result = createSessionResponseSchema.parse({
-      sessionId: 'session-123',
-      avatarId: 'avatar-1',
-      startedAt: '2026-04-27T00:00:00.000Z',
-    });
-    expect(result.sessionId).toBe('session-123');
-  });
-
-  it('sessionId 빈 문자열은 실패한다', () => {
-    expect(() =>
-      createSessionResponseSchema.parse({
-        sessionId: '',
-        avatarId: 'avatar-1',
-        startedAt: '2026-04-27T00:00:00.000Z',
-      })
-    ).toThrow();
-  });
-});
-
 describe('apiResponseDashboardStats envelope', () => {
   it('data 필드 포함 시 파싱된다', () => {
     const result = apiResponseDashboardStats.parse({ data: validDashboardStats });
@@ -127,22 +85,5 @@ describe('apiResponseDashboardStats envelope', () => {
 
   it('data 가 잘못된 형태이면 throw 한다', () => {
     expect(() => apiResponseDashboardStats.parse({ data: { totalDispatched: -1 } })).toThrow();
-  });
-});
-
-describe('apiResponseCreateSession envelope', () => {
-  it('data 필드 포함 시 파싱된다', () => {
-    const result = apiResponseCreateSession.parse({
-      data: {
-        sessionId: 'session-123',
-        avatarId: 'avatar-1',
-        startedAt: '2026-04-27T00:00:00.000Z',
-      },
-    });
-    expect(result.data.sessionId).toBe('session-123');
-  });
-
-  it('data 필드 누락 시 throw 한다', () => {
-    expect(() => apiResponseCreateSession.parse({})).toThrow();
   });
 });
