@@ -34,7 +34,6 @@ type Props = {
 
 export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onSuccess }: Props) {
   const titleId = useId();
-  const descriptionId = useId();
   const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
   const greetingHelpId = useId();
@@ -197,20 +196,14 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        aria-describedby={descriptionId}
         tabIndex={-1}
         className="bg-canvas border-subtle animate-modal-in relative flex h-full max-h-full w-full max-w-none flex-col overflow-hidden border-0 sm:h-auto sm:max-w-140 sm:rounded-[16px] sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
-          <div className="flex min-w-0 flex-col gap-1.5">
-            <h2 id={titleId} className="text-lead text-primary">
-              이 아바타에게 소개팅을 요청할까요?
-            </h2>
-            <p id={descriptionId} className="text-caption text-secondary">
-              요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
-            </p>
-          </div>
+          <h2 id={titleId} className="text-lead text-primary min-w-0">
+            이 아바타에게 소개팅을 요청할까요?
+          </h2>
           <button
             type="button"
             aria-label="닫기"
@@ -234,12 +227,9 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             <PartnerAvatarCard partner={partner} />
 
             <div className="flex flex-col gap-2">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-caption text-secondary font-medium">
-                  요청에 사용할 내 아바타
-                </span>
-                <span className="text-meta text-secondary">1개 선택</span>
-              </div>
+              <span className="text-caption text-secondary font-medium">
+                요청에 사용할 내 아바타
+              </span>
               {avatarsLoading ? (
                 <p role="status" aria-live="polite" className="text-caption text-secondary">
                   아바타 목록 불러오는 중…
@@ -370,10 +360,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
             </Button>
           </div>
         </form>
-
-        <p className="text-meta text-secondary px-6 pb-4 text-center">
-          24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.
-        </p>
       </div>
     </div>,
     document.body

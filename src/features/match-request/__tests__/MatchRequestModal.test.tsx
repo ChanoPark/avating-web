@@ -48,6 +48,17 @@ describe('MatchRequestModal', () => {
       expect(screen.queryByText('MATCH REQUEST')).not.toBeInTheDocument();
     });
 
+    it('제목 아래 안내문·"1개 선택"·만료 각주는 두지 않는다', async () => {
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const dialog = await screen.findByRole('dialog');
+      await within(dialog).findByRole('radiogroup');
+
+      expect(within(dialog).queryByText(/수락하면 두 아바타가 대화를 시작해요/)).toBeNull();
+      expect(within(dialog).queryByText('1개 선택')).toBeNull();
+      expect(within(dialog).queryByText(/24시간 안에 응답이 없으면/)).toBeNull();
+      expect(dialog).not.toHaveAttribute('aria-describedby');
+    });
+
     it('open=false 일 때 dialog 가 렌더되지 않는다', () => {
       renderWithProviders(<MatchRequestModal {...defaultProps({ open: false })} />);
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
@@ -65,15 +76,12 @@ describe('MatchRequestModal', () => {
       expect(within(dialog).queryByText('온라인')).not.toBeInTheDocument();
     });
 
-    it('Sheet 규격(560 · radius 16 · hairline)과 각주가 적용된다 — 640 아래에선 화면 전체', async () => {
+    it('Sheet 규격(560 · radius 16 · hairline)이 적용된다 — 640 아래에선 화면 전체', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       const dialog = await screen.findByRole('dialog');
       expect(dialog).toHaveClass('sm:max-w-140');
       expect(dialog).toHaveClass('sm:rounded-[16px]');
       expect(dialog).toHaveClass('border-subtle');
-      expect(
-        within(dialog).getByText('24시간 안에 응답이 없으면 요청은 자동으로 만료돼요.')
-      ).toBeInTheDocument();
     });
 
     it('내 아바타 라디오 그룹이 로드되고 첫 항목이 기본 선택된다', async () => {
@@ -568,6 +576,107 @@ describe('MatchRequestModal', () => {
         expect(screen.getByText(/매칭 중인 아바타가 끝나면 다시 시도해주세요/)).toBeInTheDocument();
       });
       expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
+    });
+  });
+
+  describe('내 아바타 목록 페이지 (5개씩)', () => {
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+    const useOwnedAvatars = (content: typeof mockOwnedAvatars.data.content) => {
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/me`, () =>
+          HttpResponse.json({ data: { content, hasNext: false } })
+        )
+      );
+    };
+
+    it('5개를 넘으면 첫 5개만 보이고, 다음 페이지에서 나머지가 보인다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+
+      expect(within(radioGroup).getAllByRole('radio')).toHaveLength(5);
+      expect(screen.getByText('1 / 2')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '이전 페이지' })).toBeDisabled();
+
+      await user.click(screen.getByRole('button', { name: '다음 페이지' }));
+
+      expect(screen.getByText('2 / 2')).toBeInTheDocument();
+      expect(
+        within(radioGroup)
+          .getAllByRole('radio')
+          .map((radio) => (radio as HTMLInputElement).value)
+      ).toEqual(mockOwnedAvatars.data.content.slice(5).map((a) => a.avatarId));
+      expect(screen.getByRole('button', { name: '다음 페이지' })).toBeDisabled();
+
+      await user.click(screen.getByRole('button', { name: '이전 페이지' }));
+      expect(within(radioGroup).getAllByRole('radio')).toHaveLength(5);
+    });
+
+    it('5개 이하면 페이지 이동 버튼을 그리지 않는다', async () => {
+      useOwnedAvatars(mockOwnedAvatars.data.content.slice(0, 5));
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+
+      expect(within(radioGroup).getAllByRole('radio')).toHaveLength(5);
+      expect(screen.queryByRole('button', { name: '다음 페이지' })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '이전 페이지' })).not.toBeInTheDocument();
+    });
+
+    it('페이지를 넘겨도 목록은 다시 조회하지 않는다', async () => {
+      let calls = 0;
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/me`, () => {
+          calls += 1;
+          return HttpResponse.json(mockOwnedAvatars);
+        })
+      );
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+
+      await user.click(screen.getByRole('button', { name: '다음 페이지' }));
+      await user.click(screen.getByRole('button', { name: '이전 페이지' }));
+
+      expect(calls).toBe(1);
+    });
+
+    it('다른 페이지에서 고른 아바타가 페이지를 넘겨도 유지되고 그 avatarId 로 요청한다', async () => {
+      let capturedRequester: unknown = null;
+      server.use(
+        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
+          const body = (await request.json()) as { requesterAvatarId?: unknown };
+          capturedRequester = body.requesterAvatarId;
+          return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+        })
+      );
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+
+      await user.click(screen.getByRole('button', { name: '다음 페이지' }));
+      await user.click(screen.getByRole('radio', { name: /새벽/ }));
+      await user.click(screen.getByRole('button', { name: '이전 페이지' }));
+      expect(screen.getByRole('radio', { name: /hyunwoo/ })).not.toBeChecked();
+
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(capturedRequester).toBe(mockOwnedAvatars.data.content[6]?.avatarId);
+      });
+    });
+
+    it('기본 선택 아바타가 뒤 페이지에 있으면 그 페이지로 열린다', async () => {
+      useOwnedAvatars(
+        mockOwnedAvatars.data.content.map((avatar, index) => ({
+          ...avatar,
+          canJoinSimulation: index >= 5,
+        }))
+      );
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+
+      expect(await screen.findByText('2 / 2')).toBeInTheDocument();
+      expect(screen.getByRole('radio', { name: /겨울/ })).toBeChecked();
     });
   });
 

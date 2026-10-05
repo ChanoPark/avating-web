@@ -4,7 +4,7 @@ import { createElement, type ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '@shared/mocks/server';
-import { ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
+import { mockOwnedAvatars, ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
 import { useMyAvatars } from '../useMyAvatars';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
@@ -26,7 +26,9 @@ describe('useMyAvatars', () => {
     await waitFor(() => {
       expect(result.current.isSuccess).toBe(true);
     });
-    expect(result.current.data?.map((a) => a.name)).toEqual(['hyunwoo', 'hyun_night', 'hyunsoft']);
+    expect(result.current.data?.map((a) => a.name)).toEqual(
+      mockOwnedAvatars.data.content.map((a) => a.name)
+    );
     expect(result.current.data?.[1]?.canJoinSimulation).toBe(false);
   });
 
