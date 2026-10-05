@@ -96,7 +96,6 @@ function StatsLoadErrorToast() {
 }
 
 export function StatsGrid() {
-  // 카드 세 장이 같은 조회를 나눠 쓰고 경계는 카드마다 따로라, 토스트는 묶음에서 한 번만 띄운다.
   const [failed, setFailed] = useState(false);
 
   return (
