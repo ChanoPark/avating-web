@@ -261,7 +261,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                   <input type="hidden" {...register('requesterAvatarId')} />
                   <MyAvatarRadioGroup
                     avatars={myAvatars}
-                    value={requesterAvatarId}
+                    value={requesterAvatarId === '' ? firstSelectableId : requesterAvatarId}
                     onChange={(next) => {
                       setValue('requesterAvatarId', next, { shouldValidate: true });
                     }}

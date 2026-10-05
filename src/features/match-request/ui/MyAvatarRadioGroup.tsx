@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useId, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Tag } from '@shared/ui/Tag';
 import { cn } from '@shared/lib/cn';
@@ -30,16 +30,14 @@ export function MyAvatarRadioGroup({
   'aria-describedby': ariaDescribedBy,
 }: Props) {
   const groupId = useId();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() => {
+    const selectedIndex = avatars.findIndex((avatar) => avatar.avatarId === value);
+    return selectedIndex < 0 ? 0 : Math.floor(selectedIndex / PAGE_SIZE);
+  });
 
   const pageCount = Math.ceil(avatars.length / PAGE_SIZE);
   const currentPage = Math.min(page, Math.max(0, pageCount - 1));
   const visibleAvatars = avatars.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
-
-  const selectedIndex = avatars.findIndex((avatar) => avatar.avatarId === value);
-  useEffect(() => {
-    if (selectedIndex >= 0) setPage(Math.floor(selectedIndex / PAGE_SIZE));
-  }, [selectedIndex]);
 
   return (
     <div className="flex flex-col gap-2">

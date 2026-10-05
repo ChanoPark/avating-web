@@ -665,7 +665,7 @@ describe('MatchRequestModal', () => {
       });
     });
 
-    it('기본 선택 아바타가 뒤 페이지에 있으면 그 페이지로 열린다', async () => {
+    it('기본 선택 아바타가 뒤 페이지에 있으면 그 페이지로 열리고 포커스가 그 라디오로 간다', async () => {
       useOwnedAvatars(
         mockOwnedAvatars.data.content.map((avatar, index) => ({
           ...avatar,
@@ -676,7 +676,11 @@ describe('MatchRequestModal', () => {
       await screen.findByRole('radiogroup');
 
       expect(await screen.findByText('2 / 2')).toBeInTheDocument();
-      expect(screen.getByRole('radio', { name: /겨울/ })).toBeChecked();
+      const selected = screen.getByRole('radio', { name: /겨울/ });
+      expect(selected).toBeChecked();
+      await waitFor(() => {
+        expect(selected).toHaveFocus();
+      });
     });
   });
 
