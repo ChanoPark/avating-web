@@ -1,10 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  matchRequestSchema,
-  matchRequestStatusSchema,
-  myAvatarSchema,
-  sendMatchRequestSchema,
-} from '../model';
+import { matchRequestSchema, matchRequestStatusSchema, sendMatchRequestSchema } from '../model';
 
 describe('matchRequestStatusSchema', () => {
   it.each([['pending'], ['accepted'], ['rejected'], ['expired']] as const)(
@@ -92,23 +87,5 @@ describe('sendMatchRequestSchema', () => {
       greeting: '   ',
     });
     expect(result.greeting).toBeUndefined();
-  });
-});
-
-describe('myAvatarSchema', () => {
-  it('busy + isPrimary 필드를 포함한다', () => {
-    const result = myAvatarSchema.parse({
-      id: 'me-1',
-      initials: 'HW',
-      name: 'hyunwoo',
-      level: 1,
-      status: 'online',
-      verified: true,
-      type: '내향·분석형',
-      isPrimary: true,
-      busy: false,
-    });
-    expect(result.isPrimary).toBe(true);
-    expect(result.busy).toBe(false);
   });
 });

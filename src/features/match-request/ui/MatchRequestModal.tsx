@@ -5,7 +5,6 @@ import { createPortal } from 'react-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
-import { Tag } from '@shared/ui/Tag';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { isApiError } from '@shared/lib/errors';
 import { cn } from '@shared/lib/cn';
@@ -43,15 +42,14 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   const { show: showToast } = useToast();
   const {
-    data: myAvatarsData,
+    data: myAvatars = [],
     isLoading: avatarsLoading,
     isError: avatarsError,
     refetch: refetchAvatars,
   } = useMyAvatars({ enabled: open });
   const { mutateAsync, isPending } = useSendMatchRequest();
 
-  const myAvatars = myAvatarsData?.items ?? [];
-  const firstSelectableId = myAvatars.find((a) => !a.busy)?.id ?? '';
+  const firstSelectableId = myAvatars.find((a) => a.canJoinSimulation)?.avatarId ?? '';
 
   const [inlineError, setInlineError] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -132,7 +130,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
 
   const hasNoAvatars = !avatarsLoading && !avatarsError && myAvatars.length === 0;
   const allBusy =
-    !avatarsLoading && !avatarsError && myAvatars.length > 0 && myAvatars.every((a) => a.busy);
+    !avatarsLoading &&
+    !avatarsError &&
+    myAvatars.length > 0 &&
+    myAvatars.every((a) => !a.canJoinSimulation);
   const isGreetingOverLimit = greetingLength > MATCH_REQUEST_GREETING_MAX;
   const isLoading = isSubmitting || isPending;
   const submitDisabled =
@@ -202,26 +203,24 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <div className="flex items-start justify-between gap-2 px-6 pt-4.5">
-          <Tag>MATCH REQUEST</Tag>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h2 id={titleId} className="text-lead text-primary">
+              이 아바타에게 소개팅을 요청할까요?
+            </h2>
+            <p id={descriptionId} className="text-caption text-secondary">
+              요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
+            </p>
+          </div>
           <button
             type="button"
             aria-label="닫기"
             onClick={() => {
               if (!isPending) onClose();
             }}
-            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9"
+            className="text-muted hover:bg-raised hover:text-primary rounded-chip ease-standard -mt-2 -mr-2 flex size-11 shrink-0 cursor-pointer items-center justify-center transition-colors duration-[var(--dur-fast)] md:-mt-1.5 md:size-9"
           >
             <X size={16} strokeWidth={1.5} aria-hidden="true" />
           </button>
-        </div>
-
-        <div className="flex flex-col gap-1.5 px-6 pt-3.5">
-          <h2 id={titleId} className="text-lead text-primary">
-            이 아바타에게 소개팅을 요청할까요?
-          </h2>
-          <p id={descriptionId} className="text-caption text-secondary">
-            요청을 받은 사용자가 수락하면 두 아바타가 대화를 시작해요.
-          </p>
         </div>
 
         <form

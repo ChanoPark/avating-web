@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { avatarBaseSchema } from '@entities/avatar/model';
 import {
   MATCH_REQUEST_GREETING_MAX,
   MATCH_REQUEST_ERROR_REQUESTER_EMPTY,
@@ -41,14 +40,3 @@ export const sendMatchRequestSchema = z
 export type SendMatchRequestInput = z.infer<typeof sendMatchRequestSchema>;
 
 export const apiResponseMatchRequest = z.object({ data: matchRequestSchema });
-
-export const myAvatarSchema = avatarBaseSchema.extend({
-  type: z.string().min(1),
-  isPrimary: z.boolean(),
-  busy: z.boolean(),
-});
-export type MyAvatar = z.infer<typeof myAvatarSchema>;
-
-const myAvatarsResponseSchema = z.object({ items: z.array(myAvatarSchema) });
-export const apiResponseMyAvatars = z.object({ data: myAvatarsResponseSchema });
-export type MyAvatarsResponse = z.infer<typeof myAvatarsResponseSchema>;

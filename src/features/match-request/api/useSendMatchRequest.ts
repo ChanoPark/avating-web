@@ -6,6 +6,8 @@ import {
   sendMatchRequestSchema,
 } from '@entities/match-request';
 import type { MatchRequest, SendMatchRequestInput } from '@entities/match-request';
+import { avatarKeys } from '@entities/avatar';
+import type { AvatarSimCandidateList } from '@entities/avatar';
 import type { ApiError } from '@shared/lib/errors';
 
 async function sendMatchRequest(input: SendMatchRequestInput): Promise<MatchRequest> {
@@ -21,9 +23,22 @@ export function useSendMatchRequest() {
 
   return useMutation<MatchRequest, ApiError, SendMatchRequestInput>({
     mutationFn: sendMatchRequest,
-    onSuccess: () => {
+    onSuccess: (_request, { partnerAvatarId }) => {
       void queryClient.invalidateQueries({ queryKey: matchRequestKeys.sent() });
-      void queryClient.invalidateQueries({ queryKey: matchRequestKeys.myAvatars() });
+      void queryClient.invalidateQueries({ queryKey: avatarKeys.myAvatars() });
+      // 후보 목록은 랜덤 조회라 무효화해 다시 받으면 카드가 섞인다.
+      queryClient.setQueriesData<AvatarSimCandidateList>(
+        { queryKey: avatarKeys.candidatesAll() },
+        (list) =>
+          list && {
+            ...list,
+            items: list.items.map((candidate) =>
+              candidate.avatarId === partnerAvatarId
+                ? { ...candidate, canRequestSimulation: false }
+                : candidate
+            ),
+          }
+      );
     },
     throwOnError: false,
   });

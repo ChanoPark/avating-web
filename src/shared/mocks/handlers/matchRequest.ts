@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { z } from 'zod';
-import type { MatchRequest, MyAvatar } from '@entities/match-request';
+import type { MatchRequest } from '@entities/match-request';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 
@@ -18,10 +18,7 @@ export type MatchRequestScenario =
   | 'request-expired'
   | 'server-error';
 
-export type MyAvatarsScenario = 'success' | 'no-avatars' | 'all-busy' | 'load-error';
-
 let scenario: MatchRequestScenario = 'success';
-let avatarsScenario: MyAvatarsScenario = 'success';
 
 export function setMatchRequestScenario(next: MatchRequestScenario): void {
   scenario = next;
@@ -29,52 +26,7 @@ export function setMatchRequestScenario(next: MatchRequestScenario): void {
 
 export function resetMatchRequestScenario(): void {
   scenario = 'success';
-  avatarsScenario = 'success';
 }
-
-export function setMyAvatarsScenario(next: MyAvatarsScenario): void {
-  avatarsScenario = next;
-}
-
-const mockMyAvatars: { data: { items: MyAvatar[] } } = {
-  data: {
-    items: [
-      {
-        id: 'me-hyunwoo',
-        initials: 'HW',
-        name: 'hyunwoo',
-        level: 3,
-        status: 'online',
-        verified: true,
-        type: '내향·분석형',
-        isPrimary: true,
-        busy: false,
-      },
-      {
-        id: 'me-hyun-night',
-        initials: 'HN',
-        name: 'hyun_night',
-        level: 2,
-        status: 'busy',
-        verified: false,
-        type: '내향·낭만형',
-        isPrimary: false,
-        busy: true,
-      },
-      {
-        id: 'me-hyunsoft',
-        initials: 'HS',
-        name: 'hyunsoft',
-        level: 1,
-        status: 'online',
-        verified: false,
-        type: '외향·공감형',
-        isPrimary: false,
-        busy: false,
-      },
-    ],
-  },
-};
 
 const mockSentRequest: MatchRequest = {
   id: 'req-001',
@@ -90,25 +42,7 @@ const mockSentRequest: MatchRequest = {
   expiresAt: '2026-05-07T05:00:00.000Z',
 };
 
-const allBusyAvatars: MyAvatar[] = mockMyAvatars.data.items.map((avatar) => ({
-  ...avatar,
-  status: 'busy',
-  busy: true,
-}));
-
 export const matchRequestHandlers = [
-  http.get(`${BASE_URL}/api/me/avatars`, () => {
-    if (avatarsScenario === 'load-error') {
-      return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-    }
-    if (avatarsScenario === 'no-avatars') {
-      return HttpResponse.json({ data: { items: [] } });
-    }
-    if (avatarsScenario === 'all-busy') {
-      return HttpResponse.json({ data: { items: allBusyAvatars } });
-    }
-    return HttpResponse.json(mockMyAvatars);
-  }),
   http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
     const raw: unknown = await request.json();
     const body = matchRequestBodySchema.parse(raw);

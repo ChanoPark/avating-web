@@ -1,16 +1,5 @@
 import { z } from 'zod';
 
-export const avatarStatusSchema = z.enum(['online', 'busy', 'offline']);
-
-export const avatarBaseSchema = z.object({
-  id: z.string().min(1),
-  initials: z.string().min(1).max(2),
-  name: z.string().min(1),
-  level: z.number().int().min(1),
-  status: avatarStatusSchema,
-  verified: z.boolean(),
-});
-
 // 서버 stats 는 double(0.0~100.0)이라 정수를 강제하면 72.5 같은 실제 값이 깨진다. 반올림은 표시 단계에서 한다.
 const statValue = z.number().min(0).max(100);
 
@@ -54,6 +43,28 @@ export const apiResponseAvatarSimCandidateList = z.object({ data: avatarSimCandi
 export type AvatarDetail = AvatarSimCandidate;
 
 export const apiResponseAvatarDetail = z.object({ data: avatarSimCandidateSchema });
+
+export const ownedAvatarSchema = z.object({
+  avatarId: z.string().min(1),
+  name: z.string().min(1),
+  hashtag: z.string().min(1),
+  color: avatarColorSchema,
+  description: z.string(),
+  isPrimary: z.boolean(),
+  isVisible: z.boolean(),
+  tags: z.array(z.string()),
+  canJoinSimulation: z.boolean(),
+});
+export type OwnedAvatar = z.infer<typeof ownedAvatarSchema>;
+
+const ownedAvatarPageSchema = z.object({
+  content: z.array(ownedAvatarSchema),
+  nextCursor: z.string().optional(),
+  hasNext: z.boolean(),
+});
+export type OwnedAvatarPage = z.infer<typeof ownedAvatarPageSchema>;
+
+export const apiResponseOwnedAvatarPage = z.object({ data: ownedAvatarPageSchema });
 
 // 서버 PersonaStatType 7종. 파싱은 record 로 느슨하게 받고, 표시할 때만 이 목록·순서를 쓴다.
 export const PERSONA_STAT_KEYS = [

@@ -1,10 +1,11 @@
 import { useId } from 'react';
 import { Tag } from '@shared/ui/Tag';
 import { cn } from '@shared/lib/cn';
-import type { MyAvatar } from '@entities/match-request';
+import { AvatarIdentityTile, AvatarTagBadge } from '@entities/avatar';
+import type { OwnedAvatar } from '@entities/avatar';
 
 type Props = {
-  avatars: readonly MyAvatar[];
+  avatars: readonly OwnedAvatar[];
   value: string;
   onChange: (next: string) => void;
   'aria-invalid'?: boolean | undefined;
@@ -31,13 +32,13 @@ export function MyAvatarRadioGroup({
       className="flex flex-col gap-2"
     >
       {avatars.map((avatar) => {
-        const checked = value === avatar.id;
-        const disabled = avatar.busy;
-        const inputId = `${groupId}-${avatar.id}`;
+        const checked = value === avatar.avatarId;
+        const disabled = !avatar.canJoinSimulation;
+        const inputId = `${groupId}-${avatar.avatarId}`;
 
         return (
           <label
-            key={avatar.id}
+            key={avatar.avatarId}
             htmlFor={inputId}
             className={cn(
               'bg-canvas rounded-card flex cursor-pointer items-center gap-2.75 border p-3',
@@ -56,11 +57,11 @@ export function MyAvatarRadioGroup({
               id={inputId}
               type="radio"
               name="requesterAvatarId"
-              value={avatar.id}
+              value={avatar.avatarId}
               checked={checked}
               disabled={disabled}
               onChange={() => {
-                if (!disabled) onChange(avatar.id);
+                if (!disabled) onChange(avatar.avatarId);
               }}
               className="sr-only"
             />
@@ -78,16 +79,13 @@ export function MyAvatarRadioGroup({
             >
               {checked && <span className="bg-canvas h-1.5 w-1.5 rounded-full" />}
             </span>
-            <span
-              aria-hidden="true"
-              className="bg-id-none text-id-none-fg text-meta rounded-chip flex h-7 w-7 shrink-0 items-center justify-center font-semibold uppercase"
-            >
-              {avatar.initials}
-            </span>
+            <AvatarIdentityTile
+              name={avatar.name}
+              color={avatar.color}
+              className="text-meta rounded-chip h-7 w-7"
+            />
             <span className="min-w-0 flex-1">
-              {/* 줄상자를 20px 로 고정한다 — 28px `.cx-tag` 를 그대로 쓰면 배지가 붙은 행만
-                  9px 높아져 목록의 행 높이가 74 / 64.84 로 갈린다. */}
-              <span className="flex h-5 items-center gap-1.5">
+              <span className="flex h-5 min-w-0 items-center gap-1.5">
                 <span
                   className={cn(
                     'text-caption truncate font-medium',
@@ -96,27 +94,34 @@ export function MyAvatarRadioGroup({
                 >
                   {avatar.name}
                 </span>
-                {/* meta 는 Badge 가 아니라 중립 Tag 다. */}
+                <AvatarTagBadge hashtag={avatar.hashtag} />
+              </span>
+              {avatar.description !== '' && (
+                <span
+                  className={cn(
+                    'text-meta mt-0.5 block truncate',
+                    disabled ? 'text-disabled' : 'text-secondary'
+                  )}
+                >
+                  {avatar.description}
+                </span>
+              )}
+            </span>
+            {/* meta 는 Badge 가 아니라 중립 Tag 다. */}
+            {(avatar.isPrimary || disabled) && (
+              <span className="flex shrink-0 items-center gap-1.5">
                 {avatar.isPrimary && (
                   <Tag size="sm" disabled={disabled}>
                     대표
                   </Tag>
                 )}
-                {avatar.busy && (
+                {disabled && (
                   <Tag size="sm" disabled={disabled}>
                     매칭 중
                   </Tag>
                 )}
               </span>
-              <span
-                className={cn(
-                  'text-meta mt-0.5 block truncate',
-                  disabled ? 'text-disabled' : 'text-secondary'
-                )}
-              >
-                {avatar.type}
-              </span>
-            </span>
+            )}
           </label>
         );
       })}

@@ -5,9 +5,9 @@ import { http, HttpResponse, delay } from 'msw';
 import { server } from '@shared/mocks/server';
 import {
   setMatchRequestScenario,
-  setMyAvatarsScenario,
   resetMatchRequestScenario,
 } from '@shared/mocks/handlers/matchRequest';
+import { mockOwnedAvatars, ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { MatchRequestModal } from '../ui/MatchRequestModal';
 import type { PartnerAvatarSummary } from '../ui/PartnerAvatarCard';
@@ -45,6 +45,7 @@ describe('MatchRequestModal', () => {
       expect(
         screen.getByRole('heading', { name: /이 아바타에게 소개팅을 요청할까요\?/ })
       ).toBeInTheDocument();
+      expect(screen.queryByText('MATCH REQUEST')).not.toBeInTheDocument();
     });
 
     it('open=false 일 때 dialog 가 렌더되지 않는다', () => {
@@ -91,11 +92,43 @@ describe('MatchRequestModal', () => {
       });
     });
 
-    it('busy 상태 아바타는 disabled 라디오로 표시된다', async () => {
+    it('내 아바타 행에 identity 타일과 한 줄 소개가 보이고, 소개가 비면 줄을 그리지 않는다', async () => {
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+      expect(
+        within(radioGroup).getByText('조용한 카페에서 책 읽는 걸 좋아해요')
+      ).toBeInTheDocument();
+      expect(within(radioGroup).getByText('h', { selector: '.bg-id-sky' })).toBeInTheDocument();
+
+      const softRow = within(radioGroup)
+        .getByRole('radio', { name: /hyunsoft/ })
+        .closest('label');
+      expect(softRow).toHaveTextContent(/^hhyunsoft#HS3M9P$/);
+    });
+
+    it('이름 옆에 해시태그를, 행 오른쪽 끝에 "대표"·"매칭 중" 태그를 둔다', async () => {
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      const radioGroup = await screen.findByRole('radiogroup');
+
+      const primaryRow = within(radioGroup)
+        .getByRole('radio', { name: /hyunwoo/ })
+        .closest('label');
+      const nameLine = within(primaryRow!).getByText('hyunwoo').parentElement;
+      expect(nameLine).toHaveTextContent(/^hyunwoo#HW4K7Z$/);
+      expect(primaryRow?.lastElementChild).toHaveTextContent(/^대표$/);
+
+      const busyRow = within(radioGroup)
+        .getByRole('radio', { name: /hyun_night/ })
+        .closest('label');
+      expect(busyRow?.lastElementChild).toHaveTextContent(/^매칭 중$/);
+    });
+
+    it('시뮬레이션에 참가할 수 없는 아바타(canJoinSimulation=false)는 "매칭 중" 으로 disabled 된다', async () => {
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
       await screen.findByRole('radiogroup');
       const busyRadio = screen.getByRole('radio', { name: /hyun_night/ });
       expect(busyRadio).toBeDisabled();
+      expect(busyRadio.closest('label')).toHaveTextContent('매칭 중');
     });
   });
 
@@ -486,8 +519,8 @@ describe('MatchRequestModal', () => {
   });
 
   describe('아바타 목록 분기', () => {
-    it('GET /api/me/avatars 실패 시 에러 알림과 다시 시도 버튼이 노출된다', async () => {
-      setMyAvatarsScenario('load-error');
+    it('GET /api/avatars/me 실패 시 에러 알림과 다시 시도 버튼이 노출된다', async () => {
+      server.use(ownedAvatarsHandlers.serverError);
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
 
       await waitFor(() => {
@@ -498,7 +531,7 @@ describe('MatchRequestModal', () => {
     });
 
     it('아바타 목록 로드 실패 후 다시 시도 버튼 클릭 시 목록이 정상 노출된다', async () => {
-      setMyAvatarsScenario('load-error');
+      server.use(ownedAvatarsHandlers.serverError);
       const user = userEvent.setup();
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
 
@@ -506,7 +539,7 @@ describe('MatchRequestModal', () => {
         expect(screen.getByText(/아바타 목록을 불러오지 못했어요/)).toBeInTheDocument();
       });
 
-      setMyAvatarsScenario('success');
+      server.use(ownedAvatarsHandlers.success);
       await user.click(screen.getByRole('button', { name: /다시 시도/ }));
 
       await waitFor(() => {
@@ -518,7 +551,7 @@ describe('MatchRequestModal', () => {
     });
 
     it('아바타가 0 개일 때 "아바타를 먼저 만들어주세요" 안내가 노출되고 제출이 막힌다', async () => {
-      setMyAvatarsScenario('no-avatars');
+      server.use(ownedAvatarsHandlers.empty);
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
 
       await waitFor(() => {
@@ -528,7 +561,7 @@ describe('MatchRequestModal', () => {
     });
 
     it('아바타가 모두 매칭 중일 때 "매칭 중인 아바타가 끝나면" 안내가 노출되고 제출이 막힌다', async () => {
-      setMyAvatarsScenario('all-busy');
+      server.use(ownedAvatarsHandlers.allBusy);
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);
 
       await waitFor(() => {
@@ -561,6 +594,28 @@ describe('MatchRequestModal', () => {
       await user.click(busyRadio);
       expect(busyRadio).not.toBeChecked();
       expect(screen.getByRole('radio', { name: /hyunwoo/ })).toBeChecked();
+    });
+
+    it('고른 내 아바타의 avatarId 를 requesterAvatarId 로 보낸다', async () => {
+      const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+      let capturedRequester: unknown = null;
+      server.use(
+        http.post(`${BASE_URL}/api/match-requests`, async ({ request }) => {
+          const body = (await request.json()) as { requesterAvatarId?: unknown };
+          capturedRequester = body.requesterAvatarId;
+          return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+        })
+      );
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+
+      await user.click(screen.getByRole('radio', { name: /hyunsoft/ }));
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(capturedRequester).toBe(mockOwnedAvatars.data.content[2]?.avatarId);
+      });
     });
   });
 });

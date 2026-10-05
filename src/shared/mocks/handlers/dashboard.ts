@@ -29,14 +29,6 @@ export const mockDashboardStatsPartialFail = {
   },
 };
 
-export const mockCreateSessionResponse = {
-  data: {
-    sessionId: 'session-123',
-    avatarId: 'avatar-1',
-    startedAt: '2026-04-27T00:00:00.000Z',
-  },
-};
-
 export const getDashboardStatsHandler = (scenario: DashboardScenario = 'success') => {
   if (scenario === 'partial-fail') {
     return http.get(`${BASE_URL}/api/dashboard/stats`, () => {
@@ -53,26 +45,10 @@ export const getDashboardStatsHandler = (scenario: DashboardScenario = 'success'
   });
 };
 
-export const postSessionHandler = (scenario: DashboardScenario = 'success') => {
-  if (scenario === 'server-error') {
-    return http.post(`${BASE_URL}/api/sessions`, () => {
-      return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-    });
-  }
-  return http.post(`${BASE_URL}/api/sessions`, () => {
-    return HttpResponse.json(mockCreateSessionResponse, { status: 201 });
-  });
-};
-
-export const dashboardHandlers = [getDashboardStatsHandler(), postSessionHandler()];
+export const dashboardHandlers = [getDashboardStatsHandler()];
 
 export const statsHandlers = {
   success: getDashboardStatsHandler('success'),
   partialFail: getDashboardStatsHandler('partial-fail'),
   serverError: getDashboardStatsHandler('server-error'),
-};
-
-export const sessionHandlers = {
-  success: postSessionHandler('success'),
-  serverError: postSessionHandler('server-error'),
 };
