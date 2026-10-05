@@ -435,6 +435,8 @@ describe('MatchRequestModal', () => {
         expect(screen.getByText('잠시 후 다시 시도해주세요')).toBeInTheDocument();
       });
       expect(onClose).not.toHaveBeenCalled();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /다시 시도/ })).not.toBeInTheDocument();
     });
 
     it('404 AVATAR_NOT_FOUND → 안내 토스트, 모달 닫힘', async () => {
@@ -465,7 +467,7 @@ describe('MatchRequestModal', () => {
       expect(onClose).toHaveBeenCalled();
     });
 
-    it('500 → 인라인 다시 시도 버튼 클릭 시 재요청이 성공한다', async () => {
+    it('500 뒤 "요청 보내기" 를 다시 누르면 재요청이 성공한다', async () => {
       setMatchRequestScenario('server-error');
       const user = userEvent.setup();
       const onClose = vi.fn();
@@ -474,9 +476,9 @@ describe('MatchRequestModal', () => {
       await screen.findByRole('radiogroup');
       await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
 
-      const retry = await screen.findByRole('button', { name: /다시 시도/ });
+      await screen.findByText('잠시 후 다시 시도해주세요');
       setMatchRequestScenario('success');
-      await user.click(retry);
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
 
       await waitFor(() => {
         expect(onSuccess).toHaveBeenCalled();

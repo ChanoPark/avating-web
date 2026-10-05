@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
@@ -20,7 +20,6 @@ import { useMyAvatars } from '@entities/avatar';
 import { useSendMatchRequest } from '../api/useSendMatchRequest';
 import { MyAvatarRadioGroup } from './MyAvatarRadioGroup';
 import { PartnerAvatarCard, type PartnerAvatarSummary } from './PartnerAvatarCard';
-import { InlineErrorPanel } from './InlineErrorPanel';
 
 // 상태 안내 패널의 톤은 테두리가 아니라 텍스트 색으로만 표현한다.
 const NOTICE_CLASS = 'text-caption border-subtle bg-canvas rounded-card border p-3';
@@ -39,7 +38,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const requesterAvatarErrorId = useId();
   const greetingErrorId = useId();
   const greetingHelpId = useId();
-  const inlineErrorId = useId();
 
   const { show: showToast } = useToast();
   const {
@@ -53,7 +51,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const myAvatars = myAvatarsData?.items ?? [];
   const firstSelectableId = myAvatars.find((a) => !a.busy)?.id ?? '';
 
-  const [inlineError, setInlineError] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLElement | null>(null);
 
@@ -92,10 +89,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   }, [open, firstSelectableId, setValue, getValues]);
 
   useEffect(() => {
-    if (!open) {
-      reset();
-      setInlineError(false);
-    }
+    if (!open) reset();
   }, [open, reset]);
 
   useEffect(() => {
@@ -139,7 +133,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
-    setInlineError(false);
     try {
       await mutateAsync({
         partnerAvatarId,
@@ -172,7 +165,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
           return;
         }
       }
-      setInlineError(true);
       showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
     }
   };
@@ -330,16 +322,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 </p>
               )}
             </div>
-
-            {inlineError && (
-              <InlineErrorPanel
-                id={inlineErrorId}
-                retryDisabled={isLoading}
-                onRetry={() => {
-                  void handleSubmit(onSubmit)();
-                }}
-              />
-            )}
           </div>
 
           <div className="border-subtle flex flex-none items-center justify-between gap-2 border-t px-6 py-4">
@@ -361,7 +343,6 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
               aria-describedby={[
                 errors.requesterAvatarId ? requesterAvatarErrorId : null,
                 errors.greeting ? greetingErrorId : null,
-                inlineError ? inlineErrorId : null,
               ]
                 .filter((id): id is string => id !== null)
                 .join(' ')}

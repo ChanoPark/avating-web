@@ -13,14 +13,18 @@ import {
 
 // `.cx-toast` — 어떤 토스트인지는 **글리프**가 말한다. 색으로 말하지 않는다.
 // 틴트가 붙는 건 파괴적 알림 하나뿐이고, 좌측 컬러 레일은 없다.
-const variantMark: Record<ToastVariant, string> = {
+// failure 는 글리프가 없다 — 사용자가 시도한 작업이 실패했다는 알림이라, 정본 토스트와 달리
+// 연한 danger 면 + danger 테두리로 그린다(사용자 결정 2026-10-05).
+type MarkedVariant = Exclude<ToastVariant, 'failure'>;
+
+const variantMark: Record<MarkedVariant, string> = {
   info: 'text-secondary',
   success: 'text-secondary',
   warning: 'text-secondary',
   error: 'text-danger',
 };
 
-const variantIcon: Record<ToastVariant, LucideIcon> = {
+const variantIcon: Record<MarkedVariant, LucideIcon> = {
   info: Info,
   success: Check,
   warning: CircleAlert,
@@ -36,6 +40,7 @@ const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
   success: 3000,
   warning: 0,
   error: 0,
+  failure: 0,
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
@@ -52,7 +57,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
     };
   }, [toast, onDismiss, paused]);
 
-  const Icon = variantIcon[toast.variant];
+  const Icon = toast.variant === 'failure' ? null : variantIcon[toast.variant];
 
   return (
     <div
@@ -65,15 +70,20 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string)
         setPaused(false);
       }}
       className={cn(
-        'bg-canvas border-subtle rounded-card pointer-events-auto w-full border px-3.5 py-3',
+        'rounded-card pointer-events-auto w-full border px-3.5 py-3',
+        toast.variant === 'failure'
+          ? 'bg-danger-tint border-danger-mark'
+          : 'bg-canvas border-subtle',
         'animate-toast-in max-w-[var(--toast-w)]'
       )}
     >
       <div className="flex items-start gap-3">
         {/* 16px 마크는 블록이 아니라 제목의 첫 줄에 맞춘다 — (20 - 16) / 2. */}
-        <span className={cn('mt-0.5 shrink-0', variantMark[toast.variant])}>
-          <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
-        </span>
+        {toast.variant !== 'failure' && Icon && (
+          <span className={cn('mt-0.5 shrink-0', variantMark[toast.variant])}>
+            <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
+          </span>
+        )}
         <div className="min-w-0 flex-1">
           {/* 제목은 14/600 — 토스트는 알림이지 섹션 제목이 아니라서 15 면 작은 다이얼로그로 읽힌다. */}
           <div className="text-btn text-ink break-keep">{toast.title}</div>
@@ -122,7 +132,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {typeof document !== 'undefined' &&
         createPortal(
           <div
-            className="pointer-events-none fixed top-6 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2"
+            className="pointer-events-none fixed inset-x-0 top-6 flex flex-col items-center gap-2 px-4"
             style={{ zIndex: 'var(--z-toast)' }}
           >
             {toasts.map((toast) => (

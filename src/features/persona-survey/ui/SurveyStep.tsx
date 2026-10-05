@@ -11,7 +11,7 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
-import { Modal } from '@shared/ui/Modal';
+import { useToast } from '@shared/ui/Toast';
 import { isApiError } from '@shared/lib/errors';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
@@ -25,15 +25,14 @@ import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [submitFailed, setSubmitFailed] = useState(false);
+  const { show: showToast, dismiss: dismissToast } = useToast();
   const [interestTags, setInterestTags] = useState<string[]>(() => loadDraft()?.interestTags ?? []);
   const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
   const interestTagsRef = useRef<string[]>(interestTags);
   const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const submitButtonRef = useRef<HTMLButtonElement | null>(null);
+  const failureToastIdRef = useRef<string | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
@@ -129,6 +128,14 @@ export function SurveyStep() {
     };
   }, [form]);
 
+  // 실패 토스트는 자동으로 사라지지 않고 ToastProvider 포털에 떠서 이 화면보다 오래 산다 —
+  // 떠날 때 함께 닫지 않으면 다른 화면에 남는다.
+  useEffect(() => {
+    return () => {
+      if (failureToastIdRef.current !== null) dismissToast(failureToastIdRef.current);
+    };
+  }, [dismissToast]);
+
   if (guardFailed) return null;
 
   if (isLoading) {
@@ -212,16 +219,26 @@ export function SurveyStep() {
     });
   };
 
+  const dismissFailureToast = () => {
+    if (failureToastIdRef.current === null) return;
+    dismissToast(failureToastIdRef.current);
+    failureToastIdRef.current = null;
+  };
+
+  const showFailureToast = (title: string, description: string) => {
+    dismissFailureToast();
+    failureToastIdRef.current = showToast({ variant: 'failure', title, description });
+  };
+
   // 이름·설명은 이 화면에 입력 필드가 없어 RHF 필드 에러가 안 보인다 — Step 1 로 돌아가라고 알려준다.
   const onInvalid = (errors: FieldErrors<AvatarCreateFromSurveyRequest>) => {
     if (errors.avatarName ?? errors.description) {
-      setSubmitError('아바타 이름과 설명이 필요해요. 1단계로 돌아가 입력해주세요.');
+      showFailureToast('아바타 이름과 설명이 필요해요', '1단계로 돌아가 입력해주세요.');
     }
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
-    setSubmitError(null);
-    setSubmitFailed(false);
+    dismissFailureToast();
     try {
       await createAvatar(data);
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
@@ -234,24 +251,15 @@ export function SurveyStep() {
         err.statusCode === 409 &&
         err.code === SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT
       ) {
-        setSubmitError(err.message);
+        showFailureToast('이미 있는 아바타 이름이에요', '1단계로 돌아가 다른 이름으로 바꿔주세요.');
         return;
       }
-      setSubmitFailed(true);
+      showFailureToast(
+        '아바타를 만들지 못했어요',
+        '입력한 내용은 그대로 있어요. 잠시 후 다시 만들어 주세요.'
+      );
     }
   }, onInvalid);
-
-  // 요청 중 제출 버튼이 disabled 되면 브라우저가 포커스를 body 로 떨어뜨려, 모달이 되돌릴 트리거를
-  // 잃는다 — 닫는 경로를 하나로 모으고 제출 버튼으로 직접 돌려보낸다.
-  const closeFailureModal = () => {
-    setSubmitFailed(false);
-    submitButtonRef.current?.focus();
-  };
-
-  const handleRetry = () => {
-    closeFailureModal();
-    void onSubmit();
-  };
 
   const handleSkip = () => {
     persistOptionalTraits([], []);
@@ -369,15 +377,6 @@ export function SurveyStep() {
             })}
           </div>
         )}
-
-        {submitError && (
-          <p
-            role="alert"
-            className="text-caption text-danger border-danger-mark rounded-chip border px-3 py-2"
-          >
-            {submitError}
-          </p>
-        )}
       </div>
 
       <div className={WIZARD_ACTIONS}>
@@ -393,7 +392,7 @@ export function SurveyStep() {
             <Button type="button" variant="ghost" disabled={isSubmitting} onClick={handleSkip}>
               건너뛰기
             </Button>
-            <Button ref={submitButtonRef} type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? '생성 중…' : '아바타 생성'}
               <ArrowRight size={16} strokeWidth={1.5} aria-hidden="true" />
             </Button>
@@ -410,25 +409,6 @@ export function SurveyStep() {
           </Button>
         )}
       </div>
-
-      <Modal
-        open={submitFailed}
-        onClose={closeFailureModal}
-        title="아바타를 만들지 못했어요"
-        description="일시적인 문제로 생성에 실패했어요. 잠시 후 다시 시도해주세요."
-        tone="warning"
-        size="sm"
-        footer={
-          <>
-            <Button type="button" variant="ghost" onClick={closeFailureModal}>
-              닫기
-            </Button>
-            <Button type="button" onClick={handleRetry}>
-              다시 시도
-            </Button>
-          </>
-        }
-      />
     </form>
   );
 }

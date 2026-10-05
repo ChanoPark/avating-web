@@ -179,6 +179,32 @@ describe('Toast', () => {
     expect(toast?.className).not.toContain('border-l-');
   });
 
+  it('variant="failure" 는 글리프 없이 연한 danger 면 + danger 테두리로 그린다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'failure', title: '아바타를 만들지 못했어요' });
+    });
+    const toast = screen.getByText('아바타를 만들지 못했어요').closest('[role="status"]');
+    expect(toast).toHaveClass('bg-danger-tint');
+    expect(toast).toHaveClass('border-danger-mark');
+    expect(toast).not.toHaveClass('bg-canvas');
+    // 남는 svg 는 닫기 버튼의 X 하나뿐이다.
+    expect(toast?.querySelectorAll('svg')).toHaveLength(1);
+  });
+
+  it('failure 토스트는 자동으로 사라지지 않는다', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'failure', title: '실패 유지' });
+    });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.getByText('실패 유지')).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
   it('최대 3개까지만 노출하고 4번째부터는 가장 오래된 토스트를 제거한다', () => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {

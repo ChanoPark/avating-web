@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
@@ -118,10 +118,10 @@ describe('SurveyStep — 에러 처리', () => {
   });
 
   describe('제출 에러 처리', () => {
-    const findFailureModal = () =>
-      screen.findByRole('dialog', { name: '아바타를 만들지 못했어요' });
+    const FAILURE_TITLE = '아바타를 만들지 못했어요';
+    const findFailureToast = () => screen.findByText(FAILURE_TITLE);
 
-    it('서버 5xx 응답 시 인라인 alert 대신 실패 모달이 뜬다', async () => {
+    it('서버 5xx 응답 시 인라인 alert 대신 실패 토스트가 뜬다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
       server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
@@ -130,12 +130,12 @@ describe('SurveyStep — 에러 처리', () => {
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      expect(await findFailureModal()).toBeInTheDocument();
+      expect(await findFailureToast()).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
 
-    it('AVATAR_400_002 응답 시 서버 문구를 노출하지 않고 실패 모달이 뜬다', async () => {
+    it('AVATAR_400_002 응답 시 서버 문구를 노출하지 않고 실패 토스트가 뜬다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
       server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.validationError);
@@ -144,13 +144,13 @@ describe('SurveyStep — 에러 처리', () => {
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      expect(await findFailureModal()).toBeInTheDocument();
+      expect(await findFailureToast()).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
       expect(screen.queryByText(/유효하지 않은 설문 답변/)).not.toBeInTheDocument();
     });
 
-    it('응답 스키마 파싱 실패(ZodError)도 실패 모달로 처리한다', async () => {
+    it('응답 스키마 파싱 실패(ZodError)도 실패 토스트로 처리한다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
       server.use(
@@ -164,12 +164,12 @@ describe('SurveyStep — 에러 처리', () => {
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      expect(await findFailureModal()).toBeInTheDocument();
+      expect(await findFailureToast()).toBeInTheDocument();
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
 
-    it('실패 모달의 "다시 시도" 로 재요청이 성공하면 완료 화면으로 이동한다', async () => {
+    it('실패 뒤 다시 제출해 성공하면 실패 토스트가 사라지고 완료 화면으로 이동한다', async () => {
       let callCount = 0;
       server.use(
         surveyQuestionsHandlers.success,
@@ -187,66 +187,73 @@ describe('SurveyStep — 에러 처리', () => {
       renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
-      expect(await findFailureModal()).toBeInTheDocument();
+      expect(await findFailureToast()).toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: '다시 시도' }));
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith('/onboarding/complete');
       });
       expect(callCount).toBe(2);
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.queryByText(FAILURE_TITLE)).not.toBeInTheDocument();
     });
 
-    // 실브라우저는 요청 중 disabled 된 제출 버튼에서 포커스를 빼 버려 모달이 되돌릴 트리거를 잃는다.
-    // jsdom 은 disabled 버튼을 blur 하지 않아 요청 중에 포커스를 직접 떨어뜨려 재현한다.
-    it.each([
-      [
-        'footer "닫기"',
-        async (user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) => {
-          // 헤더 X 도 이름이 '닫기' 라 footer 버튼(마지막)을 집는다.
-          await user.click(within(dialog).getAllByRole('button', { name: '닫기' }).at(-1)!);
-        },
-      ],
-      [
-        'Esc',
-        async (user: ReturnType<typeof userEvent.setup>) => {
-          await user.keyboard('{Escape}');
-        },
-      ],
-    ])(
-      '실패 모달을 %s 로 닫으면 설문 화면에 머물고 포커스가 "아바타 생성" 버튼으로 돌아간다',
-      async (_, close) => {
-        const user = userEvent.setup();
-        seedNameDraft();
-        server.use(
-          surveyQuestionsHandlers.success,
-          http.post(`${BASE_URL}/api/avatars/survey`, async () => {
-            await delay(50);
-            return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
-          })
-        );
+    it('실패 토스트를 닫아도 설문 화면에 그대로 머문다', async () => {
+      const user = userEvent.setup();
+      seedNameDraft();
+      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
 
-        renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
-        await navigateToExpressionsPage(user);
-        await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
-        act(() => {
-          const detached = document.createElement('button');
-          document.body.append(detached);
-          detached.focus();
-          detached.remove();
-        });
-        expect(screen.getByRole('button', { name: /생성 중/ })).not.toHaveFocus();
-        const dialog = await findFailureModal();
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await navigateToExpressionsPage(user);
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+      expect(await findFailureToast()).toBeInTheDocument();
 
-        await close(user, dialog);
+      await user.click(screen.getByRole('button', { name: '알림 닫기' }));
 
-        expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-        expect(document.activeElement).toBe(screen.getByRole('button', { name: /아바타 생성/i }));
-      }
-    );
+      expect(screen.queryByText(FAILURE_TITLE)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeEnabled();
+    });
 
-    it('AVATAR_409_002(이름 중복) 응답은 모달 없이 border-danger-mark alert 로 표시된다', async () => {
+    it('실패가 반복돼도 실패 토스트는 하나만 떠 있다', async () => {
+      const user = userEvent.setup();
+      seedNameDraft();
+      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await navigateToExpressionsPage(user);
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+      expect(await findFailureToast()).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /아바타 생성/i })).toBeEnabled();
+      });
+      expect(await screen.findAllByText(FAILURE_TITLE)).toHaveLength(1);
+    });
+
+    it('설문 화면을 벗어나면 실패 토스트도 함께 사라진다', async () => {
+      const user = userEvent.setup();
+      seedNameDraft();
+      server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.serverError);
+
+      const { rerender } = renderWithProviders(<SurveyStep />, {
+        initialRoute: '/onboarding/survey',
+      });
+      await navigateToExpressionsPage(user);
+      await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
+      expect(await findFailureToast()).toBeInTheDocument();
+
+      rerender(<p>다른 화면</p>);
+
+      await waitFor(() => {
+        expect(screen.queryByText(FAILURE_TITLE)).not.toBeInTheDocument();
+      });
+    });
+
+    it('AVATAR_409_002(이름 중복) 응답은 서버 문구 대신 1단계로 돌아가라는 토스트로 알린다', async () => {
       const user = userEvent.setup();
       seedNameDraft();
       server.use(surveyQuestionsHandlers.success, surveySubmitHandlers.nameConflict);
@@ -255,17 +262,14 @@ describe('SurveyStep — 에러 처리', () => {
       await navigateToExpressionsPage(user);
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent('동일한 아바타 이름이 존재합니다.');
-      });
-      const alert = screen.getByRole('alert');
-      expect(alert).toHaveClass('border-danger-mark');
-      expect(alert).toHaveClass('text-danger');
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(await screen.findByText('이미 있는 아바타 이름이에요')).toBeInTheDocument();
+      expect(screen.getByText('1단계로 돌아가 다른 이름으로 바꿔주세요.')).toBeInTheDocument();
+      expect(screen.queryByText('동일한 아바타 이름이 존재합니다.')).not.toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByText(FAILURE_TITLE)).not.toBeInTheDocument();
     });
 
-    // 이름·설명 입력 필드는 IntroStep 에만 있어 이 화면에는 필드 에러를 표시할 자리가 없다 — 그래서 alert 로 안내한다.
-    it('draft 에 설명이 없으면 제출 시 1단계로 돌아가라는 안내가 alert 로 렌더된다', async () => {
+    it('draft 에 설명이 없으면 제출 시 1단계로 돌아가라는 안내가 토스트로 뜬다', async () => {
       const user = userEvent.setup();
       saveDraft({ answers: {}, avatarName: '루나', description: '' });
 
@@ -276,9 +280,9 @@ describe('SurveyStep — 에러 처리', () => {
 
       await user.click(screen.getByRole('button', { name: /아바타 생성/i }));
 
-      await waitFor(() => {
-        expect(screen.getByRole('alert')).toHaveTextContent(/1단계로 돌아가 입력해주세요/);
-      });
+      expect(await screen.findByText('아바타 이름과 설명이 필요해요')).toBeInTheDocument();
+      expect(screen.getByText('1단계로 돌아가 입력해주세요.')).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(mockNavigate).not.toHaveBeenCalledWith('/onboarding/complete');
     });
   });
