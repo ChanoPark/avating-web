@@ -40,13 +40,13 @@ export function MyAvatarRadioGroup({
   const visibleAvatars = avatars.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="border-subtle rounded-card flex flex-col gap-2 border p-5">
       <div
         role="radiogroup"
         aria-label="요청에 사용할 내 아바타"
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedBy}
-        className={cn('grid gap-2', pageCount > 1 && 'grid-rows-5')}
+        className="grid grid-rows-5 gap-2"
       >
         {visibleAvatars.map((avatar) => {
           const checked = value === avatar.avatarId;

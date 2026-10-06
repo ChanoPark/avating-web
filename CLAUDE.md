@@ -41,7 +41,7 @@ AI 아바타끼리 소개팅 시뮬레이션을 하고, 결과에 만족한 양�
 
 - **반복 중에는** 바꾼 파일에 걸린 테스트만 돌린다: `pnpm exec vitest related <파일…> --run` + `pnpm typecheck`. 전체 test·coverage·lint 를 수정마다 돌리지 않는다.
 - **전체 게이트는 코드 상태당 한 번, PR 전에는 규모와 상관없이 한 번**: `bash .claude/bin/gate.sh [--e2e]` (typecheck·lint·format·knip 병렬 → test:coverage). 결과는 `.claude/.gate-stamp` 에 남고, 같은 상태에서 다시 부르면 캐시로 바로 끝난다. 리뷰어도 이걸 재사용한다.
-- **화면 확인**: `node .claude/bin/shot.mjs <라우트…> [--auth] --out <세션 scratchpad>` — MSW mock dev 서버(:5174)를 필요하면 띄우고 desktop·mobile 을 찍는다. PNG 는 Read 로 바로 본다.
+- **스크린샷은 사용자가 요청할 때만 찍는다.** UI 를 고친 뒤 스스로 찍어 검증하지 않고(리뷰어도 같다), 사용자가 dev 서버에서 확인할 라우트와 상태를 알린다. 요청받으면 `node .claude/bin/shot.mjs <라우트…> [--auth] --out <세션 scratchpad>` — MSW mock dev 서버(:5174)를 필요하면 띄우고 desktop·mobile 을 찍는다.
 - **INGEST** 는 사용자가 결정·정책을 말했을 때만 한다 ("앞으로 X 로 한다", 수치·규칙 확정). 턴마다 판정하지 않는다.
 - 커밋 → PR 은 [commit-work](.claude/skills/commit-work/SKILL.md) → [pr-code-reviewer-iterative](.claude/skills/pr-code-reviewer-iterative/SKILL.md).
 

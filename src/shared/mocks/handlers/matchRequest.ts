@@ -7,7 +7,7 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 const createInvitationBodySchema = z.object({
   inviterAvatarId: z.string().min(1),
   inviteeAvatarId: z.string().min(1),
-  requestMessage: z.string().max(300).optional(),
+  requestMessage: z.string().max(300),
 });
 
 export type MatchRequestScenario =
