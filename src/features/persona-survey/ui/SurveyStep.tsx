@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodError } from 'zod';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -12,6 +11,9 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
+import { useToast } from '@shared/ui/Toast/useToast';
+import { isApiError } from '@shared/lib/errors';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { useSurveyQuestions } from '../api/useSurveyQuestions';
 import { useSurveySubmit } from '../api/useSurveySubmit';
 import { loadDraft, saveDraft, clearDraft } from '../lib/draftStorage';
@@ -23,13 +25,14 @@ import { WIZARD_ACTIONS, WIZARD_BODY, WIZARD_HEAD } from '@shared/ui/wizard';
 export function SurveyStep() {
   const navigate = useNavigate();
   const [pageIndex, setPageIndex] = useState(0);
-  const [submitError, setSubmitError] = useState<string | null>(null);
+  const { show: showToast, dismiss: dismissToast } = useToast();
   const [interestTags, setInterestTags] = useState<string[]>(() => loadDraft()?.interestTags ?? []);
   const [expressions, setExpressions] = useState<string[]>(() => loadDraft()?.expressions ?? []);
   const interestTagsRef = useRef<string[]>(interestTags);
   const expressionsRef = useRef<string[]>(expressions);
   const draftRestoredRef = useRef(false);
   const draftSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const failureToastIdRef = useRef<string | null>(null);
 
   const onboardingProgress = getOnboardingProgress();
   const { hasPrimaryAvatar } = useOnboardingCompletion();
@@ -125,6 +128,12 @@ export function SurveyStep() {
     };
   }, [form]);
 
+  useEffect(() => {
+    return () => {
+      if (failureToastIdRef.current !== null) dismissToast(failureToastIdRef.current);
+    };
+  }, [dismissToast]);
+
   if (guardFailed) return null;
 
   if (isLoading) {
@@ -208,15 +217,26 @@ export function SurveyStep() {
     });
   };
 
+  const dismissFailureToast = () => {
+    if (failureToastIdRef.current === null) return;
+    dismissToast(failureToastIdRef.current);
+    failureToastIdRef.current = null;
+  };
+
+  const showFailureToast = (title: string, description: string) => {
+    dismissFailureToast();
+    failureToastIdRef.current = showToast({ variant: 'failure', title, description });
+  };
+
   // 이름·설명은 이 화면에 입력 필드가 없어 RHF 필드 에러가 안 보인다 — Step 1 로 돌아가라고 알려준다.
   const onInvalid = (errors: FieldErrors<AvatarCreateFromSurveyRequest>) => {
     if (errors.avatarName ?? errors.description) {
-      setSubmitError('아바타 이름과 설명이 필요해요. 1단계로 돌아가 입력해주세요.');
+      showFailureToast('아바타 이름과 설명이 필요해요', '1단계로 돌아가 입력해주세요.');
     }
   };
 
   const onSubmit = form.handleSubmit(async (data) => {
-    setSubmitError(null);
+    dismissFailureToast();
     try {
       await createAvatar(data);
       if (draftSaveTimerRef.current) clearTimeout(draftSaveTimerRef.current);
@@ -224,13 +244,18 @@ export function SurveyStep() {
       setOnboardingProgress('complete');
       void navigate('/onboarding/complete');
     } catch (err: unknown) {
-      if (err instanceof ZodError) {
-        setSubmitError('입력 데이터를 다시 확인해주세요.');
+      if (
+        isApiError(err) &&
+        err.statusCode === 409 &&
+        err.code === SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT
+      ) {
+        showFailureToast('이미 있는 아바타 이름이에요', '1단계로 돌아가 다른 이름으로 바꿔주세요.');
         return;
       }
-      const fallback = '제출 중 오류가 생겼어요. 다시 시도해주세요.';
-      const message = err instanceof Error && err.message.length > 0 ? err.message : fallback;
-      setSubmitError(message);
+      showFailureToast(
+        '아바타를 만들지 못했어요',
+        '입력한 내용은 그대로 있어요. 잠시 후 다시 만들어 주세요.'
+      );
     }
   }, onInvalid);
 
@@ -349,15 +374,6 @@ export function SurveyStep() {
               );
             })}
           </div>
-        )}
-
-        {submitError && (
-          <p
-            role="alert"
-            className="text-caption text-danger border-danger-mark rounded-chip border px-3 py-2"
-          >
-            {submitError}
-          </p>
         )}
       </div>
 

@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { z } from 'zod';
+import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 
 // endpoint prefix 가 두 갈래다 — 설문·아바타 생성은 /api/persona·avatars, 계정 라이프사이클
 // (연결 상태·온보딩 완료)은 /api/onboarding 그대로다. 백엔드가 의도적으로 나눠 둔 것이라
@@ -114,8 +115,21 @@ export const surveySubmitHandlers = {
 
   validationError: http.post(`${BASE_URL}/api/avatars/survey`, () => {
     return HttpResponse.json(
-      { message: '설문 답변이 올바르지 않습니다.', code: 'VALIDATION_ERROR' },
+      {
+        message: '유효하지 않은 설문 답변입니다.',
+        code: SERVER_ERROR_CODES.AVATAR_SURVEY_ANSWER_INVALID,
+      },
       { status: 400 }
+    );
+  }),
+
+  nameConflict: http.post(`${BASE_URL}/api/avatars/survey`, () => {
+    return HttpResponse.json(
+      {
+        message: '동일한 아바타 이름이 존재합니다.',
+        code: SERVER_ERROR_CODES.AVATAR_NAME_CONFLICT,
+      },
+      { status: 409 }
     );
   }),
 
