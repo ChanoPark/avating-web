@@ -27,6 +27,19 @@ const variantIcon: Record<MarkedVariant, LucideIcon> = {
 
 const MAX_VISIBLE = 3;
 
+// 에러 토스트는 상한으로 밀어내지 않는다 — 여러 영역이 동시에 실패하면 일부 실패가 안내 없이 묻힌다.
+function dropOverflow(toasts: Toast[]): Toast[] {
+  const overflow = toasts.length - MAX_VISIBLE;
+  if (overflow <= 0) return toasts;
+  const droppedIds = new Set(
+    toasts
+      .filter((t) => t.variant !== 'error')
+      .slice(0, overflow)
+      .map((t) => t.id)
+  );
+  return toasts.filter((t) => !droppedIds.has(t.id));
+}
+
 // 에러·경고 토스트는 자동으로 사라지지 않는다(S-11-07) — 놓치면 사용자가 실패를 알 방법이
 // 없다. 성공은 3초 유지한다. 호출부가 durationMs 를 명시하면 그 값이 우선한다.
 const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
@@ -113,8 +126,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `toast-${Date.now().toString()}-${Math.random().toString(36).slice(2)}`;
-    // 최대 3개만 노출 — 4번째부터는 가장 오래된 토스트를 자동 제거.
-    setToasts((current) => [...current, { ...toast, id }].slice(-MAX_VISIBLE));
+    setToasts((current) => dropOverflow([...current, { ...toast, id }]));
     return id;
   }, []);
 

@@ -16,6 +16,7 @@ import {
 } from '@shared/mocks/handlers/matchRequest';
 import { simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
 import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { inboxScenarios } from '@shared/mocks/handlers/inbox';
 import { AuthGuard } from '@app/providers/AuthGuard';
 import { DashboardPage } from '../DashboardPage';
 
@@ -174,6 +175,26 @@ describe('DashboardPage 통합 시나리오', () => {
       });
       expect(screen.getAllByText('통계를 불러오지 못했어요')).toHaveLength(1);
       expect(screen.queryByRole('button', { name: '통계 다시 불러오기' })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('네 영역 동시 실패', () => {
+    it('대표 아바타·통계·알림·추천 아바타가 모두 실패하면 네 영역의 에러 토스트가 전부 보인다', async () => {
+      server.use(
+        primaryAvatarHandlers.serverError,
+        statsHandlers.serverError,
+        inboxScenarios.error,
+        simCandidatesHandlers.serverError
+      );
+
+      renderDashboard();
+
+      await waitFor(() => {
+        expect(screen.getByText('대표 아바타를 불러오지 못했어요')).toBeInTheDocument();
+        expect(screen.getByText('통계를 불러오지 못했어요')).toBeInTheDocument();
+        expect(screen.getByText('알림을 불러오지 못했어요')).toBeInTheDocument();
+        expect(screen.getByText('추천 아바타를 불러오지 못했어요')).toBeInTheDocument();
+      });
     });
   });
 

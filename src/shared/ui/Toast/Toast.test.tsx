@@ -214,6 +214,34 @@ describe('Toast', () => {
     expect(screen.getByText('토스트 3')).toBeInTheDocument();
     expect(screen.getByText('토스트 4')).toBeInTheDocument();
   });
+
+  it('에러 토스트는 상한을 넘겨도 밀려나지 않는다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '에러 1' });
+      result.current.show({ variant: 'error', title: '에러 2' });
+      result.current.show({ variant: 'error', title: '에러 3' });
+      result.current.show({ variant: 'error', title: '에러 4' });
+    });
+    expect(screen.getByText('에러 1')).toBeInTheDocument();
+    expect(screen.getByText('에러 2')).toBeInTheDocument();
+    expect(screen.getByText('에러 3')).toBeInTheDocument();
+    expect(screen.getByText('에러 4')).toBeInTheDocument();
+  });
+
+  it('상한을 넘기면 에러가 아닌 토스트 중 가장 오래된 것부터 제거한다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '에러 유지' });
+      result.current.show({ variant: 'info', title: '안내 1', durationMs: 0 });
+      result.current.show({ variant: 'info', title: '안내 2', durationMs: 0 });
+      result.current.show({ variant: 'info', title: '안내 3', durationMs: 0 });
+    });
+    expect(screen.getByText('에러 유지')).toBeInTheDocument();
+    expect(screen.queryByText('안내 1')).not.toBeInTheDocument();
+    expect(screen.getByText('안내 2')).toBeInTheDocument();
+    expect(screen.getByText('안내 3')).toBeInTheDocument();
+  });
 });
 
 function HookProbe() {
