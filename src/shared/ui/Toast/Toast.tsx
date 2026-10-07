@@ -27,16 +27,11 @@ const variantIcon: Record<MarkedVariant, LucideIcon> = {
 
 const MAX_VISIBLE = 3;
 
-// 에러 토스트는 상한으로 밀어내지 않는다 — 여러 영역이 동시에 실패하면 일부 실패가 안내 없이 묻힌다.
 function dropOverflow(toasts: Toast[]): Toast[] {
-  const overflow = toasts.length - MAX_VISIBLE;
+  const nonError = toasts.filter((t) => t.variant !== 'error');
+  const overflow = nonError.length - MAX_VISIBLE;
   if (overflow <= 0) return toasts;
-  const droppedIds = new Set(
-    toasts
-      .filter((t) => t.variant !== 'error')
-      .slice(0, overflow)
-      .map((t) => t.id)
-  );
+  const droppedIds = new Set(nonError.slice(0, overflow).map((t) => t.id));
   return toasts.filter((t) => !droppedIds.has(t.id));
 }
 
