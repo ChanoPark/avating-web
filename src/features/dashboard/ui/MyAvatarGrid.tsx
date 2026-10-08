@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { cn } from '@shared/lib/cn';
 import {
   AvatarIdentityTile,
@@ -48,7 +49,7 @@ function MyAvatarGridSkeleton() {
 }
 
 function MyAvatarGridFallback() {
-  useLoadErrorFallback('대표 아바타를 불러오지 못했어요', avatarKeys.primary());
+  useLoadErrorToast(true, '대표 아바타를 불러오지 못했어요');
   return (
     <section aria-label="대표 아바타" className={CARD_CLASS}>
       <CardHeader />
@@ -115,10 +116,12 @@ function MyAvatarGridContent() {
 }
 
 export function MyAvatarGrid() {
+  const ready = useFailedQueryReset(avatarKeys.primary());
+
   return (
     <ErrorBoundary fallbackRender={() => <MyAvatarGridFallback />}>
       <Suspense fallback={<MyAvatarGridSkeleton />}>
-        <MyAvatarGridContent />
+        {ready ? <MyAvatarGridContent /> : <MyAvatarGridSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );

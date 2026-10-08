@@ -488,6 +488,38 @@ describe('MatchRequestModal', () => {
         expect(onSuccess).toHaveBeenCalled();
       });
       expect(onClose).toHaveBeenCalled();
+      expect(screen.queryByText('잠시 후 다시 시도해주세요')).not.toBeInTheDocument();
+    });
+
+    it('500 이 반복돼도 실패 토스트는 하나만 떠 있다', async () => {
+      setMatchRequestScenario('server-error');
+      const user = userEvent.setup();
+      renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+      await screen.findByText('잠시 후 다시 시도해주세요');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeEnabled();
+      });
+      expect(screen.getAllByText('잠시 후 다시 시도해주세요')).toHaveLength(1);
+    });
+
+    it('모달을 닫으면 실패 토스트도 함께 사라진다', async () => {
+      setMatchRequestScenario('server-error');
+      const user = userEvent.setup();
+      const { rerender } = renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByRole('radiogroup');
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+      await screen.findByText('잠시 후 다시 시도해주세요');
+
+      rerender(<MatchRequestModal {...defaultProps({ open: false })} />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('잠시 후 다시 시도해주세요')).not.toBeInTheDocument();
+      });
     });
   });
 

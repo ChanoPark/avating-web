@@ -3,7 +3,8 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Send, Heart, Users } from 'lucide-react';
 import { StatsCard, STATS_CARD_BOX } from '@shared/ui/StatsCard';
 import { cn } from '@shared/lib/cn';
-import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { useDashboardStats } from '../api/useDashboardStats';
 import { dashboardKeys } from '@entities/dashboard';
 import type { DashboardStats } from '@entities/dashboard';
@@ -90,17 +91,13 @@ function SingleStatCard({ config }: { config: CardConfig }) {
   );
 }
 
-function StatsLoadErrorToast() {
-  useLoadErrorFallback('통계를 불러오지 못했어요', dashboardKeys.stats());
-  return null;
-}
-
 export function StatsGrid() {
+  const ready = useFailedQueryReset(dashboardKeys.stats());
   const [failed, setFailed] = useState(false);
+  useLoadErrorToast(failed, '통계를 불러오지 못했어요');
 
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {failed && <StatsLoadErrorToast />}
       {CARD_CONFIGS.map((config) => (
         <ErrorBoundary
           key={config.label}
@@ -110,7 +107,7 @@ export function StatsGrid() {
           fallbackRender={() => <StatsFallback config={config} />}
         >
           <Suspense fallback={<StatsSkeleton />}>
-            <SingleStatCard config={config} />
+            {ready ? <SingleStatCard config={config} /> : <StatsSkeleton />}
           </Suspense>
         </ErrorBoundary>
       ))}

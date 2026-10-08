@@ -2,7 +2,8 @@ import { Suspense, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Compass } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { avatarKeys, useSimCandidatesSuspense } from '@entities/avatar';
 import type { AvatarSimCandidate } from '@entities/avatar';
 import { MatchRequestModal } from '@features/match-request';
@@ -70,7 +71,7 @@ function AvatarListContent({ onAvatarClick }: AvatarListProps) {
 }
 
 function AvatarListFallback() {
-  useLoadErrorFallback('추천 아바타를 불러오지 못했어요', avatarKeys.candidatesAll());
+  useLoadErrorToast(true, '추천 아바타를 불러오지 못했어요');
   return <div className={`${PANEL_CLASS} min-h-[118px]`} />;
 }
 
@@ -110,10 +111,12 @@ function AvatarListSkeleton() {
 }
 
 export function AvatarList({ onAvatarClick }: AvatarListProps) {
+  const ready = useFailedQueryReset(avatarKeys.candidatesAll());
+
   return (
     <ErrorBoundary fallbackRender={() => <AvatarListFallback />}>
       <Suspense fallback={<AvatarListSkeleton />}>
-        <AvatarListContent onAvatarClick={onAvatarClick} />
+        {ready ? <AvatarListContent onAvatarClick={onAvatarClick} /> : <AvatarListSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );

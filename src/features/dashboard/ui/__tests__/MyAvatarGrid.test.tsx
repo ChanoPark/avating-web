@@ -228,14 +228,14 @@ describe('MyAvatarGrid', () => {
       expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
 
-    // 앱 셸의 사이드바가 같은 대표 아바타 쿼리를 계속 구독한다 — 구독자가 남은 쿼리도 풀어 줘야 한다.
-    it('같은 쿼리를 구독하는 화면이 남아 있어도, 떠났다 돌아오면 재요청해 복구된다', async () => {
+    // 앱 셸의 사이드바가 같은 대표 아바타 쿼리를 계속 구독한다.
+    it('같은 쿼리를 구독하는 화면이 남아 있어도, 돌아올 때마다 재요청하고 서버가 복구되면 채워진다', async () => {
       const user = userEvent.setup();
       let callCount = 0;
       server.use(
         http.get(`${BASE_URL}/api/avatars/primary`, () => {
           callCount++;
-          return callCount === 1
+          return callCount <= 2
             ? HttpResponse.json(
                 { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
                 { status: 500 }
@@ -267,15 +267,21 @@ describe('MyAvatarGrid', () => {
         );
       }
       renderWithProviders(<Screen />);
+      const toggle = () => user.click(screen.getByRole('button', { name: '화면 전환' }));
 
       await screen.findByText('대표 아바타를 불러오지 못했어요');
-      await user.click(screen.getByRole('button', { name: '화면 전환' }));
+      expect(callCount).toBe(1);
+
+      await toggle();
       expect(screen.queryByText('대표 아바타를 불러오지 못했어요')).not.toBeInTheDocument();
-
-      await user.click(screen.getByRole('button', { name: '화면 전환' }));
-
-      expect(await screen.findByText('루시')).toBeInTheDocument();
+      await toggle();
+      await screen.findByText('대표 아바타를 불러오지 못했어요');
       expect(callCount).toBe(2);
+
+      await toggle();
+      await toggle();
+      expect(await screen.findByText('루시')).toBeInTheDocument();
+      expect(callCount).toBe(3);
     });
   });
 });

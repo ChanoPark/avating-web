@@ -9,7 +9,8 @@ import { AvatarProfileHeader, AvatarStatsPanel, AvatarMatchPanel } from '@featur
 import { avatarKeys, PersonaStatsSkeleton, useAvatarDetailSuspense } from '@entities/avatar';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { isApiError } from '@shared/lib/errors';
-import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 
 function AvatarDetailContent({ id }: { id: string }) {
   const avatar = useAvatarDetailSuspense(id);
@@ -106,8 +107,7 @@ function LoadingFallback() {
 const ERROR_PANEL_CLASS = 'border-subtle bg-canvas rounded-card border p-6';
 
 function LoadErrorPanel() {
-  const { id = '' } = useParams<{ id: string }>();
-  useLoadErrorFallback('아바타 정보를 불러오지 못했어요', avatarKeys.detail(id));
+  useLoadErrorToast(true, '아바타 정보를 불러오지 못했어요');
   return <div className={`${ERROR_PANEL_CLASS} min-h-[118px]`} />;
 }
 
@@ -127,11 +127,13 @@ function ErrorFallback({ error }: FallbackProps) {
 
 export function AvatarDetailPage() {
   const { id = '' } = useParams<{ id: string }>();
+  const ready = useFailedQueryReset(avatarKeys.detail(id));
+
   return (
     <section className="flex flex-col gap-3.5">
       <ErrorBoundary FallbackComponent={ErrorFallback}>
         <Suspense fallback={<LoadingFallback />}>
-          <AvatarDetailContent id={id} />
+          {ready ? <AvatarDetailContent id={id} /> : <LoadingFallback />}
         </Suspense>
       </ErrorBoundary>
     </section>

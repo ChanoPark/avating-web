@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
@@ -53,7 +53,8 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const greetingErrorId = useId();
   const greetingHelpId = useId();
 
-  const { show: showToast } = useToast();
+  const { show: showToast, dismiss: dismissToast } = useToast();
+  const failureToastIdRef = useRef<string | null>(null);
   const {
     data: myAvatars = [],
     isLoading: avatarsLoading,
@@ -101,9 +102,20 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     }
   }, [open, firstSelectableId, setValue, getValues]);
 
+  const dismissFailureToast = useCallback(() => {
+    if (failureToastIdRef.current === null) return;
+    dismissToast(failureToastIdRef.current);
+    failureToastIdRef.current = null;
+  }, [dismissToast]);
+
   useEffect(() => {
-    if (!open) reset();
-  }, [open, reset]);
+    if (!open) {
+      reset();
+      dismissFailureToast();
+    }
+  }, [open, reset, dismissFailureToast]);
+
+  useEffect(() => dismissFailureToast, [dismissFailureToast]);
 
   useEffect(() => {
     if (!open) return;
@@ -149,6 +161,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
+    dismissFailureToast();
     try {
       await mutateAsync({
         partnerAvatarId,
@@ -165,7 +178,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         onClose();
         return;
       }
-      showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
+      failureToastIdRef.current = showToast({
+        variant: 'error',
+        title: '잠시 후 다시 시도해주세요',
+      });
     }
   };
 

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useLoadErrorFallback } from '@shared/lib/useLoadErrorFallback';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { inboxKeys, useInboxSuspense } from '@entities/inbox';
@@ -77,7 +78,7 @@ function InboxPanelSkeleton() {
 }
 
 function InboxPanelFallback() {
-  useLoadErrorFallback('알림을 불러오지 못했어요', inboxKeys.list());
+  useLoadErrorToast(true, '알림을 불러오지 못했어요');
   return (
     <section aria-label="알림" className={CARD_CLASS}>
       <CardHeader />
@@ -141,10 +142,12 @@ function InboxPanelContent() {
 }
 
 export function InboxPanel() {
+  const ready = useFailedQueryReset(inboxKeys.list());
+
   return (
     <ErrorBoundary fallbackRender={() => <InboxPanelFallback />}>
       <Suspense fallback={<InboxPanelSkeleton />}>
-        <InboxPanelContent />
+        {ready ? <InboxPanelContent /> : <InboxPanelSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );
