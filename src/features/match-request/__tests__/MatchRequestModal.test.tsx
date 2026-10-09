@@ -9,6 +9,7 @@ import {
   resetMatchRequestScenario,
 } from '@shared/mocks/handlers/matchRequest';
 import { mockOwnedAvatars, ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
+import { matchRequestKeys } from '@entities/match-request';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { MatchRequestModal } from '../ui/MatchRequestModal';
 import type { PartnerAvatarSummary } from '../ui/PartnerAvatarCard';
@@ -413,6 +414,23 @@ describe('MatchRequestModal', () => {
       });
       expect(onClose).toHaveBeenCalled();
       expect(screen.getByText('요청을 보냈어요')).toBeInTheDocument();
+    });
+
+    it('요청을 보내면 시뮬레이션 목록 캐시를 무효화한다 — 막 보낸 요청이 목록에 바로 보여야 한다', async () => {
+      const onSuccess = vi.fn();
+      const user = userEvent.setup();
+      const { queryClient } = renderWithProviders(
+        <MatchRequestModal {...defaultProps({ onSuccess })} />
+      );
+      queryClient.setQueryData(matchRequestKeys.sessions(), []);
+      await screen.findByRole('radiogroup');
+
+      await user.click(screen.getByRole('button', { name: /요청 보내기/ }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalled();
+      });
+      expect(queryClient.getQueryState(matchRequestKeys.sessions())?.isInvalidated).toBe(true);
     });
 
     it('전송 중 버튼이 disabled 상태가 된다', async () => {

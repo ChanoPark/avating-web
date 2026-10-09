@@ -17,6 +17,10 @@ const DashboardPage = lazy(() =>
 const AvatarDetailPage = lazy(() =>
   import('@pages/avatar-detail').then((m) => ({ default: m.AvatarDetailPage }))
 );
+const ExplorePage = lazy(() => import('@pages/explore').then((m) => ({ default: m.ExplorePage })));
+const SimulationListPage = lazy(() =>
+  import('@pages/simulation-list').then((m) => ({ default: m.SimulationListPage }))
+);
 const OnboardingPage = lazy(() =>
   import('@pages/onboarding').then((m) => ({ default: m.OnboardingPage }))
 );
@@ -101,6 +105,14 @@ export const router = createBrowserRouter([
       {
         path: '/avatars/:id',
         element: <AvatarDetailPage />,
+      },
+      {
+        path: '/explore',
+        element: <ExplorePage />,
+      },
+      {
+        path: '/simulations',
+        element: <SimulationListPage />,
       },
     ],
   },

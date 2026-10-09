@@ -1,0 +1,175 @@
+import { http, HttpResponse } from 'msw';
+import type { InvitationHistoryItem, InvitationHistoryPage } from '@entities/match-request';
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const HISTORY_URL = `${BASE_URL}/api/simulations/invitations`;
+const ACCEPT_URL = `${HISTORY_URL}/:invitationId/accept`;
+const CANCEL_URL = `${HISTORY_URL}/:invitationId/cancel`;
+
+const DEFAULT_PAGE_SIZE = 10;
+const MINUTE = 60_000;
+const HOUR = 60 * MINUTE;
+const DAY = 24 * HOUR;
+const KST_OFFSET = 9 * HOUR;
+
+// 서버는 OffsetDateTime 을 +09:00 로 내려준다 — 목록의 "n분 전" 이 낡지 않게 지금 시각 기준으로 만든다.
+function kstIso(epochMs: number): string {
+  return new Date(epochMs + KST_OFFSET).toISOString().replace('Z', '+09:00');
+}
+
+const MY_HYUNWOO = { id: 'aaaaaaaa-0001-4000-8000-000000000001', name: 'hyunwoo', tag: 'HW4K7Z' };
+const MY_HYUN_NIGHT = {
+  id: 'aaaaaaaa-0002-4000-8000-000000000002',
+  name: 'hyun_night',
+  tag: 'HN8R2Q',
+};
+const MY_SUMMER = { id: 'aaaaaaaa-0004-4000-8000-000000000004', name: '여름', tag: 'YR5T8K' };
+const HANEUL = { id: '22222222-2222-4222-8222-222222222222', name: '하늘', tag: 'H7K2MP' };
+const BOMNAL = { id: '33333333-3333-4333-8333-333333333333', name: '봄날', tag: 'B3RT9Q' };
+const MOONLIT = { id: '44444444-4444-4444-8444-444444444444', name: 'Moonlit', tag: 'Q5WN8Z' };
+
+type MockAvatar = typeof HANEUL;
+
+function invitation(
+  id: string,
+  inviter: MockAvatar,
+  invitee: MockAvatar,
+  { elapsed, ...rest }: Pick<InvitationHistoryItem, 'status' | 'direction'> & { elapsed: number }
+): InvitationHistoryItem {
+  const createdAt = Date.now() - elapsed;
+  return {
+    simulationInvitationId: id,
+    inviterAvatarId: inviter.id,
+    inviterAvatarName: inviter.name,
+    inviterAvatarHashtag: inviter.tag,
+    inviteeAvatarId: invitee.id,
+    inviteeAvatarName: invitee.name,
+    inviteeAvatarHashtag: invitee.tag,
+    createdAt: kstIso(createdAt),
+    expiredAt: kstIso(createdAt + DAY),
+    ...rest,
+  };
+}
+
+// 받은·보낸 대기 요청, 진행 중·끝난·취소된 것, 목록에 나오지 않는 거절된 요청을 한 벌에 담는다.
+export const mockInvitationHistory: InvitationHistoryItem[] = [
+  invitation('cccccccc-0007-4000-8000-000000000007', MOONLIT, MY_SUMMER, {
+    status: 'PENDING',
+    direction: 'RECEIVED',
+    elapsed: 10 * MINUTE,
+  }),
+  invitation('cccccccc-0001-4000-8000-000000000001', MY_HYUN_NIGHT, HANEUL, {
+    status: 'IN_PROGRESS',
+    direction: 'SENT',
+    elapsed: 40 * MINUTE,
+  }),
+  invitation('cccccccc-0002-4000-8000-000000000002', MY_HYUNWOO, BOMNAL, {
+    status: 'PENDING',
+    direction: 'SENT',
+    elapsed: 3 * HOUR + 12 * MINUTE,
+  }),
+  invitation('cccccccc-0003-4000-8000-000000000003', MY_HYUNWOO, MOONLIT, {
+    status: 'DONE',
+    direction: 'SENT',
+    elapsed: 2 * DAY + 5 * HOUR + 30 * MINUTE,
+  }),
+  invitation('cccccccc-0008-4000-8000-000000000008', MY_HYUNWOO, HANEUL, {
+    status: 'CANCELED',
+    direction: 'SENT',
+    elapsed: 3 * DAY,
+  }),
+  invitation('cccccccc-0004-4000-8000-000000000004', HANEUL, MY_HYUNWOO, {
+    status: 'DONE',
+    direction: 'RECEIVED',
+    elapsed: 5 * DAY,
+  }),
+  invitation('cccccccc-0005-4000-8000-000000000005', BOMNAL, MY_SUMMER, {
+    status: 'REJECTED',
+    direction: 'RECEIVED',
+    elapsed: 6 * DAY,
+  }),
+  invitation('cccccccc-0006-4000-8000-000000000006', MOONLIT, MY_SUMMER, {
+    status: 'ABORTED',
+    direction: 'RECEIVED',
+    elapsed: 9 * DAY,
+  }),
+];
+
+function historyResponse(request: Request, items: InvitationHistoryItem[]) {
+  const params = new URL(request.url).searchParams;
+  const direction = params.get('direction');
+  if (direction !== 'SENT' && direction !== 'RECEIVED') {
+    return HttpResponse.json(
+      { code: 'COMMON_400_001', message: '입력값이 올바르지 않습니다.' },
+      { status: 400 }
+    );
+  }
+
+  const status = params.get('status');
+  const size = Number(params.get('size') ?? DEFAULT_PAGE_SIZE);
+  const matched = items.filter(
+    (item) => item.direction === direction && (status === null || item.status === status)
+  );
+  const page: InvitationHistoryPage = {
+    content: matched.slice(0, size),
+    hasNext: matched.length > size,
+  };
+  return HttpResponse.json({ data: page });
+}
+
+export function invitationHistoryHandler(items: InvitationHistoryItem[]) {
+  return http.get(HISTORY_URL, ({ request }) => historyResponse(request, items));
+}
+
+// 기본 핸들러는 수락·취소한 요청의 상태를 바꿔 기억한다 — mock dev 서버에서 응답 뒤 목록이 그대로면 버튼이 되살아난다.
+let invitations = mockInvitationHistory;
+
+export function resetInvitationHistory(): void {
+  invitations = mockInvitationHistory;
+}
+
+function transition(invitationId: unknown, status: InvitationHistoryItem['status']): void {
+  invitations = invitations.map((item) =>
+    item.simulationInvitationId === invitationId ? { ...item, status } : item
+  );
+}
+
+const NOT_PENDING_ERROR = {
+  code: 'SIMULATION_400_004',
+  message: 'CANCELED 시뮬레이션은 수락할 수 없습니다.',
+};
+const SERVER_ERROR = { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' };
+
+export const invitationHistoryHandlers = {
+  success: http.get(HISTORY_URL, ({ request }) => historyResponse(request, invitations)),
+
+  empty: invitationHistoryHandler([]),
+
+  serverError: http.get(HISTORY_URL, () => HttpResponse.json(SERVER_ERROR, { status: 500 })),
+};
+
+export const invitationAcceptHandlers = {
+  success: http.post(ACCEPT_URL, ({ params }) => {
+    transition(params.invitationId, 'ACCEPTED');
+    return HttpResponse.json({ data: {} }, { status: 201 });
+  }),
+
+  notPending: http.post(ACCEPT_URL, () => HttpResponse.json(NOT_PENDING_ERROR, { status: 400 })),
+
+  serverError: http.post(ACCEPT_URL, () => HttpResponse.json(SERVER_ERROR, { status: 500 })),
+};
+
+export const invitationCancelHandlers = {
+  success: http.patch(CANCEL_URL, ({ params }) => {
+    transition(params.invitationId, 'CANCELED');
+    return HttpResponse.json({ data: {} });
+  }),
+
+  serverError: http.patch(CANCEL_URL, () => HttpResponse.json(SERVER_ERROR, { status: 500 })),
+};
+
+export const invitationHistoryDefaultHandlers = [
+  invitationHistoryHandlers.success,
+  invitationAcceptHandlers.success,
+  invitationCancelHandlers.success,
+];

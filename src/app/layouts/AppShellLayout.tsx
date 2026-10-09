@@ -24,7 +24,11 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
         ? ['홈', '대시보드']
         : pathname.startsWith('/avatars/')
           ? ['홈', '대시보드']
-          : ['홈'];
+          : pathname === '/explore'
+            ? ['아바타', '둘러보기']
+            : pathname === '/simulations'
+              ? ['아바타', '시뮬레이션 목록']
+              : ['홈'];
   return (
     <nav aria-label="현재 위치" className="text-secondary text-caption">
       <ol className="flex items-center gap-1.5">
@@ -92,8 +96,8 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
           />
         </div>
         <NavSection label="아바타">
-          <SidebarItem label="둘러보기" disabled />
-          <SidebarItem label="시뮬레이션 목록" disabled />
+          <SidebarItem label="둘러보기" to="/explore" onClick={onNavigate} />
+          <SidebarItem label="시뮬레이션 목록" to="/simulations" onClick={onNavigate} />
         </NavSection>
         <NavSection label="유저">
           <SidebarItem label="내 아바타" disabled />
