@@ -119,7 +119,6 @@ export function invitationHistoryHandler(items: InvitationHistoryItem[]) {
   return http.get(HISTORY_URL, ({ request }) => historyResponse(request, items));
 }
 
-// 기본 핸들러는 수락·취소한 요청의 상태를 바꿔 기억한다 — mock dev 서버에서 응답 뒤 목록이 그대로면 버튼이 되살아난다.
 let invitations = mockInvitationHistory;
 
 export function resetInvitationHistory(): void {

@@ -13,6 +13,7 @@ import {
   resetInvitationHistory,
 } from '@shared/mocks/handlers/invitationHistory';
 import { ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
+import { avatarKeys } from '@entities/avatar';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { SimulationListPage } from '../SimulationListPage';
 
@@ -136,6 +137,17 @@ describe('SimulationListPage', () => {
         'datetime',
         mockInvitationHistory.find((item) => item.status === 'IN_PROGRESS')?.createdAt
       );
+    });
+
+    it('내 아바타 타일은 내 아바타의 색을, 색을 알 수 없는 상대 타일은 회색을 입는다', async () => {
+      renderPage();
+
+      const [row] = await findRows(RUNNING);
+      const cells = cellsOf(row);
+      await waitFor(() => {
+        expect(cells[0]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-pink');
+      });
+      expect(cells[1]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-none');
     });
 
     it('아바타 이름은 굵게 쓰지 않는다', async () => {
@@ -350,6 +362,42 @@ describe('SimulationListPage', () => {
       });
       expect(screen.getAllByText('잠시 후 다시 시도해주세요')).toHaveLength(1);
     });
+  });
+
+  describe('응답 뒤 캐시', () => {
+    it.each([
+      ['수락', ACCEPT],
+      ['취소', CANCEL],
+    ])(
+      '%s하면 내 아바타 목록 캐시를 무효화한다 — 매칭 가능 여부가 달라진다',
+      async (_label, name) => {
+        const user = userEvent.setup();
+        const { queryClient } = renderPage();
+
+        await findRows(REQUESTS);
+        await waitFor(() => {
+          expect(queryClient.getQueryState(avatarKeys.myAvatars())?.status).toBe('success');
+        });
+        expect(queryClient.getQueryState(avatarKeys.myAvatars())?.isInvalidated).toBe(false);
+
+        let invalidated = false;
+        const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+          if (
+            event.type === 'updated' &&
+            event.action.type === 'invalidate' &&
+            event.query.queryKey.join() === avatarKeys.myAvatars().join()
+          ) {
+            invalidated = true;
+          }
+        });
+        await user.click(screen.getByRole('button', { name }));
+
+        await waitFor(() => {
+          expect(invalidated).toBe(true);
+        });
+        unsubscribe();
+      }
+    );
   });
 
   describe('응답이 실패했을 때', () => {

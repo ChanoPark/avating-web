@@ -58,7 +58,6 @@ const ACTION_VIEW: Record<
 };
 
 const ACTION_ERROR_TITLE: Partial<Record<string, string>> = {
-  [SERVER_ERROR_CODES.SIMULATION_IN_PROGRESS]: '이미 진행 중인 매칭이 있어요',
   [SERVER_ERROR_CODES.SIMULATION_INVITATION_NOT_FOUND]: '이미 처리된 요청이에요',
   [SERVER_ERROR_CODES.SIMULATION_INVITATION_NOT_PENDING]: '이미 처리된 요청이에요',
 };

@@ -32,7 +32,6 @@ const variants: Record<ButtonVariant, string> = {
     'bg-fill-weak text-primary enabled:hover:bg-fill-weak-hover enabled:active:bg-fill-weak-press',
   ghost:
     'bg-transparent text-secondary enabled:hover:bg-surface enabled:hover:text-primary enabled:active:bg-fill-weak disabled:bg-transparent',
-  // 파괴적 액션은 텍스트다.
   danger: 'bg-transparent text-danger enabled:hover:bg-danger-tint disabled:bg-transparent',
   dangerSolid: 'bg-danger text-on-ink enabled:hover:bg-danger-mark',
 };
