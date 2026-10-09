@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { lazy } from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { MemoryRouter } from 'react-router';
+import { MemoryRouter, RouterProvider, createMemoryRouter } from 'react-router';
 import { ApiError } from '@shared/lib/errors';
 import { SuspenseRoute } from '../SuspenseRoute';
 
@@ -47,12 +48,12 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
     expect(screen.queryByText('요청한 리소스를 찾을 수 없습니다')).not.toBeInTheDocument();
     spy.mockRestore();
   });
 
-  it('500 은 수동 재시도만 주고 문의 경로는 아직 노출하지 않는다', async () => {
+  it('500 은 재시도 버튼도 문의 경로도 두지 않는다', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
       throw new ApiError(500, '서버 오류');
@@ -60,7 +61,8 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    expect(await screen.findByRole('button', { name: '다시 시도' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: '문제가 생겼어요' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '문의하기' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '문의하기' })).not.toBeInTheDocument();
     spy.mockRestore();
@@ -108,6 +110,42 @@ describe('SuspenseRoute', () => {
     spy.mockRestore();
   });
 
+  it('에러 화면에서 다른 라우트로 이동하면 경계가 풀려 그 화면이 보인다', async () => {
+    const spy = silenceBoundaryLog();
+    const user = userEvent.setup();
+    const Boom = () => {
+      throw new ApiError(500, '서버 오류');
+    };
+    const router = createMemoryRouter(
+      [
+        {
+          path: '/boom',
+          element: (
+            <SuspenseRoute>
+              <Boom />
+            </SuspenseRoute>
+          ),
+        },
+        {
+          path: '/',
+          element: (
+            <SuspenseRoute>
+              <p>SERVICE_INTRO_PAGE</p>
+            </SuspenseRoute>
+          ),
+        },
+      ],
+      { initialEntries: ['/boom'] }
+    );
+    render(<RouterProvider router={router} />);
+
+    await user.click(await screen.findByRole('button', { name: '서비스 소개로' }));
+
+    expect(await screen.findByText('SERVICE_INTRO_PAGE')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '문제가 생겼어요' })).not.toBeInTheDocument();
+    spy.mockRestore();
+  });
+
   it('경계가 에러를 삼키지 않고 크래시 핸들러로 넘긴다 (관측 통로)', async () => {
     const spy = silenceBoundaryLog();
     const Boom = () => {
@@ -116,7 +154,7 @@ describe('SuspenseRoute', () => {
 
     renderRoute(<Boom />);
 
-    await screen.findByRole('button', { name: '다시 시도' });
+    await screen.findByRole('heading', { name: '문제가 생겼어요' });
     expect(spy.mock.calls.some((call) => call[0] === '[AppBoundary]')).toBe(true);
     spy.mockRestore();
   });

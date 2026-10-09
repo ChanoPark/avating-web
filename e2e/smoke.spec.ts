@@ -33,7 +33,6 @@ test.describe('공개 라우트 스모크', () => {
     // 상태 404 와 다르다.
     await expect(page.getByRole('button', { name: '서비스 소개로' })).toBeVisible();
     await expect(page.getByRole('button', { name: '로그인', exact: true })).toBeVisible();
-    // 재시도는 서버 에러(S-11-04) 전용이다. 없는 주소는 다시 시도해도 없다.
     await expect(page.getByRole('button', { name: '다시 시도' })).toHaveCount(0);
   });
 });

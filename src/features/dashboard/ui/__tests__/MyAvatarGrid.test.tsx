@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { describe, it, expect } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -5,6 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { mockPrimaryAvatar, primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { usePrimaryAvatar } from '@entities/avatar';
 import { MyAvatarGrid } from '../MyAvatarGrid';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
@@ -206,13 +208,34 @@ describe('MyAvatarGrid', () => {
   });
 
   describe('오류 상태', () => {
-    it('500 이면 영역 오류를 보여주고, "다시 시도" 로 재요청해 복구한다', async () => {
+    it('500 이면 카드 머리만 남기고 상단 에러 토스트로 알린다', async () => {
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/primary`, () =>
+          HttpResponse.json(
+            { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+            { status: 500 }
+          )
+        )
+      );
+      renderWithProviders(<MyAvatarGrid />);
+
+      const toast = (await screen.findByText('대표 아바타를 불러오지 못했어요')).closest(
+        '[role="status"]'
+      );
+      expect(toast).toHaveClass('bg-danger-tint');
+      expect(screen.getByRole('region', { name: '대표 아바타' })).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+    });
+
+    // 앱 셸의 사이드바가 같은 대표 아바타 쿼리를 계속 구독한다.
+    it('같은 쿼리를 구독하는 화면이 남아 있어도, 돌아올 때마다 재요청하고 서버가 복구되면 채워진다', async () => {
       const user = userEvent.setup();
       let callCount = 0;
       server.use(
         http.get(`${BASE_URL}/api/avatars/primary`, () => {
           callCount++;
-          return callCount === 1
+          return callCount <= 2
             ? HttpResponse.json(
                 { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
                 { status: 500 }
@@ -220,15 +243,45 @@ describe('MyAvatarGrid', () => {
             : HttpResponse.json(mockPrimaryAvatar);
         })
       );
-      renderWithProviders(<MyAvatarGrid />);
 
-      expect(await screen.findByText('대표 아바타를 불러오지 못했어요')).toBeInTheDocument();
-      await user.click(screen.getByRole('button', { name: '다시 시도' }));
+      function Sidebar() {
+        usePrimaryAvatar();
+        return null;
+      }
 
-      await waitFor(() => {
-        expect(screen.getByText('루시')).toBeInTheDocument();
-      });
+      function Screen() {
+        const [onDashboard, setOnDashboard] = useState(true);
+        return (
+          <>
+            <Sidebar />
+            <button
+              type="button"
+              onClick={() => {
+                setOnDashboard((v) => !v);
+              }}
+            >
+              화면 전환
+            </button>
+            {onDashboard && <MyAvatarGrid />}
+          </>
+        );
+      }
+      renderWithProviders(<Screen />);
+      const toggle = () => user.click(screen.getByRole('button', { name: '화면 전환' }));
+
+      await screen.findByText('대표 아바타를 불러오지 못했어요');
+      expect(callCount).toBe(1);
+
+      await toggle();
+      expect(screen.queryByText('대표 아바타를 불러오지 못했어요')).not.toBeInTheDocument();
+      await toggle();
+      await screen.findByText('대표 아바타를 불러오지 못했어요');
       expect(callCount).toBe(2);
+
+      await toggle();
+      await toggle();
+      expect(await screen.findByText('루시')).toBeInTheDocument();
+      expect(callCount).toBe(3);
     });
   });
 });

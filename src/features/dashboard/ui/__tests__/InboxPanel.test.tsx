@@ -24,6 +24,21 @@ describe('InboxPanel', () => {
     });
   });
 
+  describe('오류 상태', () => {
+    it('500 이면 카드 머리만 남기고 상단 에러 토스트로 알린다', async () => {
+      server.use(inboxScenarios.error);
+      renderWithProviders(<InboxPanel />);
+
+      const toast = (await screen.findByText('알림을 불러오지 못했어요')).closest(
+        '[role="status"]'
+      );
+      expect(toast).toHaveClass('bg-danger-tint');
+      expect(screen.getByRole('region', { name: '알림' })).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+    });
+  });
+
   describe('읽지 않은 알림 카운트', () => {
     it('unreadCount=2 일 때 배지 텍스트 "2" 가 tnum 으로 렌더된다', async () => {
       server.use(inboxScenarios.success);

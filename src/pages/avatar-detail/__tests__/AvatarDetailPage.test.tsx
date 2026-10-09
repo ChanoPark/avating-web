@@ -133,14 +133,15 @@ describe('AvatarDetailPage', () => {
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
   });
 
-  it('500 응답 시 에러 메시지 + "다시 시도" 가 노출되고, 재시도하면 다시 요청해 화면을 채운다', async () => {
-    const user = userEvent.setup();
+  it('500 응답 시 본문 자리는 비우고 상단 에러 토스트로 알린다', async () => {
     setAvatarDetailScenario('server-error');
     renderPage();
-    expect(await screen.findByRole('alert')).toHaveTextContent('불러오지 못했어요');
 
-    setAvatarDetailScenario('success');
-    await user.click(screen.getByRole('button', { name: '다시 시도' }));
-    expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
+    const toast = (await screen.findByText('아바타 정보를 불러오지 못했어요')).closest(
+      '[role="status"]'
+    );
+    expect(toast).toHaveClass('bg-danger-tint');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
   });
 });

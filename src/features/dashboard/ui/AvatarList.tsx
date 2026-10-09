@@ -1,10 +1,10 @@
 import { Suspense, useState } from 'react';
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Compass } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { InlineError } from '@shared/ui/InlineError';
-import { useSimCandidatesSuspense } from '@entities/avatar';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
+import { avatarKeys, useSimCandidatesSuspense } from '@entities/avatar';
 import type { AvatarSimCandidate } from '@entities/avatar';
 import { MatchRequestModal } from '@features/match-request';
 import { AvatarCard } from './AvatarCard';
@@ -70,13 +70,9 @@ function AvatarListContent({ onAvatarClick }: AvatarListProps) {
   );
 }
 
-// 정본 S-11-06 PANEL — 실패한 영역만 교체하고 재시도는 그 자리에 둔다.
-function AvatarListFallback({ resetErrorBoundary }: FallbackProps) {
-  return (
-    <div className={PANEL_CLASS}>
-      <InlineError body="추천 아바타를 불러오지 못했어요" onRetry={resetErrorBoundary} />
-    </div>
-  );
+function AvatarListFallback() {
+  useLoadErrorToast(true, '추천 아바타를 불러오지 못했어요');
+  return <div className={`${PANEL_CLASS} min-h-[118px]`} />;
 }
 
 // 실제 카드와 같은 골격을 세운다 — 단순 텍스트로 두면 데이터 도착 시 카드 높이만큼 CLS 가 발생한다.
@@ -115,13 +111,12 @@ function AvatarListSkeleton() {
 }
 
 export function AvatarList({ onAvatarClick }: AvatarListProps) {
-  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
-  const { reset } = useQueryErrorResetBoundary();
+  const ready = useFailedQueryReset(avatarKeys.candidatesAll());
 
   return (
-    <ErrorBoundary onReset={reset} fallbackRender={(props) => <AvatarListFallback {...props} />}>
+    <ErrorBoundary fallbackRender={() => <AvatarListFallback />}>
       <Suspense fallback={<AvatarListSkeleton />}>
-        <AvatarListContent onAvatarClick={onAvatarClick} />
+        {ready ? <AvatarListContent onAvatarClick={onAvatarClick} /> : <AvatarListSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );

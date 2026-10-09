@@ -166,7 +166,6 @@ describe('Toast', () => {
     ['info', 'text-secondary'],
     ['success', 'text-secondary'],
     ['warning', 'text-secondary'],
-    ['error', 'text-danger'],
   ] as const)('variant="%s" 이면 마크 색이 %s 다', (variant, markClass) => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {
@@ -179,17 +178,16 @@ describe('Toast', () => {
     expect(toast?.className).not.toContain('border-l-');
   });
 
-  it('variant="failure" 는 글리프 없이 연한 danger 면 + danger 테두리로 그린다', () => {
+  it('variant="error" 는 글리프 없이 연한 danger 면 + danger 테두리로 그린다', () => {
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {
-      result.current.show({ variant: 'failure', title: '아바타를 만들지 못했어요' });
+      result.current.show({ variant: 'error', title: '아바타를 만들지 못했어요' });
     });
     const toast = screen.getByText('아바타를 만들지 못했어요').closest('[role="status"]');
     expect(toast).toHaveClass('bg-danger-tint');
     expect(toast).toHaveClass('border-danger-mark');
     expect(toast).not.toHaveClass('bg-canvas');
-    // 남는 svg 는 닫기 버튼의 X 하나뿐이다.
-    expect(toast?.querySelectorAll('svg')).toHaveLength(1);
+    expect(toast?.querySelector('span')).toBeNull();
   });
 
   // jsdom 은 폭을 못 재서 클래스로 고정한다.
@@ -201,19 +199,6 @@ describe('Toast', () => {
     const stack = screen.getByText('스택 확인').closest('[role="status"]')?.parentElement;
     expect(stack).toHaveClass('left-1/2', '-translate-x-1/2', 'w-max');
     expect(stack).toHaveClass('max-w-[calc(100vw-2rem)]');
-  });
-
-  it('failure 토스트는 자동으로 사라지지 않는다', () => {
-    vi.useFakeTimers();
-    const { result } = renderHook(() => useToast(), { wrapper: wrap });
-    act(() => {
-      result.current.show({ variant: 'failure', title: '실패 유지' });
-    });
-    act(() => {
-      vi.advanceTimersByTime(60_000);
-    });
-    expect(screen.getByText('실패 유지')).toBeInTheDocument();
-    vi.useRealTimers();
   });
 
   it('최대 3개까지만 노출하고 4번째부터는 가장 오래된 토스트를 제거한다', () => {
@@ -228,6 +213,50 @@ describe('Toast', () => {
     expect(screen.getByText('토스트 2')).toBeInTheDocument();
     expect(screen.getByText('토스트 3')).toBeInTheDocument();
     expect(screen.getByText('토스트 4')).toBeInTheDocument();
+  });
+
+  it('에러 토스트는 상한을 넘겨도 밀려나지 않는다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '에러 1' });
+      result.current.show({ variant: 'error', title: '에러 2' });
+      result.current.show({ variant: 'error', title: '에러 3' });
+      result.current.show({ variant: 'error', title: '에러 4' });
+    });
+    expect(screen.getByText('에러 1')).toBeInTheDocument();
+    expect(screen.getByText('에러 2')).toBeInTheDocument();
+    expect(screen.getByText('에러 3')).toBeInTheDocument();
+    expect(screen.getByText('에러 4')).toBeInTheDocument();
+  });
+
+  it('에러 토스트가 상한만큼 떠 있어도 뒤에 온 성공 토스트는 보인다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '에러 1' });
+      result.current.show({ variant: 'error', title: '에러 2' });
+      result.current.show({ variant: 'error', title: '에러 3' });
+      result.current.show({ variant: 'success', title: '요청을 보냈어요', durationMs: 0 });
+    });
+    expect(screen.getByText('에러 1')).toBeInTheDocument();
+    expect(screen.getByText('에러 2')).toBeInTheDocument();
+    expect(screen.getByText('에러 3')).toBeInTheDocument();
+    expect(screen.getByText('요청을 보냈어요')).toBeInTheDocument();
+  });
+
+  it('상한은 에러가 아닌 토스트끼리만 세고, 넘기면 그중 가장 오래된 것부터 제거한다', () => {
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '에러 유지' });
+      result.current.show({ variant: 'info', title: '안내 1', durationMs: 0 });
+      result.current.show({ variant: 'info', title: '안내 2', durationMs: 0 });
+      result.current.show({ variant: 'info', title: '안내 3', durationMs: 0 });
+      result.current.show({ variant: 'info', title: '안내 4', durationMs: 0 });
+    });
+    expect(screen.getByText('에러 유지')).toBeInTheDocument();
+    expect(screen.queryByText('안내 1')).not.toBeInTheDocument();
+    expect(screen.getByText('안내 2')).toBeInTheDocument();
+    expect(screen.getByText('안내 3')).toBeInTheDocument();
+    expect(screen.getByText('안내 4')).toBeInTheDocument();
   });
 });
 

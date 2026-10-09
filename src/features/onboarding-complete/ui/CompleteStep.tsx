@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { Check } from 'lucide-react';
 import { Badge } from '@shared/ui/Badge/Badge';
 import { Button } from '@shared/ui/Button/Button';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { Tag } from '@shared/ui/Tag/Tag';
 import { clearOnboardingProgress, resolveResumeRoute } from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
@@ -97,6 +98,7 @@ export function CompleteStep() {
 
   // 조회 실패(isUnknown)까지 "없음"으로 취급하면 되돌아간 화면이 사용자를 다시 여기로 보내 왕복하게 된다.
   const shouldResume = isResolved && !isUnknown && !hasPrimaryAvatar;
+  useLoadErrorToast(isUnknown, '아바타 정보를 불러오지 못했어요');
 
   useEffect(() => {
     if (shouldResume) {
@@ -107,11 +109,7 @@ export function CompleteStep() {
   if (shouldResume) return null;
 
   if (isUnknown) {
-    return (
-      <div role="alert" className={WIZARD_BODY}>
-        <p className="text-caption text-secondary">오류가 생겼어요. 다시 시도해주세요.</p>
-      </div>
-    );
+    return <div className={WIZARD_BODY} />;
   }
 
   if (!isResolved || avatar == null) {

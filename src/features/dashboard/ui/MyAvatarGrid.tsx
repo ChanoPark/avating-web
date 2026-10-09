@@ -1,11 +1,12 @@
 import { Suspense } from 'react';
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
-import { InlineError } from '@shared/ui/InlineError';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { cn } from '@shared/lib/cn';
 import {
   AvatarIdentityTile,
   AvatarTagBadge,
+  avatarKeys,
   PersonaStats,
   PersonaStatsSkeleton,
   personaStatRows,
@@ -47,12 +48,12 @@ function MyAvatarGridSkeleton() {
   );
 }
 
-// 정본 S-11-06 PANEL — 실패한 영역만 교체하고 재시도는 그 자리에 둔다.
-function MyAvatarGridFallback({ resetErrorBoundary }: FallbackProps) {
+function MyAvatarGridFallback() {
+  useLoadErrorToast(true, '대표 아바타를 불러오지 못했어요');
   return (
     <section aria-label="대표 아바타" className={CARD_CLASS}>
       <CardHeader />
-      <InlineError body="대표 아바타를 불러오지 못했어요" onRetry={resetErrorBoundary} />
+      <div className="min-h-[118px]" />
     </section>
   );
 }
@@ -115,13 +116,12 @@ function MyAvatarGridContent() {
 }
 
 export function MyAvatarGrid() {
-  // 경계만 되살리면 재마운트된 suspense 쿼리가 캐시된 에러를 다시 던진다 — reset 을 걸어야 재시도가 재요청이 된다.
-  const { reset } = useQueryErrorResetBoundary();
+  const ready = useFailedQueryReset(avatarKeys.primary());
 
   return (
-    <ErrorBoundary onReset={reset} fallbackRender={(props) => <MyAvatarGridFallback {...props} />}>
+    <ErrorBoundary fallbackRender={() => <MyAvatarGridFallback />}>
       <Suspense fallback={<MyAvatarGridSkeleton />}>
-        <MyAvatarGridContent />
+        {ready ? <MyAvatarGridContent /> : <MyAvatarGridSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );

@@ -1,7 +1,9 @@
+import { Suspense, useState } from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { http, HttpResponse } from 'msw';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { mockSimCandidates, simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
@@ -102,7 +104,19 @@ describe('AvatarList (GET /api/avatars/candidates)', () => {
     expect(screen.queryByRole('button', { name: /필터 초기화/ })).not.toBeInTheDocument();
   });
 
-  it('500 이면 영역 오류를 보여주고, "다시 시도" 로 재요청해 복구한다', async () => {
+  it('500 이면 다시 시도 버튼 없이 상단 에러 토스트로 알린다', async () => {
+    server.use(simCandidatesHandlers.serverError);
+    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
+
+    const toast = (await screen.findByText('추천 아바타를 불러오지 못했어요')).closest(
+      '[role="status"]'
+    );
+    expect(toast).toHaveClass('bg-danger-tint');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+  });
+
+  it('실패한 화면을 벗어나면 토스트가 사라지고, 다시 들어오면 재요청해 목록을 보여준다', async () => {
     const user = userEvent.setup();
     let callCount = 0;
     server.use(
@@ -116,10 +130,44 @@ describe('AvatarList (GET /api/avatars/candidates)', () => {
           : HttpResponse.json(mockSimCandidates);
       })
     );
-    renderWithProviders(<AvatarList onAvatarClick={vi.fn()} />);
 
-    expect(await screen.findByText('추천 아바타를 불러오지 못했어요')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: '다시 시도' }));
+    // 실제 앱에서는 그 사이에 다른 화면의 suspense 쿼리가 마운트된다 — 쿼리 에러 리셋 경계에만
+    // 기대면 그 쿼리가 리셋 표시를 지워, 돌아왔을 때 캐시된 에러가 재요청 없이 다시 던져진다.
+    function OtherScreen() {
+      useSuspenseQuery({ queryKey: ['other-screen'], queryFn: () => Promise.resolve('ok') });
+      return <p>다른 화면</p>;
+    }
+
+    function Screen() {
+      const [onDashboard, setOnDashboard] = useState(true);
+      return (
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              setOnDashboard((v) => !v);
+            }}
+          >
+            화면 전환
+          </button>
+          {onDashboard ? (
+            <AvatarList onAvatarClick={vi.fn()} />
+          ) : (
+            <Suspense fallback={null}>
+              <OtherScreen />
+            </Suspense>
+          )}
+        </>
+      );
+    }
+    renderWithProviders(<Screen />);
+
+    await screen.findByText('추천 아바타를 불러오지 못했어요');
+    await user.click(screen.getByRole('button', { name: '화면 전환' }));
+    expect(await screen.findByText('다른 화면')).toBeInTheDocument();
+    expect(screen.queryByText('추천 아바타를 불러오지 못했어요')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '화면 전환' }));
 
     expect(await screen.findByRole('button', { name: '하늘#H7K2MP' })).toBeInTheDocument();
     expect(callCount).toBe(2);

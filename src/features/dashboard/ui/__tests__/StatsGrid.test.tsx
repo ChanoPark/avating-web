@@ -5,9 +5,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
 import { server } from '@shared/mocks/server';
 import { statsHandlers } from '@shared/mocks/handlers/dashboard';
+import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { StatsGrid } from '../StatsGrid';
-
-const gridProps = { resetKey: 0, onCardFailed: () => {} };
 
 function renderWithProviders(ui: React.ReactNode) {
   const queryClient = new QueryClient({
@@ -18,9 +17,13 @@ function renderWithProviders(ui: React.ReactNode) {
       QueryClientProvider,
       { client: queryClient },
       createElement(
-        Suspense,
-        { fallback: createElement('div', { 'data-testid': 'loading' }, '로딩 중') },
-        ui
+        ToastProvider,
+        null,
+        createElement(
+          Suspense,
+          { fallback: createElement('div', { 'data-testid': 'loading' }, '로딩 중') },
+          ui
+        )
       )
     )
   );
@@ -29,7 +32,7 @@ function renderWithProviders(ui: React.ReactNode) {
 describe('StatsGrid', () => {
   it('정상 응답 시 3개 카드 라벨이 모두 렌더된다', async () => {
     server.use(statsHandlers.success);
-    renderWithProviders(createElement(StatsGrid, gridProps));
+    renderWithProviders(createElement(StatsGrid));
 
     await waitFor(() => {
       expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
@@ -61,7 +64,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, gridProps));
+    renderWithProviders(createElement(StatsGrid));
 
     await waitFor(() => {
       expect(screen.getByText('총 매칭 횟수')).toBeInTheDocument();
@@ -73,12 +76,24 @@ describe('StatsGrid', () => {
   it('API 응답 Zod 검증 실패 시 3개 카드 모두 fallback("—") 표시', async () => {
     server.use(statsHandlers.partialFail);
 
-    renderWithProviders(createElement(StatsGrid, gridProps));
+    renderWithProviders(createElement(StatsGrid));
 
     await waitFor(() => {
       const fallbacks = screen.queryAllByText('—');
       expect(fallbacks.length).toBe(3);
     });
+  });
+
+  it('카드 세 장이 모두 실패해도 통계 에러 토스트는 하나만 뜬다', async () => {
+    server.use(statsHandlers.partialFail);
+
+    renderWithProviders(createElement(StatsGrid));
+
+    await waitFor(() => {
+      expect(screen.queryAllByText('—')).toHaveLength(3);
+    });
+    expect(screen.getAllByText('통계를 불러오지 못했어요')).toHaveLength(1);
+    expect(screen.queryByRole('button', { name: /다시/ })).not.toBeInTheDocument();
   });
 
   it('a11y — axe 위반 0 (jest-axe 미설치 — 도입 후 활성화)', () => {
@@ -103,7 +118,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, gridProps));
+    renderWithProviders(createElement(StatsGrid));
 
     await waitFor(() => {
       expect(screen.getByText(/-3 지난주 대비/)).toBeInTheDocument();
@@ -133,7 +148,7 @@ describe('StatsGrid', () => {
       })
     );
 
-    renderWithProviders(createElement(StatsGrid, gridProps));
+    renderWithProviders(createElement(StatsGrid));
 
     await waitFor(() => {
       expect(screen.getByText(/\+0 지난주 대비/)).toBeInTheDocument();

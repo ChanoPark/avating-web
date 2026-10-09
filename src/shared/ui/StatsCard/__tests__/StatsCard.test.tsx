@@ -21,6 +21,14 @@ describe('StatsCard', () => {
     expect(screen.getByText('47')).toBeInTheDocument();
   });
 
+  it('failed 이면 값은 — 이고 실패 문구는 카드 안에 두지 않는다', () => {
+    render(<StatsCard {...defaultProps} failed value="" ariaLabel="" />);
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.getByLabelText('총 매칭 횟수 불러오지 못했어요')).toBeInTheDocument();
+    expect(screen.queryByText('불러오지 못했어요')).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
   it('ariaLabel 이 root 요소의 aria-label 로 설정된다', () => {
     render(<StatsCard {...defaultProps} />);
     const card = screen.getByLabelText('총 매칭 횟수 47회, 지난주 대비 8 증가');

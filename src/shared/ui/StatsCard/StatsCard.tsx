@@ -19,12 +19,11 @@ type StatsCardProps = {
   value: string;
   delta?: { text: string; tone: DeltaTone };
   ariaLabel: string;
-  /** 카드 단위 로드 실패 — 라벨은 유지하고 값·델타만 `—`로 바꾼다(S-11-06 STAT). */
+  /** 카드 단위 로드 실패 — 라벨은 유지하고 값은 `—`, 델타 자리는 비운다. 실패 안내는 호출부가 토스트로 한다. */
   failed?: boolean;
 };
 
 const FAILED_VALUE = '—';
-const FAILED_DELTA = '불러오지 못했어요';
 
 export function StatsCard({
   icon: Icon,
@@ -36,7 +35,7 @@ export function StatsCard({
 }: StatsCardProps) {
   if (failed) {
     return (
-      <div role="alert" aria-label={`${label} 불러오지 못했어요`} className={STATS_CARD_BOX}>
+      <div aria-label={`${label} 불러오지 못했어요`} className={STATS_CARD_BOX}>
         <div className="flex items-center gap-2">
           <Icon
             size={13}
@@ -48,7 +47,7 @@ export function StatsCard({
         </div>
         <div className="text-figure text-secondary tnum font-bold">{FAILED_VALUE}</div>
         {/* 정상 카드의 delta pill 과 같은 20px 줄상자 — 한 행에 섞여 서므로 밑단이 맞아야 한다. */}
-        <div className="text-meta text-danger leading-5">{FAILED_DELTA}</div>
+        <div className="text-meta leading-5">&nbsp;</div>
       </div>
     );
   }

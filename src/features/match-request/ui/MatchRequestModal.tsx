@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createPortal } from 'react-dom';
@@ -6,6 +6,7 @@ import { ArrowRight, X } from 'lucide-react';
 import { Button } from '@shared/ui/Button';
 import { FIELD_CLASS, FIELD_ERROR_CLASS } from '@shared/ui/Input';
 import { useToast } from '@shared/ui/Toast/useToast';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { isApiError } from '@shared/lib/errors';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { cn } from '@shared/lib/cn';
@@ -52,14 +53,15 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
   const greetingErrorId = useId();
   const greetingHelpId = useId();
 
-  const { show: showToast } = useToast();
+  const { show: showToast, dismiss: dismissToast } = useToast();
+  const failureToastIdRef = useRef<string | null>(null);
   const {
     data: myAvatars = [],
     isLoading: avatarsLoading,
     isError: avatarsError,
-    refetch: refetchAvatars,
   } = useMyAvatars({ enabled: open });
   const { mutateAsync, isPending } = useSendMatchRequest();
+  useLoadErrorToast(open && avatarsError, '아바타 목록을 불러오지 못했어요');
 
   const firstSelectableId = myAvatars.find((a) => a.canJoinSimulation)?.avatarId ?? '';
 
@@ -100,9 +102,20 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     }
   }, [open, firstSelectableId, setValue, getValues]);
 
+  const dismissFailureToast = useCallback(() => {
+    if (failureToastIdRef.current === null) return;
+    dismissToast(failureToastIdRef.current);
+    failureToastIdRef.current = null;
+  }, [dismissToast]);
+
   useEffect(() => {
-    if (!open) reset();
-  }, [open, reset]);
+    if (!open) {
+      reset();
+      dismissFailureToast();
+    }
+  }, [open, reset, dismissFailureToast]);
+
+  useEffect(() => dismissFailureToast, [dismissFailureToast]);
 
   useEffect(() => {
     if (!open) return;
@@ -148,6 +161,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
     isLoading || avatarsLoading || avatarsError || hasNoAvatars || allBusy || isGreetingOverLimit;
 
   const onSubmit = async (values: MatchRequestFormValues) => {
+    dismissFailureToast();
     try {
       await mutateAsync({
         partnerAvatarId,
@@ -164,7 +178,10 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
         onClose();
         return;
       }
-      showToast({ variant: 'error', title: '잠시 후 다시 시도해주세요' });
+      failureToastIdRef.current = showToast({
+        variant: 'error',
+        title: '잠시 후 다시 시도해주세요',
+      });
     }
   };
 
@@ -225,20 +242,7 @@ export function MatchRequestModal({ open, partnerAvatarId, partner, onClose, onS
                 <p role="status" aria-live="polite" className="text-caption text-secondary">
                   아바타 목록 불러오는 중…
                 </p>
-              ) : avatarsError ? (
-                <div role="alert" className={cn(NOTICE_CLASS, 'text-danger flex flex-col gap-2')}>
-                  <span>아바타 목록을 불러오지 못했어요. 잠시 후 다시 시도해주세요.</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void refetchAvatars();
-                    }}
-                    className="text-meta text-action hover:text-action-hover ease-standard cursor-pointer self-start font-medium transition-colors duration-[var(--dur-fast)]"
-                  >
-                    다시 시도
-                  </button>
-                </div>
-              ) : hasNoAvatars ? (
+              ) : avatarsError ? null : hasNoAvatars ? (
                 <p role="status" aria-live="polite" className={cn(NOTICE_CLASS, 'text-warning')}>
                   아바타를 먼저 만들어주세요. 매칭 요청에는 최소 1개의 아바타가 필요해요.
                 </p>

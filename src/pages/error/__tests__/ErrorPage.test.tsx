@@ -1,8 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
-import { STATUS_PAGE_URL, SUPPORT_EMAIL_HREF } from '@shared/config/constants';
+import { STATUS_PAGE_URL } from '@shared/config/constants';
 import { ErrorPage } from '../ErrorPage';
 import type { ErrorPageProps, ErrorVariant } from '../ErrorPage';
 
@@ -181,52 +181,21 @@ describe('ErrorPage — S-11-03 없는 페이지 (404)', () => {
 });
 
 describe('ErrorPage — S-11-04 서버 에러 (500)', () => {
-  it('1차 실패에는 문의 경로를 노출하지 않는다', () => {
+  it('문의 경로를 노출하지 않는다', () => {
     renderErrorPage('server-error');
     expect(screen.queryByRole('button', { name: '문의하기' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /상태 페이지/ })).not.toBeInTheDocument();
   });
 
-  it('"다시 시도" 가 onRetry 를 호출한다', async () => {
-    const user = userEvent.setup();
-    const onRetry = vi.fn();
-    renderErrorPage('server-error', { onRetry });
-    await user.click(screen.getByRole('button', { name: '다시 시도' }));
-    expect(onRetry).toHaveBeenCalledTimes(1);
+  it('"다시 시도" 버튼을 두지 않는다', () => {
+    renderErrorPage('server-error');
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
   });
 
-  it('onRetry 미제공 시 "다시 시도" 는 reload 폴백을 부른다', async () => {
-    const user = userEvent.setup();
-    const reload = vi.fn();
-    const original = window.location;
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { ...original, reload },
-    });
-    try {
-      renderErrorPage('server-error');
-      await user.click(screen.getByRole('button', { name: '다시 시도' }));
-      expect(reload).toHaveBeenCalledTimes(1);
-    } finally {
-      Object.defineProperty(window, 'location', { configurable: true, value: original });
-    }
-  });
-
-  it('자동 재시도를 걸지 않는다', () => {
-    vi.useFakeTimers();
-    try {
-      const onRetry = vi.fn();
-      renderErrorPage('server-error', { onRetry });
-      vi.advanceTimersByTime(30_000);
-      expect(onRetry).not.toHaveBeenCalled();
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it('셸 안에서는 부가 액션이 "대시보드로" 다', async () => {
+  it('셸 안에서는 액션이 "대시보드로" 하나다', async () => {
     const user = userEvent.setup();
     renderErrorPage('server-error', { embedded: true });
+    expect(screen.getAllByRole('button')).toHaveLength(1);
     await user.click(screen.getByRole('button', { name: '대시보드로' }));
     expect(screen.getByText('DASHBOARD_PAGE')).toBeInTheDocument();
   });
@@ -241,76 +210,12 @@ describe('ErrorPage — S-11-04 서버 에러 (500)', () => {
   });
 });
 
-describe('ErrorPage — S-11-05 반복 실패', () => {
-  it('재시도 3회 실패 시 반복 실패 화면으로 교체된다', () => {
-    renderErrorPage('server-error', { retryCount: 3 });
-    expect(screen.getByText('반복 실패')).toBeInTheDocument();
-    expect(
-      screen.getByRole('heading', { name: '여러 번 시도해도 처리되지 않아요' })
-    ).toBeInTheDocument();
-  });
-
-  it('2회까지는 교체하지 않는다', () => {
-    renderErrorPage('server-error', { retryCount: 2 });
-    expect(screen.queryByText('반복 실패')).not.toBeInTheDocument();
-    expect(screen.getByText('일시적인 오류')).toBeInTheDocument();
-  });
-
-  it('문의 · 상태 페이지 두 경로를 노출한다', () => {
-    renderErrorPage('server-error', { retryCount: 3 });
-    expect(screen.getByText('문의 남기기')).toBeInTheDocument();
-    expect(screen.getByText('보통 하루 안에 답변해요')).toBeInTheDocument();
-    expect(screen.getByText('서비스 상태 확인')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /상태 페이지/ })).toHaveAttribute(
-      'href',
-      STATUS_PAGE_URL
-    );
-  });
-
-  it('onContact 가 있으면 "문의하기" 가 그 핸들러를 부른다', async () => {
-    const user = userEvent.setup();
-    const onContact = vi.fn();
-    renderErrorPage('server-error', { retryCount: 3, onContact });
-    await user.click(screen.getByRole('button', { name: '문의하기' }));
-    expect(onContact).toHaveBeenCalledTimes(1);
-  });
-
-  it('onContact 가 없으면 mailto 링크로 폴백한다', () => {
-    renderErrorPage('server-error', { retryCount: 3 });
-    expect(screen.getByRole('link', { name: '문의하기' })).toHaveAttribute(
-      'href',
-      SUPPORT_EMAIL_HREF
-    );
-  });
-
-  it('offline 도 3회 실패하면 같은 화면으로 넘어간다', () => {
-    renderErrorPage('offline', { retryCount: 3 });
-    expect(screen.getByText('반복 실패')).toBeInTheDocument();
-  });
-
-  it('not-found·forbidden 은 재시도 개념이 없어 교체되지 않는다', () => {
-    const { unmount } = renderErrorPage('not-found', { retryCount: 9, isAuthenticated: true });
-    expect(screen.queryByText('반복 실패')).not.toBeInTheDocument();
-    unmount();
-
-    renderErrorPage('forbidden', { retryCount: 9 });
-    expect(screen.queryByText('반복 실패')).not.toBeInTheDocument();
-  });
-});
-
 describe('ErrorPage — offline · maintenance (정본 외 · 유지 결정)', () => {
-  it('offline 은 수동 재시도만 제공하고 자동 재시도 문구가 없다', () => {
-    vi.useFakeTimers();
-    try {
-      const onRetry = vi.fn();
-      renderErrorPage('offline', { onRetry });
-      expect(screen.getByRole('button', { name: '다시 시도' })).toBeInTheDocument();
-      vi.advanceTimersByTime(30_000);
-      expect(onRetry).not.toHaveBeenCalled();
-      expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
-    } finally {
-      vi.useRealTimers();
-    }
+  it('offline 은 재시도 버튼 없이 연결 상태만 안내한다', () => {
+    renderErrorPage('offline');
+    expect(screen.getByRole('heading', { name: '인터넷 연결이 불안정해요' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/재연결 시도 중/)).not.toBeInTheDocument();
   });
 
   it('maintenance 는 점검창 정보와 상태 페이지 링크를 준다', () => {

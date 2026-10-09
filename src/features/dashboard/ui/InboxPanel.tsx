@@ -1,9 +1,10 @@
 import { Suspense } from 'react';
-import { ErrorBoundary, type FallbackProps } from 'react-error-boundary';
-import { InlineError } from '@shared/ui/InlineError';
+import { ErrorBoundary } from 'react-error-boundary';
+import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
+import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
-import { useInboxSuspense } from '@entities/inbox';
+import { inboxKeys, useInboxSuspense } from '@entities/inbox';
 import { cn } from '@shared/lib/cn';
 
 // flex-1 — 우측 열에서 남는 높이를 채워 좌측 대표 아바타 카드와 밑단을 맞춘다(어느 쪽이 길든).
@@ -76,12 +77,12 @@ function InboxPanelSkeleton() {
   );
 }
 
-// 정본 S-11-06 PANEL — 패널 자리만 교체하고, 카드 머리는 남겨 무엇이 실패했는지 알 수 있게 한다.
-function InboxPanelFallback({ resetErrorBoundary }: FallbackProps) {
+function InboxPanelFallback() {
+  useLoadErrorToast(true, '알림을 불러오지 못했어요');
   return (
     <section aria-label="알림" className={CARD_CLASS}>
       <CardHeader />
-      <InlineError body="알림을 불러오지 못했어요" onRetry={resetErrorBoundary} />
+      <div className="min-h-[118px]" />
     </section>
   );
 }
@@ -141,10 +142,12 @@ function InboxPanelContent() {
 }
 
 export function InboxPanel() {
+  const ready = useFailedQueryReset(inboxKeys.list());
+
   return (
-    <ErrorBoundary fallbackRender={(props) => <InboxPanelFallback {...props} />}>
+    <ErrorBoundary fallbackRender={() => <InboxPanelFallback />}>
       <Suspense fallback={<InboxPanelSkeleton />}>
-        <InboxPanelContent />
+        {ready ? <InboxPanelContent /> : <InboxPanelSkeleton />}
       </Suspense>
     </ErrorBoundary>
   );
