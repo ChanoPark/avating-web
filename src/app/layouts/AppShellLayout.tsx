@@ -19,6 +19,10 @@ const ICON_BUTTON_CLASS =
 const HOME_CRUMB: ChromeCrumb = { label: '홈', to: '/dashboard' };
 const AVATAR_CRUMB: ChromeCrumb = { label: '아바타', to: '/explore' };
 
+function isSimulationPath(pathname: string): boolean {
+  return pathname === '/sim' || pathname.startsWith('/sim/');
+}
+
 function defaultTrail(pathname: string): readonly ChromeCrumb[] {
   if (pathname === '/dashboard' || pathname.startsWith('/avatars/')) {
     return [HOME_CRUMB, { label: '대시보드', to: '/dashboard' }];
@@ -26,6 +30,7 @@ function defaultTrail(pathname: string): readonly ChromeCrumb[] {
   if (pathname === '/explore') return [AVATAR_CRUMB, { label: '둘러보기', to: '/explore' }];
   if (pathname === '/simulations')
     return [AVATAR_CRUMB, { label: '매칭 요청', to: '/simulations' }];
+  if (isSimulationPath(pathname)) return [AVATAR_CRUMB, { label: '시뮬레이션', to: '/sim' }];
   return [HOME_CRUMB];
 }
 
@@ -118,7 +123,12 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
         <NavSection label="아바타">
           <SidebarItem label="둘러보기" to="/explore" onClick={onNavigate} />
           <SidebarItem label="매칭 요청" to="/simulations" onClick={onNavigate} />
-          <SidebarItem label="시뮬레이션" disabled />
+          <SidebarItem
+            label="시뮬레이션"
+            to="/sim"
+            active={isSimulationPath(pathname)}
+            onClick={onNavigate}
+          />
         </NavSection>
         <NavSection label="유저">
           <SidebarItem label="내 아바타" disabled />
@@ -238,10 +248,13 @@ export function AppShellLayout({ children }: AppShellLayoutProps = {}) {
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: DUR_BASE, ease: EASE_STANDARD }}
-            className="p-7"
+            className="p-7 has-[[data-shell-flush]]:h-full has-[[data-shell-flush]]:p-0"
           >
             {/* 본문에 max-width 를 두지 않는다 — 우측 카드가 고정폭이라 가운데 열만 신축하면 된다. */}
-            <div data-shell-content className="flex w-full flex-col gap-4">
+            <div
+              data-shell-content
+              className="flex w-full flex-col gap-4 has-[[data-shell-flush]]:h-full"
+            >
               {/* 본문에서 터진 예외만 여기서 잡는다 — 셸 크롬이 통째로 터지면 SuspenseRoute 의
                   바깥 경계가 받는다. */}
               <RouteErrorBoundary embedded>{content}</RouteErrorBoundary>

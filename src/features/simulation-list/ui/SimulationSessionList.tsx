@@ -1,9 +1,7 @@
-import { Suspense, useCallback, useEffect, useId, useRef } from 'react';
-import type { ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { MessagesSquare } from 'lucide-react';
-import { Badge } from '@shared/ui/Badge';
 import { Button } from '@shared/ui/Button';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { useToast } from '@shared/ui/Toast/useToast';
@@ -12,29 +10,14 @@ import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
 import { cn } from '@shared/lib/cn';
 import { isApiError } from '@shared/lib/errors';
 import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
-import { AvatarIdentityTile, AvatarTagBadge, useMyAvatars } from '@entities/avatar';
+import { useMyAvatars } from '@entities/avatar';
 import { matchRequestKeys } from '@entities/match-request';
-import type { InvitationDirection } from '@entities/match-request';
 import { useInvitationAction } from '../api/useInvitationAction';
 import type { InvitationAction } from '../api/useInvitationAction';
 import { useSimulationSessionsSuspense } from '../api/useSimulationSessions';
-import { formatRequestedAt } from '../lib/formatRequestedAt';
 import { isRunning } from '../lib/sessions';
-import type { SessionStatus, SimulationSession } from '../lib/sessions';
-
-const STATUS_LABEL: Record<SessionStatus, string> = {
-  PENDING: '응답 대기',
-  ACCEPTED: '진행 중',
-  IN_PROGRESS: '진행 중',
-  DONE: '종료',
-  ABORTED: '중단',
-  CANCELED: '취소',
-};
-
-const DIRECTION_LABEL: Record<InvitationDirection, string> = {
-  SENT: '보낸 요청',
-  RECEIVED: '받은 요청',
-};
+import type { SimulationSession } from '../lib/sessions';
+import { SESSION_CARD_CLASS, SessionRow, SessionTable, SessionTableSkeleton } from './SessionTable';
 
 const ACTION_VIEW: Record<
   InvitationAction,
@@ -75,157 +58,63 @@ function availableAction({ status, direction }: SimulationSession): InvitationAc
   return direction === 'RECEIVED' ? 'accept' : 'cancel';
 }
 
-const CARD_CLASS = 'border-subtle bg-canvas rounded-card overflow-hidden border';
-const TABLE_CLASS = 'w-full table-fixed border-collapse';
-const HEAD_CELL_CLASS = 'text-caption text-secondary px-3 py-3 font-medium sm:px-5';
-const ROW_CLASS = 'border-subtle border-t';
-const CELL_CLASS = 'px-3 py-2.5 sm:px-5';
-const MY_AVATAR_COLUMN_CLASS = 'text-center max-sm:hidden';
-const PARTNER_COLUMN_CLASS = 'text-center';
-const AVATAR_CELL_CLASS = 'mx-auto flex w-full max-w-60 items-center gap-3 text-left';
-const DIRECTION_COLUMN_CLASS = 'w-24 text-center max-xl:hidden';
-const STATUS_COLUMN_CLASS = 'w-28 text-center sm:w-32';
-const TIME_COLUMN_CLASS = 'w-36 text-center max-md:hidden';
-const ACTION_COLUMN_CLASS = 'w-18 text-center sm:w-22';
-const AVATAR_TILE_CLASS = 'text-caption rounded-card size-10';
-const AVATAR_NAME_CLASS = 'text-body text-ink';
-
-function TableHead() {
-  return (
-    <thead>
-      <tr>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, MY_AVATAR_COLUMN_CLASS)}>
-          내 아바타
-        </th>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, PARTNER_COLUMN_CLASS)}>
-          상대 아바타
-        </th>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, DIRECTION_COLUMN_CLASS)}>
-          구분
-        </th>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, STATUS_COLUMN_CLASS)}>
-          상태
-        </th>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, TIME_COLUMN_CLASS)}>
-          요청 시각
-        </th>
-        <th scope="col" className={cn(HEAD_CELL_CLASS, ACTION_COLUMN_CLASS)}>
-          비고
-        </th>
-      </tr>
-    </thead>
-  );
-}
-
-type SessionRowProps = {
+type SessionActionsProps = {
   session: SimulationSession;
-  myColor: string | undefined;
   acting: boolean;
   actionDisabled: boolean;
   onAction: (session: SimulationSession, action: InvitationAction) => void;
+  onOpen: (simulationId: string) => void;
 };
 
-function SessionRow({ session, myColor, acting, actionDisabled, onAction }: SessionRowProps) {
-  const { mine, partner } = session;
+function SessionActions({
+  session,
+  acting,
+  actionDisabled,
+  onAction,
+  onOpen,
+}: SessionActionsProps) {
+  const { partner, simulationId } = session;
   const action = availableAction(session);
 
   return (
-    <tr className={ROW_CLASS}>
-      <td className={cn(CELL_CLASS, MY_AVATAR_COLUMN_CLASS)}>
-        <div className={AVATAR_CELL_CLASS}>
-          <AvatarIdentityTile
-            name={mine.name}
-            color={mine.color ?? myColor}
-            className={AVATAR_TILE_CLASS}
-          />
-          <div className="flex min-w-0 flex-col gap-1">
-            <span className={cn(AVATAR_NAME_CLASS, 'truncate')}>{mine.name}</span>
-            {mine.hashtag !== undefined && <AvatarTagBadge hashtag={mine.hashtag} />}
-          </div>
-        </div>
-      </td>
-      <td className={cn(CELL_CLASS, PARTNER_COLUMN_CLASS)}>
-        <div className={AVATAR_CELL_CLASS}>
-          <AvatarIdentityTile
-            name={partner.name}
-            color={partner.color}
-            className={AVATAR_TILE_CLASS}
-          />
-          <div className="flex min-w-0 flex-col gap-1">
-            <Link
-              to={`/avatars/${partner.avatarId}`}
-              className={cn(
-                AVATAR_NAME_CLASS,
-                'rounded-chip relative flex w-fit max-w-full underline-offset-2 after:absolute after:inset-x-0 after:-inset-y-2.5 hover:underline'
-              )}
-            >
-              <span className="truncate">{partner.name}</span>
-            </Link>
-            {partner.hashtag !== undefined && <AvatarTagBadge hashtag={partner.hashtag} />}
-            <span className="text-caption text-secondary flex flex-wrap gap-x-1.5 xl:hidden">
-              <span className="sm:hidden">내 아바타 {mine.name}</span>
-              <span>{DIRECTION_LABEL[session.direction]}</span>
-              <time dateTime={session.requestedAt} className="tnum md:hidden">
-                {formatRequestedAt(session.requestedAt)}
-              </time>
-            </span>
-          </div>
-        </div>
-      </td>
-      <td className={cn(CELL_CLASS, DIRECTION_COLUMN_CLASS, 'text-body text-secondary')}>
-        {DIRECTION_LABEL[session.direction]}
-      </td>
-      <td className={cn(CELL_CLASS, STATUS_COLUMN_CLASS)}>
-        <Badge variant="outline">{STATUS_LABEL[session.status]}</Badge>
-      </td>
-      <td className={cn(CELL_CLASS, TIME_COLUMN_CLASS, 'text-caption text-secondary tnum')}>
-        <time dateTime={session.requestedAt}>{formatRequestedAt(session.requestedAt)}</time>
-      </td>
-      <td className={cn(CELL_CLASS, ACTION_COLUMN_CLASS)}>
-        {isRunning(session.status) && (
-          <Button
-            variant="secondary"
-            size="xs"
-            aria-label={`${partner.name} 시뮬레이션으로 이동 (준비 중)`}
-            disabled
-          >
-            이동
-          </Button>
-        )}
-        {action !== null && (
-          <Button
-            variant={ACTION_VIEW[action].variant}
-            size="xs"
-            aria-label={ACTION_VIEW[action].ariaLabel(partner.name)}
-            aria-busy={acting}
-            disabled={actionDisabled}
-            onClick={() => {
-              onAction(session, action);
-            }}
-          >
-            {ACTION_VIEW[action].label}
-          </Button>
-        )}
-      </td>
-    </tr>
-  );
-}
-
-function SessionTable({ title, children }: { title: string; children: ReactNode }) {
-  const headingId = useId();
-
-  return (
-    <section className="flex flex-col gap-2.5">
-      <h2 id={headingId} className="text-body text-ink font-semibold">
-        {title}
-      </h2>
-      <div className={CARD_CLASS}>
-        <table aria-labelledby={headingId} className={TABLE_CLASS}>
-          <TableHead />
-          <tbody>{children}</tbody>
-        </table>
-      </div>
-    </section>
+    <>
+      {isRunning(session.status) && simulationId === undefined && (
+        <Button
+          variant="secondary"
+          size="xs"
+          aria-label={`${partner.name} 시뮬레이션으로 이동 (준비 중)`}
+          disabled
+        >
+          이동
+        </Button>
+      )}
+      {simulationId !== undefined && (
+        <Button
+          variant="secondary"
+          size="xs"
+          aria-label={`${partner.name} 시뮬레이션으로 이동`}
+          onClick={() => {
+            onOpen(simulationId);
+          }}
+        >
+          이동
+        </Button>
+      )}
+      {action !== null && (
+        <Button
+          variant={ACTION_VIEW[action].variant}
+          size="xs"
+          aria-label={ACTION_VIEW[action].ariaLabel(partner.name)}
+          aria-busy={acting}
+          disabled={actionDisabled}
+          onClick={() => {
+            onAction(session, action);
+          }}
+        >
+          {ACTION_VIEW[action].label}
+        </Button>
+      )}
+    </>
   );
 }
 
@@ -264,9 +153,13 @@ function SimulationSessionListContent() {
     );
   }
 
+  function handleOpen(simulationId: string) {
+    void navigate(`/sim/${encodeURIComponent(simulationId)}`);
+  }
+
   if (running.length === 0 && requests.length === 0) {
     return (
-      <div className={CARD_CLASS}>
+      <div className={SESSION_CARD_CLASS}>
         <EmptyState
           icon={MessagesSquare}
           title="아직 시작한 시뮬레이션이 없어요"
@@ -295,10 +188,15 @@ function SimulationSessionListContent() {
               key={session.id}
               session={session}
               myColor={colorByAvatarId.get(session.mine.avatarId)}
-              acting={isActing && acting.invitationId === session.id}
-              actionDisabled={isActing}
-              onAction={handleAction}
-            />
+            >
+              <SessionActions
+                session={session}
+                acting={isActing && acting.invitationId === session.id}
+                actionDisabled={isActing}
+                onAction={handleAction}
+                onOpen={handleOpen}
+              />
+            </SessionRow>
           ))}
         </SessionTable>
       ))}
@@ -308,38 +206,7 @@ function SimulationSessionListContent() {
 
 function SimulationSessionListFallback() {
   useLoadErrorToast(true, '시뮬레이션 목록을 불러오지 못했어요');
-  return <div className={cn(CARD_CLASS, 'h-15')} />;
-}
-
-function SimulationSessionListSkeleton() {
-  return (
-    <div aria-busy="true" aria-live="polite" className={cn(CARD_CLASS, 'animate-pulse')}>
-      <span className="sr-only">시뮬레이션 목록을 불러오는 중…</span>
-      <table aria-hidden="true" className={TABLE_CLASS}>
-        <TableHead />
-        <tbody>
-          {Array.from({ length: 3 }, (_, i) => (
-            <tr key={i} className={ROW_CLASS}>
-              {[MY_AVATAR_COLUMN_CLASS, PARTNER_COLUMN_CLASS].map((columnClass) => (
-                <td key={columnClass} className={cn(CELL_CLASS, columnClass)}>
-                  <div className={AVATAR_CELL_CLASS}>
-                    <span className="bg-raised rounded-card size-10 shrink-0" />
-                    <span className="text-body bg-raised rounded-chip w-20">&nbsp;</span>
-                  </div>
-                </td>
-              ))}
-              <td className={cn(CELL_CLASS, DIRECTION_COLUMN_CLASS)} />
-              <td className={cn(CELL_CLASS, STATUS_COLUMN_CLASS)}>
-                <span className="bg-raised mx-auto block h-5 w-16 rounded-full" />
-              </td>
-              <td className={cn(CELL_CLASS, TIME_COLUMN_CLASS)} />
-              <td className={cn(CELL_CLASS, ACTION_COLUMN_CLASS)} />
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  return <div className={cn(SESSION_CARD_CLASS, 'h-15')} />;
 }
 
 export function SimulationSessionList() {
@@ -347,8 +214,12 @@ export function SimulationSessionList() {
 
   return (
     <ErrorBoundary fallbackRender={() => <SimulationSessionListFallback />}>
-      <Suspense fallback={<SimulationSessionListSkeleton />}>
-        {ready ? <SimulationSessionListContent /> : <SimulationSessionListSkeleton />}
+      <Suspense fallback={<SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" />}>
+        {ready ? (
+          <SimulationSessionListContent />
+        ) : (
+          <SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" />
+        )}
       </Suspense>
     </ErrorBoundary>
   );

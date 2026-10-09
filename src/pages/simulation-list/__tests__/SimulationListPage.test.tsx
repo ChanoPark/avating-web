@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes } from 'react-router';
+import { Route, Routes, useParams } from 'react-router';
 import { delay, http, HttpResponse } from 'msw';
 import { server } from '@shared/mocks/server';
 import {
@@ -23,10 +23,16 @@ const REQUESTS = '요청 내역';
 const ACCEPT = 'Moonlit의 요청 수락';
 const CANCEL = '봄날에게 보낸 요청 취소';
 
+function WatchProbe() {
+  const { sessionId } = useParams();
+  return <div>WATCH {sessionId}</div>;
+}
+
 function renderPage() {
   return renderWithProviders(
     <Routes>
       <Route path="/simulations" element={<SimulationListPage />} />
+      <Route path="/sim/:sessionId" element={<WatchProbe />} />
       <Route path="/explore" element={<div>EXPLORE</div>} />
       <Route path="/avatars/:id" element={<div>AVATAR_DETAIL</div>} />
     </Routes>,
@@ -217,7 +223,26 @@ describe('SimulationListPage', () => {
       }
     });
 
-    it('비고 칸의 "이동" 은 시뮬레이션 화면이 생길 때까지 비활성이다', async () => {
+    it('진행 중인 행의 "이동" 을 누르면 그 시뮬레이션의 관전 화면으로 간다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const [row] = await findRows(RUNNING);
+      await user.click(
+        within(row as HTMLElement).getByRole('button', { name: '하늘 시뮬레이션으로 이동' })
+      );
+
+      expect(
+        await screen.findByText('WATCH dddddddd-0001-4000-8000-000000000001')
+      ).toBeInTheDocument();
+    });
+
+    it('응답에 simulationId 가 없는 진행 중 행의 "이동" 은 비활성이다', async () => {
+      server.use(
+        invitationHistoryHandler(
+          mockInvitationHistory.map(({ simulationId: _simulationId, ...item }) => item)
+        )
+      );
       renderPage();
 
       const [row] = await findRows(RUNNING);
@@ -333,12 +358,14 @@ describe('SimulationListPage', () => {
       expect(cellsOf(rows[1])[2]).toHaveTextContent('보낸 요청');
     });
 
-    it('끝난 행에는 버튼이 없다', async () => {
+    it('끝난 행에는 수락 · 취소 버튼이 없고, 있다면 "이동" 뿐이다', async () => {
       renderPage();
 
       const rows = await findRows(REQUESTS);
       for (const row of rows.slice(2)) {
-        expect(within(row).queryByRole('button')).not.toBeInTheDocument();
+        for (const button of within(row).queryAllByRole('button')) {
+          expect(button).toHaveAccessibleName(/시뮬레이션으로 이동$/);
+        }
       }
     });
   });
@@ -599,6 +626,44 @@ describe('SimulationListPage', () => {
       expect(await screen.findByText('시뮬레이션 목록을 불러오지 못했어요')).toBeInTheDocument();
       expect(screen.queryByRole('table')).not.toBeInTheDocument();
       expect(screen.queryByText('아직 시작한 시뮬레이션이 없어요')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('끝난 시뮬레이션으로 이동', () => {
+    it('끝난 행의 "이동" 을 누르면 그 시뮬레이션의 대화 화면으로 간다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const requests = await screen.findByRole('table', { name: REQUESTS });
+      await user.click(within(requests).getByRole('button', { name: '하늘 시뮬레이션으로 이동' }));
+
+      expect(
+        await screen.findByText('WATCH dddddddd-0004-4000-8000-000000000004')
+      ).toBeInTheDocument();
+    });
+
+    it('중단된 행에도 "이동" 을 둔다', async () => {
+      renderPage();
+
+      const rows = await findRows(REQUESTS);
+      const aborted = rows.find((row) => within(row).queryByText('중단') !== null);
+      expect(
+        within(aborted as HTMLElement).getByRole('button', { name: 'Moonlit 시뮬레이션으로 이동' })
+      ).toBeEnabled();
+    });
+
+    it('응답에 simulationId 가 없는 끝난 행과 취소된 행에는 "이동" 을 두지 않는다', async () => {
+      server.use(
+        invitationHistoryHandler(
+          mockInvitationHistory.map(({ simulationId: _simulationId, ...item }) => item)
+        )
+      );
+      renderPage();
+
+      const rows = await findRows(REQUESTS);
+      for (const row of rows) {
+        expect(within(row).queryByRole('button', { name: /시뮬레이션으로 이동$/ })).toBeNull();
+      }
     });
   });
 });

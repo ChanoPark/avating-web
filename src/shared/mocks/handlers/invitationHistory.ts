@@ -59,7 +59,10 @@ function invitation(
   id: string,
   inviter: MockAvatar,
   invitee: MockAvatar,
-  { elapsed, ...rest }: Pick<InvitationHistoryItem, 'status' | 'direction'> & { elapsed: number }
+  {
+    elapsed,
+    ...rest
+  }: Pick<InvitationHistoryItem, 'status' | 'direction' | 'simulationId'> & { elapsed: number }
 ): InvitationHistoryItem {
   const createdAt = Date.now() - elapsed;
   return {
@@ -87,6 +90,7 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0001-4000-8000-000000000001', MY_HYUN_NIGHT, HANEUL, {
     status: 'IN_PROGRESS',
     direction: 'SENT',
+    simulationId: 'dddddddd-0001-4000-8000-000000000001',
     elapsed: 40 * MINUTE,
   }),
   invitation('cccccccc-0002-4000-8000-000000000002', MY_HYUNWOO, BOMNAL, {
@@ -97,6 +101,7 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0003-4000-8000-000000000003', MY_HYUNWOO, MOONLIT, {
     status: 'DONE',
     direction: 'SENT',
+    simulationId: 'dddddddd-0003-4000-8000-000000000003',
     elapsed: 2 * DAY + 5 * HOUR + 30 * MINUTE,
   }),
   invitation('cccccccc-0008-4000-8000-000000000008', MY_HYUNWOO, HANEUL, {
@@ -107,6 +112,7 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0004-4000-8000-000000000004', HANEUL, MY_HYUNWOO, {
     status: 'DONE',
     direction: 'RECEIVED',
+    simulationId: 'dddddddd-0004-4000-8000-000000000004',
     elapsed: 5 * DAY,
   }),
   invitation('cccccccc-0005-4000-8000-000000000005', BOMNAL, MY_SUMMER, {
@@ -117,6 +123,7 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0006-4000-8000-000000000006', MOONLIT, MY_SUMMER, {
     status: 'ABORTED',
     direction: 'RECEIVED',
+    simulationId: 'dddddddd-0006-4000-8000-000000000006',
     elapsed: 9 * DAY,
   }),
 ];

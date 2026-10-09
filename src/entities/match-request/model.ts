@@ -32,6 +32,7 @@ const invitationDirectionSchema = z.enum(['SENT', 'RECEIVED']);
 
 const invitationHistoryItemSchema = z.object({
   simulationInvitationId: z.string().min(1),
+  simulationId: z.string().min(1).optional(),
   inviterAvatarId: z.string().min(1),
   inviterAvatarName: z.string().min(1),
   inviterAvatarHashtag: z.string().min(1).optional(),

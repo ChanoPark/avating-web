@@ -1,6 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import type { InvitationHistoryItem } from '@entities/match-request';
-import { RECENT_ENDED_LIMIT, toSimulationSessions as toSessionsAt } from '../lib/sessions';
+import {
+  RECENT_ENDED_LIMIT,
+  findSimulationSession,
+  toWatchSessions as toWatchSessionsAt,
+  toSimulationSessions as toSessionsAt,
+} from '../lib/sessions';
 
 const NOW = Date.parse('2026-07-27T18:00:00+09:00');
 
@@ -161,5 +166,116 @@ describe('toSimulationSessions', () => {
     expect(requests).toHaveLength(RECENT_ENDED_LIMIT + 1);
     expect(requests[0]?.id).toBe('pending');
     expect(requests[1]?.id).toBe(`done-${RECENT_ENDED_LIMIT + 2}`);
+  });
+});
+
+describe('simulationId', () => {
+  it('응답에 simulationId 가 있으면 세션에 실어 주고, 없으면 키를 두지 않는다', () => {
+    const { running } = toSimulationSessions([
+      invitation({ simulationInvitationId: 'with', simulationId: 'sim-1' }),
+      invitation({ simulationInvitationId: 'without' }),
+    ]);
+    expect(running.find((s) => s.id === 'with')?.simulationId).toBe('sim-1');
+    expect(running.find((s) => s.id === 'without')).not.toHaveProperty('simulationId');
+  });
+});
+
+describe('findSimulationSession', () => {
+  it('simulationId 가 같은 초대를 세션으로 돌려준다', () => {
+    const session = findSimulationSession(
+      [
+        invitation({ simulationInvitationId: 'other', simulationId: 'sim-0' }),
+        invitation({
+          simulationInvitationId: 'target',
+          simulationId: 'sim-1',
+          status: 'DONE',
+          direction: 'RECEIVED',
+        }),
+      ],
+      'sim-1'
+    );
+    expect(session).toMatchObject({
+      id: 'target',
+      simulationId: 'sim-1',
+      status: 'DONE',
+      mine: { avatarId: 'invitee' },
+      partner: { avatarId: 'inviter' },
+    });
+  });
+
+  it(`끝난 지 오래돼 목록의 최근 ${RECENT_ENDED_LIMIT}건에서 밀려난 세션도 찾는다`, () => {
+    const ended = Array.from({ length: RECENT_ENDED_LIMIT + 3 }, (_, i) =>
+      invitation({
+        simulationInvitationId: `done-${i}`,
+        simulationId: `sim-${i}`,
+        status: 'DONE',
+        createdAt: `2026-07-${String(i + 1).padStart(2, '0')}T12:00:00+09:00`,
+      })
+    );
+    expect(findSimulationSession(ended, 'sim-0')?.id).toBe('done-0');
+  });
+
+  it('같은 simulationId 가 없으면 undefined 다', () => {
+    expect(findSimulationSession([invitation({ simulationId: 'sim-1' })], 'sim-2')).toBeUndefined();
+    expect(findSimulationSession([invitation({})], 'sim-1')).toBeUndefined();
+  });
+});
+
+describe('toWatchSessions', () => {
+  function toWatchSessions(invitations: InvitationHistoryItem[]) {
+    return toWatchSessionsAt(invitations);
+  }
+
+  it('수락됐거나 진행 중인 것은 running 으로, 종료 · 중단된 것은 ended 로 나눈다', () => {
+    const sessions = toWatchSessions([
+      invitation({ simulationInvitationId: 'accepted', status: 'ACCEPTED' }),
+      invitation({ simulationInvitationId: 'in-progress', status: 'IN_PROGRESS' }),
+      invitation({ simulationInvitationId: 'done', status: 'DONE' }),
+      invitation({ simulationInvitationId: 'aborted', status: 'ABORTED' }),
+    ]);
+    expect(sessions.running.map((s) => s.id).sort()).toEqual(['accepted', 'in-progress']);
+    expect(sessions.ended.map((s) => s.id).sort()).toEqual(['aborted', 'done']);
+  });
+
+  it('대화가 열린 적 없는 요청(대기 · 취소 · 거절 · 만료)은 넣지 않는다', () => {
+    expect(
+      toWatchSessions([
+        invitation({ status: 'PENDING' }),
+        invitation({ status: 'CANCELED' }),
+        invitation({ status: 'REJECTED' }),
+        invitation({ status: 'EXPIRED' }),
+      ])
+    ).toEqual({ running: [], ended: [] });
+  });
+
+  it('묶음 안에서는 최근 요청 순이다', () => {
+    const { ended } = toWatchSessions([
+      invitation({
+        simulationInvitationId: 'old',
+        status: 'DONE',
+        createdAt: '2026-07-20T09:00:00+09:00',
+      }),
+      invitation({
+        simulationInvitationId: 'new',
+        status: 'ABORTED',
+        createdAt: '2026-07-25T09:00:00+09:00',
+      }),
+    ]);
+    expect(ended.map((s) => s.id)).toEqual(['new', 'old']);
+  });
+
+  it(`끝난 것은 최근 ${RECENT_ENDED_LIMIT}건까지만 남기고, 진행 중인 것은 줄이지 않는다`, () => {
+    const many = (status: 'DONE' | 'IN_PROGRESS') =>
+      Array.from({ length: RECENT_ENDED_LIMIT + 2 }, (_, i) =>
+        invitation({
+          simulationInvitationId: `${status}-${i}`,
+          status,
+          createdAt: `2026-07-${String(i + 1).padStart(2, '0')}T12:00:00+09:00`,
+        })
+      );
+    const sessions = toWatchSessions([...many('DONE'), ...many('IN_PROGRESS')]);
+    expect(sessions.ended).toHaveLength(RECENT_ENDED_LIMIT);
+    expect(sessions.ended[0]?.id).toBe(`DONE-${RECENT_ENDED_LIMIT + 1}`);
+    expect(sessions.running).toHaveLength(RECENT_ENDED_LIMIT + 2);
   });
 });

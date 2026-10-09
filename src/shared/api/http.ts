@@ -46,6 +46,14 @@ export function resetHttpAuth(): void {
   authAdapter = noopAdapter;
 }
 
+export function getAccessToken(): string | null {
+  return authAdapter.getAccessToken();
+}
+
+export function notifyUnauthorized(): void {
+  authAdapter.onUnauthorized();
+}
+
 export const http: AxiosInstance = axios.create({
   baseURL: env.VITE_API_BASE_URL,
   timeout: 10_000,

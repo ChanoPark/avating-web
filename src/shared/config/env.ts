@@ -3,6 +3,7 @@ import { z } from 'zod';
 const envSchema = z.object({
   MODE: z.enum(['development', 'staging', 'production', 'test']),
   VITE_API_BASE_URL: z.string().url().default('https://api-staging.avating.com'),
+  VITE_AI_API_BASE_URL: z.string().url().default('http://localhost:8082'),
   VITE_API_MODE: z.enum(['mock', 'local', 'staging', 'production']).default('mock'),
 });
 
