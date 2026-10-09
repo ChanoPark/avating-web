@@ -77,14 +77,6 @@ describe('SimulationWatchPage', () => {
     expect(screen.getByText(LOADING)).toBeInTheDocument();
   });
 
-  it('본문을 셸 여백 없이 꽉 채워 쓰겠다고 셸에 알린다', async () => {
-    const { container } = renderPage(DONE_ID);
-
-    expect(container.querySelector('[data-shell-flush]')).not.toBeNull();
-    await findMessages();
-    expect(container.querySelector('[data-shell-flush]')).not.toBeNull();
-  });
-
   describe('머리글', () => {
     it('제목에 내 아바타와 상대 아바타를 두 줄로, 각자 이름 바로 뒤에 해시태그를 붙여 보인다', async () => {
       renderPage(DONE_ID);
@@ -139,18 +131,19 @@ describe('SimulationWatchPage', () => {
       expect(screen.queryByText(/\d+턴/)).not.toBeInTheDocument();
     });
 
-    it('상단 경로에 "아바타 > 시뮬레이션 > 내 아바타 × 상대" 를 채우고, 나가면 비운다', async () => {
-      const { unmount } = renderPage(DONE_ID);
+    it('상단 경로에는 대화를 따로 올리지 않는다', async () => {
+      renderPage(DONE_ID);
 
       await findMessages();
-      expect(useChromeBreadcrumbStore.getState().trail).toEqual([
-        { label: '아바타', to: '/explore' },
-        { label: '시뮬레이션', to: '/sim' },
-        { label: 'hyunwoo × Moonlit' },
-      ]);
-
-      unmount();
       expect(useChromeBreadcrumbStore.getState().trail).toBeNull();
+    });
+
+    it('연 대화를 기억해 둔다 — 채팅 탭이 여기로 돌아온다', async () => {
+      renderPage(DONE_ID);
+
+      await findMessages();
+      expect(useSessionPaneStore.getState().lastSessionId).toBe(DONE_ID);
+      useSessionPaneStore.setState(useSessionPaneStore.getInitialState(), true);
     });
   });
 

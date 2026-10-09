@@ -53,7 +53,7 @@ export function SimulationWatchPage() {
   const sessionsReady = useFailedQueryReset(matchRequestKeys.sessions());
 
   return (
-    <section data-shell-flush className="flex min-h-0 flex-1">
+    <div className="flex min-h-0 flex-1">
       {sessionsReady && <SessionListPane selectedId={sessionId} />}
       <div className="flex min-w-0 flex-1 flex-col">
         <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -66,6 +66,6 @@ export function SimulationWatchPage() {
           </Suspense>
         </ErrorBoundary>
       </div>
-    </section>
+    </div>
   );
 }

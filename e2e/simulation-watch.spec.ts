@@ -93,7 +93,6 @@ test('관전 화면은 셸 본문을 여백 없이 채우고, 대화 영역만 �
   expect(screenBox.y).toBeCloseTo(main.y, 0);
   expect(screenBox.width).toBeCloseTo(main.width, 0);
   expect(screenBox.height).toBeCloseTo(main.height, 0);
-  expect(header.y).toBeCloseTo(main.y, 0);
   expect(header.x + header.width).toBeCloseTo(main.x + main.width, 0);
   expect(endedBar.y + endedBar.height).toBeCloseTo(main.y + main.height, 0);
 
@@ -139,6 +138,32 @@ test('넓은 화면에서는 대화 왼쪽에 시뮬레이션 목록이 붙고, 
   await expect(
     page.getByRole('navigation', { name: '시뮬레이션 목록' }).locator('[aria-current="page"]')
   ).toContainText('여름');
+});
+
+test('위의 목록 · 채팅 탭으로 두 화면을 오가고, 상단 경로에는 대화가 따로 나오지 않는다', async ({
+  page,
+}) => {
+  await signIn(page);
+  await page.goto('/sim');
+  const tabs = page.getByRole('navigation', { name: '시뮬레이션 보기' });
+  await expect(tabs.getByRole('link', { name: '목록' })).toHaveAttribute('aria-current', 'page');
+
+  await tabs.getByRole('link', { name: '채팅' }).click();
+
+  await expect(page).toHaveURL(new RegExp(`/sim/${RUNNING_SESSION}$`));
+  await expect(page.getByRole('log', { name: '대화 기록' })).toBeVisible();
+  const chatTabs = page.getByRole('navigation', { name: '시뮬레이션 보기' });
+  await expect(chatTabs.getByRole('link', { name: '채팅' })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
+  const crumbs = page.getByRole('navigation', { name: '현재 위치' });
+  await expect(crumbs).toContainText('시뮬레이션');
+  await expect(crumbs).not.toContainText('hyun_night');
+
+  await chatTabs.getByRole('link', { name: '목록' }).click();
+  await expect(page).toHaveURL(/\/sim$/);
+  await expect(page.getByRole('heading', { level: 1, name: '시뮬레이션' })).toBeVisible();
 });
 
 test('시뮬레이션 목록을 접으면 화살표 버튼만 남고 대화가 그만큼 넓어진다', async ({

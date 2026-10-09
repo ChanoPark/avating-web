@@ -2,10 +2,10 @@ import { useEffect } from 'react';
 import { useMyAvatars } from '@entities/avatar';
 import { isRunning, useSimulationSessionSuspense } from '@features/simulation-list';
 import type { SimulationSession } from '@features/simulation-list';
-import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 import { ApiError } from '@shared/lib/errors';
 import { useSimulationWatch } from '../api/useSimulationWatch';
 import type { WatchTiming } from '../api/watchTurnStream';
+import { useSessionPaneStore } from '../model/sessionPaneStore';
 import type { TranscriptTerminal } from '../model/transcript';
 import { AvatarNameLine } from './AvatarNameLine';
 import { AvatarPair } from './AvatarPair';
@@ -33,8 +33,7 @@ function WatchedSession({ sessionId, session, streamTiming }: WatchedSessionProp
     timing: streamTiming,
   });
   const { data: myAvatars = [] } = useMyAvatars();
-  const setBreadcrumbTrail = useChromeBreadcrumbStore((s) => s.setTrail);
-  const clearBreadcrumbTrail = useChromeBreadcrumbStore((s) => s.clearTrail);
+  const remember = useSessionPaneStore((s) => s.remember);
 
   const { partner } = session;
   const mine = {
@@ -43,19 +42,11 @@ function WatchedSession({ sessionId, session, streamTiming }: WatchedSessionProp
       session.mine.color ??
       myAvatars.find((avatar) => avatar.avatarId === session.mine.avatarId)?.color,
   };
-  const title = `${mine.name} × ${partner.name}`;
   const notice = endNotice(session.status, transcript.terminal);
 
   useEffect(() => {
-    setBreadcrumbTrail([
-      { label: '아바타', to: '/explore' },
-      { label: '시뮬레이션', to: '/sim' },
-      { label: title },
-    ]);
-    return () => {
-      clearBreadcrumbTrail();
-    };
-  }, [title, setBreadcrumbTrail, clearBreadcrumbTrail]);
+    remember(sessionId);
+  }, [remember, sessionId]);
 
   function speakerOf(avatarId: string | undefined): Speaker | null {
     if (avatarId === undefined) return null;
