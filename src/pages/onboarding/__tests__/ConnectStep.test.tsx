@@ -520,6 +520,48 @@ describe('ConnectStep', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
+
+    it('재발급이 실패한 뒤 화면을 떠났다 돌아오면 코드를 다시 발급한다', async () => {
+      const user = userEvent.setup({
+        advanceTimers: vi.advanceTimersByTime,
+        writeToClipboard: false,
+      });
+      let issueCount = 0;
+      server.use(
+        http.post(`${BASE_URL}/api/persona/connect/code`, () => {
+          issueCount++;
+          if (issueCount === 2) {
+            return HttpResponse.json({ message: '서버 오류입니다.' }, { status: 500 });
+          }
+          return HttpResponse.json(
+            {
+              data: {
+                ...mockConnectCodeResponse.data,
+                expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+              },
+            },
+            { status: 201 }
+          );
+        }),
+        connectStatusHandlers.expired
+      );
+
+      const { queryClient, unmount } = renderWithProviders(<ConnectStep />, {
+        initialRoute: '/onboarding/connect',
+      });
+      await user.click(await screen.findByRole('button', { name: /재발급/i }));
+      await screen.findByText('연결 코드 발급에 실패했어요');
+      unmount();
+
+      server.use(connectStatusHandlers.active);
+      renderWithProviders(<ConnectStep />, { initialRoute: '/onboarding/connect', queryClient });
+
+      await waitFor(() => {
+        expect(issueCount).toBe(3);
+      });
+      expect(await screen.findByText(/AVT-[A-Z0-9]{4}-[A-Z0-9]{2}/)).toBeInTheDocument();
+      expect(screen.queryByText('연결 코드 발급에 실패했어요')).not.toBeInTheDocument();
+    });
   });
 
   // "생성된 결과 확인" 은 결과를 보러 가는 버튼이지 완료 선언이 아니다 — 연결 여부와 무관하게 진행도를 올리면 안 된다.

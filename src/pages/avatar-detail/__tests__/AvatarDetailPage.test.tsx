@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes } from 'react-router';
+import type { QueryClient } from '@tanstack/react-query';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { AvatarDetailPage } from '../AvatarDetailPage';
 import {
@@ -11,12 +12,12 @@ import {
 } from '@shared/mocks/handlers/avatarDetail';
 import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
 
-function renderPage(id = 'avatar-1') {
+function renderPage(id = 'avatar-1', queryClient?: QueryClient) {
   return renderWithProviders(
     <Routes>
       <Route path="/avatars/:id" element={<AvatarDetailPage />} />
     </Routes>,
-    { initialRoute: `/avatars/${id}` }
+    { initialRoute: `/avatars/${id}`, ...(queryClient ? { queryClient } : {}) }
   );
 }
 
@@ -143,5 +144,18 @@ describe('AvatarDetailPage', () => {
     expect(toast).toHaveClass('bg-danger-tint');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
+  });
+
+  it('로딩이 실패한 상세를 떠났다 돌아오면 재요청해 화면을 채운다', async () => {
+    setAvatarDetailScenario('server-error');
+    const { queryClient, unmount } = renderPage();
+    await screen.findByText('아바타 정보를 불러오지 못했어요');
+    unmount();
+
+    setAvatarDetailScenario('success');
+    renderPage('avatar-1', queryClient);
+
+    expect(await screen.findByRole('heading', { name: 'Moonlit Narrator' })).toBeInTheDocument();
+    expect(screen.queryByText('아바타 정보를 불러오지 못했어요')).not.toBeInTheDocument();
   });
 });

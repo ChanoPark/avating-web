@@ -4,7 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { http, HttpResponse, delay } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
-import { surveyQuestionsHandlers, surveySubmitHandlers } from '@shared/mocks/handlers/onboarding';
+import {
+  mockSurveyQuestionsResponse,
+  surveyQuestionsHandlers,
+  surveySubmitHandlers,
+} from '@shared/mocks/handlers/onboarding';
 import { saveDraft } from '@features/persona-survey/lib/draftStorage';
 import { SurveyStep } from '@features/persona-survey/ui/SurveyStep';
 
@@ -75,6 +79,31 @@ describe('SurveyStep — 에러 처리', () => {
       expect(toast).toHaveClass('bg-danger-tint');
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /다시 시도/ })).not.toBeInTheDocument();
+    });
+
+    it('질문 로딩이 실패한 화면을 떠났다 돌아오면 재요청해 질문을 보여준다', async () => {
+      let callCount = 0;
+      let serverRecovered = false;
+      server.use(
+        http.get(`${BASE_URL}/api/persona/survey/questions`, () => {
+          callCount++;
+          return serverRecovered
+            ? HttpResponse.json(mockSurveyQuestionsResponse)
+            : HttpResponse.json({ message: '서버 오류' }, { status: 500 });
+        })
+      );
+      const { queryClient, unmount } = renderWithProviders(<SurveyStep />, {
+        initialRoute: '/onboarding/survey',
+      });
+      await screen.findByText('질문을 불러오지 못했어요');
+      unmount();
+
+      serverRecovered = true;
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey', queryClient });
+
+      expect(await screen.findByRole('group', { name: MOCK_Q1_TITLE })).toBeInTheDocument();
+      expect(screen.queryByText('질문을 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(callCount).toBe(2);
     });
   });
 

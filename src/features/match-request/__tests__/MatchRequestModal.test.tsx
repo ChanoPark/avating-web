@@ -537,6 +537,33 @@ describe('MatchRequestModal', () => {
       expect(screen.getByRole('button', { name: /요청 보내기/ })).toBeDisabled();
     });
 
+    it('목록 로딩이 실패한 모달을 닫았다 다시 열면 재요청해 목록을 보여준다', async () => {
+      let callCount = 0;
+      let serverRecovered = false;
+      server.use(
+        http.get(`${import.meta.env.VITE_API_BASE_URL as string}/api/avatars/me`, () => {
+          callCount++;
+          return serverRecovered
+            ? HttpResponse.json(mockOwnedAvatars)
+            : HttpResponse.json(
+                { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+                { status: 500 }
+              );
+        })
+      );
+      const { rerender } = renderWithProviders(<MatchRequestModal {...defaultProps()} />);
+      await screen.findByText('아바타 목록을 불러오지 못했어요');
+
+      rerender(<MatchRequestModal {...defaultProps({ open: false })} />);
+      expect(screen.queryByText('아바타 목록을 불러오지 못했어요')).not.toBeInTheDocument();
+      serverRecovered = true;
+      rerender(<MatchRequestModal {...defaultProps()} />);
+
+      expect(await screen.findByRole('radiogroup')).toBeInTheDocument();
+      expect(screen.queryByText('아바타 목록을 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(callCount).toBe(2);
+    });
+
     it('아바타가 0 개일 때 "아바타를 먼저 만들어주세요" 안내가 노출되고 제출이 막힌다', async () => {
       server.use(ownedAvatarsHandlers.empty);
       renderWithProviders(<MatchRequestModal {...defaultProps()} />);

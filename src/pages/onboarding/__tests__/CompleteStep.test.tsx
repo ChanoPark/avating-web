@@ -6,7 +6,8 @@ import { server } from '@shared/mocks/server';
 import { CompleteStep } from '@features/onboarding-complete/ui/CompleteStep';
 import type { AvatarSummary } from '@entities/avatar';
 import { PERSONA_STAT_KEYS } from '@entities/avatar';
-import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
+import { http, HttpResponse } from 'msw';
+import { mockPrimaryAvatar, primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
 import { queryClientWithPrimaryAvatar, SAMPLE_PRIMARY_AVATAR } from '@/test/onboardingCompletion';
 
 // 완료 화면은 별도 조회 API 없이 useSurveySubmit 이 심어 둔 대표 아바타 캐시를 그대로 쓴다 —
@@ -246,6 +247,34 @@ describe('CompleteStep (Avatar Confirm)', () => {
       );
       expect(toast).toHaveClass('bg-danger-tint');
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    });
+
+    it('조회가 실패한 화면을 떠났다 돌아오면 재요청해 카드를 보여준다', async () => {
+      let callCount = 0;
+      let serverRecovered = false;
+      server.use(
+        http.get(`${import.meta.env.VITE_API_BASE_URL as string}/api/avatars/primary`, () => {
+          callCount++;
+          return serverRecovered
+            ? HttpResponse.json(mockPrimaryAvatar)
+            : HttpResponse.json(
+                { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+                { status: 500 }
+              );
+        })
+      );
+      const { queryClient, unmount } = renderWithProviders(<CompleteStep />, {
+        initialRoute: '/onboarding/complete',
+      });
+      await screen.findByText('아바타 정보를 불러오지 못했어요');
+      unmount();
+
+      serverRecovered = true;
+      renderWithProviders(<CompleteStep />, { initialRoute: '/onboarding/complete', queryClient });
+
+      expect(await screen.findByText('루시')).toBeInTheDocument();
+      expect(screen.queryByText('아바타 정보를 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(callCount).toBe(2);
     });
   });
 });

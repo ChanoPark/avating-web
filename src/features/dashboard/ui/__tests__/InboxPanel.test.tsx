@@ -37,6 +37,19 @@ describe('InboxPanel', () => {
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
+
+    it('실패한 화면을 떠났다 돌아오면 재요청해 알림을 보여준다', async () => {
+      server.use(inboxScenarios.error);
+      const { queryClient, unmount } = renderWithProviders(<InboxPanel />);
+      await screen.findByText('알림을 불러오지 못했어요');
+      unmount();
+
+      server.use(inboxScenarios.success);
+      renderWithProviders(<InboxPanel />, { queryClient });
+
+      expect(await screen.findByLabelText(/읽지 않은 알림 2개/)).toBeInTheDocument();
+      expect(screen.queryByText('알림을 불러오지 못했어요')).not.toBeInTheDocument();
+    });
   });
 
   describe('읽지 않은 알림 카운트', () => {
