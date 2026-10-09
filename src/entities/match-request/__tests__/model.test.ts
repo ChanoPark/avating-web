@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   apiResponseCreateInvitation,
+  apiResponseInvitationHistoryPage,
   invitationStatusSchema,
   sendMatchRequestSchema,
 } from '../model';
@@ -48,6 +49,57 @@ describe('apiResponseCreateInvitation (서버 CreateInvitationResponse)', () => 
   it('simulationInvitationId 가 빠지면 거부한다', () => {
     const { simulationInvitationId: _omitted, ...rest } = created;
     expect(() => apiResponseCreateInvitation.parse({ data: rest })).toThrow();
+  });
+});
+
+describe('apiResponseInvitationHistoryPage (서버 CursorPage<InvitationHistoryResponse>)', () => {
+  const invitation = {
+    simulationInvitationId: '123e4567-e89b-12d3-a456-426655440000',
+    inviterAvatarId: '11111111-1111-4111-8111-111111111111',
+    inviterAvatarName: 'test1',
+    inviteeAvatarId: '22222222-2222-4222-8222-222222222222',
+    inviteeAvatarName: 'test2',
+    status: 'IN_PROGRESS',
+    direction: 'SENT',
+    expiredAt: '2026-07-28T12:00:00+09:00',
+    createdAt: '2026-07-27T12:00:00+09:00',
+  };
+
+  it('null 필드가 키째 빠진 실서버 응답을 파싱한다 (nextCursor · requestMessage · rejectMessage)', () => {
+    const page = { content: [invitation], hasNext: false };
+    expect(apiResponseInvitationHistoryPage.parse({ data: page }).data).toEqual(page);
+  });
+
+  it('메시지·해시태그·nextCursor 가 있으면 보존한다', () => {
+    const full = {
+      ...invitation,
+      inviterAvatarHashtag: 'A3K9Z7',
+      inviteeAvatarHashtag: 'B7X2M4',
+      requestMessage: '대화해봐요',
+      rejectMessage: '다음에요',
+    };
+    const page = { content: [full], nextCursor: 'eyJjcmVhdGVkQXQiOiJ4In0', hasNext: true };
+    expect(apiResponseInvitationHistoryPage.parse({ data: page }).data).toEqual(page);
+  });
+
+  it('direction 이 SENT · RECEIVED 가 아니면 거부한다', () => {
+    expect(() =>
+      apiResponseInvitationHistoryPage.parse({
+        data: { content: [{ ...invitation, direction: 'BOTH' }], hasNext: false },
+      })
+    ).toThrow();
+  });
+
+  it('createdAt 이 ISO-8601 이 아니면 거부한다', () => {
+    expect(() =>
+      apiResponseInvitationHistoryPage.parse({
+        data: { content: [{ ...invitation, createdAt: '어제' }], hasNext: false },
+      })
+    ).toThrow();
+  });
+
+  it('hasNext 가 빠지면 거부한다', () => {
+    expect(() => apiResponseInvitationHistoryPage.parse({ data: { content: [] } })).toThrow();
   });
 });
 

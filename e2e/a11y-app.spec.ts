@@ -11,7 +11,7 @@ import AxeBuilder from '@axe-core/playwright';
  * mock 번들은 storageState 로 토큰을 복원할 계약이 없어 로그인 UI 를 그대로 거친다
  * (.claude/notes/e2e-playwright.md "인증 게이트 라우트").
  */
-const GATED_ROUTES = ['/dashboard', '/avatars/avatar-1'] as const;
+const GATED_ROUTES = ['/dashboard', '/avatars/avatar-1', '/explore', '/simulations'] as const;
 
 async function signIn(page: import('@playwright/test').Page): Promise<void> {
   await page.goto('/login');

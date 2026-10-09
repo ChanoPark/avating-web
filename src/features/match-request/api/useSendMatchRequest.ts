@@ -27,6 +27,7 @@ export function useSendMatchRequest() {
     mutationFn: sendMatchRequest,
     onSuccess: (_request, { partnerAvatarId }) => {
       void queryClient.invalidateQueries({ queryKey: matchRequestKeys.sent() });
+      void queryClient.invalidateQueries({ queryKey: matchRequestKeys.sessions() });
       void queryClient.invalidateQueries({ queryKey: avatarKeys.myAvatars() });
       // 후보 목록은 랜덤 조회라 무효화해 다시 받으면 카드가 섞인다.
       queryClient.setQueriesData<AvatarSimCandidateList>(

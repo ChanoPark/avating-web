@@ -69,12 +69,27 @@ describe('Button', () => {
     expect(cls).not.toContain('border-mark');
   });
 
-  it('danger 는 텍스트다 — 빨간 채움은 확인 다이얼로그 전용이라 여기 없다', () => {
+  it('danger 는 텍스트다 — 빨간 채움은 dangerSolid 가 따로 맡는다', () => {
     render(<Button variant="danger">삭제</Button>);
     const cls = screen.getByRole('button', { name: '삭제' }).className;
     expect(cls).toContain('text-danger');
     expect(cls).toContain('bg-transparent');
     expect(cls.split(' ')).not.toContain('bg-danger');
+  });
+
+  it('dangerSolid 는 빨간 채움이다 — 흰 글자가 AA 를 넘도록 red-600 을 깐다', () => {
+    render(<Button variant="dangerSolid">취소</Button>);
+    const cls = screen.getByRole('button', { name: '취소' }).className.split(' ');
+    expect(cls).toContain('bg-danger');
+    expect(cls).toContain('text-on-ink');
+  });
+
+  it('xs 는 높이 28 · 좌우 패딩 10 이다', () => {
+    render(<Button size="xs">수락</Button>);
+    const cls = screen.getByRole('button', { name: '수락' }).className.split(' ');
+    expect(cls).toContain('h-7');
+    expect(cls).toContain('px-2.5');
+    expect(cls).not.toContain('h-8');
   });
 
   it('비활성은 opacity 가 아니라 색 토큰으로 표현한다', () => {

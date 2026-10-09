@@ -1,8 +1,8 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '@shared/lib/cn';
 
-type ButtonVariant = 'primary' | 'brand' | 'secondary' | 'ghost' | 'danger';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'primary' | 'brand' | 'secondary' | 'ghost' | 'danger' | 'dangerSolid';
+type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 
 type ButtonProps = {
   variant?: ButtonVariant;
@@ -32,11 +32,12 @@ const variants: Record<ButtonVariant, string> = {
     'bg-fill-weak text-primary enabled:hover:bg-fill-weak-hover enabled:active:bg-fill-weak-press',
   ghost:
     'bg-transparent text-secondary enabled:hover:bg-surface enabled:hover:text-primary enabled:active:bg-fill-weak disabled:bg-transparent',
-  // 파괴적 액션은 텍스트다. 빨간 채움은 확인 다이얼로그의 primary 슬롯에만 존재한다.
   danger: 'bg-transparent text-danger enabled:hover:bg-danger-tint disabled:bg-transparent',
+  dangerSolid: 'bg-danger text-on-ink enabled:hover:bg-danger-mark',
 };
 
 const sizes: Record<ButtonSize, string> = {
+  xs: 'h-7',
   sm: 'h-8',
   md: 'h-10',
   lg: 'h-11',
@@ -45,12 +46,14 @@ const sizes: Record<ButtonSize, string> = {
 // 아이콘 버튼은 패딩 대신 고정 폭을 쓴다 — 함께 두면 Tailwind shorthand/longhand 순서에
 // 따라 결과가 갈려서 배타적으로 골라 쓴다.
 const paddings: Record<ButtonSize, string> = {
+  xs: 'px-2.5',
   sm: 'px-3',
   md: 'px-4',
   lg: 'px-5',
 };
 
 const iconWidths: Record<ButtonSize, string> = {
+  xs: 'w-7',
   sm: 'w-8',
   md: 'w-10',
   lg: 'w-11',
