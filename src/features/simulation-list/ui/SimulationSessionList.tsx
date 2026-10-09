@@ -2,8 +2,10 @@ import { Suspense, useCallback, useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { Link, useNavigate } from 'react-router';
+import { MessagesSquare } from 'lucide-react';
 import { Badge } from '@shared/ui/Badge';
 import { Button } from '@shared/ui/Button';
+import { EmptyState } from '@shared/ui/EmptyState';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { SERVER_ERROR_CODES } from '@shared/api/errorCodes';
@@ -152,8 +154,12 @@ function SessionRow({ session, myColor, acting, actionDisabled, onAction }: Sess
               <span className="truncate">{partner.name}</span>
             </Link>
             {partner.hashtag !== undefined && <AvatarTagBadge hashtag={partner.hashtag} />}
-            <span className="text-caption text-secondary truncate sm:hidden">
-              내 아바타 {mine.name}
+            <span className="text-caption text-secondary flex flex-wrap gap-x-1.5 xl:hidden">
+              <span className="sm:hidden">내 아바타 {mine.name}</span>
+              <span>{DIRECTION_LABEL[session.direction]}</span>
+              <time dateTime={session.requestedAt} className="tnum md:hidden">
+                {formatRequestedAt(session.requestedAt)}
+              </time>
             </span>
           </div>
         </div>
@@ -252,17 +258,17 @@ function SimulationSessionListContent() {
 
   if (running.length === 0 && requests.length === 0) {
     return (
-      <div className="bg-surface rounded-card flex flex-col items-start gap-4 p-8">
-        <p className="text-body text-ink font-semibold">아직 시작한 시뮬레이션이 없어요</p>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => {
-            void navigate('/explore');
+      <div className={CARD_CLASS}>
+        <EmptyState
+          icon={MessagesSquare}
+          title="아직 시작한 시뮬레이션이 없어요"
+          action={{
+            label: '추천 아바타 보기',
+            onClick: () => {
+              void navigate('/explore');
+            },
           }}
-        >
-          추천 아바타 보기
-        </Button>
+        />
       </div>
     );
   }

@@ -150,6 +150,24 @@ describe('SimulationListPage', () => {
       expect(cells[1]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-none');
     });
 
+    it('좁은 화면에서 숨는 내 아바타 · 구분 · 요청 시각은 상대 아바타 이름 아래 보조 줄에 남는다', async () => {
+      renderPage();
+
+      const [row] = await findRows(RUNNING);
+      const partnerCell = cellsOf(row)[1] as HTMLElement;
+      const mine = within(partnerCell).getByText('내 아바타 hyun_night');
+      const direction = within(partnerCell).getByText('보낸 요청');
+      const time = partnerCell.querySelector('time');
+
+      expect(mine).toHaveClass('sm:hidden');
+      expect(direction.parentElement).toHaveClass('xl:hidden');
+      expect(time).toHaveClass('md:hidden');
+      expect(time).toHaveAttribute(
+        'datetime',
+        mockInvitationHistory.find((item) => item.status === 'IN_PROGRESS')?.createdAt
+      );
+    });
+
     it('아바타 이름은 굵게 쓰지 않는다', async () => {
       renderPage();
 
@@ -486,12 +504,13 @@ describe('SimulationListPage', () => {
   });
 
   describe('목록이 없을 때', () => {
-    it('표 없이 안내 카드 하나만 보인다', async () => {
+    it('표 없이 안내 카드 하나만 보이고 안내문은 두지 않는다', async () => {
       server.use(invitationHistoryHandlers.empty);
       renderPage();
 
-      expect(await screen.findByText('아직 시작한 시뮬레이션이 없어요')).toBeInTheDocument();
+      const title = await screen.findByText('아직 시작한 시뮬레이션이 없어요');
       expect(screen.queryByRole('table')).not.toBeInTheDocument();
+      expect(title.parentElement?.querySelectorAll('p')).toHaveLength(1);
     });
 
     it('안내 카드의 "추천 아바타 보기" 로 둘러보기에 간다', async () => {
