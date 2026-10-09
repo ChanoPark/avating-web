@@ -49,7 +49,7 @@ function renderWithProviders(initialRoute = '/dashboard') {
               />
               <Route
                 path="simulations"
-                element={<div data-testid="outlet-content">시뮬레이션 목록 콘텐츠</div>}
+                element={<div data-testid="outlet-content">매칭 요청 콘텐츠</div>}
               />
             </Route>
             <Route path="/login" element={<div>LOGIN_PAGE</div>} />
@@ -77,13 +77,15 @@ describe('AppShellLayout', () => {
 
   it('/dashboard 경로에서 "대시보드" 항목이 aria-current="page" 이다', () => {
     renderWithProviders('/dashboard');
-    const exploreItem = screen.getByRole('link', { name: '대시보드' });
+    const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+    const exploreItem = within(nav).getByRole('link', { name: '대시보드' });
     expect(exploreItem).toHaveAttribute('aria-current', 'page');
   });
 
   it('/avatars/:id 경로에서도 "대시보드" 항목이 aria-current="page" 이다', () => {
     renderWithProviders('/avatars/avatar-1');
-    const exploreItem = screen.getByRole('link', { name: '대시보드' });
+    const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
+    const exploreItem = within(nav).getByRole('link', { name: '대시보드' });
     expect(exploreItem).toHaveAttribute('aria-current', 'page');
   });
 
@@ -331,7 +333,7 @@ describe('AppShellLayout', () => {
     });
   });
 
-  // 대메뉴-소메뉴 구조(사용자 결정 2026-09-25): 대시보드가 맨 위, 아바타(둘러보기·시뮬레이션 목록) · 유저(내 아바타·채팅).
+  // 대메뉴-소메뉴 구조(사용자 결정 2026-09-25): 대시보드가 맨 위, 아바타(둘러보기·매칭 요청·시뮬레이션) · 유저(내 아바타·채팅).
   describe('내비 구조 — 대시보드 + 대메뉴 그룹 2개', () => {
     it('대시보드 → 아바타 소메뉴 → 유저 소메뉴 순서로 항목이 렌더된다', () => {
       renderWithProviders('/dashboard');
@@ -340,7 +342,8 @@ describe('AppShellLayout', () => {
       expect(items.map((el) => el.textContent?.trim())).toEqual([
         '대시보드',
         '둘러보기',
-        '시뮬레이션 목록',
+        '매칭 요청',
+        '시뮬레이션',
         '내 아바타',
         '채팅',
       ]);
@@ -355,7 +358,7 @@ describe('AppShellLayout', () => {
         within(avatar)
           .getAllByRole('link')
           .map((el) => el.textContent?.trim())
-      ).toEqual(['둘러보기', '시뮬레이션 목록']);
+      ).toEqual(['둘러보기', '매칭 요청', '시뮬레이션']);
       expect(
         within(user)
           .getAllByRole('link')
@@ -382,11 +385,11 @@ describe('AppShellLayout', () => {
       expect(browse.parentElement).not.toBe(avatar);
     });
 
-    it('화면이 없는 소메뉴 2개는 링크가 아니라 비활성이다', () => {
+    it('화면이 없는 소메뉴 3개는 링크가 아니라 비활성이다', () => {
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
       const disabled = nav.querySelectorAll('[aria-disabled="true"]');
-      expect(disabled.length).toBe(2);
+      expect(disabled.length).toBe(3);
       expect(nav.querySelectorAll('a[href]').length).toBe(3);
     });
 
@@ -402,20 +405,20 @@ describe('AppShellLayout', () => {
         'aria-current',
         'page'
       );
-      expect(within(nav).getByRole('link', { name: '시뮬레이션 목록' })).not.toHaveAttribute(
+      expect(within(nav).getByRole('link', { name: '매칭 요청' })).not.toHaveAttribute(
         'aria-current'
       );
     });
 
-    it('시뮬레이션 목록 소메뉴를 누르면 /simulations 로 이동하고 그 항목만 현재 위치가 된다', async () => {
+    it('매칭 요청 소메뉴를 누르면 /simulations 로 이동하고 그 항목만 현재 위치가 된다', async () => {
       const user = userEvent.setup();
       renderWithProviders('/dashboard');
       const nav = screen.getByRole('navigation', { name: '메인 내비게이션' });
 
-      await user.click(within(nav).getByRole('link', { name: '시뮬레이션 목록' }));
+      await user.click(within(nav).getByRole('link', { name: '매칭 요청' }));
 
-      expect(await screen.findByText('시뮬레이션 목록 콘텐츠')).toBeInTheDocument();
-      expect(within(nav).getByRole('link', { name: '시뮬레이션 목록' })).toHaveAttribute(
+      expect(await screen.findByText('매칭 요청 콘텐츠')).toBeInTheDocument();
+      expect(within(nav).getByRole('link', { name: '매칭 요청' })).toHaveAttribute(
         'aria-current',
         'page'
       );
@@ -521,19 +524,124 @@ describe('AppShellLayout', () => {
       expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('둘러보기');
     });
 
-    it('/simulations 에서는 사이드바 그룹과 같은 "아바타 > 시뮬레이션 목록" 이 표시된다', () => {
+    it('/simulations 에서는 사이드바 그룹과 같은 "아바타 > 매칭 요청" 이 표시된다', () => {
       renderWithProviders('/simulations');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav).toHaveTextContent('아바타');
-      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('시뮬레이션 목록');
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('매칭 요청');
     });
 
     it('store 에 trail 이 push 되면 동적 세그먼트(아바타 이름 등) 가 마지막에 추가된다', () => {
-      useChromeBreadcrumbStore.getState().setTrail(['홈', '대시보드', 'Moonlit Narrator']);
+      useChromeBreadcrumbStore
+        .getState()
+        .setTrail([
+          { label: '홈', to: '/dashboard' },
+          { label: '대시보드', to: '/dashboard' },
+          { label: 'Moonlit Narrator' },
+        ]);
       renderWithProviders('/avatars/avatar-1');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('Moonlit Narrator');
       useChromeBreadcrumbStore.getState().clearTrail();
+    });
+
+    it('대메뉴 항목은 그 그룹의 첫 소메뉴로 가는 링크다', () => {
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(within(nav).getByRole('link', { name: '아바타' })).toHaveAttribute('href', '/explore');
+    });
+
+    it('/dashboard 의 "홈" 은 대시보드로 가는 링크다', () => {
+      renderWithProviders('/dashboard');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(within(nav).getByRole('link', { name: '홈' })).toHaveAttribute('href', '/dashboard');
+    });
+
+    it('현재 화면인 마지막 항목은 지금 경로로 가는 링크다', () => {
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      const current = within(nav).getByRole('link', { name: '매칭 요청' });
+      expect(current).toHaveAttribute('href', '/simulations');
+      expect(current).toHaveAttribute('aria-current', 'page');
+    });
+
+    it('store 가 준 trail 의 마지막 항목도 지금 경로로 가는 링크다', () => {
+      useChromeBreadcrumbStore
+        .getState()
+        .setTrail([{ label: '홈', to: '/dashboard' }, { label: 'Moonlit Narrator' }]);
+      renderWithProviders('/avatars/avatar-1');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(within(nav).getByRole('link', { name: 'Moonlit Narrator' })).toHaveAttribute(
+        'href',
+        '/avatars/avatar-1'
+      );
+      useChromeBreadcrumbStore.getState().clearTrail();
+    });
+
+    it('현재 화면 항목을 누르면 본문을 새로 마운트하고 쿼리를 다시 받아오게 한다', async () => {
+      const invalidate = vi.spyOn(QueryClient.prototype, 'invalidateQueries');
+      const user = userEvent.setup();
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      const before = screen.getByTestId('outlet-content');
+
+      await user.click(within(nav).getByRole('link', { name: '매칭 요청' }));
+
+      await waitFor(() => {
+        expect(before).not.toBeInTheDocument();
+      });
+      expect(screen.getByTestId('outlet-content')).toHaveTextContent('매칭 요청 콘텐츠');
+      expect(invalidate).toHaveBeenCalledTimes(1);
+      invalidate.mockRestore();
+    });
+
+    it('상위 항목을 눌러 다른 화면으로 갈 때는 쿼리를 무효화하지 않는다', async () => {
+      const invalidate = vi.spyOn(QueryClient.prototype, 'invalidateQueries');
+      const user = userEvent.setup();
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+
+      await user.click(within(nav).getByRole('link', { name: '아바타' }));
+
+      expect(await screen.findByText('둘러보기 콘텐츠')).toBeInTheDocument();
+      expect(invalidate).not.toHaveBeenCalled();
+      invalidate.mockRestore();
+    });
+
+    it('상위 항목을 누르면 그 화면으로 이동하고 경로 표시가 바뀐다', async () => {
+      const user = userEvent.setup();
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+
+      await user.click(within(nav).getByRole('link', { name: '아바타' }));
+
+      expect(await screen.findByText('둘러보기 콘텐츠')).toBeInTheDocument();
+      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('둘러보기');
+    });
+
+    it('store 가 준 trail 에서 to 가 있는 상위 항목은 링크, 없는 항목은 글자다', async () => {
+      const user = userEvent.setup();
+      useChromeBreadcrumbStore
+        .getState()
+        .setTrail([
+          { label: '홈' },
+          { label: '대시보드', to: '/dashboard' },
+          { label: 'Moonlit Narrator' },
+        ]);
+      renderWithProviders('/avatars/avatar-1');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(within(nav).queryByRole('link', { name: '홈' })).not.toBeInTheDocument();
+
+      await user.click(within(nav).getByRole('link', { name: '대시보드' }));
+
+      expect(await screen.findByText('대시보드 콘텐츠')).toBeInTheDocument();
+      useChromeBreadcrumbStore.getState().clearTrail();
+    });
+
+    it('링크 항목은 hover 에서 기본색 글자가 된다', () => {
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      expect(within(nav).getByRole('link', { name: '아바타' })).toHaveClass('hover:text-primary');
     });
 
     // 정본 `.hf-crumb{font-size:var(--fs-13);gap:6px}` — 13.5px/7px 은 타입·간격 스케일 밖이었다.
@@ -561,8 +669,8 @@ describe('AppShellLayout', () => {
       const current = nav.querySelector('[aria-current="page"]');
       expect(current?.className).toContain('text-primary');
       expect(current?.className).toContain('font-medium');
-      const first = nav.querySelectorAll('li > span')[0];
-      expect(first?.className ?? '').not.toContain('font-medium');
+      const first = within(nav).getByRole('link', { name: '홈' });
+      expect(first.className).not.toContain('font-medium');
     });
   });
 

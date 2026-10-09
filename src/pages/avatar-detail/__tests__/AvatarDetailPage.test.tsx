@@ -54,9 +54,9 @@ describe('AvatarDetailPage', () => {
     renderPage();
     await waitFor(() => {
       expect(useChromeBreadcrumbStore.getState().trail).toEqual([
-        '홈',
-        '대시보드',
-        'Moonlit Narrator',
+        { label: '홈', to: '/dashboard' },
+        { label: '대시보드', to: '/dashboard' },
+        { label: 'Moonlit Narrator' },
       ]);
     });
   });

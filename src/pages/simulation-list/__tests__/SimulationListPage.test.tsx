@@ -51,7 +51,7 @@ afterEach(() => {
 describe('SimulationListPage', () => {
   it('페이지 제목을 h1 으로 보인다', () => {
     renderPage();
-    expect(screen.getByRole('heading', { level: 1, name: '시뮬레이션 목록' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 1, name: '매칭 요청' })).toBeInTheDocument();
   });
 
   it('불러오는 동안 목록 자리에 스켈레톤을 세운다', () => {
