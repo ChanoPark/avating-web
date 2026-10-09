@@ -12,7 +12,6 @@ const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
 const KST_OFFSET = 9 * HOUR;
 
-// 서버는 OffsetDateTime 을 +09:00 로 내려준다 — 목록의 "n분 전" 이 낡지 않게 지금 시각 기준으로 만든다.
 function kstIso(epochMs: number): string {
   return new Date(epochMs + KST_OFFSET).toISOString().replace('Z', '+09:00');
 }
@@ -51,7 +50,6 @@ function invitation(
   };
 }
 
-// 받은·보낸 대기 요청, 진행 중·끝난·취소된 것, 목록에 나오지 않는 거절된 요청을 한 벌에 담는다.
 export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0007-4000-8000-000000000007', MOONLIT, MY_SUMMER, {
     status: 'PENDING',

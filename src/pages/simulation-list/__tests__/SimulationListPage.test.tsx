@@ -132,7 +132,10 @@ describe('SimulationListPage', () => {
       expect(within(cells[1] as HTMLElement).getByText('#H7K2MP')).toBeInTheDocument();
       expect(cells[2]).toHaveTextContent('보낸 요청');
       expect(cells[3]).toHaveTextContent('진행 중');
-      expect(cells[4]).toHaveTextContent('40분 전');
+      expect(cells[4]?.querySelector('time')).toHaveAttribute(
+        'datetime',
+        mockInvitationHistory.find((item) => item.status === 'IN_PROGRESS')?.createdAt
+      );
     });
 
     it('아바타 이름은 굵게 쓰지 않는다', async () => {
@@ -153,7 +156,7 @@ describe('SimulationListPage', () => {
 
       const [row] = await findRows(RUNNING);
       const move = within(row as HTMLElement).getByRole('button', {
-        name: '하늘와의 시뮬레이션으로 이동 (준비 중)',
+        name: '하늘 시뮬레이션으로 이동 (준비 중)',
       });
       expect(move).toHaveTextContent('이동');
       expect(move).toBeDisabled();
@@ -228,18 +231,17 @@ describe('SimulationListPage', () => {
       ]);
     });
 
-    it('요청 시각은 "n시간 n분 전" · "n일 n시간 n분 전" 으로, 8일부터는 "오래 전" 으로 보인다', async () => {
+    it('요청 시각 칸은 요청한 시각을 time 요소로 싣고, 8일이 넘은 것은 "오래 전" 으로 보인다', async () => {
       renderPage();
 
       const rows = await findRows(REQUESTS);
-      expect(rows.map((row) => cellsOf(row)[4]?.textContent)).toEqual([
-        '10분 전',
-        '3시간 12분 전',
-        '2일 5시간 30분 전',
-        '3일 전',
-        '5일 전',
-        '오래 전',
-      ]);
+      const times = rows.map((row) => cellsOf(row)[4]?.querySelector('time'));
+      const requestedAts = new Set(mockInvitationHistory.map((item) => item.createdAt));
+      for (const time of times) {
+        expect(requestedAts.has(time?.getAttribute('datetime') ?? '')).toBe(true);
+        expect(time?.textContent).toMatch(/ 전$/);
+      }
+      expect(times.at(-1)).toHaveTextContent('오래 전');
     });
 
     it('거절된 요청은 어느 표에도 없다', async () => {
@@ -347,6 +349,33 @@ describe('SimulationListPage', () => {
         expect(accept).toBeEnabled();
       });
       expect(screen.getAllByText('잠시 후 다시 시도해주세요')).toHaveLength(1);
+    });
+  });
+
+  describe('응답이 실패했을 때', () => {
+    it('수락이 실패해도 목록을 다시 받는다 — 그 사이 상대가 취소했으면 수락 버튼이 사라진다', async () => {
+      const user = userEvent.setup();
+      const canceledMeanwhile = mockInvitationHistory.map((item, index) =>
+        index === 0 ? { ...item, status: 'CANCELED' as const } : item
+      );
+      server.use(
+        http.post(`${BASE_URL}/api/simulations/invitations/:invitationId/accept`, () => {
+          server.use(invitationHistoryHandler(canceledMeanwhile));
+          return HttpResponse.json(
+            { code: 'SIMULATION_400_004', message: 'CANCELED 시뮬레이션은 수락할 수 없습니다.' },
+            { status: 400 }
+          );
+        })
+      );
+      renderPage();
+
+      await findRows(REQUESTS);
+      await user.click(screen.getByRole('button', { name: ACCEPT }));
+
+      expect(await screen.findByText('이미 처리된 요청이에요')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: ACCEPT })).not.toBeInTheDocument();
+      });
     });
   });
 

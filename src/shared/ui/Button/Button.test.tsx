@@ -69,7 +69,7 @@ describe('Button', () => {
     expect(cls).not.toContain('border-mark');
   });
 
-  it('danger 는 텍스트다 — 빨간 채움은 확인 다이얼로그 전용이라 여기 없다', () => {
+  it('danger 는 텍스트다 — 빨간 채움은 dangerSolid 가 따로 맡는다', () => {
     render(<Button variant="danger">삭제</Button>);
     const cls = screen.getByRole('button', { name: '삭제' }).className;
     expect(cls).toContain('text-danger');

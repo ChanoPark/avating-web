@@ -24,6 +24,8 @@ export function useSimulationSessionsSuspense(): SimulationSessions {
   const { data } = useSuspenseQuery({
     queryKey: matchRequestKeys.sessions(),
     queryFn: fetchSimulationSessions,
+    retry: false,
+    staleTime: 30_000,
   });
   return data;
 }

@@ -23,7 +23,6 @@ export function useInvitationAction() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: avatarKeys.myAvatars() });
     },
-    // 실패해도 다시 받는다 — 그 사이 상대가 취소·수락했거나 만료된 요청이면 행이 달라져야 한다.
     onSettled: () => queryClient.invalidateQueries({ queryKey: matchRequestKeys.sessions() }),
     throwOnError: false,
   });

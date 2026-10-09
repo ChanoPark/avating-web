@@ -57,16 +57,23 @@ function toSession(invitation: InvitationHistoryItem, status: SessionStatus): Si
 }
 
 export type SimulationSessions = {
-  /** 수락돼 대화가 열린 것 */
   running: SimulationSession[];
-  /** 응답 대기 중인 요청을 위에, 끝난 것은 최근 {@link RECENT_ENDED_LIMIT}건만 그 아래에 */
   requests: SimulationSession[];
 };
 
-export function toSimulationSessions(invitations: InvitationHistoryItem[]): SimulationSessions {
+function isOverdue(invitation: InvitationHistoryItem, now: number): boolean {
+  return invitation.status === 'PENDING' && Date.parse(invitation.expiredAt) <= now;
+}
+
+export function toSimulationSessions(
+  invitations: InvitationHistoryItem[],
+  now: number = Date.now()
+): SimulationSessions {
   const sessions = invitations
     .flatMap((invitation) =>
-      isSessionStatus(invitation.status) ? [toSession(invitation, invitation.status)] : []
+      isSessionStatus(invitation.status) && !isOverdue(invitation, now)
+        ? [toSession(invitation, invitation.status)]
+        : []
     )
     .sort((a, b) => Date.parse(b.requestedAt) - Date.parse(a.requestedAt));
   const waiting = sessions.filter((session) => !isRunning(session.status));

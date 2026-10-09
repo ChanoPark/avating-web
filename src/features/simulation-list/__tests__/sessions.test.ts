@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import type { InvitationHistoryItem } from '@entities/match-request';
-import { RECENT_ENDED_LIMIT, toSimulationSessions } from '../lib/sessions';
+import { RECENT_ENDED_LIMIT, toSimulationSessions as toSessionsAt } from '../lib/sessions';
+
+const NOW = Date.parse('2026-07-27T18:00:00+09:00');
+
+function toSimulationSessions(invitations: InvitationHistoryItem[]) {
+  return toSessionsAt(invitations, NOW);
+}
 
 function invitation(overrides: Partial<InvitationHistoryItem>): InvitationHistoryItem {
   return {
@@ -62,6 +68,37 @@ describe('toSimulationSessions', () => {
       invitation({ status: 'EXPIRED' }),
     ]);
     expect(sessions).toEqual({ running: [], requests: [] });
+  });
+
+  it('만료 시각이 지난 대기 요청은 서버가 아직 PENDING 으로 줘도 버린다', () => {
+    const { requests } = toSimulationSessions([
+      invitation({
+        simulationInvitationId: 'overdue',
+        status: 'PENDING',
+        expiredAt: '2026-07-27T17:59:59+09:00',
+      }),
+      invitation({
+        simulationInvitationId: 'due-now',
+        status: 'PENDING',
+        expiredAt: '2026-07-27T18:00:00+09:00',
+      }),
+      invitation({
+        simulationInvitationId: 'waiting',
+        status: 'PENDING',
+        expiredAt: '2026-07-27T18:00:01+09:00',
+      }),
+    ]);
+    expect(requests.map((s) => s.id)).toEqual(['waiting']);
+  });
+
+  it('만료 시각은 대기 요청에만 본다 — 진행 중이거나 끝난 것은 만료 시각이 지나도 남는다', () => {
+    const past = '2026-07-20T12:00:00+09:00';
+    const sessions = toSimulationSessions([
+      invitation({ simulationInvitationId: 'running', status: 'IN_PROGRESS', expiredAt: past }),
+      invitation({ simulationInvitationId: 'done', status: 'DONE', expiredAt: past }),
+    ]);
+    expect(sessions.running.map((s) => s.id)).toEqual(['running']);
+    expect(sessions.requests.map((s) => s.id)).toEqual(['done']);
   });
 
   it('requests 는 응답 대기 중인 요청을 끝난 것보다 위에 두고, 묶음 안에서는 최근 요청 순이다', () => {

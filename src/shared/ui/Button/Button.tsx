@@ -32,9 +32,8 @@ const variants: Record<ButtonVariant, string> = {
     'bg-fill-weak text-primary enabled:hover:bg-fill-weak-hover enabled:active:bg-fill-weak-press',
   ghost:
     'bg-transparent text-secondary enabled:hover:bg-surface enabled:hover:text-primary enabled:active:bg-fill-weak disabled:bg-transparent',
-  // 파괴적 액션은 텍스트다. 빨간 채움은 확인 다이얼로그의 primary 슬롯에만 존재한다.
+  // 파괴적 액션은 텍스트다.
   danger: 'bg-transparent text-danger enabled:hover:bg-danger-tint disabled:bg-transparent',
-  // 정본 `.cx-btn--danger-solid` 는 red-500 에서 hover 로 red-600 인데, 흰 글자가 red-500 위에서 4.35:1 이라 뒤집었다.
   dangerSolid: 'bg-danger text-on-ink enabled:hover:bg-danger-mark',
 };
 

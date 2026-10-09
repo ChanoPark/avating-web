@@ -69,7 +69,6 @@ function actionErrorTitle(error: unknown): string {
   return (code === undefined ? undefined : ACTION_ERROR_TITLE[code]) ?? ACTION_ERROR_FALLBACK_TITLE;
 }
 
-// 대기 중인 요청만 응답할 수 있다 — 받은 요청은 수락, 보낸 요청은 취소.
 function availableAction({ status, direction }: SimulationSession): InvitationAction | null {
   if (status !== 'PENDING') return null;
   return direction === 'RECEIVED' ? 'accept' : 'cancel';
@@ -174,7 +173,7 @@ function SessionRow({ session, myColor, acting, actionDisabled, onAction }: Sess
           <Button
             variant="secondary"
             size="xs"
-            aria-label={`${partner.name}와의 시뮬레이션으로 이동 (준비 중)`}
+            aria-label={`${partner.name} 시뮬레이션으로 이동 (준비 중)`}
             disabled
           >
             이동
