@@ -44,6 +44,14 @@ describe('toSimulationSessions', () => {
     expect(running[0]?.partner).toEqual({ avatarId: 'invitee', name: '받은이', hashtag: 'BBBBBB' });
   });
 
+  it('응답에 색이 있으면 내 아바타·상대 아바타에 실어 준다', () => {
+    const { running } = toSimulationSessions([
+      invitation({ inviterAvatarColor: '67C4F2', inviteeAvatarColor: 'E887B6' }),
+    ]);
+    expect(running[0]?.mine).toEqual({ avatarId: 'inviter', name: '보낸이', color: '67C4F2' });
+    expect(running[0]?.partner).toEqual({ avatarId: 'invitee', name: '받은이', color: 'E887B6' });
+  });
+
   it('수락됐거나 진행 중인 것은 running 으로, 나머지는 requests 로 나눈다', () => {
     const sessions = toSimulationSessions([
       invitation({ simulationInvitationId: 'accepted', status: 'ACCEPTED' }),

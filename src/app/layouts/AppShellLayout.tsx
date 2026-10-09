@@ -1,12 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 import type { ReactNode } from 'react';
-import { useLocation, useOutlet } from 'react-router';
+import { Link, useLocation, useOutlet } from 'react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { Bell, ChevronRight, Menu } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { RouteErrorBoundary } from '../providers/RouteErrorBoundary';
 import { SidebarAccountRow } from './SidebarAccountRow';
 import { Sidebar, SidebarItem } from '@shared/ui/Sidebar';
-import { useChromeBreadcrumbStore } from '@shared/lib/chromeBreadcrumb';
+import { useChromeBreadcrumbStore, type ChromeCrumb } from '@shared/lib/chromeBreadcrumb';
 import { cn } from '@shared/lib/cn';
 import { DUR_BASE, DUR_SLOW, EASE_OUT, EASE_STANDARD } from '@shared/lib/motion';
 
@@ -15,27 +16,35 @@ import { DUR_BASE, DUR_SLOW, EASE_OUT, EASE_STANDARD } from '@shared/lib/motion'
 const ICON_BUTTON_CLASS =
   'text-secondary hover:bg-raised hover:text-primary rounded-chip ease-standard flex size-11 shrink-0 items-center justify-center transition-colors duration-[var(--dur-fast)] md:size-9';
 
+const HOME_CRUMB: ChromeCrumb = { label: '홈', to: '/dashboard' };
+const AVATAR_CRUMB: ChromeCrumb = { label: '아바타', to: '/explore' };
+
+function defaultTrail(pathname: string): readonly ChromeCrumb[] {
+  if (pathname === '/dashboard' || pathname.startsWith('/avatars/')) {
+    return [HOME_CRUMB, { label: '대시보드', to: '/dashboard' }];
+  }
+  if (pathname === '/explore') return [AVATAR_CRUMB, { label: '둘러보기', to: '/explore' }];
+  if (pathname === '/simulations')
+    return [AVATAR_CRUMB, { label: '매칭 요청', to: '/simulations' }];
+  return [HOME_CRUMB];
+}
+
 function ChromeBreadcrumb({ pathname }: { pathname: string }) {
   const trail = useChromeBreadcrumbStore((s) => s.trail);
-  const segments =
-    trail !== null && trail.length > 0
-      ? trail
-      : pathname === '/dashboard'
-        ? ['홈', '대시보드']
-        : pathname.startsWith('/avatars/')
-          ? ['홈', '대시보드']
-          : pathname === '/explore'
-            ? ['아바타', '둘러보기']
-            : pathname === '/simulations'
-              ? ['아바타', '시뮬레이션 목록']
-              : ['홈'];
+  const queryClient = useQueryClient();
+  const segments = trail !== null && trail.length > 0 ? trail : defaultTrail(pathname);
+  const refreshQueries = () => {
+    void queryClient.invalidateQueries();
+  };
   return (
     <nav aria-label="현재 위치" className="text-secondary text-caption">
       <ol className="flex items-center gap-1.5">
         {segments.map((seg, i) => {
           const isLast = i === segments.length - 1;
+          const to = seg.to ?? (isLast ? pathname : undefined);
+          const isCurrent = isLast && to === pathname;
           return (
-            <li key={seg} className="flex items-center gap-1.5">
+            <li key={`${i}-${seg.label}`} className="flex items-center gap-1.5">
               {i > 0 && (
                 <ChevronRight
                   size={13}
@@ -44,12 +53,23 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
                   className="text-secondary shrink-0"
                 />
               )}
-              <span
-                className={isLast ? 'text-primary font-medium' : undefined}
-                {...(isLast ? { 'aria-current': 'page' as const } : {})}
-              >
-                {seg}
-              </span>
+              {to === undefined ? (
+                <span>{seg.label}</span>
+              ) : (
+                <Link
+                  to={to}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={cn(
+                    'relative after:absolute after:inset-x-0 after:-inset-y-3.5',
+                    isLast
+                      ? 'text-primary font-medium'
+                      : 'hover:text-primary ease-standard transition-colors duration-[var(--dur-fast)]'
+                  )}
+                  onClick={isCurrent ? refreshQueries : undefined}
+                >
+                  {seg.label}
+                </Link>
+              )}
             </li>
           );
         })}
@@ -97,7 +117,8 @@ function SidebarBody({ pathname, onNavigate }: { pathname: string; onNavigate?: 
         </div>
         <NavSection label="아바타">
           <SidebarItem label="둘러보기" to="/explore" onClick={onNavigate} />
-          <SidebarItem label="시뮬레이션 목록" to="/simulations" onClick={onNavigate} />
+          <SidebarItem label="매칭 요청" to="/simulations" onClick={onNavigate} />
+          <SidebarItem label="시뮬레이션" disabled />
         </NavSection>
         <NavSection label="유저">
           <SidebarItem label="내 아바타" disabled />

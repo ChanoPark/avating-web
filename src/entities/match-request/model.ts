@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { avatarColorSchema } from '@entities/avatar';
 import {
   MATCH_REQUEST_GREETING_MAX,
   MATCH_REQUEST_ERROR_REQUESTER_EMPTY,
@@ -34,9 +35,11 @@ const invitationHistoryItemSchema = z.object({
   inviterAvatarId: z.string().min(1),
   inviterAvatarName: z.string().min(1),
   inviterAvatarHashtag: z.string().min(1).optional(),
+  inviterAvatarColor: avatarColorSchema.optional(),
   inviteeAvatarId: z.string().min(1),
   inviteeAvatarName: z.string().min(1),
   inviteeAvatarHashtag: z.string().min(1).optional(),
+  inviteeAvatarColor: avatarColorSchema.optional(),
   status: invitationStatusSchema,
   direction: invitationDirectionSchema,
   requestMessage: z.string().optional(),

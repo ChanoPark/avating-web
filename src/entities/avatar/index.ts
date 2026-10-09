@@ -1,4 +1,9 @@
-export { apiResponseAvatarSummary, PERSONA_STAT_KEYS, personaStatRows } from './model';
+export {
+  apiResponseAvatarSummary,
+  avatarColorSchema,
+  PERSONA_STAT_KEYS,
+  personaStatRows,
+} from './model';
 export type {
   AvatarDetail,
   AvatarSummary,

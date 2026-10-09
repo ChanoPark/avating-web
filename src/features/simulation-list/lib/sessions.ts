@@ -11,7 +11,7 @@ export type SessionStatus = (typeof SESSION_STATUSES)[number];
 
 export const RECENT_ENDED_LIMIT = 10;
 
-type SessionAvatar = { avatarId: string; name: string; hashtag?: string };
+type SessionAvatar = { avatarId: string; name: string; hashtag?: string; color?: string };
 
 export type SimulationSession = {
   id: string;
@@ -30,20 +30,32 @@ export function isRunning(status: SessionStatus): boolean {
   return (RUNNING_STATUSES as readonly SessionStatus[]).includes(status);
 }
 
-function sessionAvatar(avatarId: string, name: string, hashtag: string | undefined): SessionAvatar {
-  return hashtag === undefined ? { avatarId, name } : { avatarId, name, hashtag };
+function sessionAvatar(
+  avatarId: string,
+  name: string,
+  hashtag: string | undefined,
+  color: string | undefined
+): SessionAvatar {
+  return {
+    avatarId,
+    name,
+    ...(hashtag !== undefined && { hashtag }),
+    ...(color !== undefined && { color }),
+  };
 }
 
 function toSession(invitation: InvitationHistoryItem, status: SessionStatus): SimulationSession {
   const inviter = sessionAvatar(
     invitation.inviterAvatarId,
     invitation.inviterAvatarName,
-    invitation.inviterAvatarHashtag
+    invitation.inviterAvatarHashtag,
+    invitation.inviterAvatarColor
   );
   const invitee = sessionAvatar(
     invitation.inviteeAvatarId,
     invitation.inviteeAvatarName,
-    invitation.inviteeAvatarHashtag
+    invitation.inviteeAvatarHashtag,
+    invitation.inviteeAvatarColor
   );
   const sent = invitation.direction === 'SENT';
   return {
