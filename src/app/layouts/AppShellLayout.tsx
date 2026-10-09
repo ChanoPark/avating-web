@@ -59,11 +59,12 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
                 <Link
                   to={to}
                   aria-current={isCurrent ? 'page' : undefined}
-                  className={
+                  className={cn(
+                    'relative after:absolute after:inset-x-0 after:-inset-y-3.5',
                     isLast
                       ? 'text-primary font-medium'
                       : 'hover:text-primary ease-standard transition-colors duration-[var(--dur-fast)]'
-                  }
+                  )}
                   onClick={isCurrent ? refreshQueries : undefined}
                 >
                   {seg.label}

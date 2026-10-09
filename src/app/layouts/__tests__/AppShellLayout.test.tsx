@@ -662,6 +662,19 @@ describe('AppShellLayout', () => {
       useChromeBreadcrumbStore.getState().clearTrail();
     });
 
+    it('링크 항목은 글자 줄보다 위아래로 넓은 터치 영역을 갖는다', () => {
+      renderWithProviders('/simulations');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      for (const link of within(nav).getAllByRole('link')) {
+        expect(link).toHaveClass(
+          'relative',
+          'after:absolute',
+          'after:inset-x-0',
+          'after:-inset-y-3.5'
+        );
+      }
+    });
+
     it('링크 항목은 hover 에서 기본색 글자가 된다', () => {
       renderWithProviders('/simulations');
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
