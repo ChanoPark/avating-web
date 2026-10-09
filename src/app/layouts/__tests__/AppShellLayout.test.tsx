@@ -51,6 +51,7 @@ function renderWithProviders(initialRoute = '/dashboard') {
                 path="simulations"
                 element={<div data-testid="outlet-content">매칭 요청 콘텐츠</div>}
               />
+              <Route path="*" element={<div data-testid="outlet-content">없는 화면</div>} />
             </Route>
             <Route path="/login" element={<div>LOGIN_PAGE</div>} />
           </Routes>
@@ -514,7 +515,30 @@ describe('AppShellLayout', () => {
       const nav = screen.getByRole('navigation', { name: '현재 위치' });
       expect(nav).toHaveTextContent('홈');
       expect(nav).toHaveTextContent('대시보드');
-      expect(nav.querySelector('[aria-current="page"]')).toHaveTextContent('대시보드');
+    });
+
+    it('아바타 이름이 오기 전의 /avatars/:id 에서 "대시보드" 는 현재 화면이 아니라 대시보드로 가는 링크다', async () => {
+      const invalidate = vi.spyOn(QueryClient.prototype, 'invalidateQueries');
+      const user = userEvent.setup();
+      renderWithProviders('/avatars/avatar-1');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      const dashboard = within(nav).getByRole('link', { name: '대시보드' });
+      expect(dashboard).toHaveAttribute('href', '/dashboard');
+      expect(dashboard).not.toHaveAttribute('aria-current');
+
+      await user.click(dashboard);
+
+      expect(await screen.findByText('대시보드 콘텐츠')).toBeInTheDocument();
+      expect(invalidate).not.toHaveBeenCalled();
+      invalidate.mockRestore();
+    });
+
+    it('셸 안의 없는 경로에서 "홈" 은 그 경로가 아니라 대시보드로 가는 링크다', () => {
+      renderWithProviders('/nope');
+      const nav = screen.getByRole('navigation', { name: '현재 위치' });
+      const home = within(nav).getByRole('link', { name: '홈' });
+      expect(home).toHaveAttribute('href', '/dashboard');
+      expect(home).not.toHaveAttribute('aria-current');
     });
 
     it('/explore 에서는 사이드바 그룹과 같은 "아바타 > 둘러보기" 가 표시된다', () => {

@@ -21,10 +21,11 @@ const AVATAR_CRUMB: ChromeCrumb = { label: '아바타', to: '/explore' };
 
 function defaultTrail(pathname: string): readonly ChromeCrumb[] {
   if (pathname === '/dashboard' || pathname.startsWith('/avatars/')) {
-    return [HOME_CRUMB, { label: '대시보드' }];
+    return [HOME_CRUMB, { label: '대시보드', to: '/dashboard' }];
   }
-  if (pathname === '/explore') return [AVATAR_CRUMB, { label: '둘러보기' }];
-  if (pathname === '/simulations') return [AVATAR_CRUMB, { label: '매칭 요청' }];
+  if (pathname === '/explore') return [AVATAR_CRUMB, { label: '둘러보기', to: '/explore' }];
+  if (pathname === '/simulations')
+    return [AVATAR_CRUMB, { label: '매칭 요청', to: '/simulations' }];
   return [HOME_CRUMB];
 }
 
@@ -32,13 +33,18 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
   const trail = useChromeBreadcrumbStore((s) => s.trail);
   const queryClient = useQueryClient();
   const segments = trail !== null && trail.length > 0 ? trail : defaultTrail(pathname);
+  const refreshQueries = () => {
+    void queryClient.invalidateQueries();
+  };
   return (
     <nav aria-label="현재 위치" className="text-secondary text-caption">
       <ol className="flex items-center gap-1.5">
         {segments.map((seg, i) => {
           const isLast = i === segments.length - 1;
+          const to = seg.to ?? (isLast ? pathname : undefined);
+          const isCurrent = isLast && to === pathname;
           return (
-            <li key={seg.label} className="flex items-center gap-1.5">
+            <li key={`${i}-${seg.label}`} className="flex items-center gap-1.5">
               {i > 0 && (
                 <ChevronRight
                   size={13}
@@ -47,26 +53,21 @@ function ChromeBreadcrumb({ pathname }: { pathname: string }) {
                   className="text-secondary shrink-0"
                 />
               )}
-              {isLast ? (
-                <Link
-                  to={pathname}
-                  aria-current="page"
-                  className="text-primary font-medium"
-                  onClick={() => {
-                    void queryClient.invalidateQueries();
-                  }}
-                >
-                  {seg.label}
-                </Link>
-              ) : seg.to !== undefined ? (
-                <Link
-                  to={seg.to}
-                  className="hover:text-primary ease-standard transition-colors duration-[var(--dur-fast)]"
-                >
-                  {seg.label}
-                </Link>
-              ) : (
+              {to === undefined ? (
                 <span>{seg.label}</span>
+              ) : (
+                <Link
+                  to={to}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  className={
+                    isLast
+                      ? 'text-primary font-medium'
+                      : 'hover:text-primary ease-standard transition-colors duration-[var(--dur-fast)]'
+                  }
+                  onClick={isCurrent ? refreshQueries : undefined}
+                >
+                  {seg.label}
+                </Link>
               )}
             </li>
           );

@@ -4,7 +4,6 @@ import { create } from 'zustand';
 // 비어 있으면 AppShellLayout 이 pathname 기반 기본값을 쓴다.
 export type ChromeCrumb = {
   label: string;
-  /** 상위 항목이 갈 경로. 없으면 글자로 그린다. 마지막 항목은 이 값과 상관없이 현재 경로로 간다. */
   to?: string;
 };
 
