@@ -6,7 +6,7 @@ import { http, HttpResponse } from 'msw';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { server } from '@shared/mocks/server';
 import { mockPrimaryAvatar, primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
-import { usePrimaryAvatar } from '@entities/avatar';
+import { avatarKeys, usePrimaryAvatar } from '@entities/avatar';
 import { MyAvatarGrid } from '../MyAvatarGrid';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
@@ -228,6 +228,57 @@ describe('MyAvatarGrid', () => {
       expect(screen.queryByRole('button', { name: '다시 시도' })).not.toBeInTheDocument();
     });
 
+    it('다른 화면이 먼저 실패시킨 쿼리도, 서버가 복구된 뒤 들어오면 재요청해 보여준다', async () => {
+      const user = userEvent.setup();
+      let callCount = 0;
+      let serverRecovered = false;
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/primary`, () => {
+          callCount++;
+          return serverRecovered
+            ? HttpResponse.json(mockPrimaryAvatar)
+            : HttpResponse.json(
+                { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+                { status: 500 }
+              );
+        })
+      );
+
+      function Sidebar() {
+        usePrimaryAvatar();
+        return null;
+      }
+
+      function Screen() {
+        const [onDashboard, setOnDashboard] = useState(false);
+        return (
+          <>
+            <Sidebar />
+            <button
+              type="button"
+              onClick={() => {
+                setOnDashboard(true);
+              }}
+            >
+              대시보드로
+            </button>
+            {onDashboard && <MyAvatarGrid />}
+          </>
+        );
+      }
+      const { queryClient } = renderWithProviders(<Screen />);
+      await waitFor(() => {
+        expect(queryClient.getQueryState(avatarKeys.primary())?.status).toBe('error');
+      });
+
+      serverRecovered = true;
+      await user.click(screen.getByRole('button', { name: '대시보드로' }));
+
+      expect(await screen.findByText('루시')).toBeInTheDocument();
+      expect(screen.queryByText('대표 아바타를 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(callCount).toBe(2);
+    });
+
     // 앱 셸의 사이드바가 같은 대표 아바타 쿼리를 계속 구독한다.
     it('같은 쿼리를 구독하는 화면이 남아 있어도, 돌아올 때마다 재요청하고 서버가 복구되면 채워진다', async () => {
       const user = userEvent.setup();
@@ -282,6 +333,54 @@ describe('MyAvatarGrid', () => {
       await toggle();
       expect(await screen.findByText('루시')).toBeInTheDocument();
       expect(callCount).toBe(3);
+    });
+
+    it('실패 안내가 떠 있는 동안 다른 화면의 재요청이 성공했으면, 떠나도 그 데이터를 지우지 않는다', async () => {
+      const user = userEvent.setup();
+      let serverRecovered = false;
+      server.use(
+        http.get(`${BASE_URL}/api/avatars/primary`, () =>
+          serverRecovered
+            ? HttpResponse.json(mockPrimaryAvatar)
+            : HttpResponse.json(
+                { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' },
+                { status: 500 }
+              )
+        )
+      );
+
+      function Sidebar() {
+        const { data } = usePrimaryAvatar();
+        return <p>사이드바 {data?.name ?? '없음'}</p>;
+      }
+
+      function Screen() {
+        const [onDashboard, setOnDashboard] = useState(true);
+        return (
+          <>
+            <Sidebar />
+            <button
+              type="button"
+              onClick={() => {
+                setOnDashboard(false);
+              }}
+            >
+              화면 전환
+            </button>
+            {onDashboard && <MyAvatarGrid />}
+          </>
+        );
+      }
+      const { queryClient } = renderWithProviders(<Screen />);
+      await screen.findByText('대표 아바타를 불러오지 못했어요');
+
+      serverRecovered = true;
+      await queryClient.refetchQueries({ queryKey: avatarKeys.primary() });
+      await screen.findByText('사이드바 루시');
+      await user.click(screen.getByRole('button', { name: '화면 전환' }));
+
+      expect(screen.queryByText('대표 아바타를 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(screen.getByText('사이드바 루시')).toBeInTheDocument();
     });
   });
 });

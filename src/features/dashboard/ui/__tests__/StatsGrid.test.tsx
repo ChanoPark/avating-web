@@ -8,10 +8,13 @@ import { statsHandlers } from '@shared/mocks/handlers/dashboard';
 import { ToastProvider } from '@shared/ui/Toast/Toast';
 import { StatsGrid } from '../StatsGrid';
 
-function renderWithProviders(ui: React.ReactNode) {
-  const queryClient = new QueryClient({
+function createQueryClient() {
+  return new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
+}
+
+function renderWithProviders(ui: React.ReactNode, queryClient = createQueryClient()) {
   return render(
     createElement(
       QueryClientProvider,
@@ -94,6 +97,21 @@ describe('StatsGrid', () => {
     });
     expect(screen.getAllByText('통계를 불러오지 못했어요')).toHaveLength(1);
     expect(screen.queryByRole('button', { name: /다시/ })).not.toBeInTheDocument();
+  });
+
+  it('통계 로딩이 실패한 화면을 떠났다 돌아오면 재요청해 값을 보여준다', async () => {
+    server.use(statsHandlers.serverError);
+    const queryClient = createQueryClient();
+    const { unmount } = renderWithProviders(createElement(StatsGrid), queryClient);
+    await screen.findByText('통계를 불러오지 못했어요');
+    unmount();
+
+    server.use(statsHandlers.success);
+    renderWithProviders(createElement(StatsGrid), queryClient);
+
+    expect(await screen.findByText('47')).toBeInTheDocument();
+    expect(screen.queryAllByText('—')).toHaveLength(0);
+    expect(screen.queryByText('통계를 불러오지 못했어요')).not.toBeInTheDocument();
   });
 
   it('a11y — axe 위반 0 (jest-axe 미설치 — 도입 후 활성화)', () => {

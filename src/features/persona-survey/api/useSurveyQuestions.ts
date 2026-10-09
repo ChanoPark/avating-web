@@ -16,7 +16,7 @@ async function fetchSurveyQuestions(): Promise<SurveyQuestion[]> {
   return apiResponseSurveyQuestionsSchema.parse(response.data).data;
 }
 
-// useSuspenseQuery 대신 useQuery — 이 화면은 자체 isLoading/isError 분기 + refetch CTA 로 처리한다.
+// useSuspenseQuery 대신 useQuery — 이 화면은 자체 isLoading/isError 분기로 처리한다.
 export function useSurveyQuestions(options: UseSurveyQuestionsOptions = {}) {
   return useQuery({
     queryKey: onboardingKeys.surveyQuestions(),

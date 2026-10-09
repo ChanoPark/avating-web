@@ -30,7 +30,7 @@ export function useConnectCode({ enabled = true }: UseConnectCodeOptions = {}): 
     staleTime: Infinity,
     gcTime: Infinity,
     retry: false,
-    refetchOnMount: false,
+    refetchOnMount: (query) => (query.state.status === 'error' ? 'always' : false),
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
