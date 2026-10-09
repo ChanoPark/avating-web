@@ -5,7 +5,11 @@ import { matchRequestKeys } from '@entities/match-request';
 
 export type InvitationAction = 'accept' | 'cancel';
 
-type InvitationActionInput = { invitationId: string; action: InvitationAction };
+type InvitationActionInput = {
+  invitationId: string;
+  partnerAvatarId: string;
+  action: InvitationAction;
+};
 
 async function runInvitationAction({ invitationId, action }: InvitationActionInput): Promise<void> {
   if (action === 'accept') {
@@ -20,8 +24,12 @@ export function useInvitationAction() {
 
   return useMutation({
     mutationFn: runInvitationAction,
-    onSuccess: () => {
+    onSuccess: (_data, { action, partnerAvatarId }) => {
       void queryClient.invalidateQueries({ queryKey: avatarKeys.myAvatars() });
+      if (action === 'cancel') {
+        void queryClient.invalidateQueries({ queryKey: avatarKeys.detail(partnerAvatarId) });
+        void queryClient.invalidateQueries({ queryKey: avatarKeys.candidatesAll() });
+      }
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: matchRequestKeys.sessions() }),
     throwOnError: false,

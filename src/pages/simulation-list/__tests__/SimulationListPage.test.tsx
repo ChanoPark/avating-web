@@ -45,6 +45,7 @@ function cellsOf(row: HTMLElement | undefined): HTMLElement[] {
 
 afterEach(() => {
   resetInvitationHistory();
+  server.events.removeAllListeners('request:start');
 });
 
 describe('SimulationListPage', () => {
@@ -326,7 +327,6 @@ describe('SimulationListPage', () => {
         expect(await findRows(RUNNING)).toHaveLength(2);
       });
       expect(screen.queryByRole('button', { name: ACCEPT })).not.toBeInTheDocument();
-      server.events.removeAllListeners('request:start');
     });
 
     it('응답을 보내는 동안 그 버튼과 다른 행의 버튼이 모두 비활성이다', async () => {
@@ -418,6 +418,39 @@ describe('SimulationListPage', () => {
     );
   });
 
+  describe('응답 뒤 상대 아바타 캐시', () => {
+    const BOMNAL_ID = '33333333-3333-4333-8333-333333333333';
+    const MOONLIT_ID = '44444444-4444-4444-8444-444444444444';
+
+    it('취소하면 상대 아바타 상세와 추천 목록 캐시를 무효화한다 — 상대가 다시 요청을 받을 수 있게 된다', async () => {
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      queryClient.setQueryData(avatarKeys.detail(BOMNAL_ID), {});
+      queryClient.setQueryData(avatarKeys.candidates(8), { items: [] });
+
+      await findRows(REQUESTS);
+      await user.click(screen.getByRole('button', { name: CANCEL }));
+
+      expect(await screen.findByText('요청을 취소했어요')).toBeInTheDocument();
+      expect(queryClient.getQueryState(avatarKeys.detail(BOMNAL_ID))?.isInvalidated).toBe(true);
+      expect(queryClient.getQueryState(avatarKeys.candidates(8))?.isInvalidated).toBe(true);
+    });
+
+    it('수락은 상대 아바타 캐시를 건드리지 않는다 — 상대는 그대로 진행 중이다', async () => {
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      queryClient.setQueryData(avatarKeys.detail(MOONLIT_ID), {});
+      queryClient.setQueryData(avatarKeys.candidates(8), { items: [] });
+
+      await findRows(REQUESTS);
+      await user.click(screen.getByRole('button', { name: ACCEPT }));
+
+      expect(await screen.findByText('요청을 수락했어요')).toBeInTheDocument();
+      expect(queryClient.getQueryState(avatarKeys.detail(MOONLIT_ID))?.isInvalidated).toBe(false);
+      expect(queryClient.getQueryState(avatarKeys.candidates(8))?.isInvalidated).toBe(false);
+    });
+  });
+
   describe('응답이 실패했을 때', () => {
     it('수락이 실패해도 목록을 다시 받는다 — 그 사이 상대가 취소했으면 수락 버튼이 사라진다', async () => {
       const user = userEvent.setup();
@@ -468,7 +501,6 @@ describe('SimulationListPage', () => {
       });
       const row = screen.getByRole('link', { name: '봄날' }).closest('tr') as HTMLElement;
       expect(cellsOf(row)[3]).toHaveTextContent('취소');
-      server.events.removeAllListeners('request:start');
     });
 
     it('취소가 실패하면 상단 에러 토스트로 알리고 버튼은 다시 누를 수 있다', async () => {

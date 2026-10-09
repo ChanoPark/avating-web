@@ -241,7 +241,7 @@ function SimulationSessionListContent() {
   function handleAction(session: SimulationSession, action: InvitationAction) {
     dismissFailureToast();
     runAction(
-      { invitationId: session.id, action },
+      { invitationId: session.id, partnerAvatarId: session.partner.avatarId, action },
       {
         onSuccess: () => {
           showToast({ variant: 'success', title: ACTION_VIEW[action].successTitle });
