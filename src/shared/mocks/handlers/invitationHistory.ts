@@ -16,16 +16,42 @@ function kstIso(epochMs: number): string {
   return new Date(epochMs + KST_OFFSET).toISOString().replace('Z', '+09:00');
 }
 
-const MY_HYUNWOO = { id: 'aaaaaaaa-0001-4000-8000-000000000001', name: 'hyunwoo', tag: 'HW4K7Z' };
+const MY_HYUNWOO = {
+  id: 'aaaaaaaa-0001-4000-8000-000000000001',
+  name: 'hyunwoo',
+  tag: 'HW4K7Z',
+  color: '67C4F2',
+};
 const MY_HYUN_NIGHT = {
   id: 'aaaaaaaa-0002-4000-8000-000000000002',
   name: 'hyun_night',
   tag: 'HN8R2Q',
+  color: 'E887B6',
 };
-const MY_SUMMER = { id: 'aaaaaaaa-0004-4000-8000-000000000004', name: '여름', tag: 'YR5T8K' };
-const HANEUL = { id: '22222222-2222-4222-8222-222222222222', name: '하늘', tag: 'H7K2MP' };
-const BOMNAL = { id: '33333333-3333-4333-8333-333333333333', name: '봄날', tag: 'B3RT9Q' };
-const MOONLIT = { id: '44444444-4444-4444-8444-444444444444', name: 'Moonlit', tag: 'Q5WN8Z' };
+const MY_SUMMER = {
+  id: 'aaaaaaaa-0004-4000-8000-000000000004',
+  name: '여름',
+  tag: 'YR5T8K',
+  color: 'DC7100',
+};
+const HANEUL = {
+  id: '22222222-2222-4222-8222-222222222222',
+  name: '하늘',
+  tag: 'H7K2MP',
+  color: '67C4F2',
+};
+const BOMNAL = {
+  id: '33333333-3333-4333-8333-333333333333',
+  name: '봄날',
+  tag: 'B3RT9Q',
+  color: '2451A9',
+};
+const MOONLIT = {
+  id: '44444444-4444-4444-8444-444444444444',
+  name: 'Moonlit',
+  tag: 'Q5WN8Z',
+  color: '9F50B7',
+};
 
 type MockAvatar = typeof HANEUL;
 
@@ -41,9 +67,11 @@ function invitation(
     inviterAvatarId: inviter.id,
     inviterAvatarName: inviter.name,
     inviterAvatarHashtag: inviter.tag,
+    inviterAvatarColor: inviter.color,
     inviteeAvatarId: invitee.id,
     inviteeAvatarName: invitee.name,
     inviteeAvatarHashtag: invitee.tag,
+    inviteeAvatarColor: invitee.color,
     createdAt: kstIso(createdAt),
     expiredAt: kstIso(createdAt + DAY),
     ...rest,

@@ -133,7 +133,11 @@ function SessionRow({ session, myColor, acting, actionDisabled, onAction }: Sess
     <tr className={ROW_CLASS}>
       <td className={cn(CELL_CLASS, MY_AVATAR_COLUMN_CLASS)}>
         <div className={AVATAR_CELL_CLASS}>
-          <AvatarIdentityTile name={mine.name} color={myColor} className={AVATAR_TILE_CLASS} />
+          <AvatarIdentityTile
+            name={mine.name}
+            color={mine.color ?? myColor}
+            className={AVATAR_TILE_CLASS}
+          />
           <div className="flex min-w-0 flex-col gap-1">
             <span className={cn(AVATAR_NAME_CLASS, 'truncate')}>{mine.name}</span>
             {mine.hashtag !== undefined && <AvatarTagBadge hashtag={mine.hashtag} />}
@@ -142,7 +146,11 @@ function SessionRow({ session, myColor, acting, actionDisabled, onAction }: Sess
       </td>
       <td className={cn(CELL_CLASS, PARTNER_COLUMN_CLASS)}>
         <div className={AVATAR_CELL_CLASS}>
-          <AvatarIdentityTile name={partner.name} className={AVATAR_TILE_CLASS} />
+          <AvatarIdentityTile
+            name={partner.name}
+            color={partner.color}
+            className={AVATAR_TILE_CLASS}
+          />
           <div className="flex min-w-0 flex-col gap-1">
             <Link
               to={`/avatars/${partner.avatarId}`}

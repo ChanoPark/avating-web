@@ -140,7 +140,42 @@ describe('SimulationListPage', () => {
       );
     });
 
-    it('내 아바타 타일은 내 아바타의 색을, 색을 알 수 없는 상대 타일은 회색을 입는다', async () => {
+    it('내 아바타 · 상대 아바타 타일은 응답이 준 각자의 색을 입는다', async () => {
+      server.use(ownedAvatarsHandlers.serverError);
+      renderPage();
+
+      const [row] = await findRows(RUNNING);
+      const cells = cellsOf(row);
+      expect(cells[0]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-pink');
+      expect(cells[1]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-sky');
+    });
+
+    it('응답의 색이 내 아바타 목록의 색보다 먼저다', async () => {
+      server.use(
+        invitationHistoryHandler(
+          mockInvitationHistory.map(
+            ({ inviterAvatarColor: _a, inviteeAvatarColor: _b, ...rest }) =>
+              rest.status === 'IN_PROGRESS' ? { ...rest, inviterAvatarColor: '33903C' } : rest
+          )
+        )
+      );
+      renderPage();
+
+      const [pending] = await findRows(REQUESTS);
+      await waitFor(() => {
+        expect(cellsOf(pending)[0]?.querySelector('[aria-hidden="true"]')).toHaveClass(
+          'bg-id-orange'
+        );
+      });
+      const [running] = await findRows(RUNNING);
+      expect(cellsOf(running)[0]?.querySelector('[aria-hidden="true"]')).toHaveClass('bg-id-green');
+    });
+
+    it('응답에 색이 없으면 내 타일은 내 아바타 목록의 색을, 상대 타일은 회색을 입는다', async () => {
+      const colorless = mockInvitationHistory.map(
+        ({ inviterAvatarColor: _a, inviteeAvatarColor: _b, ...rest }) => rest
+      );
+      server.use(invitationHistoryHandler(colorless));
       renderPage();
 
       const [row] = await findRows(RUNNING);

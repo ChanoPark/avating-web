@@ -70,16 +70,26 @@ describe('apiResponseInvitationHistoryPage (서버 CursorPage<InvitationHistoryR
     expect(apiResponseInvitationHistoryPage.parse({ data: page }).data).toEqual(page);
   });
 
-  it('메시지·해시태그·nextCursor 가 있으면 보존한다', () => {
+  it('메시지·해시태그·색·nextCursor 가 있으면 보존한다', () => {
     const full = {
       ...invitation,
       inviterAvatarHashtag: 'A3K9Z7',
       inviteeAvatarHashtag: 'B7X2M4',
+      inviterAvatarColor: '67C4F2',
+      inviteeAvatarColor: 'E887B6',
       requestMessage: '대화해봐요',
       rejectMessage: '다음에요',
     };
     const page = { content: [full], nextCursor: 'eyJjcmVhdGVkQXQiOiJ4In0', hasNext: true };
     expect(apiResponseInvitationHistoryPage.parse({ data: page }).data).toEqual(page);
+  });
+
+  it('아바타 색이 # 없는 6자리 hex 가 아니면 거부한다', () => {
+    expect(() =>
+      apiResponseInvitationHistoryPage.parse({
+        data: { content: [{ ...invitation, inviteeAvatarColor: '#67C4F2' }], hasNext: false },
+      })
+    ).toThrow();
   });
 
   it('direction 이 SENT · RECEIVED 가 아니면 거부한다', () => {
