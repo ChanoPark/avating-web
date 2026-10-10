@@ -21,6 +21,18 @@ const ExplorePage = lazy(() => import('@pages/explore').then((m) => ({ default: 
 const SimulationListPage = lazy(() =>
   import('@pages/simulation-list').then((m) => ({ default: m.SimulationListPage }))
 );
+const SimulationLayout = lazy(() =>
+  import('@pages/simulation-watch').then((m) => ({ default: m.SimulationLayout }))
+);
+const SimulationChatIndexPage = lazy(() =>
+  import('@pages/simulation-watch').then((m) => ({ default: m.SimulationChatIndexPage }))
+);
+const SimulationSessionsPage = lazy(() =>
+  import('@pages/simulation-watch').then((m) => ({ default: m.SimulationSessionsPage }))
+);
+const SimulationWatchPage = lazy(() =>
+  import('@pages/simulation-watch').then((m) => ({ default: m.SimulationWatchPage }))
+);
 const OnboardingPage = lazy(() =>
   import('@pages/onboarding').then((m) => ({ default: m.OnboardingPage }))
 );
@@ -113,6 +125,15 @@ export const router = createBrowserRouter([
       {
         path: '/simulations',
         element: <SimulationListPage />,
+      },
+      {
+        path: '/sim',
+        element: <SimulationLayout />,
+        children: [
+          { index: true, element: <SimulationSessionsPage /> },
+          { path: 'chat', element: <SimulationChatIndexPage /> },
+          { path: ':sessionId', element: <SimulationWatchPage /> },
+        ],
       },
     ],
   },

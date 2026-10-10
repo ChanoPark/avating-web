@@ -70,9 +70,10 @@ describe('apiResponseInvitationHistoryPage (서버 CursorPage<InvitationHistoryR
     expect(apiResponseInvitationHistoryPage.parse({ data: page }).data).toEqual(page);
   });
 
-  it('메시지·해시태그·색·nextCursor 가 있으면 보존한다', () => {
+  it('메시지·해시태그·색·simulationId·nextCursor 가 있으면 보존한다', () => {
     const full = {
       ...invitation,
+      simulationId: '9f1c2d3e-0000-4000-8000-000000000001',
       inviterAvatarHashtag: 'A3K9Z7',
       inviteeAvatarHashtag: 'B7X2M4',
       inviterAvatarColor: '67C4F2',

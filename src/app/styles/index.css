@@ -150,6 +150,7 @@
   --animate-scrim-in: scrim-in var(--dur-base) var(--ease-standard);
   --animate-modal-in: modal-in var(--dur-slow) var(--ease-out);
   --animate-toast-in: toast-in var(--dur-slow) var(--ease-out);
+  --animate-typing-dot: typing-dot 1.2s var(--ease-standard) infinite;
 
   /* ── 타입 — 정본 5단계(13·15·17·20·32) + 버튼 14 + 메타 12 ────────────
      12px 는 typography.css 에 토큰이 없지만 Avating Wireframe V2.html 이 19회 직접 쓰는
@@ -228,6 +229,18 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* 정본 `@keyframes cx-dots` 그대로 — 입력 중 점 세 개. */
+@keyframes typing-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
   }
 }
 

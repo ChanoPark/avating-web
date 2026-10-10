@@ -24,7 +24,7 @@
     "e2e:ui": "playwright test --ui",
     "e2e:headed": "playwright test --headed",
     "e2e:report": "playwright show-report",
-    "e2e:build": "VITE_API_MODE=mock VITE_API_BASE_URL=http://localhost:8080 vite build",
+    "e2e:build": "VITE_API_MODE=mock VITE_API_BASE_URL=http://localhost:8080 VITE_AI_API_BASE_URL=http://localhost:8082 vite build",
     "e2e:install": "playwright install chromium webkit",
     "prepare": "husky && chmod +x .claude/hooks/*.sh 2>/dev/null || true"
   },

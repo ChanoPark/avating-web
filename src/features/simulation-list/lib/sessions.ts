@@ -15,6 +15,7 @@ type SessionAvatar = { avatarId: string; name: string; hashtag?: string; color?:
 
 export type SimulationSession = {
   id: string;
+  simulationId?: string;
   status: SessionStatus;
   direction: InvitationDirection;
   mine: SessionAvatar;
@@ -60,6 +61,7 @@ function toSession(invitation: InvitationHistoryItem, status: SessionStatus): Si
   const sent = invitation.direction === 'SENT';
   return {
     id: invitation.simulationInvitationId,
+    ...(invitation.simulationId !== undefined && { simulationId: invitation.simulationId }),
     status,
     direction: invitation.direction,
     mine: sent ? inviter : invitee,
@@ -96,5 +98,36 @@ export function toSimulationSessions(
       ...waiting.filter((session) => session.status === 'PENDING'),
       ...waiting.filter((session) => session.status !== 'PENDING').slice(0, RECENT_ENDED_LIMIT),
     ],
+  };
+}
+
+export function findSimulationSession(
+  invitations: InvitationHistoryItem[],
+  simulationId: string
+): SimulationSession | undefined {
+  const invitation = invitations.find((item) => item.simulationId === simulationId);
+  if (invitation === undefined || !isSessionStatus(invitation.status)) return undefined;
+  return toSession(invitation, invitation.status);
+}
+
+export type WatchSessions = {
+  running: SimulationSession[];
+  ended: SimulationSession[];
+};
+
+const WATCHED_ENDED_STATUSES: readonly SessionStatus[] = ['DONE', 'ABORTED'];
+
+export function toWatchSessions(invitations: InvitationHistoryItem[]): WatchSessions {
+  const sessions = invitations
+    .flatMap((invitation) =>
+      isSessionStatus(invitation.status) ? [toSession(invitation, invitation.status)] : []
+    )
+    .sort((a, b) => Date.parse(b.requestedAt) - Date.parse(a.requestedAt));
+
+  return {
+    running: sessions.filter((session) => isRunning(session.status)),
+    ended: sessions
+      .filter((session) => WATCHED_ENDED_STATUSES.includes(session.status))
+      .slice(0, RECENT_ENDED_LIMIT),
   };
 }

@@ -5,6 +5,7 @@ import { onboardingHandlers } from './handlers/onboarding';
 import { matchRequestHandlers } from './handlers/matchRequest';
 import { inboxHandlers } from './handlers/inbox';
 import { invitationHistoryDefaultHandlers } from './handlers/invitationHistory';
+import { simulationWatchDefaultHandlers } from './handlers/simulationWatch';
 import { avatarDetailHandlers } from './handlers/avatarDetail';
 import { primaryAvatarDefaultHandlers } from './handlers/primaryAvatar';
 import { simCandidatesDefaultHandlers } from './handlers/avatarCandidates';
@@ -19,6 +20,7 @@ export const worker = setupWorker(
   ...matchRequestHandlers,
   ...inboxHandlers,
   ...invitationHistoryDefaultHandlers,
+  ...simulationWatchDefaultHandlers,
   // /api/avatars/primary · /candidates · /me 가 /api/avatars/:id 보다 먼저 와야 한다 — MSW 는 등록 순서로
   // 매칭하므로 detail 이 앞서면 :id=primary 를 삼켜 detail 응답이 내려온다.
   ...primaryAvatarDefaultHandlers,

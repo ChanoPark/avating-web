@@ -79,6 +79,13 @@ export default tseslint.config(
 
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
 
+      // 스크롤되는 대화 기록(role="log")은 안에 포커스 받을 요소가 없어 tabIndex 가 없으면
+      // 키보드로 스크롤할 수 없다 (axe scrollable-region-focusable). tabpanel 은 recommended 기본값.
+      /* secret-scan: allow */ 'jsx-a11y/no-noninteractive-tabindex': [
+        'error',
+        { tags: [], roles: ['tabpanel', 'log'], allowExpressionValues: true },
+      ],
+
       // Layer boundaries (app > pages > features > entities > shared).
       'boundaries/element-types': [
         'error',
