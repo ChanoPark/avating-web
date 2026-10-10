@@ -41,13 +41,11 @@ const AVATAR_NAME_CLASS = 'text-body text-ink';
 
 type TableColumns = {
   actionWidth: ActionColumnWidth;
-  /** 구분(보낸 요청 · 받은 요청) 칸을 둘지. */
   showDirection: boolean;
 };
 
 const DEFAULT_COLUMNS: TableColumns = { actionWidth: 'narrow', showDirection: true };
 
-// 머리글과 행이 같은 칸 구성을 쓰도록 표가 행에 내려 준다.
 const TableColumnsContext = createContext<TableColumns>(DEFAULT_COLUMNS);
 
 function TableHead({ actionWidth, showDirection }: TableColumns) {
@@ -85,7 +83,6 @@ function TableHead({ actionWidth, showDirection }: TableColumns) {
 type SessionRowProps = {
   session: SimulationSession;
   myColor: string | undefined;
-  /** 비고 칸에 놓을 버튼. */
   children?: ReactNode;
 };
 

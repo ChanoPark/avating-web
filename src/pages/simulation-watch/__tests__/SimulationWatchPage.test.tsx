@@ -117,6 +117,7 @@ describe('SimulationWatchPage', () => {
       renderPage(DONE_ID);
 
       const title = await screen.findByRole('heading', { level: 1 });
+      expect(title).toHaveClass('text-lead', 'font-bold');
       for (const line of title.children) {
         expect(line).toHaveClass('min-w-0');
         expect(line.children[0]).toHaveClass('truncate');
@@ -359,6 +360,57 @@ describe('SimulationWatchPage', () => {
       expect(await findMessages()).toHaveLength(turnsOf(ABORTED_ID).turns.length);
     });
 
+    it('한 세션의 대화를 못 받은 뒤에도 목록에서 다른 세션을 누르면 그 대화가 보인다', async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.get(TURNS_URL, ({ params }) =>
+          params.sessionId === ABORTED_ID
+            ? HttpResponse.json({ code: 'INTERNAL_ERROR' }, { status: 500 })
+            : HttpResponse.json(turnsOf(String(params.sessionId)))
+        )
+      );
+      renderPage(DONE_ID);
+
+      const pane = await screen.findByRole('navigation', { name: PANE });
+      await user.click(await within(pane).findByRole('link', { name: /여름.*Moonlit/ }));
+      expect(await screen.findByText('대화를 불러오지 못했어요')).toBeInTheDocument();
+
+      await user.click(within(pane).getByRole('link', { name: /hyunwoo.*Moonlit/ }));
+
+      expect(await findMessages()).toHaveLength(turnsOf(DONE_ID).turns.length);
+    });
+
+    it('한 번 실패했던 세션을 목록에서 다시 누르면 대화를 다시 받아 보인다', async () => {
+      const user = userEvent.setup();
+      let abortedCalls = 0;
+      server.use(
+        http.get(TURNS_URL, ({ params }) => {
+          if (params.sessionId !== ABORTED_ID) {
+            return HttpResponse.json(turnsOf(String(params.sessionId)));
+          }
+          abortedCalls += 1;
+          return abortedCalls === 1
+            ? HttpResponse.json({ code: 'INTERNAL_ERROR' }, { status: 500 })
+            : HttpResponse.json(turnsOf(ABORTED_ID));
+        })
+      );
+      renderPage(DONE_ID);
+
+      const pane = await screen.findByRole('navigation', { name: PANE });
+      await user.click(await within(pane).findByRole('link', { name: /여름.*Moonlit/ }));
+      await screen.findByText('대화를 불러오지 못했어요');
+      await user.click(within(pane).getByRole('link', { name: /hyunwoo.*Moonlit/ }));
+      await findMessages();
+
+      await user.click(within(pane).getByRole('link', { name: /여름.*Moonlit/ }));
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('여름');
+      });
+      expect(await findMessages()).toHaveLength(turnsOf(ABORTED_ID).turns.length);
+      expect(abortedCalls).toBe(2);
+    });
+
     it('응답에 simulationId 가 없어 들어갈 수 없는 세션은 목록에 넣지 않는다', async () => {
       server.use(
         invitationHistoryHandler(
@@ -431,13 +483,12 @@ describe('SimulationWatchPage', () => {
       });
     });
 
-    it('좁은 화면에서는 목록을 접고 대화만 보인다', async () => {
+    it('목록 폭은 280 이고, 좁은 화면에서는 목록을 접고 대화만 보인다', async () => {
       renderPage(DONE_ID);
 
-      expect(await screen.findByRole('navigation', { name: PANE })).toHaveClass(
-        'hidden',
-        'lg:flex'
-      );
+      const pane = await screen.findByRole('navigation', { name: PANE });
+      expect(pane).toHaveClass('w-70', 'hidden', 'lg:flex');
+      expect(pane.className).not.toMatch(/2xl:w-/);
     });
   });
 

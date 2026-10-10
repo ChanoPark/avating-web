@@ -37,7 +37,6 @@ function SimulationTabs() {
   );
 }
 
-// 목록과 채팅이 같은 자리의 탭을 쓰도록 둘을 한 틀에 담는다. 채팅이 높이를 꽉 채워야 해서 셸 여백을 걷는다.
 export function SimulationLayout() {
   return (
     <section data-shell-flush className="flex min-h-0 flex-1 flex-col">

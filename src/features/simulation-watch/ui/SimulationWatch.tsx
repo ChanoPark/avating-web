@@ -60,7 +60,7 @@ function WatchedSession({ sessionId, session, streamTiming }: WatchedSessionProp
       <header className="border-subtle flex h-16 shrink-0 items-center border-b px-6">
         <div className="flex min-w-0 items-center gap-3">
           <AvatarPair mine={mine} partner={partner} />
-          <h1 className="text-body text-ink flex min-w-0 flex-col leading-[var(--line-body)] font-semibold">
+          <h1 className="text-lead text-ink flex min-w-0 flex-col font-bold">
             <AvatarNameLine avatar={mine} />
             <AvatarNameLine avatar={partner} />
           </h1>

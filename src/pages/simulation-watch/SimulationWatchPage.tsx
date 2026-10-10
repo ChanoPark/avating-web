@@ -41,30 +41,36 @@ function LoadErrorPanel() {
   );
 }
 
-// 403 · 404 는 화면 전체를 바꾸는 접근 불가 · 없는 페이지(S-11-02 · S-11-03)라 라우트 경계가 받게 다시 던진다.
 function ErrorFallback({ error }: FallbackProps) {
   if (isApiError(error) && (error.statusCode === 403 || error.statusCode === 404)) throw error;
   return <LoadErrorPanel />;
 }
 
+function WatchedSessionRoute({ sessionId }: { sessionId: string }) {
+  const ready = useFailedQueryReset(simulationKeys.turns(sessionId));
+
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <Suspense fallback={<WatchSkeleton />}>
+        {ready ? <SimulationWatch sessionId={sessionId} /> : <WatchSkeleton />}
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+
 export function SimulationWatchPage() {
   const { sessionId = '' } = useParams<{ sessionId: string }>();
-  const turnsReady = useFailedQueryReset(simulationKeys.turns(sessionId));
   const sessionsReady = useFailedQueryReset(matchRequestKeys.sessions());
 
   return (
     <div className="flex min-h-0 flex-1">
       {sessionsReady && <SessionListPane selectedId={sessionId} />}
       <div className="flex min-w-0 flex-1 flex-col">
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<WatchSkeleton />}>
-            {turnsReady && sessionsReady ? (
-              <SimulationWatch sessionId={sessionId} />
-            ) : (
-              <WatchSkeleton />
-            )}
-          </Suspense>
-        </ErrorBoundary>
+        {sessionsReady ? (
+          <WatchedSessionRoute key={sessionId} sessionId={sessionId} />
+        ) : (
+          <WatchSkeleton />
+        )}
       </div>
     </div>
   );

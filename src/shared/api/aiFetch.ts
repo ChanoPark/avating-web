@@ -17,7 +17,6 @@ function send(path: string, token: string | null, { accept, signal }: AiFetchOpt
   });
 }
 
-/** 401 이면 토큰을 한 번 갱신해 다시 보낸다. 상태 코드 해석은 부르는 쪽 몫이라 Response 를 그대로 돌려준다. */
 export async function aiFetch(path: string, options: AiFetchOptions): Promise<Response> {
   const response = await send(path, getAccessToken(), options);
   if (response.status !== 401) return response;
@@ -39,7 +38,6 @@ async function readErrorCode(response: Response): Promise<string | undefined> {
   return typeof code === 'string' ? code : undefined;
 }
 
-// avating-ai 는 core 와 달리 성공 응답에 { data } 봉투가 없고 에러 본문은 { code } 뿐이다.
 export async function aiGetJson(path: string, signal?: AbortSignal): Promise<unknown> {
   const response = await aiFetch(path, { accept: 'application/json', signal }).catch(
     (error: unknown) => {

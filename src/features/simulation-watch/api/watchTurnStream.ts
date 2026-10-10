@@ -9,7 +9,6 @@ export type StreamOutcome = 'ended' | 'aborted' | 'forbidden' | 'unauthorized';
 export type WatchTiming = {
   /** 서버가 FIN 없이 죽으면 에러도 이벤트도 오지 않는다 — 이만큼 조용하면 끊고 다시 붙는다. */
   idleTimeoutMs: number;
-  /** n 번째 연속 실패 뒤 기다릴 시간. 끝을 넘으면 마지막 값을 계속 쓴다. */
   retryDelaysMs: readonly number[];
 };
 
@@ -20,7 +19,6 @@ const DEFAULT_TIMING: WatchTiming = {
 
 type WatchTurnStreamOptions = {
   sessionId: string;
-  /** 이미 확정된 마지막 턴. 서버가 그 뒤 확정 턴을 다시 채워 주므로 다시 붙을 때 누락이 없다. */
   afterTurnIndex: number;
   onEvent: (event: TurnEvent) => void;
   onConnectionChange: (connection: StreamConnection) => void;

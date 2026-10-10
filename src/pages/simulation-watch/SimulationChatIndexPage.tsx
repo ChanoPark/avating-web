@@ -46,7 +46,6 @@ function LoadErrorPanel() {
   return <div className={`${CARD_CLASS} h-15`} />;
 }
 
-/** 채팅 탭의 목적지 — 보던 대화, 없으면 진행 중인 것, 그것도 없으면 가장 최근에 끝난 대화로 보낸다. */
 export function SimulationChatIndexPage() {
   const ready = useFailedQueryReset(matchRequestKeys.sessions());
 

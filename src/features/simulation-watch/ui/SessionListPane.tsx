@@ -14,7 +14,6 @@ import { AvatarPair } from './AvatarPair';
 const ROW_CLASS = 'flex h-18 items-center gap-3 px-4';
 const ROW_LINE_CLASS = 'flex items-center justify-between gap-2';
 
-// 상태는 글자 없이 동그라미 색으로만 보인다 — 이름은 스크린리더와 툴팁에 남긴다.
 const STATUS_DOT: Partial<
   Record<SimulationSession['status'], { label: string; className: string }>
 > = {
@@ -113,7 +112,6 @@ function SessionLinksSkeleton() {
   );
 }
 
-// 목록을 못 받으면 같은 쿼리에 기대는 대화 쪽이 실패를 알린다 — 여기서는 자리만 비운다.
 export function SessionListPane({ selectedId }: { selectedId: string }) {
   const collapsed = useSessionPaneStore((s) => s.collapsed);
   const toggle = useSessionPaneStore((s) => s.toggle);
@@ -125,7 +123,7 @@ export function SessionListPane({ selectedId }: { selectedId: string }) {
       aria-label="시뮬레이션 목록"
       className={cn(
         'border-subtle hidden shrink-0 flex-col border-r lg:flex',
-        collapsed ? 'w-12' : 'w-70 2xl:w-80'
+        collapsed ? 'w-12' : 'w-70'
       )}
     >
       <div id={listId} className="min-h-0 flex-1 overflow-y-auto">

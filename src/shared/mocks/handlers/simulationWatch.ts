@@ -70,7 +70,6 @@ export const sessionTurnsHandlers = {
   ),
 };
 
-// 브라우저에서는 타이핑이 보이게 조각 사이에 틈을 두고, 테스트에서는 기다리지 않는다.
 const PACE =
   import.meta.env.MODE === 'test' ? { deltaMs: 0, turnMs: 0 } : { deltaMs: 60, turnMs: 900 };
 const DELTA_LENGTH = 3;
@@ -104,8 +103,6 @@ function turnSteps(turnIndex: number, speakerAvatarId: string, content: string):
   ];
 }
 
-// 진행 중인 mock 세션은 기록 뒤의 남은 대본을 한 번 흘리고 끝낸다. `/turns` 는 그대로라 화면에 다시
-// 들어오면 같은 대목을 처음부터 다시 보여 준다.
 function liveSteps(invitation: InvitationHistoryItem, afterTurnIndex: number): StreamStep[] {
   const lastTurnIndex = SCRIPT.length - 1;
   const from = Math.max(afterTurnIndex + 1, TURN_COUNT[invitation.status] ?? 0);

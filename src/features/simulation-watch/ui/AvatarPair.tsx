@@ -8,7 +8,6 @@ const FACE_CLASS = 'text-meta absolute size-6.5 rounded-full leading-none';
 type AvatarPairProps = {
   mine: PairAvatar;
   partner: PairAvatar;
-  /** 앞 원의 테두리는 놓인 면의 색이어야 두 원이 갈라져 보인다. */
   haloClass?: string;
 };
 

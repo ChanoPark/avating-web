@@ -17,14 +17,12 @@ function fromHistory({ turns, completed }: SessionTurns): Transcript {
 }
 
 type SimulationWatchOptions = {
-  /** 초대 상태가 진행 중일 때만 스트림을 연다 — 멈춘 세션은 `/turns` 가 계속 completed:false 다. */
   running: boolean;
   timing?: WatchTiming | undefined;
 };
 
 export type SimulationWatchState = {
   transcript: Transcript;
-  /** 이 화면에 들어와 실시간 구독을 연 적이 있다. */
   live: boolean;
   reconnecting: boolean;
 };

@@ -33,11 +33,8 @@ function TypingDots() {
 }
 
 type MessageProps = {
-  /** 늦게 들어와 turn_started 를 못 본 턴은 말하는 아바타를 모른다. */
   speaker: Speaker | null;
-  /** 확정된 턴에만 있다. */
   createdAt?: string;
-  /** 확정 전 턴은 조각마다 읽히지 않게 한다. */
   pending?: boolean;
   children: ReactNode;
 };
@@ -102,7 +99,6 @@ type MessageStreamProps = {
   speakerOf: SpeakerOf;
   emptyLabel: string;
   notice: string | null;
-  /** 실시간으로 보는 대화는 맨 아래를 보고 있는 동안 새 턴을 따라 내려간다. */
   follow: boolean;
 };
 

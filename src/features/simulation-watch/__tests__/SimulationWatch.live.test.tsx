@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { act, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ErrorBoundary } from 'react-error-boundary';
 import { http, HttpResponse } from 'msw';
 import { server } from '@shared/mocks/server';
@@ -269,6 +270,60 @@ describe('SimulationWatch — 실시간', () => {
     renderWatch();
 
     expect(await screen.findByText('ROUTE_ERROR 403')).toBeInTheDocument();
+  });
+
+  describe('스크롤 따라가기', () => {
+    function scrollLogTo(scrollTop: number): HTMLElement {
+      const log = screen.getByRole('log', { name: '대화 기록' });
+      Object.defineProperty(log, 'scrollHeight', { configurable: true, value: 1000 });
+      Object.defineProperty(log, 'clientHeight', { configurable: true, value: 400 });
+      Object.defineProperty(log, 'scrollTop', {
+        configurable: true,
+        writable: true,
+        value: scrollTop,
+      });
+      fireEvent.scroll(log);
+      return log;
+    }
+
+    it('위를 보고 있는 동안 온 턴은 따라가지 않고 "새 메시지 n개" 로 알리며, 누르면 맨 아래로 간다', async () => {
+      const user = userEvent.setup();
+      const stream = openControlledStream();
+      renderWatch();
+      await connected(stream);
+      const log = scrollLogTo(0);
+
+      act(() => {
+        stream.push(completed(4, MINE, '위를 보는 동안 온 턴'));
+      });
+      const pill = await screen.findByRole('button', { name: '새 메시지 1개' });
+      expect(log.scrollTop).toBe(0);
+
+      act(() => {
+        stream.push(completed(5, PARTNER, '하나 더'));
+      });
+      expect(await screen.findByRole('button', { name: '새 메시지 2개' })).toBe(pill);
+
+      await user.click(pill);
+
+      expect(log.scrollTop).toBe(1000);
+      expect(screen.queryByRole('button', { name: /새 메시지/ })).not.toBeInTheDocument();
+    });
+
+    it('맨 아래를 보고 있으면 알림 없이 새 턴을 따라 내려간다', async () => {
+      const stream = openControlledStream();
+      renderWatch();
+      await connected(stream);
+      const log = scrollLogTo(600);
+
+      act(() => {
+        stream.push(completed(4, MINE, '따라가는 턴'));
+      });
+
+      expect(await screen.findByText('따라가는 턴')).toBeInTheDocument();
+      expect(log.scrollTop).toBe(1000);
+      expect(screen.queryByRole('button', { name: /새 메시지/ })).not.toBeInTheDocument();
+    });
   });
 
   it('아직 턴이 없는 진행 중 세션은 곧 시작한다고 알린다', async () => {
