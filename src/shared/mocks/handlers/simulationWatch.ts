@@ -133,7 +133,6 @@ function pacedResponse(steps: StreamStep[], signal: AbortSignal) {
   });
 }
 
-/** 넘긴 이벤트를 곧바로 흘린다. `hang` 이면 닫지 않고 열어 둔다. */
 export function sessionStreamHandler(events: TurnEvent[], then: 'close' | 'hang' = 'close') {
   return http.get(STREAM_URL, () =>
     sseResponse((controller) => {
@@ -143,7 +142,6 @@ export function sessionStreamHandler(events: TurnEvent[], then: 'close' | 'hang'
   );
 }
 
-/** 테스트가 이벤트를 한 걸음씩 밀어 넣는 스트림. 연결마다 받은 afterTurnIndex 를 `cursors` 에 남긴다. */
 export function controlledSessionStream() {
   const cursors: number[] = [];
   let current: ReadableStreamDefaultController<Uint8Array> | undefined;

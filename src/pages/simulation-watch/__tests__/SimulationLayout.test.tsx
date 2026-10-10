@@ -108,6 +108,13 @@ describe('SimulationLayout — 목록 · 채팅 탭', () => {
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('hyunwoo');
   });
 
+  it('채팅 탭으로 들어와 열 대화를 찾는 동안 대화 자리에 스켈레톤을 세운다', async () => {
+    renderAt('/sim/chat');
+
+    expect(screen.getByText('대화를 불러오는 중…')).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent('hyun_night');
+  });
+
   it('볼 수 있는 대화가 하나도 없으면 채팅 탭에서 그렇다고 알린다', async () => {
     const user = userEvent.setup();
     server.use(invitationHistoryHandlers.empty);
