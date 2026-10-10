@@ -47,10 +47,21 @@ function typing(index: number, speakerAvatarId: string | undefined): TranscriptT
   return { index, status: 'typing', ...(speakerAvatarId !== undefined && { speakerAvatarId }) };
 }
 
+function isSameCompleted(existing: TranscriptTurn | undefined, turn: Turn): boolean {
+  return (
+    existing?.status === 'completed' &&
+    existing.content === turn.content &&
+    existing.createdAt === turn.createdAt
+  );
+}
+
 function mergeHistory(state: Transcript, turns: readonly Turn[], completed: boolean): Transcript {
   const merged = turns.reduce<readonly TranscriptTurn[]>(
     (acc, turn) =>
-      acc.some((existing) => existing.index === turn.index && existing.status === 'completed')
+      isSameCompleted(
+        acc.find((existing) => existing.index === turn.index),
+        turn
+      )
         ? acc
         : putTurn(acc, { ...turn, status: 'completed' }),
     state.turns

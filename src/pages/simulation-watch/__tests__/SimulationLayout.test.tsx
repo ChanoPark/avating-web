@@ -51,6 +51,9 @@ describe('SimulationLayout — 목록 · 채팅 탭', () => {
 
     expect(tab('목록')).toHaveAttribute('href', '/sim');
     expect(tab('채팅')).toHaveAttribute('href', '/sim/chat');
+    for (const name of ['목록', '채팅']) {
+      expect(tab(name)).toHaveClass('relative', 'before:absolute', 'before:-inset-y-1.5');
+    }
     expect(container.querySelector('[data-shell-flush]')).not.toBeNull();
   });
 

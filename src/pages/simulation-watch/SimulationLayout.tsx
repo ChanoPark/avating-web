@@ -23,7 +23,7 @@ function SimulationTabs() {
             to={to}
             aria-current={active ? 'page' : undefined}
             className={cn(
-              'text-body ease-standard relative pb-3 transition-colors duration-[var(--dur-fast)]',
+              'text-body ease-standard relative pb-3 transition-colors duration-[var(--dur-fast)] before:absolute before:inset-x-0 before:-inset-y-1.5',
               active
                 ? 'text-ink after:bg-ink font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5'
                 : 'text-secondary hover:text-primary font-medium'

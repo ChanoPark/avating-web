@@ -64,6 +64,22 @@ describe('reduceTranscript — 기록(REST)', () => {
     expect(merged.turns[0]).toBe(live.turns[0]);
     expect(merged.turns[1]).toBe(live.turns[1]);
   });
+
+  it('스트림으로 확정된 턴은 기록을 다시 받으면 서버가 준 시각으로 바뀐다', () => {
+    const live = play([completed(1, '스트림으로 받은 턴', 'b')], history([turn(0)]));
+    const serverAt = '2026-10-09T04:58:00.000Z';
+    const merged = history(
+      [
+        turn(0),
+        { index: 1, speakerAvatarId: 'b', content: '스트림으로 받은 턴', createdAt: serverAt },
+      ],
+      false,
+      live
+    );
+
+    expect(merged.turns[1]).toMatchObject({ status: 'completed', createdAt: serverAt });
+    expect(merged.turns[0]).toBe(live.turns[0]);
+  });
 });
 
 describe('reduceTranscript — 이벤트(SSE)', () => {
