@@ -19,8 +19,10 @@ function LoadErrorPanel() {
   );
 }
 
+const ROUTE_LEVEL_STATUSES = [401, 403, 404];
+
 function ErrorFallback({ error }: FallbackProps) {
-  if (isApiError(error) && (error.statusCode === 403 || error.statusCode === 404)) throw error;
+  if (isApiError(error) && ROUTE_LEVEL_STATUSES.includes(error.statusCode)) throw error;
   return <LoadErrorPanel />;
 }
 

@@ -35,7 +35,7 @@ export function useSimulationWatch(
   const history = useSessionTurnsSuspense(sessionId, { awaitRegistration: running });
   const [transcript, dispatch] = useReducer(reduceTranscript, history, fromHistory);
   const [reconnecting, setReconnecting] = useState(false);
-  const [forbidden, setForbidden] = useState(false);
+  const [rejectedStatus, setRejectedStatus] = useState<401 | 403 | null>(null);
   const [live] = useState(running && !history.completed);
 
   useEffect(() => {
@@ -65,7 +65,8 @@ export function useSimulationWatch(
       signal: controller.signal,
       ...(timing !== undefined && { timing }),
     }).then((outcome) => {
-      if (outcome === 'forbidden') setForbidden(true);
+      if (outcome === 'forbidden') setRejectedStatus(403);
+      if (outcome === 'unauthorized') setRejectedStatus(401);
       if (outcome === 'ended') {
         void queryClient.invalidateQueries({ queryKey: matchRequestKeys.sessions() });
         void queryClient.invalidateQueries({ queryKey: simulationKeys.turns(sessionId) });
@@ -77,7 +78,9 @@ export function useSimulationWatch(
     };
   }, [subscribed, sessionId, timing, queryClient]);
 
-  if (forbidden) throw new ApiError(403, `Simulation ${sessionId} stream forbidden`);
+  if (rejectedStatus !== null) {
+    throw new ApiError(rejectedStatus, `Simulation ${sessionId} stream rejected`);
+  }
 
   return { transcript, live, reconnecting: reconnecting && subscribed };
 }

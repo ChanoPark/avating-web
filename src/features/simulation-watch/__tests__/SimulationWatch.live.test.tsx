@@ -272,6 +272,18 @@ describe('SimulationWatch — 실시간', () => {
     expect(await screen.findByText('ROUTE_ERROR 403')).toBeInTheDocument();
   });
 
+  it('구독이 토큰을 갱신해도 401 이면 조용히 멈추지 않고 세션 만료로 올린다', async () => {
+    server.use(
+      http.get(
+        `${import.meta.env.VITE_AI_API_BASE_URL as string}/v1/sessions/:sessionId/stream`,
+        () => HttpResponse.json({ code: 'UNAUTHORIZED' }, { status: 401 })
+      )
+    );
+    renderWatch();
+
+    expect(await screen.findByText('ROUTE_ERROR 401')).toBeInTheDocument();
+  });
+
   describe('스크롤 따라가기', () => {
     function scrollLogTo(scrollTop: number): HTMLElement {
       const log = screen.getByRole('log', { name: '대화 기록' });

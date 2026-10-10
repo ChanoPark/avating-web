@@ -551,6 +551,15 @@ describe('SimulationWatchPage', () => {
       expect(await screen.findByText('ROUTE_ERROR 403')).toBeInTheDocument();
     });
 
+    it('대화 요청이 인증 실패(401)로 끝나면 세션 만료 화면이 뜨도록 라우트 경계로 올린다', async () => {
+      server.use(
+        http.get(TURNS_URL, () => HttpResponse.json({ code: 'UNAUTHORIZED' }, { status: 401 }))
+      );
+      renderPage(DONE_ID);
+
+      expect(await screen.findByText('ROUTE_ERROR 401')).toBeInTheDocument();
+    });
+
     it('내 초대 이력에 없는 세션은 대화를 요청하지 않고 없는 화면(404)으로 올린다', async () => {
       let requested = false;
       server.use(
