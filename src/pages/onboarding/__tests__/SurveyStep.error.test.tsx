@@ -107,6 +107,31 @@ describe('SurveyStep — 에러 처리', () => {
     });
   });
 
+  describe('질문이 비었을 때', () => {
+    it('빈 목록은 로드 실패가 아니라 준비 중 안내로 보이고, 에러 토스트·설문 진행은 없다', async () => {
+      server.use(surveyQuestionsHandlers.empty);
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+
+      expect(await screen.findByText('설문을 준비 중이에요')).toBeInTheDocument();
+      expect(screen.queryByText('질문을 불러오지 못했어요')).not.toBeInTheDocument();
+      expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /아바타 생성/ })).not.toBeInTheDocument();
+    });
+
+    it('"ChatGPT Bot 연동으로 만들기" 를 누르면 만드는 방법을 연동으로 바꿔 연동 단계로 간다', async () => {
+      const user = userEvent.setup();
+      localStorage.setItem('avating:onboarding:method', 'survey');
+      server.use(surveyQuestionsHandlers.empty);
+
+      renderWithProviders(<SurveyStep />, { initialRoute: '/onboarding/survey' });
+      await user.click(await screen.findByRole('button', { name: 'ChatGPT Bot 연동으로 만들기' }));
+
+      expect(localStorage.getItem('avating:onboarding:method')).toBe('connect');
+      expect(mockNavigate).toHaveBeenCalledWith('/onboarding/connect');
+    });
+  });
+
   describe('제출 에러 처리', () => {
     const FAILURE_TITLE = '아바타를 만들지 못했어요';
     const findFailureToast = () => screen.findByText(FAILURE_TITLE);

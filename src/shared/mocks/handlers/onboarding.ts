@@ -79,6 +79,10 @@ export const surveyQuestionsHandlers = {
     return HttpResponse.json(mockSurveyQuestionsResponse);
   }),
 
+  empty: http.get(`${BASE_URL}/api/persona/survey/questions`, () => {
+    return HttpResponse.json({ data: [] });
+  }),
+
   serverError: http.get(`${BASE_URL}/api/persona/survey/questions`, () => {
     return HttpResponse.json({ message: '서버 오류' }, { status: 500 });
   }),
