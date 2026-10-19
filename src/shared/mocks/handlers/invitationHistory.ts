@@ -133,6 +133,59 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   }),
 ];
 
+const SUNNY = {
+  id: '55555555-5555-4555-8555-555555555555',
+  name: '햇살',
+  tag: 'S2NY7K',
+  color: 'F2C94C',
+};
+const WAVE = {
+  id: '66666666-6666-4666-8666-666666666666',
+  name: '파도',
+  tag: 'W4VE3P',
+  color: '2D9CDB',
+};
+
+function expiredReceived(
+  id: string,
+  inviter: MockAvatar,
+  invitee: MockAvatar
+): InvitationHistoryItem {
+  const createdAt = Date.now() - DAY - HOUR;
+  return {
+    ...invitation(id, inviter, invitee, { status: 'PENDING', direction: 'RECEIVED', elapsed: 0 }),
+    createdAt: kstIso(createdAt),
+    expiredAt: kstIso(createdAt + DAY),
+  };
+}
+
+export const mockManyReceivedInvitations: InvitationHistoryItem[] = [
+  invitation('cccccccc-0101-4000-8000-000000000101', SUNNY, MY_HYUNWOO, {
+    status: 'PENDING',
+    direction: 'RECEIVED',
+    requestMessage: '요즘 빠진 취미 얘기부터 해 봐요',
+    elapsed: 2 * MINUTE,
+  }),
+  invitation('cccccccc-0102-4000-8000-000000000102', WAVE, MY_HYUN_NIGHT, {
+    status: 'PENDING',
+    direction: 'RECEIVED',
+    elapsed: 45 * MINUTE,
+  }),
+  invitation('cccccccc-0103-4000-8000-000000000103', HANEUL, MY_SUMMER, {
+    status: 'PENDING',
+    direction: 'RECEIVED',
+    requestMessage: '여행 좋아하시면 꼭 얘기 나눠 보고 싶어요. 바다 쪽이면 더 좋고요!',
+    elapsed: 5 * HOUR,
+  }),
+  expiredReceived('cccccccc-0104-4000-8000-000000000104', BOMNAL, MY_HYUNWOO),
+  ...mockInvitationHistory,
+];
+
+export const mockNoReceivedPendingInvitations: InvitationHistoryItem[] =
+  mockInvitationHistory.filter(
+    (item) => !(item.direction === 'RECEIVED' && item.status === 'PENDING')
+  );
+
 function historyResponse(request: Request, items: InvitationHistoryItem[]) {
   const params = new URL(request.url).searchParams;
   const direction = params.get('direction');
@@ -163,6 +216,10 @@ let invitations = mockInvitationHistory;
 
 export function resetInvitationHistory(): void {
   invitations = mockInvitationHistory;
+}
+
+export function seedInvitationHistory(items: InvitationHistoryItem[]): void {
+  invitations = items;
 }
 
 function transition(invitationId: unknown, status: InvitationHistoryItem['status']): void {

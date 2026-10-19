@@ -9,10 +9,14 @@ import { avatarDetailHandlers } from './handlers/avatarDetail';
 import { primaryAvatarDefaultHandlers } from './handlers/primaryAvatar';
 import { simCandidatesDefaultHandlers } from './handlers/avatarCandidates';
 import { ownedAvatarsDefaultHandlers } from './handlers/ownedAvatars';
+import { activeMockScenarios } from './scenarios';
+
+const scenarios = activeMockScenarios();
 
 // server.ts(테스트용)와 같은 핸들러 집합을 유지한다 — 한쪽만 등록하면 vitest 는 통과해도
 // 브라우저에서는 실 백엔드로 새는 사각지대가 생긴다.
 export const worker = setupWorker(
+  ...scenarios.handlers,
   ...authHandlers,
   ...dashboardHandlers,
   ...onboardingHandlers,
@@ -26,3 +30,7 @@ export const worker = setupWorker(
   ...ownedAvatarsDefaultHandlers,
   ...avatarDetailHandlers
 );
+
+if (scenarios.names.length > 0) {
+  console.info(`[mock] scenarios: ${scenarios.names.join(', ')}`);
+}
