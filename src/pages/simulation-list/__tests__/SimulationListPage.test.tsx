@@ -9,11 +9,13 @@ import {
   invitationCancelHandlers,
   invitationHistoryHandler,
   invitationHistoryHandlers,
+  invitationRejectHandlers,
   mockInvitationHistory,
   resetInvitationHistory,
 } from '@shared/mocks/handlers/invitationHistory';
 import { ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
 import { avatarKeys } from '@entities/avatar';
+import { DEFAULT_REJECT_MESSAGE } from '@entities/match-request';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { SimulationListPage } from '../SimulationListPage';
 
@@ -22,6 +24,8 @@ const RUNNING = '진행 중인 시뮬레이션';
 const REQUESTS = '요청 내역';
 const ACCEPT = 'Moonlit의 요청 수락';
 const CANCEL = '봄날에게 보낸 요청 취소';
+const REJECT = 'Moonlit의 요청 거절';
+const REJECT_DIALOG = 'Moonlit의 요청을 거절할까요?';
 
 function WatchProbe() {
   const { sessionId } = useParams();
@@ -344,14 +348,17 @@ describe('SimulationListPage', () => {
       expect(running.length + requests.length).toBe(mockInvitationHistory.length - 1);
     });
 
-    it('받은 대기 요청에는 남색 "수락", 보낸 대기 요청에는 빨간 "취소" 작은 버튼이 붙는다', async () => {
+    it('받은 대기 요청에는 남색 "수락" 과 빨간 글자 "거절", 보낸 대기 요청에는 빨간 "취소" 작은 버튼이 붙는다', async () => {
       renderPage();
 
       const rows = await findRows(REQUESTS);
       const accept = within(rows[0] as HTMLElement).getByRole('button', { name: ACCEPT });
+      const reject = within(rows[0] as HTMLElement).getByRole('button', { name: REJECT });
       const cancel = within(rows[1] as HTMLElement).getByRole('button', { name: CANCEL });
       expect(accept).toHaveTextContent('수락');
       expect(accept).toHaveClass('bg-action', 'h-7');
+      expect(reject).toHaveTextContent('거절');
+      expect(reject).toHaveClass('text-danger', 'h-7');
       expect(cancel).toHaveTextContent('취소');
       expect(cancel).toHaveClass('bg-danger', 'h-7');
       expect(cellsOf(rows[0])[2]).toHaveTextContent('받은 요청');
@@ -407,6 +414,7 @@ describe('SimulationListPage', () => {
 
       expect(accept).toBeDisabled();
       expect(accept).toHaveAttribute('aria-busy', 'true');
+      expect(screen.getByRole('button', { name: REJECT })).toBeDisabled();
       expect(screen.getByRole('button', { name: CANCEL })).toBeDisabled();
       expect(await screen.findByText('요청을 수락했어요')).toBeInTheDocument();
     });
@@ -441,6 +449,187 @@ describe('SimulationListPage', () => {
         expect(accept).toBeEnabled();
       });
       expect(screen.getAllByText('잠시 후 다시 시도해주세요')).toHaveLength(1);
+    });
+  });
+
+  describe('받은 요청 거절', () => {
+    function captureRejects(): { id: string | undefined; body: unknown }[] {
+      const captured: { id: string | undefined; body: unknown }[] = [];
+      server.events.on('request:start', ({ request }) => {
+        const matched = /\/invitations\/([^/]+)\/reject$/.exec(new URL(request.url).pathname);
+        if (request.method !== 'PATCH' || !matched) return;
+        const entry: { id: string | undefined; body: unknown } = {
+          id: matched[1],
+          body: undefined,
+        };
+        captured.push(entry);
+        void request
+          .clone()
+          .json()
+          .then((body: unknown) => {
+            entry.body = body;
+          });
+      });
+      return captured;
+    }
+
+    async function openRejectDialog(user: ReturnType<typeof userEvent.setup>) {
+      await findRows(REQUESTS);
+      await user.click(screen.getByRole('button', { name: REJECT }));
+      return screen.getByRole('dialog', { name: REJECT_DIALOG });
+    }
+
+    it('거절을 누르면 바로 거절하지 않고 사유를 받는 창을 열어 사유 칸에 포커스를 둔다', async () => {
+      const user = userEvent.setup();
+      const rejects = captureRejects();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+
+      const reason = within(dialog).getByRole('textbox', { name: /거절 사유/ });
+      expect(reason).toHaveFocus();
+      expect(within(dialog).getByText('0 / 300')).toBeInTheDocument();
+      expect(within(dialog).getByText(/비워 두면 기본 문구로 전해요/)).toBeInTheDocument();
+      expect(rejects).toHaveLength(0);
+    });
+
+    it('사유를 적고 거절하면 그 사유를 보내고, 성공 토스트와 함께 창이 닫히고 행이 목록에서 빠진다', async () => {
+      const user = userEvent.setup();
+      const rejects = captureRejects();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      await user.type(
+        within(dialog).getByRole('textbox', { name: /거절 사유/ }),
+        '  지금은 어려워요  '
+      );
+      await user.click(within(dialog).getByRole('button', { name: '거절하기' }));
+
+      expect(await screen.findByText('요청을 거절했어요')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(rejects[0]?.id).toBe(mockInvitationHistory[0]?.simulationInvitationId);
+      await waitFor(() => {
+        expect(rejects[0]?.body).toEqual({ rejectMessage: '지금은 어려워요' });
+      });
+      await waitFor(() => {
+        expect(screen.queryByRole('button', { name: REJECT })).not.toBeInTheDocument();
+      });
+    });
+
+    it('사유를 비워 두고 거절하면 기본 문구를 사유로 보낸다 — 서버는 빈 사유를 받지 않는다', async () => {
+      const user = userEvent.setup();
+      const rejects = captureRejects();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      await user.type(within(dialog).getByRole('textbox', { name: /거절 사유/ }), '   ');
+      await user.click(within(dialog).getByRole('button', { name: '거절하기' }));
+
+      expect(await screen.findByText('요청을 거절했어요')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(rejects[0]?.body).toEqual({ rejectMessage: DEFAULT_REJECT_MESSAGE });
+      });
+    });
+
+    it('사유는 300자까지만 입력된다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      const reason = within(dialog).getByRole('textbox', { name: /거절 사유/ });
+      await user.click(reason);
+      await user.paste('가'.repeat(320));
+
+      expect(reason).toHaveValue('가'.repeat(300));
+      expect(within(dialog).getByText('300 / 300')).toBeInTheDocument();
+    });
+
+    it.each([
+      [
+        '"돌아가기"',
+        async (user: ReturnType<typeof userEvent.setup>, dialog: HTMLElement) => {
+          await user.click(within(dialog).getByRole('button', { name: '돌아가기' }));
+        },
+      ],
+      [
+        'Escape',
+        async (user: ReturnType<typeof userEvent.setup>) => {
+          await user.keyboard('{Escape}');
+        },
+      ],
+    ])('%s 로 닫으면 거절하지 않고 거절 버튼으로 포커스가 돌아온다', async (_label, close) => {
+      const user = userEvent.setup();
+      const rejects = captureRejects();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      await close(user, dialog);
+
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: REJECT })).toHaveFocus();
+      expect(rejects).toHaveLength(0);
+    });
+
+    it('Tab 으로 창 밖으로 나가지 않는다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      for (let i = 0; i < 6; i += 1) {
+        await user.tab();
+        expect(dialog).toContainElement(document.activeElement as HTMLElement);
+      }
+    });
+
+    it('보내는 동안 거절하기는 비활성이고 Escape 로 닫히지 않는다', async () => {
+      const user = userEvent.setup();
+      server.use(
+        http.patch(`${BASE_URL}/api/simulations/invitations/:invitationId/reject`, async () => {
+          await delay(200);
+          return HttpResponse.json({ data: {} });
+        })
+      );
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      const submit = within(dialog).getByRole('button', { name: '거절하기' });
+      await user.click(submit);
+
+      expect(submit).toBeDisabled();
+      expect(submit).toHaveAttribute('aria-busy', 'true');
+      await user.keyboard('{Escape}');
+      expect(screen.getByRole('dialog', { name: REJECT_DIALOG })).toBeInTheDocument();
+      expect(await screen.findByText('요청을 거절했어요')).toBeInTheDocument();
+    });
+
+    it('그 사이 처리된 요청이면 "이미 처리된 요청이에요" 로 알리고 창을 닫는다', async () => {
+      const user = userEvent.setup();
+      server.use(invitationRejectHandlers.notPending);
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      await user.click(within(dialog).getByRole('button', { name: '거절하기' }));
+
+      expect(await screen.findByText('이미 처리된 요청이에요')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+
+    it('서버 오류면 상단 에러 토스트로 알리고, 적은 사유를 그대로 둔 채 창을 열어 둔다', async () => {
+      const user = userEvent.setup();
+      server.use(invitationRejectHandlers.serverError);
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+      const reason = within(dialog).getByRole('textbox', { name: /거절 사유/ });
+      await user.type(reason, '지금은 어려워요');
+      await user.click(within(dialog).getByRole('button', { name: '거절하기' }));
+
+      expect(await screen.findByText('잠시 후 다시 시도해주세요')).toBeInTheDocument();
+      expect(screen.getByRole('dialog', { name: REJECT_DIALOG })).toBeInTheDocument();
+      expect(reason).toHaveValue('지금은 어려워요');
+      await waitFor(() => {
+        expect(within(dialog).getByRole('button', { name: '거절하기' })).toBeEnabled();
+      });
     });
   });
 
@@ -495,6 +684,21 @@ describe('SimulationListPage', () => {
 
       expect(await screen.findByText('요청을 취소했어요')).toBeInTheDocument();
       expect(queryClient.getQueryState(avatarKeys.detail(BOMNAL_ID))?.isInvalidated).toBe(true);
+      expect(queryClient.getQueryState(avatarKeys.candidates(8))?.isInvalidated).toBe(true);
+    });
+
+    it('거절하면 상대 아바타 상세와 추천 목록 캐시를 무효화한다 — 상대 아바타가 다시 요청할 수 있게 된다', async () => {
+      const user = userEvent.setup();
+      const { queryClient } = renderPage();
+      queryClient.setQueryData(avatarKeys.detail(MOONLIT_ID), {});
+      queryClient.setQueryData(avatarKeys.candidates(8), { items: [] });
+
+      await findRows(REQUESTS);
+      await user.click(screen.getByRole('button', { name: REJECT }));
+      await user.click(screen.getByRole('button', { name: '거절하기' }));
+
+      expect(await screen.findByText('요청을 거절했어요')).toBeInTheDocument();
+      expect(queryClient.getQueryState(avatarKeys.detail(MOONLIT_ID))?.isInvalidated).toBe(true);
       expect(queryClient.getQueryState(avatarKeys.candidates(8))?.isInvalidated).toBe(true);
     });
 

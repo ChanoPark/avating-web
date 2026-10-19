@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useNavigate } from 'react-router';
 import { MessagesSquare } from 'lucide-react';
@@ -13,17 +13,18 @@ import { useFailedQueryReset } from '@shared/lib/useFailedQueryReset';
 import { useMyAvatars } from '@entities/avatar';
 import { matchRequestKeys } from '@entities/match-request';
 import { useInvitationAction } from '../api/useInvitationAction';
-import type { InvitationAction } from '../api/useInvitationAction';
+import type { InvitationAction, InvitationActionInput } from '../api/useInvitationAction';
 import { useSimulationSessionsSuspense } from '../api/useSimulationSessions';
 import { isRunning } from '../lib/sessions';
 import type { SimulationSession } from '../lib/sessions';
+import { RejectInvitationDialog } from './RejectInvitationDialog';
 import { SESSION_CARD_CLASS, SessionRow, SessionTable, SessionTableSkeleton } from './SessionTable';
 
 const ACTION_VIEW: Record<
   InvitationAction,
   {
     label: string;
-    variant: 'brand' | 'dangerSolid';
+    variant: 'brand' | 'danger' | 'dangerSolid';
     ariaLabel: (partnerName: string) => string;
     successTitle: string;
   }
@@ -33,6 +34,12 @@ const ACTION_VIEW: Record<
     variant: 'brand',
     ariaLabel: (partnerName) => `${partnerName}의 요청 수락`,
     successTitle: '요청을 수락했어요',
+  },
+  reject: {
+    label: '거절',
+    variant: 'danger',
+    ariaLabel: (partnerName) => `${partnerName}의 요청 거절`,
+    successTitle: '요청을 거절했어요',
   },
   cancel: {
     label: '취소',
@@ -53,14 +60,18 @@ function actionErrorTitle(error: unknown): string {
   return (code === undefined ? undefined : ACTION_ERROR_TITLE[code]) ?? ACTION_ERROR_FALLBACK_TITLE;
 }
 
-function availableAction({ status, direction }: SimulationSession): InvitationAction | null {
-  if (status !== 'PENDING') return null;
-  return direction === 'RECEIVED' ? 'accept' : 'cancel';
+function availableActions({ status, direction }: SimulationSession): InvitationAction[] {
+  if (status !== 'PENDING') return [];
+  return direction === 'RECEIVED' ? ['accept', 'reject'] : ['cancel'];
+}
+
+function isSettledElsewhere(error: unknown): boolean {
+  return actionErrorTitle(error) !== ACTION_ERROR_FALLBACK_TITLE;
 }
 
 type SessionActionsProps = {
   session: SimulationSession;
-  acting: boolean;
+  acting: InvitationAction | undefined;
   actionDisabled: boolean;
   onAction: (session: SimulationSession, action: InvitationAction) => void;
   onOpen: (simulationId: string) => void;
@@ -74,10 +85,9 @@ function SessionActions({
   onOpen,
 }: SessionActionsProps) {
   const { partner, simulationId } = session;
-  const action = availableAction(session);
 
   return (
-    <>
+    <div className="flex flex-wrap items-center justify-center gap-1">
       {isRunning(session.status) && simulationId === undefined && (
         <Button
           variant="secondary"
@@ -100,12 +110,13 @@ function SessionActions({
           이동
         </Button>
       )}
-      {action !== null && (
+      {availableActions(session).map((action) => (
         <Button
+          key={action}
           variant={ACTION_VIEW[action].variant}
           size="xs"
           aria-label={ACTION_VIEW[action].ariaLabel(partner.name)}
-          aria-busy={acting}
+          aria-busy={acting === action}
           disabled={actionDisabled}
           onClick={() => {
             onAction(session, action);
@@ -113,8 +124,8 @@ function SessionActions({
         >
           {ACTION_VIEW[action].label}
         </Button>
-      )}
-    </>
+      ))}
+    </div>
   );
 }
 
@@ -126,6 +137,7 @@ function SimulationSessionListContent() {
   const { mutate: runAction, isPending: isActing, variables: acting } = useInvitationAction();
   const { show: showToast, dismiss: dismissToast } = useToast();
   const failureToastIdRef = useRef<string | null>(null);
+  const [rejecting, setRejecting] = useState<SimulationSession | null>(null);
 
   const dismissFailureToast = useCallback(() => {
     if (failureToastIdRef.current === null) return;
@@ -135,23 +147,34 @@ function SimulationSessionListContent() {
 
   useEffect(() => dismissFailureToast, [dismissFailureToast]);
 
-  function handleAction(session: SimulationSession, action: InvitationAction) {
+  function submitAction(input: InvitationActionInput) {
     dismissFailureToast();
-    runAction(
-      { invitationId: session.id, partnerAvatarId: session.partner.avatarId, action },
-      {
-        onSuccess: () => {
-          showToast({ variant: 'success', title: ACTION_VIEW[action].successTitle });
-        },
-        onError: (error) => {
-          failureToastIdRef.current = showToast({
-            variant: 'error',
-            title: actionErrorTitle(error),
-          });
-        },
-      }
-    );
+    runAction(input, {
+      onSuccess: () => {
+        if (input.action === 'reject') setRejecting(null);
+        showToast({ variant: 'success', title: ACTION_VIEW[input.action].successTitle });
+      },
+      onError: (error) => {
+        if (input.action === 'reject' && isSettledElsewhere(error)) setRejecting(null);
+        failureToastIdRef.current = showToast({
+          variant: 'error',
+          title: actionErrorTitle(error),
+        });
+      },
+    });
   }
+
+  function handleAction(session: SimulationSession, action: InvitationAction) {
+    if (action === 'reject') {
+      setRejecting(session);
+      return;
+    }
+    submitAction({ invitationId: session.id, partnerAvatarId: session.partner.avatarId, action });
+  }
+
+  const closeRejectDialog = useCallback(() => {
+    setRejecting(null);
+  }, []);
 
   function handleOpen(simulationId: string) {
     void navigate(`/sim/${encodeURIComponent(simulationId)}`);
@@ -191,7 +214,7 @@ function SimulationSessionListContent() {
             >
               <SessionActions
                 session={session}
-                acting={isActing && acting.invitationId === session.id}
+                acting={isActing && acting.invitationId === session.id ? acting.action : undefined}
                 actionDisabled={isActing}
                 onAction={handleAction}
                 onOpen={handleOpen}
@@ -200,6 +223,21 @@ function SimulationSessionListContent() {
           ))}
         </SessionTable>
       ))}
+      {rejecting !== null && (
+        <RejectInvitationDialog
+          partnerName={rejecting.partner.name}
+          pending={isActing}
+          onClose={closeRejectDialog}
+          onSubmit={(rejectMessage) => {
+            submitAction({
+              invitationId: rejecting.id,
+              partnerAvatarId: rejecting.partner.avatarId,
+              action: 'reject',
+              rejectMessage,
+            });
+          }}
+        />
+      )}
     </>
   );
 }

@@ -4,6 +4,7 @@ import {
   MATCH_REQUEST_GREETING_MAX,
   MATCH_REQUEST_ERROR_REQUESTER_EMPTY,
   MATCH_REQUEST_ERROR_GREETING_MAX,
+  REJECT_MESSAGE_MAX,
 } from './constants';
 
 export const invitationStatusSchema = z.enum([
@@ -75,6 +76,10 @@ export const sendMatchRequestSchema = z
   })
   .strict();
 export type SendMatchRequestInput = z.infer<typeof sendMatchRequestSchema>;
+
+export const rejectInvitationRequestSchema = z.object({
+  rejectMessage: z.string().trim().min(1).max(REJECT_MESSAGE_MAX),
+});
 
 export const apiResponseCreateInvitation = z.object({ data: createInvitationResponseSchema });
 export const apiResponseInvitationHistoryPage = z.object({ data: invitationHistoryPageSchema });

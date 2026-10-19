@@ -6,3 +6,6 @@ export const MATCH_REQUEST_GREETING_HARD_LIMIT = MATCH_REQUEST_GREETING_MAX + 20
 // formSchema(features)와 sendMatchRequestSchema(entity)가 이 문자열을 함께 import 한다.
 export const MATCH_REQUEST_ERROR_REQUESTER_EMPTY = '사용할 아바타를 선택해주세요';
 export const MATCH_REQUEST_ERROR_GREETING_MAX = '첫 인사는 100자 이내로 작성해주세요';
+
+export const REJECT_MESSAGE_MAX = 300;
+export const DEFAULT_REJECT_MESSAGE = '이번에는 함께하기 어려울 것 같아요. 요청해 주셔서 고마워요.';

@@ -3,6 +3,7 @@ import {
   apiResponseCreateInvitation,
   apiResponseInvitationHistoryPage,
   invitationStatusSchema,
+  rejectInvitationRequestSchema,
   sendMatchRequestSchema,
 } from '../model';
 
@@ -151,5 +152,29 @@ describe('sendMatchRequestSchema', () => {
       greeting: '   ',
     });
     expect(result.greeting).toBeUndefined();
+  });
+});
+
+describe('rejectInvitationRequestSchema (서버 RejectInvitationRequest)', () => {
+  it('앞뒤 공백을 걷어낸 사유를 싣는다', () => {
+    expect(rejectInvitationRequestSchema.parse({ rejectMessage: '  지금은 어려워요 ' })).toEqual({
+      rejectMessage: '지금은 어려워요',
+    });
+  });
+
+  it.each([[''], ['   ']])(
+    '사유가 비면(%j) 거부한다 — 서버가 빈 사유를 받지 않는다',
+    (rejectMessage) => {
+      expect(rejectInvitationRequestSchema.safeParse({ rejectMessage }).success).toBe(false);
+    }
+  );
+
+  it('300자까지 받고 301자는 거부한다', () => {
+    expect(
+      rejectInvitationRequestSchema.safeParse({ rejectMessage: 'a'.repeat(300) }).success
+    ).toBe(true);
+    expect(
+      rejectInvitationRequestSchema.safeParse({ rejectMessage: 'a'.repeat(301) }).success
+    ).toBe(false);
   });
 });

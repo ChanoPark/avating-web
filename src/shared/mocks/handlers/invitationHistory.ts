@@ -1,10 +1,12 @@
 import { http, HttpResponse } from 'msw';
+import { z } from 'zod';
 import type { InvitationHistoryItem, InvitationHistoryPage } from '@entities/match-request';
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
 const HISTORY_URL = `${BASE_URL}/api/simulations/invitations`;
 const ACCEPT_URL = `${HISTORY_URL}/:invitationId/accept`;
 const CANCEL_URL = `${HISTORY_URL}/:invitationId/cancel`;
+const REJECT_URL = `${HISTORY_URL}/:invitationId/reject`;
 
 const DEFAULT_PAGE_SIZE = 10;
 const MINUTE = 60_000;
@@ -62,7 +64,9 @@ function invitation(
   {
     elapsed,
     ...rest
-  }: Pick<InvitationHistoryItem, 'status' | 'direction' | 'simulationId'> & { elapsed: number }
+  }: Pick<InvitationHistoryItem, 'status' | 'direction' | 'simulationId' | 'requestMessage'> & {
+    elapsed: number;
+  }
 ): InvitationHistoryItem {
   const createdAt = Date.now() - elapsed;
   return {
@@ -85,6 +89,7 @@ export const mockInvitationHistory: InvitationHistoryItem[] = [
   invitation('cccccccc-0007-4000-8000-000000000007', MOONLIT, MY_SUMMER, {
     status: 'PENDING',
     direction: 'RECEIVED',
+    requestMessage: '주말에 전시 보러 가는 얘기 해 봐요',
     elapsed: 10 * MINUTE,
   }),
   invitation('cccccccc-0001-4000-8000-000000000001', MY_HYUN_NIGHT, HANEUL, {
@@ -171,6 +176,8 @@ const NOT_PENDING_ERROR = {
   message: 'CANCELED 시뮬레이션은 수락할 수 없습니다.',
 };
 const SERVER_ERROR = { code: 'COMMON_500_001', message: '서버 오류가 발생했습니다' };
+const VALIDATION_ERROR = { code: 'COMMON_400_001', message: '입력값이 올바르지 않습니다.' };
+const rejectBodySchema = z.object({ rejectMessage: z.string().trim().min(1).max(300) });
 
 export const invitationHistoryHandlers = {
   success: http.get(HISTORY_URL, ({ request }) => historyResponse(request, invitations)),
@@ -200,8 +207,23 @@ export const invitationCancelHandlers = {
   serverError: http.patch(CANCEL_URL, () => HttpResponse.json(SERVER_ERROR, { status: 500 })),
 };
 
+export const invitationRejectHandlers = {
+  success: http.patch(REJECT_URL, async ({ params, request }) => {
+    if (!rejectBodySchema.safeParse(await request.json()).success) {
+      return HttpResponse.json(VALIDATION_ERROR, { status: 400 });
+    }
+    transition(params.invitationId, 'REJECTED');
+    return HttpResponse.json({ data: {} });
+  }),
+
+  notPending: http.patch(REJECT_URL, () => HttpResponse.json(NOT_PENDING_ERROR, { status: 400 })),
+
+  serverError: http.patch(REJECT_URL, () => HttpResponse.json(SERVER_ERROR, { status: 500 })),
+};
+
 export const invitationHistoryDefaultHandlers = [
   invitationHistoryHandlers.success,
   invitationAcceptHandlers.success,
   invitationCancelHandlers.success,
+  invitationRejectHandlers.success,
 ];

@@ -1,22 +1,38 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
 import { avatarKeys } from '@entities/avatar';
-import { matchRequestKeys } from '@entities/match-request';
+import {
+  DEFAULT_REJECT_MESSAGE,
+  matchRequestKeys,
+  rejectInvitationRequestSchema,
+} from '@entities/match-request';
 
-export type InvitationAction = 'accept' | 'cancel';
+export type InvitationAction = 'accept' | 'cancel' | 'reject';
 
-type InvitationActionInput = {
+type InvitationTarget = {
   invitationId: string;
   partnerAvatarId: string;
-  action: InvitationAction;
 };
 
-async function runInvitationAction({ invitationId, action }: InvitationActionInput): Promise<void> {
-  if (action === 'accept') {
-    await http.post(`/api/simulations/invitations/${invitationId}/accept`);
-    return;
+export type InvitationActionInput =
+  | (InvitationTarget & { action: 'accept' | 'cancel' })
+  | (InvitationTarget & { action: 'reject'; rejectMessage: string });
+
+async function runInvitationAction(input: InvitationActionInput): Promise<void> {
+  const path = `/api/simulations/invitations/${input.invitationId}`;
+  switch (input.action) {
+    case 'accept':
+      await http.post(`${path}/accept`);
+      return;
+    case 'cancel':
+      await http.patch(`${path}/cancel`);
+      return;
+    case 'reject': {
+      const rejectMessage = input.rejectMessage.trim() || DEFAULT_REJECT_MESSAGE;
+      await http.patch(`${path}/reject`, rejectInvitationRequestSchema.parse({ rejectMessage }));
+      return;
+    }
   }
-  await http.patch(`/api/simulations/invitations/${invitationId}/cancel`);
 }
 
 export function useInvitationAction() {
@@ -26,12 +42,12 @@ export function useInvitationAction() {
     mutationFn: runInvitationAction,
     onSuccess: (_data, { action, partnerAvatarId }) => {
       void queryClient.invalidateQueries({ queryKey: avatarKeys.myAvatars() });
-      if (action === 'cancel') {
+      if (action !== 'accept') {
         void queryClient.invalidateQueries({ queryKey: avatarKeys.detail(partnerAvatarId) });
         void queryClient.invalidateQueries({ queryKey: avatarKeys.candidatesAll() });
       }
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: matchRequestKeys.sessions() }),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: matchRequestKeys.all }),
     throwOnError: false,
   });
 }
