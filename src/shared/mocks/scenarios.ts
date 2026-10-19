@@ -8,8 +8,7 @@ import {
   seedInvitationHistory,
 } from './handlers/invitationHistory';
 
-// 브라우저 mock 에서 `?mock=a,b` 로 켜는 시나리오. SPA 안에서 이동해도 유지되도록 sessionStorage 에 둔다.
-// `?mock=off` 로 끈다.
+// SPA 안에서 이동해도 유지되도록 sessionStorage 에 둔다.
 const STORAGE_KEY = 'avating:mock-scenarios';
 const OFF = 'off';
 
@@ -48,7 +47,7 @@ function readScenarioNames(): string[] {
 }
 
 export function activeMockScenarios(): { handlers: RequestHandler[]; names: string[] } {
-  const names = readScenarioNames().filter((name) => name in SCENARIOS);
+  const names = readScenarioNames().filter((name) => Object.hasOwn(SCENARIOS, name));
   const scenarios = names.flatMap((name) => SCENARIOS[name] ?? []);
   scenarios.forEach((scenario) => scenario.seed?.());
   return { handlers: scenarios.flatMap((scenario) => scenario.handlers ?? []), names };

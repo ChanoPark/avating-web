@@ -58,6 +58,7 @@ export function useReceivedRequestsSuspense(): ReceivedRequests {
     queryKey: matchRequestKeys.receivedPending(),
     queryFn: fetchReceivedPending,
     select: selectReceivedRequests,
+    retry: false,
     staleTime: 30_000,
     gcTime: 5 * 60_000,
   });

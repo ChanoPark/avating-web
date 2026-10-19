@@ -365,6 +365,19 @@ describe('SimulationListPage', () => {
       expect(cellsOf(rows[1])[2]).toHaveTextContent('보낸 요청');
     });
 
+    it('비고 칸은 수락 · 거절 두 버튼이 한 줄로 나란히 들어가는 폭이다', async () => {
+      renderPage();
+
+      const table = await screen.findByRole('table', { name: REQUESTS });
+      expect(within(table).getByRole('columnheader', { name: '비고' })).toHaveClass(
+        'w-32',
+        'sm:w-36'
+      );
+      const accept = screen.getByRole('button', { name: ACCEPT });
+      expect(accept.parentElement).toContainElement(screen.getByRole('button', { name: REJECT }));
+      expect(accept.parentElement).not.toHaveClass('flex-wrap');
+    });
+
     it('끝난 행에는 수락 · 취소 버튼이 없고, 있다면 "이동" 뿐이다', async () => {
       renderPage();
 
@@ -491,6 +504,21 @@ describe('SimulationListPage', () => {
       expect(within(dialog).getByText('0 / 300')).toBeInTheDocument();
       expect(within(dialog).getByText(/비워 두면 기본 문구로 전해요/)).toBeInTheDocument();
       expect(rejects).toHaveLength(0);
+    });
+
+    it('좁은 화면에서는 화면 전체를 쓰고, 넓은 화면에서는 400px 카드로 뜬다', async () => {
+      const user = userEvent.setup();
+      renderPage();
+
+      const dialog = await openRejectDialog(user);
+
+      expect(dialog).toHaveClass(
+        'h-full',
+        'max-w-none',
+        'border-0',
+        'sm:max-w-100',
+        'sm:rounded-card'
+      );
     });
 
     it('사유를 적고 거절하면 그 사유를 보내고, 성공 토스트와 함께 창이 닫히고 행이 목록에서 빠진다', async () => {

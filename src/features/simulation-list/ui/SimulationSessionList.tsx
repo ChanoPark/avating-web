@@ -87,7 +87,7 @@ function SessionActions({
   const { partner, simulationId } = session;
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1">
+    <div className="flex items-center justify-center gap-1">
       {isRunning(session.status) && simulationId === undefined && (
         <Button
           variant="secondary"
@@ -198,14 +198,14 @@ function SimulationSessionListContent() {
   }
 
   const sections = [
-    { title: '진행 중인 시뮬레이션', sessions: running },
-    { title: '요청 내역', sessions: requests },
+    { title: '진행 중인 시뮬레이션', sessions: running, actionWidth: 'narrow' as const },
+    { title: '요청 내역', sessions: requests, actionWidth: 'pair' as const },
   ].filter((section) => section.sessions.length > 0);
 
   return (
     <>
-      {sections.map(({ title, sessions }) => (
-        <SessionTable key={title} title={title}>
+      {sections.map(({ title, sessions, actionWidth }) => (
+        <SessionTable key={title} title={title} actionWidth={actionWidth}>
           {sessions.map((session) => (
             <SessionRow
               key={session.id}
@@ -252,11 +252,15 @@ export function SimulationSessionList() {
 
   return (
     <ErrorBoundary fallbackRender={() => <SimulationSessionListFallback />}>
-      <Suspense fallback={<SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" />}>
+      <Suspense
+        fallback={
+          <SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" actionWidth="pair" />
+        }
+      >
         {ready ? (
           <SimulationSessionListContent />
         ) : (
-          <SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" />
+          <SessionTableSkeleton label="시뮬레이션 목록을 불러오는 중…" actionWidth="pair" />
         )}
       </Suspense>
     </ErrorBoundary>

@@ -52,7 +52,7 @@ export function RejectInvitationDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 flex items-center justify-center px-4 sm:px-6"
+      className="fixed inset-0 flex items-center justify-center sm:px-6"
       style={{ zIndex: 'var(--z-modal)' }}
     >
       <button
@@ -68,7 +68,7 @@ export function RejectInvitationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-canvas border-subtle animate-modal-in rounded-card relative flex w-full max-w-110 flex-col border"
+        className="bg-canvas border-subtle animate-modal-in sm:rounded-card relative flex h-full w-full max-w-none flex-col border-0 sm:h-auto sm:max-w-100 sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <form
@@ -77,9 +77,9 @@ export function RejectInvitationDialog({
             if (!pending) onSubmit(reason);
           }}
           noValidate
-          className="flex flex-col"
+          className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="flex flex-col gap-3 px-6 pt-5 pb-4">
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-6 pt-5 pb-4">
             <h2 id={titleId} className="text-lead text-primary">
               {partnerName}의 요청을 거절할까요?
             </h2>

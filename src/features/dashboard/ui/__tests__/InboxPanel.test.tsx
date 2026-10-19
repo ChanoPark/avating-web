@@ -7,6 +7,7 @@ import {
   invitationHistoryHandler,
   invitationHistoryHandlers,
 } from '@shared/mocks/handlers/invitationHistory';
+import { matchRequestKeys } from '@entities/match-request';
 import type { InvitationHistoryItem } from '@entities/match-request';
 import { InboxPanel } from '../InboxPanel';
 
@@ -68,6 +69,17 @@ describe('InboxPanel', () => {
       await screen.findByText('새 매칭 요청이 없어요');
       expect(requested).toEqual(['direction=RECEIVED&status=PENDING&size=50']);
     });
+  });
+
+  it('화면 진입에서 기다리는 조회라 실패하면 다시 묻지 않고 바로 실패를 알린다', async () => {
+    server.use(invitationHistoryHandler(PENDING_ITEMS));
+    const { queryClient } = renderWithProviders(<InboxPanel />);
+
+    await screen.findByText('Moonlit 님이 매칭을 요청했어요');
+    const query = queryClient
+      .getQueryCache()
+      .find({ queryKey: matchRequestKeys.receivedPending() });
+    expect(query?.options.retry).toBe(false);
   });
 
   describe('렌더링', () => {

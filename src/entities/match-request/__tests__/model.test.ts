@@ -6,6 +6,7 @@ import {
   rejectInvitationRequestSchema,
   sendMatchRequestSchema,
 } from '../model';
+import { DEFAULT_REJECT_MESSAGE } from '../constants';
 
 describe('invitationStatusSchema (서버 InvitationStatus)', () => {
   it.each([
@@ -155,7 +156,7 @@ describe('sendMatchRequestSchema', () => {
   });
 });
 
-describe('rejectInvitationRequestSchema (서버 RejectInvitationRequest)', () => {
+describe('rejectInvitationRequestSchema (거절 사유 → 서버 RejectInvitationRequest)', () => {
   it('앞뒤 공백을 걷어낸 사유를 싣는다', () => {
     expect(rejectInvitationRequestSchema.parse({ rejectMessage: '  지금은 어려워요 ' })).toEqual({
       rejectMessage: '지금은 어려워요',
@@ -163,9 +164,11 @@ describe('rejectInvitationRequestSchema (서버 RejectInvitationRequest)', () =>
   });
 
   it.each([[''], ['   ']])(
-    '사유가 비면(%j) 거부한다 — 서버가 빈 사유를 받지 않는다',
+    '사유가 비면(%j) 기본 문구로 채운다 — 서버가 빈 사유를 받지 않는다',
     (rejectMessage) => {
-      expect(rejectInvitationRequestSchema.safeParse({ rejectMessage }).success).toBe(false);
+      expect(rejectInvitationRequestSchema.parse({ rejectMessage })).toEqual({
+        rejectMessage: DEFAULT_REJECT_MESSAGE,
+      });
     }
   );
 

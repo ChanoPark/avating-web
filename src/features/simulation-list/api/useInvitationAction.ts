@@ -1,11 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
 import { avatarKeys } from '@entities/avatar';
-import {
-  DEFAULT_REJECT_MESSAGE,
-  matchRequestKeys,
-  rejectInvitationRequestSchema,
-} from '@entities/match-request';
+import { matchRequestKeys, rejectInvitationRequestSchema } from '@entities/match-request';
 
 export type InvitationAction = 'accept' | 'cancel' | 'reject';
 
@@ -27,11 +23,12 @@ async function runInvitationAction(input: InvitationActionInput): Promise<void> 
     case 'cancel':
       await http.patch(`${path}/cancel`);
       return;
-    case 'reject': {
-      const rejectMessage = input.rejectMessage.trim() || DEFAULT_REJECT_MESSAGE;
-      await http.patch(`${path}/reject`, rejectInvitationRequestSchema.parse({ rejectMessage }));
+    case 'reject':
+      await http.patch(
+        `${path}/reject`,
+        rejectInvitationRequestSchema.parse({ rejectMessage: input.rejectMessage })
+      );
       return;
-    }
   }
 }
 
