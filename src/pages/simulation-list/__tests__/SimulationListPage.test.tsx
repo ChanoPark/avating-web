@@ -15,7 +15,7 @@ import {
 } from '@shared/mocks/handlers/invitationHistory';
 import { ownedAvatarsHandlers } from '@shared/mocks/handlers/ownedAvatars';
 import { avatarKeys } from '@entities/avatar';
-import { DEFAULT_REJECT_MESSAGE } from '@entities/match-request';
+import { DEFAULT_REJECT_MESSAGE, matchRequestKeys } from '@entities/match-request';
 import { renderWithProviders } from '@/test/renderWithProviders';
 import { SimulationListPage } from '../SimulationListPage';
 
@@ -519,6 +519,16 @@ describe('SimulationListPage', () => {
         'sm:max-w-100',
         'sm:rounded-card'
       );
+      expect(within(dialog).getByRole('heading', { name: REJECT_DIALOG })).toHaveClass(
+        'text-title',
+        'text-ink',
+        'font-bold'
+      );
+      expect(within(dialog).getByRole('button', { name: '거절하기' }).parentElement).toHaveClass(
+        'px-5',
+        'py-3',
+        'gap-2'
+      );
     });
 
     it('사유를 적고 거절하면 그 사유를 보내고, 성공 토스트와 함께 창이 닫히고 행이 목록에서 빠진다', async () => {
@@ -693,6 +703,32 @@ describe('SimulationListPage', () => {
           expect(invalidated).toBe(true);
         });
         unsubscribe();
+      }
+    );
+  });
+
+  describe('응답 뒤 대시보드 알림 캐시', () => {
+    it.each([
+      ['수락', ACCEPT, null],
+      ['거절', REJECT, '거절하기'],
+      ['취소', CANCEL, null],
+    ])(
+      '%s하면 받은 대기 요청 캐시를 무효화한다 — 대시보드 알림 패널이 처리한 요청을 남기지 않는다',
+      async (_label, name, confirm) => {
+        const user = userEvent.setup();
+        const { queryClient } = renderPage();
+        queryClient.setQueryData(matchRequestKeys.receivedPending(), []);
+
+        await findRows(REQUESTS);
+        await user.click(screen.getByRole('button', { name }));
+        if (confirm !== null) await user.click(screen.getByRole('button', { name: confirm }));
+
+        await screen.findByText(/요청을 (수락|거절|취소)했어요/);
+        await waitFor(() => {
+          expect(queryClient.getQueryState(matchRequestKeys.receivedPending())?.isInvalidated).toBe(
+            true
+          );
+        });
       }
     );
   });

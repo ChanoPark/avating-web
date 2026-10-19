@@ -79,10 +79,12 @@ export function RejectInvitationDialog({
           noValidate
           className="flex min-h-0 flex-1 flex-col"
         >
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto px-6 pt-5 pb-4">
-            <h2 id={titleId} className="text-lead text-primary">
+          <div className="px-5 pt-5 pb-3">
+            <h2 id={titleId} className="text-title text-ink font-bold">
               {partnerName}의 요청을 거절할까요?
             </h2>
+          </div>
+          <div className="flex min-h-0 flex-1 flex-col overflow-auto px-5 pb-5">
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between gap-2">
                 <label htmlFor={reasonId} className="text-caption text-secondary font-medium">
@@ -109,7 +111,7 @@ export function RejectInvitationDialog({
               </p>
             </div>
           </div>
-          <div className="border-subtle flex items-center justify-end gap-2 border-t px-6 py-4">
+          <div className="border-subtle flex items-center justify-end gap-2 border-t px-5 py-3">
             <Button type="button" variant="ghost" disabled={pending} onClick={close}>
               돌아가기
             </Button>
