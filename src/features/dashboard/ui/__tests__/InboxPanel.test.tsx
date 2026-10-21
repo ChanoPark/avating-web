@@ -160,6 +160,31 @@ describe('InboxPanel', () => {
     });
   });
 
+  describe('레이아웃 보존', () => {
+    it.each([
+      [
+        '1건',
+        [received('r1', 'Moonlit', { elapsed: 10 * MINUTE })],
+        'Moonlit 님이 매칭을 요청했어요',
+      ],
+      ['0건', [], '새 매칭 요청이 없어요'],
+    ])(
+      '받은 요청이 %s 이어도 목록 자리에 스켈레톤과 같은 3행 자리를 깔아 로드 뒤 패널 높이가 줄지 않는다',
+      async (_label, items, visibleText) => {
+        server.use(invitationHistoryHandler(items));
+        renderWithProviders(<InboxPanel />);
+
+        const anchorText = await screen.findByText(visibleText);
+        const region = screen.getByRole('region', { name: '알림' });
+        const spacer = region.querySelector('[data-row-spacer]');
+        expect(spacer).toHaveClass('invisible');
+        expect(spacer).toHaveAttribute('aria-hidden', 'true');
+        expect(spacer?.children).toHaveLength(3);
+        expect(spacer?.parentElement).toContainElement(anchorText);
+      }
+    );
+  });
+
   describe('대기 요청 수', () => {
     it('보이는 3건이 아니라 만료 전 대기 요청 전체 수를 tnum 배지로 보인다', async () => {
       server.use(invitationHistoryHandler(PENDING_ITEMS));

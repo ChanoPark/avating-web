@@ -54,10 +54,9 @@ test('스켈레톤과 실제 콘텐츠의 높이가 같다 — 로드 완료 시
       const inbox = [...document.querySelectorAll('section')].find(
         (s) => s.getAttribute('aria-label') === '알림'
       );
-      const inboxRow = inbox?.querySelector('li, [aria-hidden="true"].animate-pulse');
       return {
         stat: stat ? Math.round(stat.getBoundingClientRect().height) : -1,
-        inboxRow: inboxRow ? Math.round(inboxRow.getBoundingClientRect().height) : -1,
+        inbox: inbox ? Math.round(inbox.getBoundingClientRect().height) : -1,
       };
     });
 
@@ -70,9 +69,9 @@ test('스켈레톤과 실제 콘텐츠의 높이가 같다 — 로드 완료 시
   const content = await measure();
 
   expect(skeleton.stat).toBeGreaterThan(0);
-  expect(skeleton.inboxRow).toBeGreaterThan(0);
+  expect(skeleton.inbox).toBeGreaterThan(0);
   expect(content.stat).toBe(skeleton.stat);
-  expect(content.inboxRow).toBe(skeleton.inboxRow);
+  expect(content.inbox).toBe(skeleton.inbox);
 });
 
 test('모달은 정본 cx-rise 로 진입한다 — opacity 가 0 에서 시작해 1 로 간다', async ({ page }) => {

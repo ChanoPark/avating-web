@@ -4,7 +4,7 @@ import { apiResponseInvitationHistoryPage, matchRequestKeys } from '@entities/ma
 import type { InvitationHistoryItem } from '@entities/match-request';
 
 const PAGE_SIZE = 50;
-const VISIBLE_LIMIT = 3;
+export const RECEIVED_REQUESTS_VISIBLE_LIMIT = 3;
 
 type ReceivedRequest = {
   id: string;
@@ -44,7 +44,7 @@ function toReceivedRequests(
     .filter((invitation) => Date.parse(invitation.expiredAt) > now)
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
   return {
-    items: pending.slice(0, VISIBLE_LIMIT).map(toReceivedRequest),
+    items: pending.slice(0, RECEIVED_REQUESTS_VISIBLE_LIMIT).map(toReceivedRequest),
     pendingCount: pending.length,
   };
 }

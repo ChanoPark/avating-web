@@ -8,7 +8,7 @@ import {
   seedInvitationHistory,
 } from './handlers/invitationHistory';
 
-// SPA 안에서 이동해도 유지되도록 sessionStorage 에 둔다.
+// ?mock= 이 빠진 주소로 새로고침해도 유지되도록 sessionStorage 에 둔다.
 const STORAGE_KEY = 'avating:mock-scenarios';
 const OFF = 'off';
 

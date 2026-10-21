@@ -7,7 +7,10 @@ import { MessageSquare } from 'lucide-react';
 import { EmptyState } from '@shared/ui/EmptyState';
 import { cn } from '@shared/lib/cn';
 import { matchRequestKeys } from '@entities/match-request';
-import { useReceivedRequestsSuspense } from '../api/useReceivedRequests';
+import {
+  RECEIVED_REQUESTS_VISIBLE_LIMIT,
+  useReceivedRequestsSuspense,
+} from '../api/useReceivedRequests';
 
 // flex-1 — 우측 열에서 남는 높이를 채워 좌측 대표 아바타 카드와 밑단을 맞춘다(어느 쪽이 길든).
 const CARD_CLASS = 'border-subtle bg-canvas flex flex-1 flex-col gap-2 rounded-card border p-4';
@@ -56,6 +59,19 @@ function CardHeader({
 
 // 실제 행과 **같은 래퍼**(ROW_CLASS)에 같은 줄상자를 세운다. 예전에는 h-12(48px) 자리표시자가
 // 58.8px 행으로 바뀌면서 패널이 28px 자랐다.
+function PlaceholderRows({ pulse = false }: { pulse?: boolean }) {
+  return Array.from({ length: RECEIVED_REQUESTS_VISIBLE_LIMIT }, (_, i) => (
+    <div key={i} aria-hidden="true" className={cn(ROW_CLASS, pulse && 'animate-pulse')}>
+      <span className="bg-raised size-1.5 shrink-0 rounded-full" />
+      <span className="min-w-0 flex-1">
+        <span className="text-caption bg-raised rounded-chip block w-40">&nbsp;</span>
+        <span className="text-meta bg-raised rounded-chip block w-20">&nbsp;</span>
+      </span>
+      <span className="text-meta bg-raised rounded-chip w-12 shrink-0">&nbsp;</span>
+    </div>
+  ));
+}
+
 function InboxPanelSkeleton() {
   return (
     <section aria-label="알림" className={CARD_CLASS}>
@@ -64,16 +80,7 @@ function InboxPanelSkeleton() {
         <span className="text-meta bg-raised rounded-chip w-14 font-medium">&nbsp;</span>
       </div>
       <div className="flex flex-col">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} aria-hidden="true" className={cn(ROW_CLASS, 'animate-pulse')}>
-            <span className="bg-raised size-1.5 shrink-0 rounded-full" />
-            <span className="min-w-0 flex-1">
-              <span className="text-caption bg-raised rounded-chip block w-40">&nbsp;</span>
-              <span className="text-meta bg-raised rounded-chip block w-20">&nbsp;</span>
-            </span>
-            <span className="text-meta bg-raised rounded-chip w-12 shrink-0">&nbsp;</span>
-          </div>
-        ))}
+        <PlaceholderRows pulse />
       </div>
     </section>
   );
@@ -105,28 +112,39 @@ function InboxPanelContent() {
           </Link>
         }
       />
-      {items.length === 0 ? (
-        <EmptyState icon={MessageSquare} title="새 매칭 요청이 없어요" />
-      ) : (
-        <ul className="flex flex-1 flex-col">
-          {items.map((item) => (
-            <li key={item.id} className={ROW_CLASS}>
-              <span aria-hidden="true" className="bg-ink size-1.5 shrink-0 rounded-full" />
-              <span className="min-w-0 flex-1">
-                <span className="text-caption text-ink block truncate font-semibold">
-                  {item.inviterName} 님이 매칭을 요청했어요
-                </span>
-                <span className="text-meta text-secondary block truncate">
-                  {item.requestMessage ?? `내 아바타 ${item.myAvatarName}에게 온 요청`}
-                </span>
-              </span>
-              <span className="text-meta text-secondary tnum shrink-0">
-                {formatRelativeTime(item.requestedAt)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="grid flex-1">
+        <div
+          data-row-spacer
+          aria-hidden="true"
+          className="invisible col-start-1 row-start-1 flex flex-col"
+        >
+          <PlaceholderRows />
+        </div>
+        <div className="col-start-1 row-start-1 flex flex-col">
+          {items.length === 0 ? (
+            <EmptyState icon={MessageSquare} title="새 매칭 요청이 없어요" />
+          ) : (
+            <ul className="flex flex-1 flex-col">
+              {items.map((item) => (
+                <li key={item.id} className={ROW_CLASS}>
+                  <span aria-hidden="true" className="bg-ink size-1.5 shrink-0 rounded-full" />
+                  <span className="min-w-0 flex-1">
+                    <span className="text-caption text-ink block truncate font-semibold">
+                      {item.inviterName} 님이 매칭을 요청했어요
+                    </span>
+                    <span className="text-meta text-secondary block truncate">
+                      {item.requestMessage ?? `내 아바타 ${item.myAvatarName}에게 온 요청`}
+                    </span>
+                  </span>
+                  <span className="text-meta text-secondary tnum shrink-0">
+                    {formatRelativeTime(item.requestedAt)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </section>
   );
 }
