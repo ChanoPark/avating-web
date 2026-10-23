@@ -68,7 +68,7 @@ export function RejectInvitationDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-canvas border-subtle animate-modal-in sm:rounded-card relative flex h-full w-full max-w-none flex-col border-0 sm:h-auto sm:max-w-100 sm:border"
+        className="bg-canvas border-subtle animate-modal-in sm:rounded-card relative flex h-full max-h-full w-full max-w-none flex-col border-0 sm:h-auto sm:max-w-100 sm:border"
         style={{ zIndex: 'var(--z-modal)' }}
       >
         <form

@@ -87,7 +87,7 @@ function SessionActions({
   const { partner, simulationId } = session;
 
   return (
-    <div className="flex items-center justify-center gap-1">
+    <div className="flex items-center justify-center gap-1 max-sm:flex-col">
       {isRunning(session.status) && simulationId === undefined && (
         <Button
           variant="secondary"

@@ -365,16 +365,17 @@ describe('SimulationListPage', () => {
       expect(cellsOf(rows[1])[2]).toHaveTextContent('보낸 요청');
     });
 
-    it('비고 칸은 수락 · 거절 두 버튼이 한 줄로 나란히 들어가는 폭이다', async () => {
+    it('비고 칸은 640px 이상에서 수락 · 거절을 한 줄로 나란히 두고, 좁은 화면에서는 원래 폭을 지키며 세로로 쌓는다', async () => {
       renderPage();
 
       const table = await screen.findByRole('table', { name: REQUESTS });
       expect(within(table).getByRole('columnheader', { name: '비고' })).toHaveClass(
-        'w-32',
+        'w-18',
         'sm:w-36'
       );
       const accept = screen.getByRole('button', { name: ACCEPT });
       expect(accept.parentElement).toContainElement(screen.getByRole('button', { name: REJECT }));
+      expect(accept.parentElement).toHaveClass('max-sm:flex-col');
       expect(accept.parentElement).not.toHaveClass('flex-wrap');
     });
 
@@ -514,6 +515,7 @@ describe('SimulationListPage', () => {
 
       expect(dialog).toHaveClass(
         'h-full',
+        'max-h-full',
         'max-w-none',
         'border-0',
         'sm:max-w-100',

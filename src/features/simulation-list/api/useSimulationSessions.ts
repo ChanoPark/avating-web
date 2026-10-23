@@ -1,16 +1,19 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
-import { apiResponseInvitationHistoryPage, matchRequestKeys } from '@entities/match-request';
+import {
+  apiResponseInvitationHistoryPage,
+  INVITATION_PAGE_SIZE_MAX,
+  matchRequestKeys,
+} from '@entities/match-request';
 import type { InvitationDirection, InvitationHistoryItem } from '@entities/match-request';
 import { findSimulationSession, toSimulationSessions, toWatchSessions } from '../lib/sessions';
 import type { SimulationSession, SimulationSessions, WatchSessions } from '../lib/sessions';
 
 const DIRECTIONS = ['SENT', 'RECEIVED'] as const satisfies InvitationDirection[];
-const PAGE_SIZE = 50;
 
 async function fetchInvitations(direction: InvitationDirection): Promise<InvitationHistoryItem[]> {
   const response = await http.get('/api/simulations/invitations', {
-    params: { direction, size: PAGE_SIZE },
+    params: { direction, size: INVITATION_PAGE_SIZE_MAX },
   });
   return apiResponseInvitationHistoryPage.parse(response.data).data.content;
 }

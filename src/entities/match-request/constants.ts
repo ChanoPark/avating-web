@@ -9,3 +9,5 @@ export const MATCH_REQUEST_ERROR_GREETING_MAX = '첫 인사는 100자 이내로 
 
 export const REJECT_MESSAGE_MAX = 300;
 export const DEFAULT_REJECT_MESSAGE = '이번에는 함께하기 어려울 것 같아요. 요청해 주셔서 고마워요.';
+
+export const INVITATION_PAGE_SIZE_MAX = 50;

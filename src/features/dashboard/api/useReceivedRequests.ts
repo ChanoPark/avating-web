@@ -1,9 +1,12 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { http } from '@shared/api/http';
-import { apiResponseInvitationHistoryPage, matchRequestKeys } from '@entities/match-request';
+import {
+  apiResponseInvitationHistoryPage,
+  INVITATION_PAGE_SIZE_MAX,
+  matchRequestKeys,
+} from '@entities/match-request';
 import type { InvitationHistoryItem } from '@entities/match-request';
 
-const PAGE_SIZE = 50;
 export const RECEIVED_REQUESTS_VISIBLE_LIMIT = 3;
 
 type ReceivedRequest = {
@@ -21,7 +24,7 @@ type ReceivedRequests = {
 
 async function fetchReceivedPending(): Promise<InvitationHistoryItem[]> {
   const response = await http.get('/api/simulations/invitations', {
-    params: { direction: 'RECEIVED', status: 'PENDING', size: PAGE_SIZE },
+    params: { direction: 'RECEIVED', status: 'PENDING', size: INVITATION_PAGE_SIZE_MAX },
   });
   return apiResponseInvitationHistoryPage.parse(response.data).data.content;
 }
