@@ -16,7 +16,7 @@ export const surveyQuestionSchema = z.object({
 export type SurveyQuestion = z.infer<typeof surveyQuestionSchema>;
 
 export const apiResponseSurveyQuestionsSchema = z.object({
-  data: z.array(surveyQuestionSchema).min(1),
+  data: z.array(surveyQuestionSchema),
 });
 
 export const surveyAnswerRequestSchema = z.object({

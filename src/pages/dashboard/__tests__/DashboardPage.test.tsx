@@ -15,8 +15,8 @@ import {
   setMatchRequestScenario,
 } from '@shared/mocks/handlers/matchRequest';
 import { simCandidatesHandlers } from '@shared/mocks/handlers/avatarCandidates';
+import { invitationHistoryHandlers } from '@shared/mocks/handlers/invitationHistory';
 import { primaryAvatarHandlers } from '@shared/mocks/handlers/primaryAvatar';
-import { inboxScenarios } from '@shared/mocks/handlers/inbox';
 import { AuthGuard } from '@app/providers/AuthGuard';
 import { DashboardPage } from '../DashboardPage';
 
@@ -183,7 +183,7 @@ describe('DashboardPage 통합 시나리오', () => {
       server.use(
         primaryAvatarHandlers.serverError,
         statsHandlers.serverError,
-        inboxScenarios.error,
+        invitationHistoryHandlers.serverError,
         simCandidatesHandlers.serverError
       );
 

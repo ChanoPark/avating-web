@@ -2,8 +2,12 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router';
 import { useForm, type FieldErrors } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { getOnboardingProgress, setOnboardingProgress } from '@entities/onboarding';
+import { ArrowLeft, ArrowRight, ClipboardList } from 'lucide-react';
+import {
+  getOnboardingProgress,
+  setOnboardingMethod,
+  setOnboardingProgress,
+} from '@entities/onboarding';
 import { useOnboardingCompletion } from '@entities/onboarding/api/useOnboardingCompletion';
 import {
   avatarCreateFromSurveyRequestSchema,
@@ -11,6 +15,7 @@ import {
   type SurveyQuestion as SurveyQuestionModel,
 } from '@entities/onboarding/model';
 import { Button } from '@shared/ui/Button/Button';
+import { EmptyState } from '@shared/ui/EmptyState';
 import { useToast } from '@shared/ui/Toast/useToast';
 import { useLoadErrorToast } from '@shared/ui/Toast/useLoadErrorToast';
 import { isApiError } from '@shared/lib/errors';
@@ -143,6 +148,25 @@ export function SurveyStep() {
 
   if (isError || !questions) {
     return <div className={WIZARD_BODY} />;
+  }
+
+  if (questions.length === 0) {
+    return (
+      <div className={WIZARD_BODY}>
+        <EmptyState
+          icon={ClipboardList}
+          title="설문을 준비 중이에요"
+          description="지금은 ChatGPT Bot 과 대화해서 아바타를 만들 수 있어요."
+          action={{
+            label: 'ChatGPT Bot 연동으로 만들기',
+            onClick: () => {
+              setOnboardingMethod('connect');
+              void navigate('/onboarding/connect');
+            },
+          }}
+        />
+      </div>
+    );
   }
 
   const isExpressionsPage = pageIndex === questions.length;

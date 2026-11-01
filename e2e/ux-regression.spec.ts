@@ -32,7 +32,8 @@ test('스켈레톤과 실제 콘텐츠의 높이가 같다 — 로드 완료 시
   await page.addInitScript(() => {
     const send = XMLHttpRequest.prototype.send;
     const open = XMLHttpRequest.prototype.open;
-    const slow = /\/api\/(dashboard\/stats|inbox)/;
+    const slow =
+      /\/api\/(dashboard\/stats|simulations\/invitations\?direction=RECEIVED&status=PENDING)/;
     XMLHttpRequest.prototype.open = function patchedOpen(this: XMLHttpRequest, ...args: unknown[]) {
       (this as unknown as { __url?: string }).__url = String(args[1] ?? '');
       return (open as (...a: unknown[]) => void).apply(this, args);

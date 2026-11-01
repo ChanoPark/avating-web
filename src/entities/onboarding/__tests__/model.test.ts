@@ -154,8 +154,8 @@ describe('apiResponseSurveyQuestionsSchema', () => {
     expect(() => apiResponseSurveyQuestionsSchema.parse({})).toThrow();
   });
 
-  it('data 가 빈 배열이면 throw 한다 (백엔드 빈 응답으로 인한 화면 깨짐 방지)', () => {
-    expect(() => apiResponseSurveyQuestionsSchema.parse({ data: [] })).toThrow();
+  it('data 가 빈 배열이어도 정상 응답으로 파싱한다 — 빈 목록은 로드 실패가 아니다', () => {
+    expect(apiResponseSurveyQuestionsSchema.parse({ data: [] })).toEqual({ data: [] });
   });
 });
 
