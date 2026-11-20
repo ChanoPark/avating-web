@@ -80,6 +80,19 @@ describe('Toast', () => {
     vi.useRealTimers();
   });
 
+  it('durationMs 0 을 주면 error 토스트도 시간이 지나도 사라지지 않는다', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useToast(), { wrapper: wrap });
+    act(() => {
+      result.current.show({ variant: 'error', title: '목록을 불러오지 못했어요', durationMs: 0 });
+    });
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+    expect(screen.getByText('목록을 불러오지 못했어요')).toBeInTheDocument();
+    vi.useRealTimers();
+  });
+
   it('success 토스트는 기본 3초 뒤 사라진다', () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useToast(), { wrapper: wrap });

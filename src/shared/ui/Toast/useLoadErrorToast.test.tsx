@@ -1,6 +1,6 @@
 import { StrictMode } from 'react';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from './Toast';
 import { useLoadErrorToast } from './useLoadErrorToast';
 
@@ -22,6 +22,22 @@ describe('useLoadErrorToast', () => {
     const toast = screen.getByText(TITLE).closest('[role="status"]');
     expect(toast).toHaveClass('bg-danger-tint', 'border-danger-mark');
     expect(screen.getByText('잠시 후 다시 시도해주세요.')).toBeInTheDocument();
+  });
+
+  it('로딩 실패 토스트는 에러 토스트 기본 10초가 지나도 화면에 남는다', () => {
+    vi.useFakeTimers();
+    render(
+      <ToastProvider>
+        <Probe active />
+      </ToastProvider>
+    );
+
+    act(() => {
+      vi.advanceTimersByTime(60_000);
+    });
+
+    expect(screen.getByText(TITLE)).toBeInTheDocument();
+    vi.useRealTimers();
   });
 
   it('active 가 아니면 토스트를 띄우지 않는다', () => {
