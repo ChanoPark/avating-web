@@ -8,7 +8,12 @@ export function useLoadErrorToast(active: boolean, title: string): void {
 
   useEffect(() => {
     if (!active) return;
-    const id = show({ variant: 'error', title, description: LOAD_ERROR_DESCRIPTION });
+    const id = show({
+      variant: 'error',
+      title,
+      description: LOAD_ERROR_DESCRIPTION,
+      durationMs: 0,
+    });
     return () => {
       dismiss(id);
     };

@@ -60,30 +60,36 @@ describe('Toast', () => {
     expect(screen.queryByText('알림 메시지')).not.toBeInTheDocument();
   });
 
-  // 정본 S-11-07 — 에러·주의 토스트는 자동 소멸하지 않는다(닫기 버튼으로만).
-  it('error 토스트는 durationMs 를 주지 않으면 자동으로 사라지지 않는다', () => {
+  it.each([
+    ['error', '요청을 보내지 못했어요'],
+    ['warning', '권한이 없어요'],
+  ] as const)('%s 토스트는 기본 10초 뒤 사라진다', (variant, title) => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {
-      result.current.show({ variant: 'error', title: '요청을 보내지 못했어요' });
+      result.current.show({ variant, title });
     });
     act(() => {
-      vi.advanceTimersByTime(60_000);
+      vi.advanceTimersByTime(9900);
     });
-    expect(screen.getByText('요청을 보내지 못했어요')).toBeInTheDocument();
+    expect(screen.getByText(title)).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(200);
+    });
+    expect(screen.queryByText(title)).not.toBeInTheDocument();
     vi.useRealTimers();
   });
 
-  it('warning 토스트도 자동으로 사라지지 않는다', () => {
+  it('durationMs 0 을 주면 error 토스트도 시간이 지나도 사라지지 않는다', () => {
     vi.useFakeTimers();
     const { result } = renderHook(() => useToast(), { wrapper: wrap });
     act(() => {
-      result.current.show({ variant: 'warning', title: '권한이 없어요' });
+      result.current.show({ variant: 'error', title: '목록을 불러오지 못했어요', durationMs: 0 });
     });
     act(() => {
       vi.advanceTimersByTime(60_000);
     });
-    expect(screen.getByText('권한이 없어요')).toBeInTheDocument();
+    expect(screen.getByText('목록을 불러오지 못했어요')).toBeInTheDocument();
     vi.useRealTimers();
   });
 

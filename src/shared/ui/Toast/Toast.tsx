@@ -35,13 +35,11 @@ function dropOverflow(toasts: Toast[]): Toast[] {
   return toasts.filter((t) => !droppedIds.has(t.id));
 }
 
-// 에러·경고 토스트는 자동으로 사라지지 않는다(S-11-07) — 놓치면 사용자가 실패를 알 방법이
-// 없다. 성공은 3초 유지한다. 호출부가 durationMs 를 명시하면 그 값이 우선한다.
 const DEFAULT_DURATION_MS: Record<ToastVariant, number> = {
   info: 3000,
   success: 3000,
-  warning: 0,
-  error: 0,
+  warning: 10_000,
+  error: 10_000,
 };
 
 function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: (id: string) => void }) {
